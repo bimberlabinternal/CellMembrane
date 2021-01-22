@@ -296,7 +296,8 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
   if (length(seuratObj@reductions$pca@jackstraw$empirical.p.values) == 0) {
     print('Unable to display JackStrawPlot, data not available')
   } else {
-    print(JackStrawPlot(object = seuratObj, dims = 1:20))
+		# To avoid: "Removed 30927 rows containing missing values (geom_point)" warning
+    print(suppressWarnings(JackStrawPlot(object = seuratObj, dims = 1:20)))
   }
 
   print(ElbowPlot(object = seuratObj))
@@ -389,8 +390,8 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
   seuratObj <- FindNeighbors(object = seuratObj, dims = dimsToUse, verbose = FALSE)
 
   for (resolution in clusterResolutions){
-    seuratObj <- FindClusters(object = seuratObj, resolution = resolution)
-    seuratObj[[paste0("ClusterNames_", resolution)]] <- Idents(object = seuratObj, verbose = F)
+    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE)
+    seuratObj[[paste0("ClusterNames_", resolution)]] <- Idents(object = seuratObj)
   }
 
   perplexity <- .InferPerplexityFromSeuratObj(seuratObj, perplexity = tsne.perplexity)
@@ -402,7 +403,7 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
                    min.dist = umap.min.dist,
                    metric = "correlation",
                    umap.method = umap.method,
-                   seed.use = umap.seed, n.epochs = umap.n.epochs)
+                   seed.use = umap.seed, n.epochs = umap.n.epochs, verbose = FALSE)
 
   for (reduction in c('tsne', 'umap')){
     plotLS <- list()
@@ -438,7 +439,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 		# Allow resolution to be passed directly:
 		if (!(fieldName %in% names(seuratObj@meta.data))) {
   		toTest <- paste0('ClusterNames_', fieldName)
-			if (!(toTest %in% names(seuratObj@meta.data))) {
+			if (toTest %in% names(seuratObj@meta.data)) {
   			fieldName <- toTest
 			}
 		}

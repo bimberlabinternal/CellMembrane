@@ -34,6 +34,7 @@ test_that("Serat processing works as expected", {
   expect_equal(tbl[['G1']], 241)
   expect_equal(tbl[['G2M']], 98)
   expect_equal(tbl[['S']], 146)
+  expect_equal(ncol(seuratObj), 485)
   
   vgFile <- 'variableGenes.txt'
   seuratObj <- RunPcaSteps(seuratObj, variableGeneTable = vgFile)
@@ -59,12 +60,10 @@ test_that("Serat processing works as expected", {
 
   biomaRt::biomartCacheClear()
   mf <- paste0(outPrefix, '.markers.txt')
-  md <- paste0(outPrefix, '.markers.rds')
-  Find_Markers(seuratObj, identFields = c(resolutionToUse), outFile = mf, saveFileMarkers = md, testsToUse = c('wilcox', 't'))
+  Find_Markers(seuratObj, identFields = c(resolutionToUse), outFile = mf, testsToUse = c('wilcox', 't'))
 
   expect_equal(nrow(utils::read.table(mf, sep = '\t', header = T)), 201, tolerance = 40)
 
-  unlink(md)
   unlink(mf)
 
   sf <- paste0(outPrefix, '.summary.txt')

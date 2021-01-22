@@ -1,5 +1,5 @@
 utils::globalVariables(
-  names = c('Var1', 'value'),
+  names = c('Var1', 'value', 'Fraction'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -146,22 +146,24 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
       if (!is.null(minFraction)){
         for (label in c(fn, fn2)) {
-          l <- unlist(seuratObj[[label]])
-          names(l) <- colnames(seuratObj)
-
           print(paste0('Filtering ', label, ' below: ', minFraction))
           d <- data.frame(table(Label = l))
           names(d) <- c('Label', 'Count')
-          print(d)
+          d$Fraction <- d$Count / sum(d$Count)
 
-          d <- d / sum(d)
-          toRemove <- names(d)[d < minFraction]
+          d <- d %>% arrange(desc(Fraction))
+          print(d)
+          toRemove <- d$Label[d$Fraction < minFraction]
           if (length(toRemove) > 0) {
             print(paste0('Will remove: ', paste0(toRemove, collapse = ', ')))
           }
 
-          l[l %in% toRemove] <- 'Unknown'
-          seuratObj[[label]] <- l
+          if (length(toRemove) > 0) {
+            l <- unlist(seuratObj[[label]])
+            names(l) <- colnames(seuratObj)
+            l[l %in% toRemove] <- 'Unknown'
+            seuratObj[[label]] <- l
+          }
 
           print('After filter:')
           l <- unlist(seuratObj[[label]])
