@@ -84,11 +84,10 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
     tryCatch({
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
-      pred.results$labels[is.na(pred.results$pruned.labels)] <- 'Unknown'
       if (!is.null(rawDataFile)){
         toBind <- data.frame(cellbarcode = rownames(pred.results), classification_type = 'Main', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
         if (is.null(completeRawData)) {
-          completeRawData <- pred.results
+          completeRawData <- toBind
         } else {
           completeRawData <- rbind(completeRawData, toBind)
         }
@@ -107,18 +106,18 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         stop('Cell barcodes did not match for all results')
       }
 
-      toAdd <- pred.results$labels
+      toAdd <- pred.results$pruned.labels
+      toAdd[is.na(toAdd)] <- 'Unknown'
       names(toAdd) <- rownames(pred.results)
       fn <- paste0(dataset, '.label')
       allFields <- c(allFields, fn)
       seuratObj[[fn]] <- toAdd
 
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, assay.type.ref = refAssay))
-      pred.results$labels[is.na(pred.results$pruned.labels)] <- 'Unknown'
       if (!is.null(rawDataFile)){
         toBind <- data.frame(cellbarcode = rownames(pred.results), classification_type = 'Fine', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
         if (is.null(completeRawData)) {
-          completeRawData <- pred.results
+          completeRawData <- toBind
         } else {
           completeRawData <- rbind(completeRawData, toBind)
         }
@@ -164,7 +163,8 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         print(SingleR::plotScoreHeatmap(pred.results, cells.use = cells.use))
       }
 
-      toAdd <- pred.results$labels
+      toAdd <- pred.results$pruned.labels
+      toAdd[is.na(toAdd)] <- 'Unknown'
       names(toAdd) <- rownames(pred.results)
 
       fn2 <- paste0(dataset, '.label.fine')
