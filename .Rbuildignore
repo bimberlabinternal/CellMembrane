@@ -1,0 +1,12 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.git*
+^\.idea*
+^CellMembrane.iml$
+^CellMembrane.*\.tar\.gz$
+^CellMembrane.*\.zip$
+^\.github$
+.dockerignore
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

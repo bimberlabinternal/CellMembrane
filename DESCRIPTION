@@ -1,0 +1,64 @@
+Package: CellMembrane
+Type: Package
+Title: A package with high-level wrappers and pipelines for single-cell RNA-seq tools
+Version: 0.0.1
+Author: Bimber Lab
+Maintainer: The package maintainer <bimber@ohsu.edu>
+Description: The goal of this package is to provide high-level wrappers and pipelines to process single-cell RNA-seq data
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 4.0.0)
+Imports:
+    Seurat,
+    dplyr,
+    tidyr,
+    naturalsort,
+    Matrix,
+    ggplot2,
+    forcats,
+    egg,
+    patchwork,
+    scales,
+    grDevices,
+    utils,
+    stats,
+    RColorBrewer,
+    reshape2,
+    rmarkdown,
+    rmdformats,
+    DropletUtils,
+    cowplot,
+    fitdistrplus,
+    reticulate,
+    SingleR,
+    DESeq2,
+    MAST,
+    Rtsne,
+    SummarizedExperiment,
+    scDblFinder,
+    kableExtra (>= 1.2.0),
+    celldex
+Suggests:
+    devtools,
+    testthat (>= 2.1.0)
+RoxygenNote: 7.1.1
+URL: https://github.com/BimberLab/CellMembrane
+BugReports: https://github.com/BimberLab/CellMembrane/issues
+Remotes:
+    bioc::release/DropletUtils
+    bioc::release/DESeq2,
+    bioc::release/MAST,
+    bioc::release/celldex,
+    bioc::release/SingleR,
+    bioc::release/SummarizedExperiment
+Collate: 
+    'Doublets.R'
+    'Phenotyping.R'
+    'Preprocessing.R'
+    'SeuratUtils.R'
+    'Utils.R'
+    'Seurat_III.R'
+    'SingleR_Seurat.R'
+    'data.R'
