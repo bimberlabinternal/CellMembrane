@@ -266,17 +266,18 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
 
 .PrintSeuratPlots <- function(seuratObj) {
   print(VizDimLoadings(object = seuratObj, dims = 1:2))
-  print(LabelPoints(plot = VariableFeaturePlot(seuratObj), points = head(VariableFeatures(seuratObj), 20), repel = TRUE, xnudge = 0, ynudge = 0))
+  print(suppressWarnings(LabelPoints(plot = VariableFeaturePlot(seuratObj), points = head(VariableFeatures(seuratObj), 20), repel = TRUE, xnudge = 0, ynudge = 0)))
 
   print(DimPlot(object = seuratObj))
   if (('Phase' %in% names(seuratObj@meta.data))) {
-    print(
+		#Note: some cells might lack phase, so suppressWarnings
+		suppressWarnings(print(
       DimPlot(object = seuratObj, reduction = "pca", dims = c(1, 2), group.by = 'Phase') +
       DimPlot(object = seuratObj, reduction = "pca", dims = c(2, 3), group.by = 'Phase') +
       DimPlot(object = seuratObj, reduction = "pca", dims = c(3, 4), group.by = 'Phase') +
       DimPlot(object = seuratObj, reduction = "pca", dims = c(4, 5), group.by = 'Phase') +
       patchwork::plot_layout(ncol = 2)
-    )
+    ))
   }
 
 	totalCells <- min(500, ncol(seuratObj))

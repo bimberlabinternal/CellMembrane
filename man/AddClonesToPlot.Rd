@@ -17,6 +17,14 @@ AddClonesToPlot(
 \item{seuratObj}{The seurat object}
 
 \item{plot}{The plot object, such as the result from FeaturePlot()}
+
+\item{fieldName}{The name of the field on the seurat object holding cloneName}
+
+\item{colorField}{If provided, this field will be used}
+
+\item{dotColor}{An optional string passed to geom_point. Ignored if colorField is provided.}
+
+\item{pt.size}{The size, passed to geom_point}
 }
 \description{
 Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes

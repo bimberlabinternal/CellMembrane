@@ -1,6 +1,8 @@
 context("scRNAseq")
 
 test_that("Seurat-merge works as expected", {
+  set.seed(1234)
+
   data <- list(
     'Set1' = '../testdata/CellRanger2/raw_gene_bc_matrices/cellRanger-3204293',
     'Set2' = '../testdata/CellRanger3/raw_feature_bc_matrix'

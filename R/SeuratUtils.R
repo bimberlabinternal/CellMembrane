@@ -138,10 +138,10 @@ GetXYDataFromPlot <- function(plot, cellNames) {
 #' @description Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes
 #' @param seuratObj The seurat object
 #' @param plot The plot object, such as the result from FeaturePlot()
-# '@param fieldName The name of the field on the seurat object holding cloneName
-# '@param colorField If provided, this field will be used
-# '@param dotColor
-# '@param pt.size
+#' @param fieldName The name of the field on the seurat object holding cloneName
+#' @param colorField If provided, this field will be used
+#' @param dotColor An optional string passed to geom_point. Ignored if colorField is provided.
+#' @param pt.size The size, passed to geom_point
 #' @export
 #' @import ggplot2
 AddClonesToPlot <- function(seuratObj, plot, fieldName = 'CloneNames', colorField = NA, dotColor = NA, pt.size = 1) {
@@ -155,18 +155,18 @@ AddClonesToPlot <- function(seuratObj, plot, fieldName = 'CloneNames', colorFiel
 		plot.data$CloneColor <- naturalsort::naturalfactor(seuratObj[[colorField]][sel])
 
 		plot <- plot + geom_point(
-		mapping = aes_string(x = 'x', y = 'y', shape = 'CloneName', color = 'CloneColor'),
-		data = plot.data,
-		size = pt.size,
-		inherit.aes = F
+			mapping = aes_string(x = 'x', y = 'y', shape = 'CloneName', color = 'CloneColor'),
+			data = plot.data,
+			size = pt.size,
+			inherit.aes = F
 		)
 	} else {
 		plot <- plot + geom_point(
-		mapping = aes_string(x = 'x', y = 'y', shape = 'CloneName'),
-		data = plot.data,
-		size = pt.size,
-		inherit.aes = F,
-		color = dotColor
+			mapping = aes_string(x = 'x', y = 'y', shape = 'CloneName'),
+			data = plot.data,
+			size = pt.size,
+			inherit.aes = F,
+			color = dotColor
 		)
 	}
 

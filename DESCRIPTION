@@ -17,24 +17,21 @@ Imports:
     Matrix,
     ggplot2,
     patchwork,
-    scales,
     utils,
     stats,
     reshape2,
-    rmarkdown,
-    rmdformats,
     DropletUtils,
-    reticulate,
     SingleR,
     DESeq2,
     MAST,
-    Rtsne,
     SummarizedExperiment,
     scDblFinder,
+    pheatmap,
     celldex,
     methods,
     egg,
-    scater
+    scater,
+    DT
 Suggests:
     devtools,
     testthat (>= 2.1.0)

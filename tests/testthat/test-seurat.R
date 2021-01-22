@@ -1,6 +1,8 @@
 context("scRNAseq")
 
 test_that("Serat processing works as expected", {
+  set.seed(1234)
+
   outDir <- './'
   outPrefix <- paste0(outDir, 'testData')
   resolutionToUse <- 0.6

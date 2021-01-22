@@ -16,6 +16,7 @@ utils::globalVariables(
 #' @param showHeatmap If true, heatmaps will be generated showing the SingleR calls
 #' @param maxCellsForHeatmap The heatmap will only be plotted if the total cells is below this number
 #' @return The modified seurat object
+#' @importFrom pheatmap pheatmap
 #' @import Seurat
 #' @import SingleR
 #' @export
@@ -151,7 +152,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
           names(d) <- c('Label', 'Count')
           d$Fraction <- d$Count / sum(d$Count)
 
-          d <- d %>% arrange(desc(Fraction))
+          d <- d %>% dplyr::arrange(dplyr::desc(Fraction))
           print(d)
           toRemove <- d$Label[d$Fraction < minFraction]
           if (length(toRemove) > 0) {

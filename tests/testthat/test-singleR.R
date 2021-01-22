@@ -1,6 +1,8 @@
 context("scRNAseq")
 
 test_that("SingleR works as expected", {
+    set.seed(1234)
+
     seuratObj <- readRDS('../testdata/seuratOutput.rds')
 
     results <- 'singleR.txt'
