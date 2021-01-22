@@ -15,6 +15,8 @@ FilterRawCounts(
 )
 }
 \arguments{
+\item{seuratObj}{A Seurat object.}
+
 \item{nCount_RNA.high}{Cells with nCount_RNA greater than this value will be filtered}
 
 \item{nCount_RNA.low}{Cells with nCount_RNA less than this value will be filtered}

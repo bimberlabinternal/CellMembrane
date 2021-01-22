@@ -13,7 +13,7 @@ RunPcaSteps(
 )
 }
 \arguments{
-\item{seuratObj, }{A Seurat object.}
+\item{seuratObj}{A Seurat object.}
 
 \item{variableGenesWhitelist}{An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()}
 

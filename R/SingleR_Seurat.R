@@ -1,3 +1,9 @@
+utils::globalVariables(
+  names = c('Var1', 'value'),
+  package = 'CellMembrane',
+  add = TRUE
+)
+
 #' @title Run SingleR For A Seurat Object
 #'
 #' @description Compute SingleR classification on a Seurat object

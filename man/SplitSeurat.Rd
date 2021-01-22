@@ -10,8 +10,6 @@ SplitSeurat(seuratObj, splitField)
 \item{seuratObj}{The seurat object}
 
 \item{splitField}{The name of the field on which to split the object}
-
-\item{seed}{The random seed}
 }
 \description{
 Split a seurat object, dividing into new objects based on the value of a field

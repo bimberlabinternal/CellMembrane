@@ -1,3 +1,8 @@
+utils::globalVariables(
+	names = c('x', 'y'),
+	package = 'CellMembrane',
+	add = TRUE
+)
 
 
 
@@ -9,19 +14,20 @@
 #' @param minFeatures, Include cells where at least this many features are detected.
 #' @param minCells, Include features detected in at least this many cells.
 #' @param mitoGenesPattern The expression to use when identfying mitochondrial genes
+#' @param gtfFile Ths optional GTF file used to create these data. If provided, it will be scanned for genes from the MT contig, and used to compute p.mito
 #' @return A Seurat object with p.mito calculated.
 #' @export
 #' @importFrom Matrix colSums
-CreateSeuratObj <- function(seuratData, project, minFeatures = 25, minCells = 0, mitoGenesPattern = "^MT-", gtfFile = NA){
+CreateSeuratObj <- function(seuratData, project, minFeatures = 25, minCells = 0, mitoGenesPattern = "^MT-", gtfFile = NULL){
 	seuratObj <- Seurat::CreateSeuratObject(counts = seuratData, min.cells = minCells, min.features = minFeatures, project = project)
 	seuratObj<- AnnotateMitoGenes(seuratObj, mitoGenesPattern = mitoGenesPattern, gtfFile = gtfFile)
 
 	return(seuratObj)
 }
 
-AnnotateMitoGenes <- function(seuratObj, mitoGenesPattern = "^MT-", gtfFile = NA, mitoContigName = 'MT') {
+AnnotateMitoGenes <- function(seuratObj, mitoGenesPattern = "^MT-", gtfFile = NULL, mitoContigName = 'MT') {
 	mito.features <- NULL
-	if (is.na(gtfFile)) {
+	if (is.null(gtfFile)) {
 		mito.features <- grep(pattern = mitoGenesPattern, x = rownames(x = seuratObj), value = TRUE)
 	} else {
 		mito.features <- .InferMitoFeaturesFromGtf(gtfFile = gtfFile, mitoContigName = mitoContigName)
@@ -41,7 +47,7 @@ AnnotateMitoGenes <- function(seuratObj, mitoGenesPattern = "^MT-", gtfFile = NA
 	return(seuratObj)
 }
 
-.InferMitoFeaturesFromGtf <- function(gtfFile = gtfFile, mitoContigName = mitoContigName) {
+.InferMitoFeaturesFromGtf <- function(gtfFile, mitoContigName = mitoContigName) {
 	print(paste0('Parsing GTF file for contig: ', mitoContigName))
 
 	gtfDf <- read.table(gtfFile, sep = '\t', comment.char = '#', stringsAsFactors = FALSE)

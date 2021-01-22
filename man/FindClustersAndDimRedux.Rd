@@ -19,13 +19,21 @@ FindClustersAndDimRedux(
 )
 }
 \arguments{
-\item{seuratObj, }{A Seurat object.}
+\item{seuratObj}{A Seurat object.}
 
 \item{dimsToUse}{The number of dims to use.  If null, this will be inferred using FindSeuratElbow()}
 
 \item{minDimsToUse}{The minimum numbers of dims to use.  If dimsToUse is provided, this will override.}
 
 \item{umap.method}{The UMAP method, either uwot or umap-learn, passed directly to Seurat::RunUMAP}
+
+\item{umap.n.neighbors}{Passed directly to Seurat::RunUMAP}
+
+\item{umap.min.dist}{Passed directly to Seurat::RunUMAP}
+
+\item{umap.seed}{Passed directly to Seurat::RunUMAP}
+
+\item{umap.n.epochs}{Passed directly to Seurat::RunUMAP}
 
 \item{max.tsne.iter}{The value of max_iter to provide to RunTSNE.  Increasing can help large datasets.}
 

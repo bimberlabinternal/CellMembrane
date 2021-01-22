@@ -1,3 +1,9 @@
+utils::globalVariables(
+	names = c('subsetField'),
+	package = 'CellMembrane',
+	add = TRUE
+)
+
 .CheckDuplicatedCellNames <- function(object.list, stop = TRUE){
 	cell.names <- unlist(
 	x = sapply(
@@ -54,7 +60,6 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetField = NULL, seed = 
 #' @description Split a seurat object, dividing into new objects based on the value of a field
 #' @param seuratObj The seurat object
 #' @param splitField The name of the field on which to split the object
-#' @param seed The random seed
 #' @export
 SplitSeurat <- function(seuratObj, splitField) {
 	if (!(subsetField %in% names(seuratObj@meta.data))) {
@@ -66,7 +71,7 @@ SplitSeurat <- function(seuratObj, splitField) {
 	ret <- list()
 	for (value in values) {
 		expr <- parse(text = paste0(splitField, " == '", value, "'"))
-		ret[value] <- seuratObj[, Seurat::WhiteCells(object = seuratObj, expression = expr)]
+		ret[value] <- seuratObj[, Seurat::WhichCells(object = seuratObj, expression = expr)]
 	}
 
 	return (ret)
@@ -89,7 +94,7 @@ SubsetSeurat <- function(seuratObj, expressions) {
 
 #' @title WriteSummaryMetrics
 #' @export
-#' @param seuratObj, A Seurat object.
+#' @param seuratObj A Seurat object.
 #' @param file The file where metrics will be written
 WriteSummaryMetrics <- function(seuratObj, file) {
 	df <- data.frame(Category = "Seurat", MetricName = "TotalCells", Value = ncol(seuratObj))

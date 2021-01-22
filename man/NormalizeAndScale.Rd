@@ -13,7 +13,7 @@ NormalizeAndScale(
 )
 }
 \arguments{
-\item{seuratObj, }{A Seurat object.}
+\item{seuratObj}{A Seurat object.}
 
 \item{variableFeatureSelectionMethod}{The selection method to be passed to FindVariableFeatures()}
 

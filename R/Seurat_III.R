@@ -3,7 +3,7 @@
 #' @import Seurat
 
 utils::globalVariables(
-  names = c('nCount_RNA', 'nFeature_RNA', 'p.mito'),
+  names = c('nCount_RNA', 'nFeature_RNA', 'p.mito', 'x', 'y', 'p_val_adj', 'avg_logFC', 'groupField', 'cluster'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -127,7 +127,7 @@ MergeSeuratObjs <- function(seuratObjs, projectName, assay = NULL, normalization
 #' @title Run the primary seurat processing steps.
 #'
 #' @description This is the primary entry point for processing scRNAseq data with Seurat
-#' @param seuratObj, A Seurat object.
+#' @param seuratObj A Seurat object.
 #' @param variableFeatureSelectionMethod The selection method to be passed to FindVariableFeatures()
 #' @param nVariableFeatures The number of variable features to find
 #' @param dispersion.cutoff Passed directly to FindVariableFeatures
@@ -160,7 +160,7 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 
 #' @title Run Seurat PCA
 #'
-#' @param seuratObj, A Seurat object.
+#' @param seuratObj A Seurat object.
 #' @param variableGenesWhitelist An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()
 #' @param variableGenesBlacklist An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()
 #' @param npcs Number of PCs to use for RunPCA()
@@ -193,11 +193,7 @@ RunPcaSteps <- function(seuratObj, variableGenesWhitelist = NULL, variableGenesB
   seuratObj <- JackStraw(object = seuratObj, num.replicate = 100, verbose = F)
   seuratObj <- ScoreJackStraw(object = seuratObj, dims = 1:20)
   
-  if (printDefaultPlots){
-    .PrintSeuratPlots(seuratObj)
-  }
-
-  print(seuratObj)
+	.PrintSeuratPlots(seuratObj)
 
   return(seuratObj)
 }
@@ -206,6 +202,7 @@ RunPcaSteps <- function(seuratObj, variableGenesWhitelist = NULL, variableGenesB
 #' @title Perform Cell Filtering on the cells of the seurat object
 #'
 #' @description This will perform filtering on the cells of the seurat object
+#' @param seuratObj A Seurat object.
 #' @param nCount_RNA.high Cells with nCount_RNA greater than this value will be filtered
 #' @param nCount_RNA.low Cells with nCount_RNA less than this value will be filtered
 #' @param nFeature.high Cells with nFeature greater than this value will be filtered
@@ -355,10 +352,14 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10) {
 
 
 #' @title Find Clusters And Perform DimRedux
-#' @param seuratObj, A Seurat object.
+#' @param seuratObj A Seurat object.
 #' @param dimsToUse The number of dims to use.  If null, this will be inferred using FindSeuratElbow()
 #' @param minDimsToUse The minimum numbers of dims to use.  If dimsToUse is provided, this will override.
 #' @param umap.method The UMAP method, either uwot or umap-learn, passed directly to Seurat::RunUMAP
+#' @param umap.n.neighbors Passed directly to Seurat::RunUMAP
+#' @param umap.min.dist Passed directly to Seurat::RunUMAP
+#' @param umap.seed Passed directly to Seurat::RunUMAP
+#' @param umap.n.epochs Passed directly to Seurat::RunUMAP
 #' @param max.tsne.iter The value of max_iter to provide to RunTSNE.  Increasing can help large datasets.
 #' @param tsne.perplexity tSNE perplexity. Passed directly to Seurat::RunTSNE(), but CellMembrane:::.InferPerplexityFromSeuratObj() corrects it if need be based dataset dims.
 #' @param clusterResolutions A vector of clustering resolutions, default is (0.2, 0.4, 0.6, 0.8, 1.2).
@@ -496,8 +497,8 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 			}, error = function(e){
 				print(paste0('Error running test: ', test))
 				print(e)
-				print(str(tMarkers))
-				print(str(seuratObj.markers))
+				print(utils::str(tMarkers))
+				print(utils::str(seuratObj.markers))
 			})
 
 			if (all(is.na(seuratObj.markers))) {
