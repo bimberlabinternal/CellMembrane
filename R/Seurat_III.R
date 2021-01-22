@@ -284,12 +284,13 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
     )
   }
 
-  print(DimHeatmap(object = seuratObj, dims = 1, cells = 500, balanced = TRUE, fast = F) + NoLegend())
+	totalCells <- max(500, ncol(seuratObj))
+  print(DimHeatmap(object = seuratObj, dims = 1, cells = totalCells, balanced = TRUE, fast = F) + NoLegend())
   
   tryCatch({
-    print(DimHeatmap(object = seuratObj, dims = 1:20, cells = 500, balanced = TRUE, fast = F) + NoLegend())
+    print(DimHeatmap(object = seuratObj, dims = 1:20, cells = totalCells, balanced = TRUE, fast = F) + NoLegend())
   }, error = function(){
-    try(print(DimHeatmap(object = seuratObj, dims = 1:6, cells = 500, balanced = TRUE, fast = F) + NoLegend()), silent = T)
+    try(print(DimHeatmap(object = seuratObj, dims = 1:6, cells = totalCells, balanced = TRUE, fast = F) + NoLegend()), silent = T)
   })
 
   if (length(seuratObj@reductions$pca@jackstraw$empirical.p.values) == 0) {
@@ -408,7 +409,7 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
     i <- 0
     for (res in as.character(clusterResolutions)){
       i <- i + 1
-      plotLS[[i]] <- DimPlot(object = seuratObj, reduction = reduction, group.by = paste0("ClusterNames_", res), label = TRUE) + patchwork::plot_annotation(title = paste0("Resolution: ", res))
+      plotLS[[i]] <- suppressWarnings(DimPlot(object = seuratObj, reduction = reduction, group.by = paste0("ClusterNames_", res), label = TRUE)) + patchwork::plot_annotation(title = paste0("Resolution: ", res))
 
     }
     print(patchwork::wrap_plots(plotLS))

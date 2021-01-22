@@ -30,6 +30,10 @@ test_that("Serat processing works as expected", {
   seuratObj <- NormalizeAndScale(seuratObj)
   
   seuratObj <- RemoveCellCycle(seuratObj)
+  tbl <- table(seuratObj$Phase)
+  expect_equal(tbl[['G1']], 241)
+  expect_equal(tbl[['G2M']], 98)
+  expect_equal(tbl[['S']], 146)
   
   vgFile <- 'variableGenes.txt'
   seuratObj <- RunPcaSteps(seuratObj, variableGeneTable = vgFile)

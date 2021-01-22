@@ -33,6 +33,7 @@ Imports:
     scDblFinder,
     celldex,
     methods,
+    egg,
     scater
 Suggests:
     devtools,

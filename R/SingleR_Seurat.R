@@ -39,6 +39,8 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
   }
 
   allFields <- c()
+  completeRawData <- NULL
+
   for (dataset in datasets) {
     print(paste0('Adding dataset: ', dataset))
     if (dataset == 'hpca'){
@@ -63,7 +65,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     seuratObjSubset <- subset(seuratObj, features = genesPresent)
 
     Seurat::DefaultAssay(seuratObjSubset) <- assay
-    print(paste0('Total genes shared with reference data: ', length(genesPresent)))
+    print(paste0('Total genes shared with reference data: ', length(genesPresent), ' of ', nrow(seuratObj)))
 
     if (length(genesPresent) < 100) {
       print(paste0('Too few shared genes, skipping: ', length(genesPresent)))
@@ -80,19 +82,15 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       refAssay <- 'normcounts'
     }
 
-    completeRawData <- NULL
-
     tryCatch({
-      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, method = 'single', assay.type.ref = refAssay))
-      pred.results$labels[is.na(pred.results$labels)] <- 'Unknown'
+      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
+      pred.results$labels[is.na(pred.results$pruned.labels)] <- 'Unknown'
       if (!is.null(rawDataFile)){
-        pred.results$cellbarcode <- rownames(pred.results)
-        pred.results$type <- 'Main'
-        pred.results$dataset <- dataset
+        toBind <- data.frame(cellbarcode = rownames(pred.results), classification_type = 'Main', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
         if (is.null(completeRawData)) {
           completeRawData <- pred.results
         } else {
-          completeRawData <- rbind(completeRawData, pred.results)
+          completeRawData <- rbind(completeRawData, toBind)
         }
       }
 
@@ -115,16 +113,45 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       allFields <- c(allFields, fn)
       seuratObj[[fn]] <- toAdd
 
-      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, method = 'single', assay.type.ref = refAssay))
-      pred.results$labels[is.na(pred.results$labels)] <- 'Unknown'
+      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, assay.type.ref = refAssay))
+      pred.results$labels[is.na(pred.results$pruned.labels)] <- 'Unknown'
       if (!is.null(rawDataFile)){
-        pred.results$cellbarcode <- rownames(pred.results)
-        pred.results$type <- 'Fine'
-        pred.results$dataset <- dataset
+        toBind <- data.frame(cellbarcode = rownames(pred.results), classification_type = 'Fine', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
         if (is.null(completeRawData)) {
           completeRawData <- pred.results
         } else {
-          completeRawData <- rbind(completeRawData, pred.results)
+          completeRawData <- rbind(completeRawData, toBind)
+        }
+      }
+
+      if (sum(colnames(seuratObj) != rownames(pred.results)) > 0) {
+        stop('Cell barcodes did not match for all results')
+      }
+
+      if (!is.null(minFraction)){
+        for (label in c(fn, fn2)) {
+          l <- unlist(seuratObj[[label]])
+          names(l) <- colnames(seuratObj)
+
+          print(paste0('Filtering ', label, ' below: ', minFraction))
+          d <- data.frame(table(Label = l))
+          names(d) <- c('Label', 'Count')
+          print(d)
+
+          d <- d / sum(d)
+          toRemove <- names(d)[d < minFraction]
+          if (length(toRemove) > 0) {
+            print(paste0('Will remove: ', paste0(toRemove, collapse = ', ')))
+          }
+
+          l[l %in% toRemove] <- 'Unknown'
+          seuratObj[[label]] <- l
+
+          print('After filter:')
+          l <- unlist(seuratObj[[label]])
+          d <- data.frame(table(Label = l))
+          names(d) <- c('Label', 'Count')
+          print(d)
         }
       }
 
@@ -137,10 +164,6 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         print(SingleR::plotScoreHeatmap(pred.results, cells.use = cells.use))
       }
 
-      if (sum(colnames(seuratObj) != rownames(pred.results)) > 0) {
-        stop('Cell barcodes did not match for all results')
-      }
-
       toAdd <- pred.results$labels
       names(toAdd) <- rownames(pred.results)
 
@@ -149,6 +172,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       seuratObj[[fn2]] <- toAdd
     }, error = function(e){
       print(paste0('Error running singleR for dataset: ', dataset))
+      print(conditionMessage(e))
     })
 
     #sanity check:
@@ -158,33 +182,6 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
     if (!is.null(rawDataFile)) {
       write.table(completeRawData, file = rawDataFile, sep = '\t', row.names = FALSE)
-    }
-
-    if (!is.null(minFraction)){
-      for (label in c(fn, fn2)) {
-        l <- unlist(seuratObj[[label]])
-        names(l) <- colnames(seuratObj)
-
-        print(paste0('Filtering ', label, ' below: ', minFraction))
-        d <- data.frame(table(Label = l))
-        names(d) <- c('Label', 'Count')
-        print(d)
-
-        d <- d / sum(d)
-        toRemove <- names(d)[d < minFraction]
-        if (length(toRemove) > 0) {
-            print(paste0('Will remove: ', paste0(toRemove, collapse = ', ')))
-        }
-
-        l[l %in% toRemove] <- 'Unknown'
-        seuratObj[[label]] <- l
-
-        print('After filter:')
-        l <- unlist(seuratObj[[label]])
-        d <- data.frame(table(Label = l))
-        names(d) <- c('Label', 'Count')
-        print(d)
-      }
     }
   }
 

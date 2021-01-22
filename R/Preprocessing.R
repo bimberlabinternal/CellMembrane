@@ -104,9 +104,10 @@ AnnotateMitoGenes <- function(seuratObj, mitoGenesPattern = "^MT-", gtfFile = NU
 		sum(nUMI >= x)
 	}))
 
-	print(ggplot(data.frame(x = log(countAbove), y = log(nUMI)), aes(x = x, y = y) +
-		geom_point() + ylab("UMI/Cell"), xlab("# Cells")
-	))
+	print(ggplot(data.frame(x = log(countAbove), y = log(nUMI)), aes(x = x, y = y)) +
+		geom_point() + ylab("UMI/Cell") + xlab("# Cells") +
+		egg::theme_presentation()
+	)
 }
 
 
@@ -128,9 +129,7 @@ PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.01, empty
 	lines(br.out$rank[o], br.out$fitted[o], col="red")
 	abline(h=br.out$knee, col="dodgerblue", lty=2)
 	abline(h=br.out$inflection, col="forestgreen", lty=2)
-	legend("bottomleft", lty=2, col=c("dodgerblue", "forestgreen"),
-		legend=c("knee", "inflection")
-	)
+	legend("bottomleft", lty=2, col=c("dodgerblue", "forestgreen"), legend=c("knee", "inflection"))
 
 	e.out <- PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower)
 
