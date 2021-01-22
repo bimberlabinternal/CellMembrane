@@ -4,12 +4,12 @@ test_that("SingleR works as expected", {
     seuratObj <- readRDS('../testdata/seuratOutput.rds')
 
     results <- 'singleR.txt'
-    singleRPrefix <- 'singleR.results'
+    rawDataFile <- 'singleR.results.txt'
 
     nGene <- nrow(seuratObj)
     nCell <- ncol(seuratObj)
     datasets <- c('hpca', 'blueprint', 'dice', 'monaco')
-    seuratObj <- RunSingleR(seuratObj = seuratObj, resultTableFile = results, singlerSavePrefix = singleRPrefix, datasets = datasets)
+    seuratObj <- RunSingleR(seuratObj = seuratObj, resultTableFile = results, rawDataFile = rawDataFile, datasets = datasets)
     nGene2 <- nrow(seuratObj)
     nCell2 <- ncol(seuratObj)
 
@@ -19,15 +19,11 @@ test_that("SingleR works as expected", {
     print(table(seuratObj$hpca.label))
     print(table(seuratObj$hpca.label.fine))
 
-    for (dataset in datasets) {
-		sr1 <- paste0(singleRPrefix, '.',dataset,'.singleR.rds')
-		expect_true(file.exists(sr1))
-		unlink(sr1)
-
-		sr2 <- paste0(singleRPrefix, '.',dataset,'.singleR.fine.rds')
-		expect_true(file.exists(sr2))
-		unlink(sr2)
-    }
+    allData <- read.table(rawDataFile, header = T, sep = '\t')
+    print(nrow(allData))
+    
+    #TODO:
+    #unlink(rawDataFile)
 
     expect_equal(100, sum(seuratObj$hpca.label == 'NK_cell'))
     expect_equal(1435, sum(seuratObj$hpca.label == 'T_cells'))

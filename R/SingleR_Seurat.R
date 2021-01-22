@@ -5,7 +5,7 @@
 #' @param datasets One or more datasets to use as a reference. Allowable values are: hpca, blueprint, dice, monaco, and immgen. See cellDex package for available datasets.
 #' @param assay The assay in the seurat object to use
 #' @param resultTableFile If provided, a table of results will be saved here
-#' @param singlerSavePrefix If provided, the SingleR results will be saved to RDS here
+#' @param rawDataFile If provided, the complete SingleR results will be saved to this file
 #' @param minFraction If provided, any labels present with fraction of this or fewer across cells will be converted to Unknown
 #' @param showHeatmap If true, heatmaps will be generated showing the SingleR calls
 #' @param maxCellsForHeatmap The heatmap will only be plotted if the total cells is below this number
@@ -14,7 +14,7 @@
 #' @import SingleR
 #' @export
 #' @importFrom scater logNormCounts
-RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco'), assay = NULL, resultTableFile = NULL, singlerSavePrefix = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000){
+RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco'), assay = NULL, resultTableFile = NULL, rawDataFile = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000){
   if (is.null(seuratObj)){
       stop("Seurat object is required")
   }
@@ -74,12 +74,20 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       refAssay <- 'normcounts'
     }
 
+    completeRawData <- NULL
+
     tryCatch({
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, method = 'single', assay.type.ref = refAssay))
       pred.results$labels[is.na(pred.results$labels)] <- 'Unknown'
-      if (!is.null(singlerSavePrefix)){
+      if (!is.null(rawDataFile)){
         pred.results$cellbarcode <- rownames(pred.results)
-        write.table(pred.results, file = paste0(singlerSavePrefix, '.', dataset, '.singleR.txt'), sep = '\t', row.names = FALSE)
+        pred.results$type <- 'Main'
+        pred.results$dataset <- dataset
+        if (is.null(completeRawData)) {
+          completeRawData <- pred.results
+        } else {
+          completeRawData <- rbind(completeRawData, pred.results)
+        }
       }
 
       if (showHeatmap) {
@@ -103,9 +111,15 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, method = 'single', assay.type.ref = refAssay))
       pred.results$labels[is.na(pred.results$labels)] <- 'Unknown'
-      if (!is.null(singlerSavePrefix)){
+      if (!is.null(rawDataFile)){
         pred.results$cellbarcode <- rownames(pred.results)
-        write.table(pred.results, file = paste0(singlerSavePrefix, '.', dataset, '.singleR.fine.txt'), sep = '\t', row.names = FALSE)
+        pred.results$type <- 'Fine'
+        pred.results$dataset <- dataset
+        if (is.null(completeRawData)) {
+          completeRawData <- pred.results
+        } else {
+          completeRawData <- rbind(completeRawData, pred.results)
+        }
       }
 
       if (showHeatmap) {
@@ -136,13 +150,18 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       stop('SingleR did not produce results for all cells')
     }
 
+    if (!is.null(rawDataFile)) {
+      write.table(completeRawData, file = rawDataFile, sep = '\t', row.names = FALSE)
+    }
+
     if (!is.null(minFraction)){
       for (label in c(fn, fn2)) {
         l <- unlist(seuratObj[[label]])
         names(l) <- colnames(seuratObj)
 
         print(paste0('Filtering ', label, ' below: ', minFraction))
-        d <- table(Label = l)
+        d <- data.frame(table(Label = l))
+        names(d) <- c('Label', 'Count')
         print(d)
 
         d <- d / sum(d)
@@ -156,7 +175,8 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
         print('After filter:')
         l <- unlist(seuratObj[[label]])
-        d <- table(Label = l)
+        d <- data.frame(table(Label = l))
+        names(d) <- c('Label', 'Count')
         print(d)
       }
     }

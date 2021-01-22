@@ -9,7 +9,7 @@ RunSingleR(
   datasets = c("hpca", "blueprint", "dice", "monaco"),
   assay = NULL,
   resultTableFile = NULL,
-  singlerSavePrefix = NULL,
+  rawDataFile = NULL,
   minFraction = 0.01,
   showHeatmap = TRUE,
   maxCellsForHeatmap = 20000
@@ -24,7 +24,7 @@ RunSingleR(
 
 \item{resultTableFile}{If provided, a table of results will be saved here}
 
-\item{singlerSavePrefix}{If provided, the SingleR results will be saved to RDS here}
+\item{rawDataFile}{If provided, the complete SingleR results will be saved to this file}
 
 \item{minFraction}{If provided, any labels present with fraction of this or fewer across cells will be converted to Unknown}
 

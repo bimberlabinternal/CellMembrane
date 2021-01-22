@@ -98,9 +98,9 @@ AnnotateMitoGenes <- function(seuratObj, mitoGenesPattern = "^MT-", gtfFile = NA
 		sum(nUMI >= x)
 	}))
 
-	print(ggplot(data.frame(x = log(countAbove), y = log(nUMI)), aes(x = x, y = y)) +
+	print(ggplot(data.frame(x = log(countAbove), y = log(nUMI)), aes(x = x, y = y) +
 		geom_point() + ylab("UMI/Cell"), xlab("# Cells")
-	)
+	))
 }
 
 
