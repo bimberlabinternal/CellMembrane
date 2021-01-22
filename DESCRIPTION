@@ -1,7 +1,7 @@
 Package: CellMembrane
 Type: Package
 Title: A package with high-level wrappers and pipelines for single-cell RNA-seq tools
-Version: 0.0.1
+Version: 1.0.0
 Author: Bimber Lab
 Maintainer: The package maintainer <bimber@ohsu.edu>
 Description: The goal of this package is to provide high-level wrappers and pipelines to process single-cell RNA-seq data
@@ -31,7 +31,9 @@ Imports:
     Rtsne,
     SummarizedExperiment,
     scDblFinder,
-    celldex
+    celldex,
+    methods,
+    scater
 Suggests:
     devtools,
     testthat (>= 2.1.0)
