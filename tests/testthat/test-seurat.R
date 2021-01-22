@@ -40,14 +40,14 @@ test_that("Serat processing works as expected", {
   
   vgFile <- 'variableGenes.txt'
   seuratObj <- RunPcaSteps(seuratObj, variableGeneTable = vgFile)
-  expect_equal(ncol(seuratObj), 485)
+  expect_equal(ncol(seuratObj), 484)
 
   expect_equal(file.exists(vgFile), T)
   expect_equal(nrow(utils::read.table(vgFile, sep = '\t', header = F)), 2000)
   unlink(vgFile)
 
   seuratObj <- FindClustersAndDimRedux(seuratObj)
-  expect_equal(ncol(seuratObj), 485)
+  expect_equal(ncol(seuratObj), 484)
   expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 7)
 
   expect_equal(length(rownames(seuratObj@assays$RNA@scale.data)), length(rownames(seuratObj@assays$RNA@counts)))
@@ -60,7 +60,6 @@ test_that("Serat processing works as expected", {
   expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 7)
   rm(seuratObj0)
 
-  biomaRt::biomartCacheClear()
   mf <- paste0(outPrefix, '.markers.txt')
   Find_Markers(seuratObj, identFields = c(resolutionToUse), outFile = mf, testsToUse = c('wilcox', 't'))
 

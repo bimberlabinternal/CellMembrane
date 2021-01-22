@@ -266,7 +266,7 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
 
 .PrintSeuratPlots <- function(seuratObj) {
   print(VizDimLoadings(object = seuratObj, dims = 1:2))
-  print(suppressWarnings(LabelPoints(plot = VariableFeaturePlot(seuratObj), points = head(VariableFeatures(seuratObj), 20), repel = TRUE, xnudge = 0, ynudge = 0)))
+	suppressWarnings(print(LabelPoints(plot = VariableFeaturePlot(seuratObj), points = head(VariableFeatures(seuratObj), 20), repel = TRUE, xnudge = 0, ynudge = 0)))
 
   print(DimPlot(object = seuratObj))
   if (('Phase' %in% names(seuratObj@meta.data))) {
@@ -293,7 +293,7 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
     print('Unable to display JackStrawPlot, data not available')
   } else {
 		# To avoid: "Removed 30927 rows containing missing values (geom_point)" warning
-    print(suppressWarnings(JackStrawPlot(object = seuratObj, dims = 1:20)))
+		suppressWarnings(print(JackStrawPlot(object = seuratObj, dims = 1:20)))
   }
 
   print(ElbowPlot(object = seuratObj))

@@ -29,9 +29,9 @@ test_that("SingleR works as expected", {
 
     expect_equal(99, sum(seuratObj$hpca.label == 'NK_cell'))
     expect_equal(1404, sum(seuratObj$hpca.label == 'T_cells'))
-    expect_equal(2, sum(seuratObj$hpca.label == 'B_cell'))
-    expect_equal(5, sum(seuratObj$hpca.label == 'Neutrophils'))
-    expect_equal(32, sum(seuratObj$hpca.label == 'Unknown'))
+    expect_equal(0, sum(seuratObj$hpca.label == 'B_cell'))
+    expect_equal(0, sum(seuratObj$hpca.label == 'Neutrophils'))
+    expect_equal(54, sum(seuratObj$hpca.label == 'Unknown'))
 
     expect_equal(150, sum(seuratObj$hpca.label.fine == 'T_cell:CD8+_Central_memory'))
     expect_equal(60, sum(seuratObj$hpca.label.fine == 'T_cell:CD8+_naive'))
@@ -42,7 +42,7 @@ test_that("SingleR works as expected", {
 
     expect_equal(1252, sum(seuratObj$dice.label == 'NK cells'))
     expect_equal(228, sum(seuratObj$dice.label == 'T cells, CD4+'))
-    expect_equal(0, sum(seuratObj$dice.label == 'Unknown'))
+    expect_equal(3, sum(seuratObj$dice.label == 'Unknown'))
 
     for (dataset in datasets) {
         expect_true(!is.null(seuratObj@meta.data[[paste0(dataset,'.label')]]))
