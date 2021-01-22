@@ -214,9 +214,6 @@ RunPcaSteps <- function(seuratObj, variableGenesWhitelist = NULL, variableGenesB
 FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low = 1, nFeature.high = 3000, nFeature.low = 200, pMito.high = 0.15, pMito.low = 0) {
   print("Filtering Cells...")
 
-  #TODO: metrics?
-  seuratObj@misc$OriginalCells <- length(colnames(x = seuratObj))
-
   print(paste0('Initial cells: ', length(colnames(x = seuratObj))))
 
   if ('p.mito' %in% colnames(seuratObj@meta.data)) {
@@ -252,8 +249,6 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
   if ('p.mito' %in% colnames(seuratObj@meta.data)) {
     expr <- Seurat::FetchData(object = seuratObj, vars = 'p.mito')
     if (!all(is.na(expr)) && max(expr) != 0) {
-      #cellsToRetain <- (expr >= pMito.low & expr <= pMito.high)
-      #seuratObj <- subset(seuratObj, cells = colnames(seuratObj[cellsToRetain]))
       seuratObj <- seuratObj[, which(x = expr >= pMito.low & expr <= pMito.high)]
       print(paste0('After p.mito filter: ', length(colnames(x = seuratObj))))
     } else {
