@@ -27,16 +27,16 @@ test_that("Serat processing works as expected", {
   seuratObj <- seuratObj[,cellsToUse]
 
   seuratObj <- FilterRawCounts(seuratObj)
-  expect_equal(ncol(seuratObj), 485)
+  expect_equal(ncol(seuratObj), 484)
   
   seuratObj <- NormalizeAndScale(seuratObj)
   
   seuratObj <- RemoveCellCycle(seuratObj)
   tbl <- table(seuratObj$Phase)
-  expect_equal(tbl[['G1']], 241)
-  expect_equal(tbl[['G2M']], 98)
-  expect_equal(tbl[['S']], 146)
-  expect_equal(ncol(seuratObj), 485)
+  expect_equal(tbl[['G1']], 239)
+  expect_equal(tbl[['G2M']], 102)
+  expect_equal(tbl[['S']], 143)
+  expect_equal(ncol(seuratObj), 484)
   
   vgFile <- 'variableGenes.txt'
   seuratObj <- RunPcaSteps(seuratObj, variableGeneTable = vgFile)

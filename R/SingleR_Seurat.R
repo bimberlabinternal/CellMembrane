@@ -148,7 +148,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       if (!is.null(minFraction)){
         for (label in c(fn, fn2)) {
           print(paste0('Filtering ', label, ' below: ', minFraction))
-          d <- data.frame(table(Label = l))
+          d <- data.frame(table(Label = unlist(seuratObj[[label]])))
           names(d) <- c('Label', 'Count')
           d$Fraction <- d$Count / sum(d$Count)
 
@@ -167,8 +167,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
           }
 
           print('After filter:')
-          l <- unlist(seuratObj[[label]])
-          d <- data.frame(table(Label = l))
+          d <- data.frame(table(Label = unlist(seuratObj[[label]])))
           names(d) <- c('Label', 'Count')
           print(d)
         }

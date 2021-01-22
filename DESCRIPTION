@@ -4,7 +4,7 @@ Title: A package with high-level wrappers and pipelines for single-cell RNA-seq 
 Version: 1.0.0
 Author: Bimber Lab
 Maintainer: The package maintainer <bimber@ohsu.edu>
-Description: The goal of this package is to provide high-level wrappers and pipelines to process single-cell RNA-seq data
+Description: The goal of this package is to provide high-level wrappers and pipelines to process single-cell RNA-seq data.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
