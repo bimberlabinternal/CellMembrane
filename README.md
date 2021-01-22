@@ -10,10 +10,7 @@ An R package with wrappers and pipelines for single cell RNA-seq analysis
 
 ### <a name = "overview">Overview</a>
 
-
-
-### <a name="example">Example Usage</a>
-
+This package was created to run the Bimber Lab's single-cell RNA-seq pipelines. It primarily provides high-level wrappers around tools (hence the name). The general idea is to facilitate pipelining tools, make those pipelines fault-tolerant across input data, and to provide QC/visualizations when running those pipelines to help interpret results or issues.
 
 ### <a name="installation">Installation</a>
 
