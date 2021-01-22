@@ -2,19 +2,14 @@
 % Please edit documentation in R/SeuratUtils.R
 \name{WriteCellBarcodes}
 \alias{WriteCellBarcodes}
-\title{WriteCellBarcodes}
+\title{Write Cell Barcodes}
 \usage{
 WriteCellBarcodes(seuratObj, file)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
 
-\item{file}{The output file}
-
-\item{The}{file to which barcodes will be written}
-}
-\value{
-A modified Seurat object.
+\item{file}{The file to which barcodes will be written}
 }
 \description{
 Writes a table of cell barcodes to the provided file

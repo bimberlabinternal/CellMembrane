@@ -206,15 +206,15 @@ RunPcaSteps <- function(seuratObj, variableGenesWhitelist = NULL, variableGenesB
 #' @title Perform Cell Filtering on the cells of the seurat object
 #'
 #' @description This will perform filtering on the cells of the seurat object
-#' @param nCount_RNA.high Cells with nCount_RNA above this value will be filtered
-#' @param nCount_RNA.low Cells with nCount_RNA below this value will be filtered
-#' @param nFeature.high Cells with nFeature above this value will be filtered
-#' @param nFeature.low Cells with nFeature below this value will be filtered
-#' @param pMito.high Cells with percent mito above this value will be filtered
-#' @param pMito.low Cells with percent mito  below this value will be filtered
+#' @param nCount_RNA.high Cells with nCount_RNA greater than this value will be filtered
+#' @param nCount_RNA.low Cells with nCount_RNA less than this value will be filtered
+#' @param nFeature.high Cells with nFeature greater than this value will be filtered
+#' @param nFeature.low Cells with nFeature less than this value will be filtered
+#' @param pMito.high Cells with percent mito greater than this value will be filtered
+#' @param pMito.low Cells with percent mito  less than this value will be filtered
 #' @return The modified seurat object
 #' @export
-FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low = 0.99, nFeature.high = 3000, nFeature.low = 200, pMito.high = 0.15, pMito.low = -Inf) {
+FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low = 1, nFeature.high = 3000, nFeature.low = 200, pMito.high = 0.15, pMito.low = 0) {
   print("Filtering Cells...")
 
   #TODO: metrics?
@@ -249,15 +249,21 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
   print(paste0('After nCount_RNA filter: ', length(colnames(x = seuratObj))))
 
   expr <- Seurat::FetchData(object = seuratObj, vars = 'nFeature_RNA')
-  seuratObj <- seuratObj[, which(x = expr >= nFeature.low & expr =< nFeature.high)]
+  seuratObj <- seuratObj[, which(x = expr >= nFeature.low & expr <= nFeature.high)]
   print(paste0('After nFeature_RNA filter: ', length(colnames(x = seuratObj))))
 
-  expr <- Seurat::FetchData(object = seuratObj, vars = 'p.mito')
-  if (!all(is.na(expr)) && max(expr) != 0) {
-		seuratObj <- seuratObj[, which(x = expr >= pMito.low & expr =< pMito.high)]
-		print(paste0('After p.mito filter: ', length(colnames(x = seuratObj))))
+  if ('p.mito' %in% colnames(seuratObj@meta.data)) {
+    expr <- Seurat::FetchData(object = seuratObj, vars = 'p.mito')
+    if (!all(is.na(expr)) && max(expr) != 0) {
+      #cellsToRetain <- (expr >= pMito.low & expr <= pMito.high)
+      #seuratObj <- subset(seuratObj, cells = colnames(seuratObj[cellsToRetain]))
+      seuratObj <- seuratObj[, which(x = expr >= pMito.low & expr <= pMito.high)]
+      print(paste0('After p.mito filter: ', length(colnames(x = seuratObj))))
+    } else {
+      print('Either p.mito was NA or all values were 0')
+    }
   } else {
-    print('Either p.mito was NA or all values were 0')
+    print('p.mito was missing, skipping')
   }
 
   print(paste0('Final cells: ', length(colnames(x = seuratObj))))
@@ -378,7 +384,7 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
     dimsToUse <- 1:dimMax
   }
 
-  seuratObj <- FindNeighbors(object = seuratObj, dims = dimsToUse)
+  seuratObj <- FindNeighbors(object = seuratObj, dims = dimsToUse, verbose = FALSE)
 
   for (resolution in clusterResolutions){
     seuratObj <- FindClusters(object = seuratObj, resolution = resolution)
@@ -413,90 +419,105 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 
 #' @title Find_Markers
 #' @param seuratObj A seurat object
-#' @param resolutionToUse The resolution, generally computed during FindClustersAndDimRedux()
+#' @param identFields A vector of grouping fields for DE. Ofte these are the resolution, computed during FindClustersAndDimRedux()
 #' @param outFile A file where a table of markers will be saved
 #' @param testsToUse A vector of tests to be used.  Each will be used to run FindAllMarkers() and the results merged
 #' @param numGenesToSave The number of top markers per cluster to save
 #' @param onlyPos If true, only positive markers will be saved
+#' @param pValThreshold Only genes with adjusted p-values below this will be reported
+#' @param foldChangeThreshold Only genes with log-foldchange above this will be reported
 #' @return A DT::datatable object with the top markers, suitable for printing
 #' @importFrom dplyr %>% coalesce group_by summarise filter top_n select everything
 #' @import DESeq2
 #' @import MAST
 #' @export
-Find_Markers <- function(seuratObj, resolutionToUse, outFile = NULL, testsToUse = c('wilcox', 'bimod', 'roc', 't', 'negbinom', 'poisson', 'LR', 'MAST', 'DESeq2'), numGenesToSave = 20, onlyPos = F) {
-  Idents(seuratObj) <- seuratObj[[paste0('ClusterNames_',resolutionToUse)]]
+Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'bimod', 'roc', 't', 'negbinom', 'poisson', 'LR', 'MAST', 'DESeq2'), numGenesToSave = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5) {
+  for (fieldName in identFields) {
+		# Allow resolution to be passed directly:
+		if (!(fieldName %in% names(seuratObj@meta.data))) {
+  		toTest <- paste0('ClusterNames_', fieldName)
+			if (!(toTest %in% names(seuratObj@meta.data))) {
+  			fieldName <- toTest
+			}
+		}
 
-  seuratObj.markers <- NA
-  tMarkers <- NA
-  for (test in testsToUse) {
-    print(paste0('Running using test: ', test))
-    tryCatch({
-      tMarkers <- FindAllMarkers(object = seuratObj, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = 0.25, verbose = F, test.use = test)
-      if (nrow(tMarkers) == 0) {
-        print('No genes returned, skipping')
-      } else {
-        tMarkers$test <- c(test)
-        tMarkers$cluster <- as.character(tMarkers$cluster)
-        if (test == 'roc') {
-          toBind <- data.frame(
-            test = tMarkers$test,
-            cluster = tMarkers$cluster,
-            gene = tMarkers$gene,
-            pct.1 = tMarkers$pct.1,
-            pct.2 = tMarkers$pct.2,
-            avg_logFC = NA,
-            p_val_adj = NA,
-            myAUC = tMarkers$myAUC,
-            power = tMarkers$power,
-            avg_diff = tMarkers$avg_diff
-          )
-        } else {
-          toBind <- data.frame(
-            test = tMarkers$test,
-            cluster = tMarkers$cluster,
-            gene = tMarkers$gene,
-            pct.1 = tMarkers$pct.1,
-            pct.2 = tMarkers$pct.2,
-            avg_logFC = tMarkers$avg_logFC,
-            p_val_adj = tMarkers$p_val_adj,
-            myAUC = NA,
-            power = NA,
-            avg_diff = NA
-          )
-        }
+  	print(paste0('Grouping by field: ', fieldName))
+		Idents(seuratObj) <- fieldName
 
-        print(paste0('Total genes: ', nrow(toBind)))
+		seuratObj.markers <- NA
+		tMarkers <- NA
+		for (test in testsToUse) {
+			print(paste0('Running using test: ', test))
+			tryCatch({
+				tMarkers <- FindAllMarkers(object = seuratObj, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = 0.25, verbose = F, test.use = test)
+				if (nrow(tMarkers) == 0) {
+					print('No genes returned, skipping')
+				} else {
+					tMarkers$test <- c(test)
+					tMarkers$cluster <- as.character(tMarkers$cluster)
+					if (test == 'roc') {
+						toBind <- data.frame(
+							groupField = fieldName,
+							test = tMarkers$test,
+							cluster = tMarkers$cluster,
+							gene = tMarkers$gene,
+							pct.1 = tMarkers$pct.1,
+							pct.2 = tMarkers$pct.2,
+							avg_logFC = NA,
+							p_val_adj = NA,
+							myAUC = tMarkers$myAUC,
+							power = tMarkers$power,
+							avg_diff = tMarkers$avg_diff
+						)
+					} else {
+						toBind <- data.frame(
+							groupField = fieldName,
+							test = tMarkers$test,
+							cluster = tMarkers$cluster,
+							gene = tMarkers$gene,
+							pct.1 = tMarkers$pct.1,
+							pct.2 = tMarkers$pct.2,
+							avg_logFC = tMarkers$avg_logFC,
+							p_val_adj = tMarkers$p_val_adj,
+							myAUC = NA,
+							power = NA,
+							avg_diff = NA
+						)
+					}
 
-        if (all(is.na(seuratObj.markers))) {
-          seuratObj.markers <- toBind
-        } else {
-          seuratObj.markers <- rbind(seuratObj.markers, toBind)
-        }
-      }
-    }, error = function(e){
-      print(paste0('Error running test: ', test))
-      print(e)
-      print(str(tMarkers))
-      print(str(seuratObj.markers))
-    })
+					print(paste0('Total genes returned: ', nrow(toBind)))
 
-    if (all(is.na(seuratObj.markers))) {
-      print('All tests failed, no markers returned')
-      return()
-    }
+					if (all(is.na(seuratObj.markers))) {
+						seuratObj.markers <- toBind
+					} else {
+						seuratObj.markers <- rbind(seuratObj.markers, toBind)
+					}
+				}
+			}, error = function(e){
+				print(paste0('Error running test: ', test))
+				print(e)
+				print(str(tMarkers))
+				print(str(seuratObj.markers))
+			})
 
-    if (!('cluster' %in% names(seuratObj.markers))) {
-      warning('cluster column not found!')
-    } else {
-      seuratObj.markers$cluster <- as.factor(seuratObj.markers$cluster)
-    }
-  }
+			if (all(is.na(seuratObj.markers))) {
+				print('All tests failed, no markers returned')
+				return()
+			}
+
+			if (!('cluster' %in% names(seuratObj.markers))) {
+				warning('cluster column not found!')
+			} else {
+				seuratObj.markers$cluster <- as.factor(seuratObj.markers$cluster)
+			}
+		}
+	}
 
   if (nrow(seuratObj.markers) == 0) {
     print('No significant markers were found')
     return()
   } else {
-    toWrite <- seuratObj.markers %>% filter(p_val_adj < 0.001) %>% filter(avg_logFC > 0.5) %>% group_by(cluster, test) %>% top_n(numGenesToSave, avg_logFC)
+    toWrite <- seuratObj.markers %>% filter(p_val_adj < pValThreshold) %>% filter(avg_logFC > foldChangeThreshold) %>% group_by(groupField, cluster, test) %>% top_n(numGenesToSave, avg_logFC)
     if (nrow(toWrite) == 0) {
       print('No significant markers were found')
     } else {
@@ -540,7 +561,7 @@ Find_Markers <- function(seuratObj, resolutionToUse, outFile = NULL, testsToUse 
   }
 
   #1 sd = 1.3
-  elbowX <- try(.FindElbow(data.use[1:ndims], plot = T, ignore.concavity = F, min.y = min.y))
+  elbowX <- try(.FindElbow(data.use[1:ndims], plot = FALSE, ignore.concavity = F, min.y = min.y))
   if (class(elbowX)=="try-error" || elbowX[1]==2) {
     if (is.null(ndims)){
       elbowX = 2

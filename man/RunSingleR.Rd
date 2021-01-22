@@ -2,7 +2,7 @@
 % Please edit documentation in R/SingleR_Seurat.R
 \name{RunSingleR}
 \alias{RunSingleR}
-\title{generate SingleR object}
+\title{Run SingleR For A Seurat Object}
 \usage{
 RunSingleR(
   seuratObj = NULL,

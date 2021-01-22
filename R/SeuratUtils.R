@@ -53,24 +53,39 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetField = NULL, seed = 
 #'
 #' @description Split a seurat object, dividing into new objects based on the value of a field
 #' @param seuratObj The seurat object
-#' @param subsetField The name of the field on which to subset the object
+#' @param splitField The name of the field on which to split the object
 #' @param seed The random seed
 #' @export
-SplitSeurat <- function(seuratObj, subsetField) {
+SplitSeurat <- function(seuratObj, splitField) {
 	if (!(subsetField %in% names(seuratObj@meta.data))) {
-		stop(paste0('Field not present in seurat object: ', subsetField))
+		stop(paste0('Field not present in seurat object: ', splitField))
 	}
 
-	values <- unique(seuratObj@meta.data[[subsetField]])
+	values <- unique(seuratObj@meta.data[[splitField]])
 
 	ret <- list()
 	for (value in values) {
-		expr <- parse(text = paste0(subsetField, " == '", value, "'"))
+		expr <- parse(text = paste0(splitField, " == '", value, "'"))
 		ret[value] <- seuratObj[, Seurat::WhiteCells(object = seuratObj, expression = expr)]
 	}
 
 	return (ret)
 }
+
+#' @title Subset Seurat
+#'
+#' @description Subset a seurat object, selecting cells that match each expression
+#' @param seuratObj The seurat object
+#' @param expressions A vector of expressions to use in selection
+#' @export
+SubsetSeurat <- function(seuratObj, expressions) {
+	for (expression in expressions) {
+		seuratObj <- subset(seuratObj, subset = expression)
+	}
+
+	return(seuratObj)
+}
+
 
 #' @title WriteSummaryMetrics
 #' @export

@@ -6,18 +6,20 @@
 \usage{
 Find_Markers(
   seuratObj,
-  resolutionToUse,
+  identFields,
   outFile = NULL,
   testsToUse = c("wilcox", "bimod", "roc", "t", "negbinom", "poisson", "LR", "MAST",
     "DESeq2"),
   numGenesToSave = 20,
-  onlyPos = F
+  onlyPos = F,
+  pValThreshold = 0.001,
+  foldChangeThreshold = 0.5
 )
 }
 \arguments{
 \item{seuratObj}{A seurat object}
 
-\item{resolutionToUse}{The resolution, generally computed during FindClustersAndDimRedux()}
+\item{identFields}{A vector of grouping fields for DE. Ofte these are the resolution, computed during FindClustersAndDimRedux()}
 
 \item{outFile}{A file where a table of markers will be saved}
 
@@ -26,6 +28,10 @@ Find_Markers(
 \item{numGenesToSave}{The number of top markers per cluster to save}
 
 \item{onlyPos}{If true, only positive markers will be saved}
+
+\item{pValThreshold}{Only genes with adjusted p-values below this will be reported}
+
+\item{foldChangeThreshold}{Only genes with log-foldchange above this will be reported}
 }
 \value{
 A DT::datatable object with the top markers, suitable for printing

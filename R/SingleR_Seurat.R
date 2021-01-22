@@ -143,7 +143,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
         print(paste0('Filtering ', label, ' below: ', minFraction))
         d <- table(Label = l)
-        print(kableExtra::kbl(d))
+        print(d)
 
         d <- d / sum(d)
         toRemove <- names(d)[d < minFraction]
@@ -157,7 +157,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         print('After filter:')
         l <- unlist(seuratObj[[label]])
         d <- table(Label = l)
-        print(kableExtra::kbl(d))
+        print(d)
       }
     }
   }
@@ -170,6 +170,9 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
   if (!is.null(resultTableFile)){
     write.table(file = resultTableFile, df, sep = '\t', row.names = F, quote = F)
   }
+
+  DimPlot_SingleR(seuratObj, plotIndividually = TRUE, datasets = datasets)
+  Tabulate_SingleR(seuratObj, plotIndividually = TRUE, datasets = datasets)
 
   return(seuratObj)
 }
@@ -198,7 +201,7 @@ DimPlot_SingleR <- function(seuratObject, plotIndividually = F, datasets = c('hp
 
 
 #' @import Seurat
-Tabulate_SingleR <- function(seuratObject, plotIndividually = F, datasets = c('hpca')) {
+Tabulate_SingleR <- function(seuratObject, plotIndividually = F, datasets = c('hpca', 'blueprint', 'dice', 'monaco')) {
   for (dataset in datasets) {
     fn <- paste0(dataset, '.label')
     if (!(fn %in% colnames(seuratObject@meta.data))) {

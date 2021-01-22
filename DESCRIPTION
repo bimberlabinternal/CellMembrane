@@ -31,7 +31,6 @@ Imports:
     Rtsne,
     SummarizedExperiment,
     scDblFinder,
-    kableExtra (>= 1.2.0),
     celldex
 Suggests:
     devtools,
@@ -45,7 +44,8 @@ Remotes:
     bioc::release/MAST,
     bioc::release/celldex,
     bioc::release/SingleR,
-    bioc::release/SummarizedExperiment
+    bioc::release/SummarizedExperiment,
+    bioc::release/scDblFinder
 Collate: 
     'Doublets.R'
     'Phenotyping.R'

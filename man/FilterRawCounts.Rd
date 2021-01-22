@@ -7,25 +7,25 @@
 FilterRawCounts(
   seuratObj,
   nCount_RNA.high = 20000,
+  nCount_RNA.low = 1,
   nFeature.high = 3000,
-  pMito.high = 0.15,
-  nCount_RNA.low = 0.99,
   nFeature.low = 200,
-  pMito.low = -Inf
+  pMito.high = 0.15,
+  pMito.low = 0
 )
 }
 \arguments{
-\item{nCount_RNA.high}{Cells with nCount_RNA above this value will be filtered}
+\item{nCount_RNA.high}{Cells with nCount_RNA greater than this value will be filtered}
 
-\item{nFeature.high}{Cells with nFeature above this value will be filtered}
+\item{nCount_RNA.low}{Cells with nCount_RNA less than this value will be filtered}
 
-\item{pMito.high}{Cells with percent mito above this value will be filtered}
+\item{nFeature.high}{Cells with nFeature greater than this value will be filtered}
 
-\item{nCount_RNA.low}{Cells with nCount_RNA below this value will be filtered}
+\item{nFeature.low}{Cells with nFeature less than this value will be filtered}
 
-\item{nFeature.low}{Cells with nFeature below this value will be filtered}
+\item{pMito.high}{Cells with percent mito greater than this value will be filtered}
 
-\item{pMito.low}{Cells with percent mito  below this value will be filtered}
+\item{pMito.low}{Cells with percent mito  less than this value will be filtered}
 }
 \value{
 The modified seurat object
