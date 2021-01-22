@@ -47,7 +47,8 @@ Remotes:
     bioc::release/celldex,
     bioc::release/SingleR,
     bioc::release/SummarizedExperiment,
-    bioc::release/scDblFinder
+    bioc::release/scDblFinder,
+    bioc::release/scater
 Collate: 
     'Doublets.R'
     'Phenotyping.R'
