@@ -50,10 +50,10 @@ test_that("SingleR works as expected", {
         expect_true(!is.null(seuratObj@meta.data[[paste0(dataset,'.label')]]))
         expect_true(!is.null(seuratObj@meta.data[[paste0(dataset,'.label.fine')]]))
     }
-    
-    DimPlot_SingleRClassLabs(seuratObj, datasets = datasets)
 
-    Tabulate_SingleRClassLabs(seuratObj, datasets = datasets)
+    DimPlot_SingleR(seuratObj, datasets = datasets)
+
+    Tabulate_SingleR(seuratObj, datasets = datasets)
 
     #saveRDS(seuratObj, file = '../testdata/singleR.rds')
 })

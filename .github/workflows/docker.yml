@@ -24,7 +24,7 @@ jobs:
         id: docker_meta
         uses: crazy-max/ghaction-docker-meta@v1
         with:
-          images: ghcr.io/bimberlab/cellmembrane
+          images: ghcr.io/bimberlabinternal/cellmembrane
           tag-sha: true
           tag-semver: |
             {{version}}
@@ -52,7 +52,7 @@ jobs:
           file: ./Dockerfile
           pull: true
           push: true
-          tags: ghcr.io/bimberlab/cellmembrane:nightly,ghcr.io/bimberlab/cellmembrane:latest
+          tags: ghcr.io/bimberlabinternal/cellmembrane:nightly,ghcr.io/bimberlabinternal/cellmembrane:latest
           labels: |
             ${{ steps.docker_meta.outputs.labels }}
             org.opencontainers.image.title=cellmembrane

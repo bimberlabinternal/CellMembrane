@@ -1,7 +1,3 @@
-
-
-
-
 .CheckDuplicatedCellNames <- function(object.list, stop = TRUE){
 	cell.names <- unlist(
 	x = sapply(
@@ -21,50 +17,45 @@
 	}
 }
 
-DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed = NULL) {
+
+#' @title Downsample Seurat
+#'
+#' @description Downsample a seurat object, either globally or subset by a field
+#' @param seuratObj The seurat object
+#' @param targetCells The desired cell number to retain per unit of data. If a subsetField is provided, the string 'min' can also be used, in which case
+#' @param subsetField If provided, data will be grouped by this field, and up to targetCells will be retained per group
+#' @param seed The random seed
+#' @export
+DownsampleSeurat <- function(seuratObj, targetCells, subsetField = NULL, seed = NULL) {
 	if (!is.null(seed)) {
 		set.seed(seed)
 	}
 
-	availFeats = colnames(seuratObj@meta.data)
-	if (!is.null(subsetFields)){
-		if (length(featureSplit) > 1) {
-			warning("length of featureSplit > 1 only 1st is used")
-			featureSplit = featureSplit[1]
-			if (!(featureSplit %in% availFeats)) {
-				stop("featureSplit not found in meta.data")
-			}
-		}
+	if (!is.null(subsetField) && !(subsetField %in% rownames(seuratObj@meta.data))){
+			stop(paste0('Field not found in seuratObj: ', subsetField))
+	}
+
+	cellsToRetain <- c()
+	if (is.null(subsetField)) {
+		cellsToRetain <- sample(colnames(seuratObj), targetCells, replace = F)
 	} else {
-		stop("featureSplit is NULL")
-	}
-
-	CellCountMat = table(seuratObj@meta.data[,featureSplit]) %>% unlist() %>% as.matrix()
-	if (targetCells == 0) {
-		targetCells = min(CellCountMat[,1])
-		print(paste0("total cells set by min to:", targetCells))
-	}
-
-	if(!("barcode" %in% availFeats)) {
-		warning("barcode not found in meta.data")
-		seuratObj$barcode = paste("cell_", 1:nrow(seuratObj@meta.data))
-	}
-
-	splitLevs = levels(factor(seuratObj@meta.data[,featureSplit]))
-	barcodeLS = lapply(splitLevs, function(xSL){
-		availBarcodes = seuratObj@meta.data[which(seuratObj@meta.data[,featureSplit] == xSL),]$barcode
-
-		if (length(availBarcodes)<targetCells) {
-			warning(paste0(xSL, " had less cells than targetCells"))
-			availBarcodes
-		}else {
-			sample(availBarcodes, targetCells, replace = F)
+		counts <- table(seuratObj[[subsetField]])
+		for (val in unique(names(counts))) {
+			availBarcodes <- rownames(seuratObj)[seuratObj[[subsetField]] == val]
+			cellsToRetain <- c(cellsToRetain, sample(availBarcodes, targetCells, replace = F))
 		}
-	})
+	}
 
-	return(subset(seuratObj, barcode %in% unlist(barcodeLS)))
+	return(subset(seuratObj, cells = cellsToRetain))
 }
 
+#' @title Split Seurat
+#'
+#' @description Split a seurat object, dividing into new objects based on the value of a field
+#' @param seuratObj The seurat object
+#' @param subsetField The name of the field on which to subset the object
+#' @param seed The random seed
+#' @export
 SplitSeurat <- function(seuratObj, subsetField) {
 	if (!(subsetField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not present in seurat object: ', subsetField))
@@ -97,12 +88,10 @@ WriteSummaryMetrics <- function(seuratObj, file) {
 	write.table(df, file = file, quote = F, row.names = F, sep = '\t')
 }
 
-#' @title WriteCellBarcodes
+#' @title Write Cell Barcodes
 #' @description Writes a table of cell barcodes to the provided file
-#' @return A modified Seurat object.
 #' @param seuratObj The seurat object
-#' @param file The output file
-#' @param The file to which barcodes will be written
+#' @param file The file to which barcodes will be written
 #' @export
 WriteCellBarcodes <- function(seuratObj, file) {
 	df <- data.frame(CellBarcode = colnames(seuratObj))

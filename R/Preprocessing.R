@@ -123,7 +123,7 @@ PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.01, empty
 	abline(h=br.out$knee, col="dodgerblue", lty=2)
 	abline(h=br.out$inflection, col="forestgreen", lty=2)
 	legend("bottomleft", lty=2, col=c("dodgerblue", "forestgreen"),
-	legend=c("knee", "inflection")
+		legend=c("knee", "inflection")
 	)
 
 	e.out <- PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower)
@@ -144,14 +144,6 @@ PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.01, empty
 	return(seuratRawData[,passingCells])
 }
 
-
-#' @title PerformEmptyDrops
-#' @param seuratRawData Raw data
-#' @param fdrThreshold FDR threshold, passed directly to PerformEmptyDrops()
-#' @param emptyDropNIters Number of iterations, passed directly to PerformEmptyDrops()
-#' @param emptyDropsLower Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.
-#' @return A modified Seurat object.
-#' @importFrom DropletUtils emptyDrops
 PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01, emptyDropsLower = 100){
 	print(paste0('Performing emptyDrops with ', emptyDropNIters, ' iterations'))
 
@@ -173,11 +165,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 	}
 }
 
-#' @title doMergeSimple
-#' @description An internal method to do simple merging of seurat objects from a list of them.
-#' @param seuratObjs A list of seurat objects, optionally named (in which case these will be used as dataset names). Also can use SplitObject(, split.by =)
-#' @param nameList A list of names from MergeSeuratObjs()
-#' @param projectName The projectName to pass to Seurat
+
 .DoMergeSimple <- function(seuratObjs, nameList, projectName){
 	seuratObj <- NULL
 

@@ -1,5 +1,13 @@
+#' @title Find Doublets using scDblFinder
+#'
+#' @description Find Doublets using scDblFinder
+#' @param seuratObj The seurat object
+#' @param assay The assay to use
+#' @export
+FindDoublets <- function(seuratObj, assay = 'RNA') {
+	sce <- Seurat::as.SingleCellExperiment(seuratObj, assay = assay)
+	df <- scDblFinder::scDblFinder(sce, returnType = 'table')
 
-FindDoublets <- function(seuratObj) {
-	SerObj_CRS.sce <- as.SingleCellExperiment(SerObj_CRS)
-	SerObj_CRS.sce <- scDblFinder:::scDblFinder(SerObj_CRS.sce)
+	#TODO
+	return(df)
 }

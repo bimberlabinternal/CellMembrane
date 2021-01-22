@@ -1,4 +1,4 @@
-#' @title generate SingleR object
+#' @title Run SingleR For A Seurat Object
 #'
 #' @description Compute SingleR classification on a Seurat object
 #' @param seuratObj A Seurat object
@@ -78,7 +78,8 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, method = 'single', assay.type.ref = refAssay))
       pred.results$labels[is.na(pred.results$labels)] <- 'Unknown'
       if (!is.null(singlerSavePrefix)){
-        saveRDS(pred.results, file = paste0(singlerSavePrefix, '.', dataset, '.singleR.rds'))
+        pred.results$cellbarcode <- rownames(pred.results)
+        write.table(pred.results, file = paste0(singlerSavePrefix, '.', dataset, '.singleR.txt'), sep = '\t', row.names = FALSE)
       }
 
       if (showHeatmap) {
@@ -103,7 +104,8 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, method = 'single', assay.type.ref = refAssay))
       pred.results$labels[is.na(pred.results$labels)] <- 'Unknown'
       if (!is.null(singlerSavePrefix)){
-        saveRDS(pred.results, file = paste0(singlerSavePrefix, '.', dataset, '.singleR.fine.rds'))
+        pred.results$cellbarcode <- rownames(pred.results)
+        write.table(pred.results, file = paste0(singlerSavePrefix, '.', dataset, '.singleR.fine.txt'), sep = '\t', row.names = FALSE)
       }
 
       if (showHeatmap) {
@@ -173,16 +175,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 }
 
 
-#' @title DimPlot SingleR Class Labels
-#' @description Create a Dimplot from a Seurat object with SingleR class labels
-#' @param seuratObject a Seurat object, but if path given, path is prioritized.
-#' @param plotIndividually If true, two separate plots will be printed.  Otherwise a single plot wil be printed with one above the other
-#' @param datasets One or more datasets to use as a reference. Allowable values are: hpca, blueprint, dice, monaco, and immgen. See cellDex package for available datasets.
-#' @keywords Dimplot SingleR Classification 
-#' @export
-#' @import Seurat
-#' @importFrom cowplot plot_grid
-DimPlot_SingleRClassLabs <- function(seuratObject, plotIndividually = F, datasets = c('hpca')){
+DimPlot_SingleR <- function(seuratObject, plotIndividually = F, datasets = c('hpca')){
   for (dataset in datasets) {
     fn <- paste0(dataset, '.label')
     if (!(fn %in% colnames(seuratObject@meta.data))) {
@@ -198,22 +191,14 @@ DimPlot_SingleRClassLabs <- function(seuratObject, plotIndividually = F, dataset
       print(plots[[1]])
       print(plots[[2]])
     } else {
-      print(cowplot::plot_grid(plots[[1]], plots[[2]], ncol = 1))
+      print(plots[[1]] + plots[[2]] + patchwork::plot_layout(ncol = 1))
     }
   }
 }
 
 
-#' @title Tabulate SingleR Class Labels
-#' @description Tabulate SingleR class labels from a Seurat object
-#' @param seuratObject a Seurat object, but if path given, path is prioritized.
-#' @param plotIndividually If true, two separate plots will be printed.  Otherwise a single plot wil be printed with one above the other
-#' @param datasets One or more datasets to use as a reference. Allowable values are: hpca, blueprint, dice, monaco, and immgen. See cellDex package for available datasets.
-#' @keywords Tabulate SingleR Classification 
-#' @export
 #' @import Seurat
-#' @importFrom cowplot plot_grid
-Tabulate_SingleRClassLabs <- function(seuratObject, plotIndividually = F, datasets = c('hpca')) {
+Tabulate_SingleR <- function(seuratObject, plotIndividually = F, datasets = c('hpca')) {
   for (dataset in datasets) {
     fn <- paste0(dataset, '.label')
     if (!(fn %in% colnames(seuratObject@meta.data))) {
@@ -245,10 +230,10 @@ Tabulate_SingleRClassLabs <- function(seuratObject, plotIndividually = F, datase
     )
 
     if (plotIndividually) {
-        plot(plots[[1]])
-        plot(plots[[2]])
+      plot(plots[[1]])
+      plot(plots[[2]])
     } else {
-        cowplot::plot_grid(plots[[1]], plots[[2]], ncol = 1)
+      print(plots[[1]] + plots[[2]] + patchwork::plot_layout(ncol = 1))
     }
   }
 }

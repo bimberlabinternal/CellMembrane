@@ -1,4 +1,5 @@
 #' @include Utils.R
+#' @include Preprocessing.R
 #' @import Seurat
 
 utils::globalVariables(
@@ -17,7 +18,6 @@ utils::globalVariables(
 #' @param emptyDropsLower Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.
 #' @param storeGeneIds If true, a map to translate geneId and name (by default rownames will use gene name)
 #' @return A Seurat object.
-#' @keywords ReadAndFilter10X
 #' @export
 #' @importFrom Seurat Read10X
 ReadAndFilter10xData <- function(dataDir, datasetName, emptyDropNIters=10000, storeGeneIds=TRUE, emptyDropsLower = 100) {
@@ -57,7 +57,7 @@ ReadAndFilter10xData <- function(dataDir, datasetName, emptyDropNIters=10000, st
 #' @title Retrieve the gene IDs from a seuratObj created using ReadAndFilter10xData.
 #'
 #' @param seuratObj The seurat object
-#' @param datasetName A name to use when creating the Seurat object
+#' @param geneNames A vector of gene names to translate
 #' @param throwIfGenesNotFound If true and any of the requested gene names are not found, an error will be thrown.  Otherwise, the result will contain NAs
 #' @return A named vector of the gene IDs
 #' @export
@@ -70,13 +70,9 @@ GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
     names(ret) <- rownames(seuratObj)
     ret <- ret[geneNames]
   }
-  #NOTE: in previous versions we stored geneIDs here:
-	else if ('geneIds' %in% names(seuratObj@misc)) {
-    ret <- seuratObj@misc$geneIds[geneNames]
-  }
 
   if (all(is.null(ret))) {
-  	stop('Expected gene IDs to be stored under GetAssay(seuratObj)@meta.features or seuratObj@misc$geneIds')
+  	stop('Expected gene IDs to be stored under GetAssay(seuratObj)@meta.features')
   }
 
   if (throwIfGenesNotFound & sum(is.na(ret)) > 0) {
@@ -90,62 +86,37 @@ GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
 }
 
 
-
-#' @title MergeSeuratObjs
-#' @description Merges a list of Seurat objects, using Seurat::IntegrateData()
-#' @param seuratObjs A list of seurat objects, optionally named (in which case these will be used as dataset names). Also can use SplitObject(, split.by =)
-#' @param metadata A list of metadata.  If provided, the names of this list will be used as dataset names
-#' @param method A string either simple or cca
-#' @param maxPCs2Weight The number of dims to use with IntegrateData()
+#' @title Merge Seurat Objects
+#' @description Merges a list of Seurat objects
+#' @param seuratObjs A named list of seurat objects, optionally named (in which case these will be used as dataset names).
 #' @param projectName The project name when creating the final seuratObj
-#' @param nVariableFeatures The number of VariableFeatures to identify
 #' @param assay The assay to use
 #' @param normalization.method Normalization method
-#' @param spikeImmuneGenes If CCA is used, this will spike a pre-determined set of immune-related genes into the merged object
 #' @return A modified Seurat object.
 #' @export
 #' @importFrom methods slot
-MergeSeuratObjs <- function(seuratObjs, metadata=NULL, 
-                            method = c("simple"),
-                            maxCCAspaceDim = 20, maxPCs2Weight = 20, 
-                            nVariableFeatures = 2000,
-                            assay = NULL,
-                            normalization.method = "LogNormalize",
-                            spike.genes = NULL, spikeImmuneGenes = T){
-
-
-  method <- match.arg(method)
-
-  print(paste0("Starting merge.  Method: ", method))
-
-  nameList <- NULL
-  if (all(is.null(metadata))){
-    nameList <- names(seuratObjs)
-  } else {
-    nameList <- names(metadata)
+MergeSeuratObjs <- function(seuratObjs, projectName, assay = NULL, normalization.method = "LogNormalize"){
+  nameList <- names(seuratObjs)
+  if (is.null(nameList)) {
+    stop('Must provide a named list of seurat objects')
   }
 
-  #ensure barcodes unique:
-  for (exptNum in nameList) {
-    print(paste0('adding dataset: ', exptNum))
-    prefix <- paste0(exptNum)
-    so <- seuratObjs[[exptNum]]
+  # Ensure barcodes unique
+  for (datasetId in nameList) {
+    print(paste0('adding dataset: ', datasetId))
+    prefix <- paste0(datasetId)
+    so <- seuratObjs[[datasetId]]
     if (!('BarcodePrefix' %in% names(so@meta.data))) {
       print(paste0('Adding barcode prefix: ', prefix))
       so <- RenameCells(object = so, add.cell.id = prefix)
       so[['BarcodePrefix']] <- c(prefix)
-      seuratObjs[[exptNum]] <- so
+      seuratObjs[[datasetId]] <- so
     } else {
       print('Barcode prefix already added')
     }
   }
   
-	if (method == "simple") {
-    seuratObj <- .DoMergeSimple(seuratObjs = seuratObjs, nameList = nameList, projectName = "simplemerge")
-  }
-
-  #store method used
-  seuratObj@misc['MergeMethod'] <- method
+  seuratObj <- .DoMergeSimple(seuratObjs = seuratObjs, nameList = nameList, projectName = projectName)
 
   return(seuratObj)
 }
@@ -157,14 +128,13 @@ MergeSeuratObjs <- function(seuratObjs, metadata=NULL,
 #'
 #' @description This is the primary entry point for processing scRNAseq data with Seurat
 #' @param seuratObj, A Seurat object.
-#' @param variableGeneTable If provided, a table of variable genes will be written to this file
 #' @param variableFeatureSelectionMethod The selection method to be passed to FindVariableFeatures()
 #' @param nVariableFeatures The number of variable features to find
 #' @param dispersion.cutoff Passed directly to FindVariableFeatures
 #' @param mean.cutoff Passed directly to FindVariableFeatures
 #' @return A modified Seurat object.
 #' @export
-NormalizeAndScale <- function(seuratObj, variableGeneTable = NULL, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf)){
+NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf)){
   seuratObj <- NormalizeData(object = seuratObj, normalization.method = "LogNormalize", verbose = F)
 
   print('Find variable features:')
@@ -188,9 +158,8 @@ NormalizeAndScale <- function(seuratObj, variableGeneTable = NULL, variableFeatu
 }
 
 
-#' @title Run PCA
+#' @title Run Seurat PCA
 #'
-#' @description This is the primary entry point for processing scRNAseq data with Seurat
 #' @param seuratObj, A Seurat object.
 #' @param variableGenesWhitelist An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()
 #' @param variableGenesBlacklist An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()
@@ -245,7 +214,7 @@ RunPcaSteps <- function(seuratObj, variableGenesWhitelist = NULL, variableGenesB
 #' @param pMito.low Cells with percent mito  below this value will be filtered
 #' @return The modified seurat object
 #' @export
-FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nFeature.high = 3000, pMito.high = 0.15, nCount_RNA.low = 0.99, nFeature.low = 200, pMito.low = -Inf) {
+FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low = 0.99, nFeature.high = 3000, nFeature.low = 200, pMito.high = 0.15, pMito.low = -Inf) {
   print("Filtering Cells...")
 
   #TODO: metrics?
@@ -276,22 +245,22 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nFeature.high = 
 
   #See: https://github.com/satijalab/seurat/issues/1053#issuecomment-454512002
   expr <- Seurat::FetchData(object = seuratObj, vars = 'nCount_RNA')
-  seuratObj <- seuratObj[, which(x = expr > nCount_RNA.low & expr < nCount_RNA.high)]
+  seuratObj <- seuratObj[, which(x = expr >= nCount_RNA.low & expr <= nCount_RNA.high)]
   print(paste0('After nCount_RNA filter: ', length(colnames(x = seuratObj))))
 
   expr <- Seurat::FetchData(object = seuratObj, vars = 'nFeature_RNA')
-  seuratObj <- seuratObj[, which(x = expr > nFeature.low & expr < nFeature.high)]
+  seuratObj <- seuratObj[, which(x = expr >= nFeature.low & expr =< nFeature.high)]
   print(paste0('After nFeature_RNA filter: ', length(colnames(x = seuratObj))))
 
   expr <- Seurat::FetchData(object = seuratObj, vars = 'p.mito')
   if (!all(is.na(expr)) && max(expr) != 0) {
-		seuratObj <- seuratObj[, which(x = expr > pMito.low & expr < pMito.high)]
+		seuratObj <- seuratObj[, which(x = expr >= pMito.low & expr =< pMito.high)]
 		print(paste0('After p.mito filter: ', length(colnames(x = seuratObj))))
   } else {
     print('Either p.mito was NA or all values were 0')
   }
 
-  print(paste0('Final: ', length(colnames(x = seuratObj))))
+  print(paste0('Final cells: ', length(colnames(x = seuratObj))))
   
   return(seuratObj)
 }
@@ -335,7 +304,6 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nFeature.high = 
 #' @param min.genes If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.
 #' @export
 #' @return A modified Seurat object.
-#' @importFrom cowplot plot_grid
 RemoveCellCycle <- function(seuratObj, min.genes = 10) {
   print("Performing cell cycle cleaning")
 

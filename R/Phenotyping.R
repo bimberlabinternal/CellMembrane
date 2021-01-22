@@ -65,16 +65,6 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	PlotMarkerSeries(seuratObj, reductions, chemokines, 'Chemokines/Receptors')
 }
 
-
-#' @title PlotMarkerSeries
-#'
-#' @description Generate a set of Seurat FeaturePlots for the provided markers
-#' @param seuratObj The seurat object
-#' @param reductions The reduction(s) to use
-#' @param features The features to plot
-#' @param title The title for the plot
-#' @param setSize The number of markers per plot
-#' @import Seurat
 PlotMarkerSeries <- function(seuratObj, reductions, features, title, setSize = 4) {
 	featuresToPlot <- unique(intersect(features, row.names(seuratObj)))
 	steps <- ceiling(length(featuresToPlot) / setSize) - 1
@@ -89,14 +79,7 @@ PlotMarkerSeries <- function(seuratObj, reductions, features, title, setSize = 4
 	}
 }
 
-#' @title RemoveUnchangedOrZero
-#' @description Starting with a set of features, remove any that are unchanged or zeros across all cells
-#' @param seuratObj The seurat object
-#' @param reduction The reduction to use
-#' @param features The features to evaluate
-#' @return The updated set of features
-#' @import Seurat
-RemoveUnchangedOrZero <- function(seuratObj, reduction, features) {
+.RemoveUnchangedOrZero <- function(seuratObj, reduction, features) {
 	ret <- c()
 	#Remove zeros or unchanged:
 	dims <- paste0(Key(object = seuratObj[[reduction]]), c(1,2))
@@ -110,23 +93,14 @@ RemoveUnchangedOrZero <- function(seuratObj, reduction, features) {
 	return(ret)
 }
 
-
-#' @title PlotMarkerSeries
-#'
-#' @description Generate a labeled FeaturePlot for the provided markers
-#' @param seuratObj The seurat object
-#' @param reductions The reduction(s) to use
-#' @param title The title for the plot
-#' @param features The features to plot
 #' @import Seurat
 #' @import patchwork
 PlotMarkerSet <- function(seuratObj, reductions, title, features) {
-
 	P <- NULL
 	missingFeats <- c()
 	for (reduction in reductions) {
 		featuresToPlot <- intersect(features, row.names(seuratObj))
-		featuresToPlot <- RemoveUnchangedOrZero(seuratObj, reduction, featuresToPlot)
+		featuresToPlot <- .RemoveUnchangedOrZero(seuratObj, reduction, featuresToPlot)
 
 		if (length(features) != length(featuresToPlot)){
 			missing <- features[!(features %in% featuresToPlot)]
