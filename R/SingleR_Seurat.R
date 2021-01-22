@@ -127,6 +127,23 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         stop('Cell barcodes did not match for all results')
       }
 
+      if (showHeatmap) {
+        cells.use <- NULL
+        if (ncol(seuratObj) > maxCellsForHeatmap) {
+          cells.use <- sample(1:ncol(seuratObj), size = maxCellsForHeatmap)
+        }
+
+        print(SingleR::plotScoreHeatmap(pred.results, cells.use = cells.use))
+      }
+
+      toAdd <- pred.results$pruned.labels
+      toAdd[is.na(toAdd)] <- 'Unknown'
+      names(toAdd) <- rownames(pred.results)
+
+      fn2 <- paste0(dataset, '.label.fine')
+      allFields <- c(allFields, fn2)
+      seuratObj[[fn2]] <- toAdd
+
       if (!is.null(minFraction)){
         for (label in c(fn, fn2)) {
           l <- unlist(seuratObj[[label]])
@@ -153,23 +170,6 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
           print(d)
         }
       }
-
-      if (showHeatmap) {
-        cells.use <- NULL
-        if (ncol(seuratObj) > maxCellsForHeatmap) {
-          cells.use <- sample(1:ncol(seuratObj), size = maxCellsForHeatmap)
-        }
-
-        print(SingleR::plotScoreHeatmap(pred.results, cells.use = cells.use))
-      }
-
-      toAdd <- pred.results$pruned.labels
-      toAdd[is.na(toAdd)] <- 'Unknown'
-      names(toAdd) <- rownames(pred.results)
-
-      fn2 <- paste0(dataset, '.label.fine')
-      allFields <- c(allFields, fn2)
-      seuratObj[[fn2]] <- toAdd
     }, error = function(e){
       print(paste0('Error running singleR for dataset: ', dataset))
       print(conditionMessage(e))

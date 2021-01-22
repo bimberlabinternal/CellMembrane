@@ -284,13 +284,13 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
     )
   }
 
-	totalCells <- max(500, ncol(seuratObj))
-  print(DimHeatmap(object = seuratObj, dims = 1, cells = totalCells, balanced = TRUE, fast = F) + NoLegend())
+	totalCells <- min(500, ncol(seuratObj))
+  print(DimHeatmap(object = seuratObj, dims = 1, cells = totalCells, balanced = TRUE, fast = FALSE) + NoLegend())
   
   tryCatch({
-    print(DimHeatmap(object = seuratObj, dims = 1:20, cells = totalCells, balanced = TRUE, fast = F) + NoLegend())
+    print(DimHeatmap(object = seuratObj, dims = 1:20, cells = totalCells, balanced = TRUE, fast = FALSE) + NoLegend())
   }, error = function(){
-    try(print(DimHeatmap(object = seuratObj, dims = 1:6, cells = totalCells, balanced = TRUE, fast = F) + NoLegend()), silent = T)
+    try(print(DimHeatmap(object = seuratObj, dims = 1:6, cells = totalCells, balanced = TRUE, fast = FALSE) + NoLegend()), silent = T)
   })
 
   if (length(seuratObj@reductions$pca@jackstraw$empirical.p.values) == 0) {
