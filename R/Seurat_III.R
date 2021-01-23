@@ -495,7 +495,8 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 				}
 			}, error = function(e){
 				print(paste0('Error running test: ', test))
-				print(e)
+				print(conditionMessage(e))
+				print(traceback())
 				print(utils::str(tMarkers))
 				print(utils::str(seuratObj.markers))
 			})

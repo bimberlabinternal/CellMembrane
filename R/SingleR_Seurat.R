@@ -175,6 +175,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     }, error = function(e){
       print(paste0('Error running singleR for dataset: ', dataset))
       print(conditionMessage(e))
+      print(traceback())
     })
   }
 
