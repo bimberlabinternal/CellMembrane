@@ -43,7 +43,8 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 	}
 
 	print(paste0('Total mito features: ', length(mito.features)))
-	print(paste0('Total intersecting with seurat rownames (total: ', length(rownames(seuratObj)),'): ', length(intersect(mito.features, rownames(seuratObj)))))
+	mito.features <- intersect(mito.features, rownames(seuratObj))
+	print(paste0('Total intersecting with seurat rownames (total: ', length(rownames(seuratObj)),'): ', length(mito.features)))
 
 	if (all(is.null(mito.features)) || length(mito.features) == 0) {
 		print('No mito features found')
