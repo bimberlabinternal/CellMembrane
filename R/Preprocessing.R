@@ -13,24 +13,32 @@ utils::globalVariables(
 #' @param project, Sets the project name for the Seurat object.
 #' @param minFeatures, Include cells where at least this many features are detected.
 #' @param minCells, Include features detected in at least this many cells.
-#' @param mitoGenesPattern The expression to use when identfying mitochondrial genes
-#' @param gtfFile Ths optional GTF file used to create these data. If provided, it will be scanned for genes from the MT contig, and used to compute p.mito
+#' @param mitoGenesPattern The expression to use when identifying mitochondrial genes
+#' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
 #' @return A Seurat object with p.mito calculated.
 #' @export
 #' @importFrom Matrix colSums
-CreateSeuratObj <- function(seuratData, project, minFeatures = 25, minCells = 0, mitoGenesPattern = "^MT-", gtfFile = NULL){
+CreateSeuratObj <- function(seuratData, project, minFeatures = 25, minCells = 0, mitoGenesPattern = "^MT-", annotateMitoFromReference = TRUE){
 	seuratObj <- Seurat::CreateSeuratObject(counts = seuratData, min.cells = minCells, min.features = minFeatures, project = project)
-	seuratObj<- AnnotateMitoGenes(seuratObj, mitoGenesPattern = mitoGenesPattern, gtfFile = gtfFile)
+
+	seuratObj<- CalculatePercentMito(seuratObj, mitoGenesPattern = mitoGenesPattern, annotateMitoFromReference = annotateMitoFromReference)
 
 	return(seuratObj)
 }
 
-AnnotateMitoGenes <- function(seuratObj, mitoGenesPattern = "^MT-", gtfFile = NULL, mitoContigName = 'MT') {
+#' @title Calculate Mitochrondial Percentage
+#'
+#' @description This will identify mitochrondial genes and calculate p.mito for each cell
+#' @param mitoGenesPattern The expression to use when identifying mitochondrial genes
+#' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
+#' @return A Seurat object with p.mito calculated.
+#' @export
+CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateMitoFromReference = TRUE) {
 	mito.features <- NULL
-	if (is.null(gtfFile)) {
+	if (!annotateMitoFromReference) {
 		mito.features <- grep(pattern = mitoGenesPattern, x = rownames(x = seuratObj), value = TRUE)
 	} else {
-		mito.features <- .InferMitoFeaturesFromGtf(gtfFile = gtfFile, mitoContigName = mitoContigName)
+		mito.features <- mitoGenes$Gene
 	}
 
 	print(paste0('Total mito features: ', length(mito.features)))
@@ -47,32 +55,6 @@ AnnotateMitoGenes <- function(seuratObj, mitoGenesPattern = "^MT-", gtfFile = NU
 	return(seuratObj)
 }
 
-.InferMitoFeaturesFromGtf <- function(gtfFile, mitoContigName = mitoContigName) {
-	print(paste0('Parsing GTF file for contig: ', mitoContigName))
-
-	gtfDf <- read.table(gtfFile, sep = '\t', comment.char = '#', stringsAsFactors = FALSE)
-	names(gtfDf) <- c("chr","source","type","start","end","score","strand","phase","attributes")
-	gtfDf <- gtfDf[gtfDf$type == 'exon',]
-
-	gtfDf$GeneId = sapply(gtfDf$attributes, function(x){
-		att <- unlist(strsplit(x, " "))
-		if ('gene_name' %in% att){
-			return(gsub("\"|;","", att[which(att == 'gene_name')+1]))
-		} else if ('gene_id' %in% att) {
-			return(gsub("\"|;","", att[which(att == 'gene_id')+1]))
-		} else {
-			return(NA)
-		}
-	})
-
-	mito.features <- sort(unique(gtfDf$GeneId[gtfDf$chr == mitoContigName]))
-	mito.features <- mito.features[mito.features != '' && !is.na(mito.features)]
-	print(paste0('Initial mito features: ', length(mito.features)))
-	mito.features <- mito.features[!(mito.features %in% unique(gtfDf$GeneId[gtfDf$chr != mitoContigName]))]
-	print(paste0('After removing name conflicts with other contigs: ', length(mito.features)))
-
-	return(mito.features)
-}
 
 #' @importFrom Matrix colSums
 .PrintQcPlots <- function(seuratObj) {

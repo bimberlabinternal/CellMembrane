@@ -10,7 +10,7 @@ CreateSeuratObj(
   minFeatures = 25,
   minCells = 0,
   mitoGenesPattern = "^MT-",
-  gtfFile = NULL
+  annotateMitoFromReference = TRUE
 )
 }
 \arguments{
@@ -22,9 +22,9 @@ CreateSeuratObj(
 
 \item{minCells, }{Include features detected in at least this many cells.}
 
-\item{mitoGenesPattern}{The expression to use when identfying mitochondrial genes}
+\item{mitoGenesPattern}{The expression to use when identifying mitochondrial genes}
 
-\item{gtfFile}{Ths optional GTF file used to create these data. If provided, it will be scanned for genes from the MT contig, and used to compute p.mito}
+\item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito}
 }
 \value{
 A Seurat object with p.mito calculated.
