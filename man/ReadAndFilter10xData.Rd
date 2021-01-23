@@ -9,7 +9,8 @@ ReadAndFilter10xData(
   datasetName,
   emptyDropNIters = 10000,
   storeGeneIds = TRUE,
-  emptyDropsLower = 100
+  emptyDropsLower = 100,
+  annotateMitoFromReference = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ ReadAndFilter10xData(
 \item{storeGeneIds}{If true, a map to translate geneId and name (by default rownames will use gene name)}
 
 \item{emptyDropsLower}{Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.}
+
+\item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito}
 }
 \value{
 A Seurat object.

@@ -2,14 +2,14 @@
 % Please edit documentation in R/SeuratUtils.R
 \name{SubsetSeurat}
 \alias{SubsetSeurat}
-\title{Subset Seurat}
+\title{Subset Seurat Using String Expressions}
 \usage{
-SubsetSeurat(seuratObj, expressions)
+SubsetSeurat(seuratObj, expressionStrings = NULL)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
 
-\item{expressions}{A vector of expressions to use in selection}
+\item{expressionStrings}{A vector strings, each of which will be parsed into an expression, to use in selection}
 }
 \description{
 Subset a seurat object, selecting cells that match each expression

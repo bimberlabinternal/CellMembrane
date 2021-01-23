@@ -2,7 +2,7 @@
 % Please edit documentation in R/SeuratUtils.R
 \name{WriteSummaryMetrics}
 \alias{WriteSummaryMetrics}
-\title{WriteSummaryMetrics}
+\title{Write Summary Metrics}
 \usage{
 WriteSummaryMetrics(seuratObj, file)
 }
@@ -12,5 +12,5 @@ WriteSummaryMetrics(seuratObj, file)
 \item{file}{The file where metrics will be written}
 }
 \description{
-WriteSummaryMetrics
+Write Summary Metrics
 }

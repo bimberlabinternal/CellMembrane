@@ -17,10 +17,11 @@ utils::globalVariables(
 #' @param emptyDropNIters The number of iterations to use with PerformEmptyDrops()
 #' @param emptyDropsLower Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.
 #' @param storeGeneIds If true, a map to translate geneId and name (by default rownames will use gene name)
+#' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
 #' @return A Seurat object.
 #' @export
 #' @importFrom Seurat Read10X
-ReadAndFilter10xData <- function(dataDir, datasetName, emptyDropNIters=10000, storeGeneIds=TRUE, emptyDropsLower = 100) {
+ReadAndFilter10xData <- function(dataDir, datasetName, emptyDropNIters=10000, storeGeneIds=TRUE, emptyDropsLower = 100, annotateMitoFromReference = TRUE) {
   if (!file.exists(dataDir)){
     stop(paste0("File does not exist: ", dataDir))
   }
@@ -39,7 +40,7 @@ ReadAndFilter10xData <- function(dataDir, datasetName, emptyDropNIters=10000, st
 
   seuratRawData <- PerformEmptyDropletFiltering(seuratRawData, emptyDropNIters=emptyDropNIters, emptyDropsLower=emptyDropsLower)
 
-  seuratObj <- CreateSeuratObj(seuratRawData, project = datasetName)
+  seuratObj <- CreateSeuratObj(seuratRawData, project = datasetName, annotateMitoFromReference = TRUE)
   .PrintQcPlots(seuratObj)
 
   if (storeGeneIds) {
@@ -140,7 +141,7 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
   print('Find variable features:')
   seuratObj <- FindVariableFeatures(object = seuratObj, mean.cutoff = mean.cutoff, dispersion.cutoff = dispersion.cutoff , verbose = F, selection.method = variableFeatureSelectionMethod, nfeatures = nVariableFeatures)
 
-  if ('p.mito' %in% rownames(seuratObj@meta.data)) {
+  if ('p.mito' %in% names(seuratObj@meta.data)) {
     totalPMito = length(unique(seuratObj[['p.mito']]))
   } else {
     totalPMito <- -1
@@ -494,7 +495,8 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 				}
 			}, error = function(e){
 				print(paste0('Error running test: ', test))
-				print(e)
+				print(conditionMessage(e))
+				traceback()
 				print(utils::str(tMarkers))
 				print(utils::str(seuratObj.markers))
 			})

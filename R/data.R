@@ -11,3 +11,14 @@
 #' }
 #' @source \url{https://www.genenames.org/data/genegroup/#!/group/471}
 "cdGenes"
+
+#' A reference set of mitochondrial genes
+#'
+#'
+#' @format A data frame with 320 values and one variable
+#' \describe{
+#'   \item{Gene}{The gene symbol}
+#'   ...
+#' }
+#' @source \url{https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf}
+"mitoGenes"
