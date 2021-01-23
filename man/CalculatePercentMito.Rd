@@ -12,6 +12,8 @@ CalculatePercentMito(
 )
 }
 \arguments{
+\item{seuratObj}{The seurat object}
+
 \item{mitoGenesPattern}{The expression to use when identifying mitochondrial genes}
 
 \item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito}

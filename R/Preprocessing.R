@@ -29,6 +29,7 @@ CreateSeuratObj <- function(seuratData, project, minFeatures = 25, minCells = 0,
 #' @title Calculate Mitochrondrial Percentage
 #'
 #' @description This will identify mitochrondrial genes and calculate p.mito for each cell
+#' @param seuratObj The seurat object
 #' @param mitoGenesPattern The expression to use when identifying mitochondrial genes
 #' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
 #' @param outputColName The name of the output column to hold p.mito
