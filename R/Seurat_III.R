@@ -12,7 +12,7 @@ utils::globalVariables(
 #' @title Read and Filter 10X files.
 #'
 #' @description Reads in 10X files using Read10X and filters abberent cells using PerformEmptyDropletFiltering and returns a Seurat object.
-#' @param dataDir The directory holding raw count data
+#' @param dataDir The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder
 #' @param datasetName A name to use when creating the Seurat object
 #' @param emptyDropNIters The number of iterations to use with PerformEmptyDrops()
 #' @param emptyDropsLower Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.

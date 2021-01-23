@@ -84,7 +84,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       refAssay <- 'normcounts'
     }
 
-    lc <- logcounts(sce)
+    lc <- SingleCellExperiment::logcounts(sce)
     print('logcounts')
     print(typeof(lc))
     print(class(lc))
