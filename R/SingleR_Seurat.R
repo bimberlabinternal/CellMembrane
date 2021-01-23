@@ -20,7 +20,7 @@ utils::globalVariables(
 #' @import Seurat
 #' @import SingleR
 #' @export
-#' @importFrom scater logNormCounts
+#' @importFrom scuttle logNormCounts
 RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco'), assay = NULL, resultTableFile = NULL, rawDataFile = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000){
   if (is.null(seuratObj)){
       stop("Seurat object is required")
@@ -75,13 +75,19 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
     #Convert to SingleCellExperiment
     sce <- Seurat::as.SingleCellExperiment(seuratObjSubset, assay = assay)
-    sce <- scater::logNormCounts(sce)
+    sce <- scuttle::logNormCounts(sce)
     rm(seuratObjSubset)
 
     refAssay <- 'logcounts'
     if (!('logcounts' %in% names(SummarizedExperiment::assays(ref)))) {
+      print('logcount not present, using normcounts as assay type')
       refAssay <- 'normcounts'
     }
+
+    lc <- logcounts(sce)
+    print('logcounts')
+    print(typeof(lc))
+    print(class(lc))
 
     tryCatch({
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))

@@ -30,7 +30,7 @@ Imports:
     celldex,
     methods,
     egg,
-    scater,
+    scuttle,
     DT
 Suggests:
     devtools,
@@ -50,7 +50,7 @@ Remotes:
     bioc::release/SingleR,
     bioc::release/SummarizedExperiment,
     bioc::release/scDblFinder,
-    bioc::release/scater
+    bioc::release/scuttle
 Collate: 
     'Doublets.R'
     'Phenotyping.R'
