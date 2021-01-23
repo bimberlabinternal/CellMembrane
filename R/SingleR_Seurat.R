@@ -85,7 +85,10 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
     tryCatch({
       print('singler 1')
-      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
+      labels <- ref$label.main
+      print(length(labels))
+      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = labels, assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
+      print('singler 2.5')
       if (length(colnames(seuratObj)) != nrow(pred.results)) {
         stop('Length of SingleR results did not match seurat object')
       }

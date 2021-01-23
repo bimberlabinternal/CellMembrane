@@ -140,7 +140,7 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
   print('Find variable features:')
   seuratObj <- FindVariableFeatures(object = seuratObj, mean.cutoff = mean.cutoff, dispersion.cutoff = dispersion.cutoff , verbose = F, selection.method = variableFeatureSelectionMethod, nfeatures = nVariableFeatures)
 
-  if ('p.mito' %in% rownames(seuratObj@meta.data)) {
+  if ('p.mito' %in% names(seuratObj@meta.data)) {
     totalPMito = length(unique(seuratObj[['p.mito']]))
   } else {
     totalPMito <- -1

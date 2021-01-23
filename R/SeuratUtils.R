@@ -37,18 +37,30 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetField = NULL, seed = 
 		set.seed(seed)
 	}
 
-	if (!is.null(subsetField) && !(subsetField %in% rownames(seuratObj@meta.data))){
+	if (!is.null(subsetField) && !(subsetField %in% names(seuratObj@meta.data))){
 			stop(paste0('Field not found in seuratObj: ', subsetField))
 	}
 
 	cellsToRetain <- c()
 	if (is.null(subsetField)) {
-		cellsToRetain <- sample(colnames(seuratObj), targetCells, replace = F)
+		toSample <- min(targetCells, ncol(seuratObj))
+		if (toSample != targetCells) {
+			print(paste0('There are only ', ncol(seuratObj), ' cells. Will not downsample.'))
+			return(seuratObj)
+		}
+
+		cellsToRetain <- sample(colnames(seuratObj), toSample, replace = F)
 	} else {
 		counts <- table(seuratObj[[subsetField]])
 		for (val in unique(names(counts))) {
-			availBarcodes <- rownames(seuratObj)[seuratObj[[subsetField]] == val]
-			cellsToRetain <- c(cellsToRetain, sample(availBarcodes, targetCells, replace = F))
+			availBarcodes <- colnames(seuratObj)[seuratObj[[subsetField]] == val]
+			toSample <- min(targetCells, length(availBarcodes))
+			if (toSample != targetCells) {
+				print(paste0('There are only ', length(availBarcodes), ' cells available for group: ', val, '. Will retain all cells for this group.'))
+				cellsToRetain <- c(cellsToRetain, availBarcodes)
+			} else {
+				cellsToRetain <- c(cellsToRetain, sample(availBarcodes, targetCells, replace = F))
+			}
 		}
 	}
 
@@ -62,7 +74,7 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetField = NULL, seed = 
 #' @param splitField The name of the field on which to split the object
 #' @export
 SplitSeurat <- function(seuratObj, splitField) {
-	if (!(subsetField %in% names(seuratObj@meta.data))) {
+	if (!(splitField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not present in seurat object: ', splitField))
 	}
 
@@ -77,14 +89,25 @@ SplitSeurat <- function(seuratObj, splitField) {
 	return (ret)
 }
 
-#' @title Subset Seurat
+#' @title Subset Seurat Using String Expressions
 #'
 #' @description Subset a seurat object, selecting cells that match each expression
 #' @param seuratObj The seurat object
-#' @param expressions A vector of expressions to use in selection
+#' @param expressionStrings A vector strings, each of which will be parsed into an expression, to use in selection
 #' @export
-SubsetSeurat <- function(seuratObj, expressions) {
-	for (expression in expressions) {
+SubsetSeurat <- function(seuratObj, expressionStrings = NULL) {
+	toUse <- c()
+	if (!is.null(expressionStrings)) {
+		for (e in expressionStrings) {
+			toUse <- c(toUse, parse(text = e))
+		}
+	}
+
+	if (length(toUse) == 0) {
+		stop('Must provide expressionStrings')
+	}
+
+	for (expression in toUse) {
 		seuratObj <- subset(seuratObj, subset = expression)
 	}
 
@@ -92,7 +115,7 @@ SubsetSeurat <- function(seuratObj, expressions) {
 }
 
 
-#' @title WriteSummaryMetrics
+#' @title Write Summary Metrics
 #' @export
 #' @param seuratObj A Seurat object.
 #' @param file The file where metrics will be written
