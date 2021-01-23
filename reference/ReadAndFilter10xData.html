@@ -122,7 +122,8 @@
   <span class='va'>datasetName</span>,
   emptyDropNIters <span class='op'>=</span> <span class='fl'>10000</span>,
   storeGeneIds <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  emptyDropsLower <span class='op'>=</span> <span class='fl'>100</span>
+  emptyDropsLower <span class='op'>=</span> <span class='fl'>100</span>,
+  annotateMitoFromReference <span class='op'>=</span> <span class='cn'>TRUE</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -147,6 +148,10 @@
     <tr>
       <th>emptyDropsLower</th>
       <td><p>Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.</p></td>
+    </tr>
+    <tr>
+      <th>annotateMitoFromReference</th>
+      <td><p>If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito</p></td>
     </tr>
     </table>
 

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Wrapper around Seurat::CreateSeuratObject — CreateSeuratObj • CellMembrane</title>
+<title>Calculate Mitochrondrial Percentage — CalculatePercentMito • CellMembrane</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Wrapper around Seurat::CreateSeuratObject — CreateSeuratObj" />
-<meta property="og:description" content="Create Seurat object from count data (usually from Read10X()). This also sets pct.mito." />
+<meta property="og:title" content="Calculate Mitochrondrial Percentage — CalculatePercentMito" />
+<meta property="og:description" content="This will identify mitochrondrial genes and calculate p.mito for each cell" />
 
 
 
@@ -108,42 +108,28 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Wrapper around Seurat::CreateSeuratObject</h1>
+    <h1>Calculate Mitochrondrial Percentage</h1>
     <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/Preprocessing.R'><code>R/Preprocessing.R</code></a></small>
-    <div class="hidden name"><code>CreateSeuratObj.Rd</code></div>
+    <div class="hidden name"><code>CalculatePercentMito.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Create Seurat object from count data (usually from Read10X()). This also sets pct.mito.</p>
+    <p>This will identify mitochrondrial genes and calculate p.mito for each cell</p>
     </div>
 
-    <pre class="usage"><span class='fu'>CreateSeuratObj</span><span class='op'>(</span>
-  <span class='va'>seuratData</span>,
-  <span class='va'>project</span>,
-  minFeatures <span class='op'>=</span> <span class='fl'>25</span>,
-  minCells <span class='op'>=</span> <span class='fl'>0</span>,
+    <pre class="usage"><span class='fu'>CalculatePercentMito</span><span class='op'>(</span>
+  <span class='va'>seuratObj</span>,
   mitoGenesPattern <span class='op'>=</span> <span class='st'>"^MT-"</span>,
-  annotateMitoFromReference <span class='op'>=</span> <span class='cn'>TRUE</span>
+  annotateMitoFromReference <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  outputColName <span class='op'>=</span> <span class='st'>"p.mito"</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>seuratData, </th>
-      <td><p>Seurat input data, usually from Read10X().</p></td>
-    </tr>
-    <tr>
-      <th>project, </th>
-      <td><p>Sets the project name for the Seurat object.</p></td>
-    </tr>
-    <tr>
-      <th>minFeatures, </th>
-      <td><p>Include cells where at least this many features are detected.</p></td>
-    </tr>
-    <tr>
-      <th>minCells, </th>
-      <td><p>Include features detected in at least this many cells.</p></td>
+      <th>seuratObj</th>
+      <td><p>The seurat object</p></td>
     </tr>
     <tr>
       <th>mitoGenesPattern</th>
@@ -152,6 +138,10 @@
     <tr>
       <th>annotateMitoFromReference</th>
       <td><p>If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito</p></td>
+    </tr>
+    <tr>
+      <th>outputColName</th>
+      <td><p>The name of the output column to hold p.mito</p></td>
     </tr>
     </table>
 

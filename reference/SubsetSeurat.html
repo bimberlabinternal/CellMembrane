@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Subset Seurat — SubsetSeurat • CellMembrane</title>
+<title>Subset Seurat Using String Expressions — SubsetSeurat • CellMembrane</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,7 @@
 
 
 
-<meta property="og:title" content="Subset Seurat — SubsetSeurat" />
+<meta property="og:title" content="Subset Seurat Using String Expressions — SubsetSeurat" />
 <meta property="og:description" content="Subset a seurat object, selecting cells that match each expression" />
 
 
@@ -108,7 +108,7 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Subset Seurat</h1>
+    <h1>Subset Seurat Using String Expressions</h1>
     <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/SeuratUtils.R'><code>R/SeuratUtils.R</code></a></small>
     <div class="hidden name"><code>SubsetSeurat.Rd</code></div>
     </div>
@@ -117,7 +117,7 @@
     <p>Subset a seurat object, selecting cells that match each expression</p>
     </div>
 
-    <pre class="usage"><span class='fu'>SubsetSeurat</span><span class='op'>(</span><span class='va'>seuratObj</span>, <span class='va'>expressions</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>SubsetSeurat</span><span class='op'>(</span><span class='va'>seuratObj</span>, expressionStrings <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -127,8 +127,8 @@
       <td><p>The seurat object</p></td>
     </tr>
     <tr>
-      <th>expressions</th>
-      <td><p>A vector of expressions to use in selection</p></td>
+      <th>expressionStrings</th>
+      <td><p>A vector strings, each of which will be parsed into an expression, to use in selection</p></td>
     </tr>
     </table>
 

@@ -117,7 +117,7 @@
     <p>Find Doublets using scDblFinder</p>
     </div>
 
-    <pre class="usage"><span class='fu'>FindDoublets</span><span class='op'>(</span><span class='va'>seuratObj</span>, assay <span class='op'>=</span> <span class='st'>"RNA"</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>FindDoublets</span><span class='op'>(</span><span class='va'>seuratObj</span>, assay <span class='op'>=</span> <span class='st'>"RNA"</span>, rawResultFile <span class='op'>=</span> <span class='cn'>NULL</span>, doPlot <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -129,6 +129,14 @@
     <tr>
       <th>assay</th>
       <td><p>The assay to use</p></td>
+    </tr>
+    <tr>
+      <th>rawResultFile</th>
+      <td><p>An optional path to a file where raw results will be written</p></td>
+    </tr>
+    <tr>
+      <th>doPlot</th>
+      <td><p>If true, a DimPlot will be generated, assuming reductions are calculated</p></td>
     </tr>
     </table>
 
