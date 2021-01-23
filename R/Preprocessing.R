@@ -26,14 +26,15 @@ CreateSeuratObj <- function(seuratData, project, minFeatures = 25, minCells = 0,
 	return(seuratObj)
 }
 
-#' @title Calculate Mitochrondial Percentage
+#' @title Calculate Mitochrondrial Percentage
 #'
-#' @description This will identify mitochrondial genes and calculate p.mito for each cell
+#' @description This will identify mitochrondrial genes and calculate p.mito for each cell
 #' @param mitoGenesPattern The expression to use when identifying mitochondrial genes
 #' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
+#' @param outputColName The name of the output column to hold p.mito
 #' @return A Seurat object with p.mito calculated.
 #' @export
-CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateMitoFromReference = TRUE) {
+CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateMitoFromReference = TRUE, outputColName = 'p.mito') {
 	mito.features <- NULL
 	if (!annotateMitoFromReference) {
 		mito.features <- grep(pattern = mitoGenesPattern, x = rownames(x = seuratObj), value = TRUE)
@@ -46,10 +47,10 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 
 	if (all(is.null(mito.features)) || length(mito.features) == 0) {
 		print('No mito features found')
-		seuratObj[['p.mito']] <- 0
+		seuratObj[[outputColName]] <- 0
 	} else {
 		p.mito <- Matrix::colSums(x = GetAssayData(object = seuratObj, slot = 'counts')[mito.features, ]) / Matrix::colSums(x = GetAssayData(object = seuratObj, slot = 'counts'))
-		seuratObj[['p.mito']] <- p.mito
+		seuratObj[[outputColName]] <- p.mito
 	}
 
 	return(seuratObj)
