@@ -84,9 +84,19 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     }
 
     tryCatch({
+      print('singler 1')
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
+      if (length(colnames(seuratObj)) != nrow(pred.results)) {
+        stop('Length of SingleR results did not match seurat object')
+      }
+
+      print('singler 2')
+      print(utils::str(pred.results))
+      print('singler 3')
       if (!is.null(rawDataFile)){
-        toBind <- data.frame(cellbarcode = rownames(pred.results), classification_type = 'Main', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
+        print(2)
+        toBind <- data.frame(cellbarcode = colnames(seuratObj), classification_type = 'Main', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
+        print(3)
         if (is.null(completeRawData)) {
           completeRawData <- toBind
         } else {
@@ -103,29 +113,25 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         print(SingleR::plotScoreHeatmap(pred.results, cells.use = cells.use))
       }
 
-      if (sum(colnames(seuratObj) != rownames(pred.results)) > 0) {
-        stop('Cell barcodes did not match for all results')
-      }
-
       toAdd <- pred.results$pruned.labels
       toAdd[is.na(toAdd)] <- 'Unknown'
-      names(toAdd) <- rownames(pred.results)
+      names(toAdd) <- colnames(seuratObj)
       fn <- paste0(dataset, '.label')
       allFields <- c(allFields, fn)
       seuratObj[[fn]] <- toAdd
 
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, assay.type.ref = refAssay))
+      if (length(colnames(seuratObj)) != nrow(pred.results)) {
+        stop('Length of SingleR results did not match seurat object')
+      }
+
       if (!is.null(rawDataFile)){
-        toBind <- data.frame(cellbarcode = rownames(pred.results), classification_type = 'Fine', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
+        toBind <- data.frame(cellbarcode = colnames(seuratObj), classification_type = 'Fine', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
         if (is.null(completeRawData)) {
           completeRawData <- toBind
         } else {
           completeRawData <- rbind(completeRawData, toBind)
         }
-      }
-
-      if (sum(colnames(seuratObj) != rownames(pred.results)) > 0) {
-        stop('Cell barcodes did not match for all results')
       }
 
       if (showHeatmap) {
@@ -139,7 +145,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
       toAdd <- pred.results$pruned.labels
       toAdd[is.na(toAdd)] <- 'Unknown'
-      names(toAdd) <- rownames(pred.results)
+      names(toAdd) <- colnames(seuratObj)
 
       fn2 <- paste0(dataset, '.label.fine')
       allFields <- c(allFields, fn2)
@@ -176,22 +182,18 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       print(paste0('Error running singleR for dataset: ', dataset))
       print(conditionMessage(e))
     })
-
-    #sanity check:
-    if (length(colnames(seuratObj)) != length(rownames(pred.results))) {
-      stop('SingleR did not produce results for all cells')
-    }
-
-    if (!is.null(rawDataFile)) {
-      write.table(completeRawData, file = rawDataFile, sep = '\t', row.names = FALSE)
-    }
   }
 
   print(paste0('Adding fields: ', paste0(allFields, collapse = ',')))
-  df <- data.frame(CellBarcodes = rownames(pred.results))
+  df <- data.frame(CellBarcodes = colnames(seuratObj))
   for (fn in allFields){
     df[fn] <- seuratObj@meta.data[[fn]]
   }
+
+  if (!is.null(rawDataFile)) {
+    write.table(completeRawData, file = rawDataFile, sep = '\t', row.names = FALSE)
+  }
+
   if (!is.null(resultTableFile)){
     write.table(file = resultTableFile, df, sep = '\t', row.names = F, quote = F)
   }
