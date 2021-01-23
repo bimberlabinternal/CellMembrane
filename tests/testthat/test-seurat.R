@@ -27,27 +27,27 @@ test_that("Serat processing works as expected", {
   seuratObj <- seuratObj[,cellsToUse]
 
   seuratObj <- FilterRawCounts(seuratObj)
-  expect_equal(ncol(seuratObj), 484)
+  expect_equal(ncol(seuratObj), 485)
   
   seuratObj <- NormalizeAndScale(seuratObj)
   
   seuratObj <- RemoveCellCycle(seuratObj)
   tbl <- table(seuratObj$Phase)
-  expect_equal(tbl[['G1']], 239)
-  expect_equal(tbl[['G2M']], 102)
+  expect_equal(tbl[['G1']], 250)
+  expect_equal(tbl[['G2M']], 92)
   expect_equal(tbl[['S']], 143)
-  expect_equal(ncol(seuratObj), 484)
+  expect_equal(ncol(seuratObj), 485)
   
   vgFile <- 'variableGenes.txt'
   seuratObj <- RunPcaSteps(seuratObj, variableGeneTable = vgFile)
-  expect_equal(ncol(seuratObj), 484)
+  expect_equal(ncol(seuratObj), 485)
 
   expect_equal(file.exists(vgFile), T)
   expect_equal(nrow(utils::read.table(vgFile, sep = '\t', header = F)), 2000)
   unlink(vgFile)
 
   seuratObj <- FindClustersAndDimRedux(seuratObj)
-  expect_equal(ncol(seuratObj), 484)
+  expect_equal(ncol(seuratObj), 485)
   expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 7)
 
   expect_equal(length(rownames(seuratObj@assays$RNA@scale.data)), length(rownames(seuratObj@assays$RNA@counts)))
