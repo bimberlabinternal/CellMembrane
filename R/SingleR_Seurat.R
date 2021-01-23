@@ -85,8 +85,12 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
     tryCatch({
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
+      print(str(pred.results))
+      print(1)
       if (!is.null(rawDataFile)){
+        print(2)
         toBind <- data.frame(cellbarcode = rownames(pred.results), classification_type = 'Main', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
+        print(3)
         if (is.null(completeRawData)) {
           completeRawData <- toBind
         } else {
