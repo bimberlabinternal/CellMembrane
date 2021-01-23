@@ -84,22 +84,13 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     }
 
     tryCatch({
-      print('singler 1')
-      labels <- ref$label.main
-      print(length(labels))
-      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = labels, assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
-      print('singler 2.5')
+      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
       if (length(colnames(seuratObj)) != nrow(pred.results)) {
         stop('Length of SingleR results did not match seurat object')
       }
 
-      print('singler 2')
-      print(utils::str(pred.results))
-      print('singler 3')
       if (!is.null(rawDataFile)){
-        print(2)
         toBind <- data.frame(cellbarcode = colnames(seuratObj), classification_type = 'Main', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
-        print(3)
         if (is.null(completeRawData)) {
           completeRawData <- toBind
         } else {
@@ -201,8 +192,12 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     write.table(file = resultTableFile, df, sep = '\t', row.names = F, quote = F)
   }
 
-  DimPlot_SingleR(seuratObj, plotIndividually = TRUE, datasets = datasets)
-  Tabulate_SingleR(seuratObj, plotIndividually = TRUE, datasets = datasets)
+  if (length(allFields) == 0) {
+    print('No singleR calls were added, this probably indicates there were errors with singleR')
+  } else {
+    DimPlot_SingleR(seuratObj, plotIndividually = TRUE, datasets = datasets)
+    Tabulate_SingleR(seuratObj, plotIndividually = TRUE, datasets = datasets)
+  }
 
   return(seuratObj)
 }
