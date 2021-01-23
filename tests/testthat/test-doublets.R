@@ -1,0 +1,18 @@
+context("scRNAseq")
+
+test_that("Doublet detection works as expected", {
+  set.seed(1234)
+
+  seuratObj <- readRDS('../testdata/seuratOutput.rds')
+
+  fn <- 'doublets.txt'
+  seuratObj <- FindDoublets(seuratObj, rawResultFile = fn)
+  
+  expect_equal(17, sum(seuratObj$scDblFinder.class == 'doublet'), tolerance = 5)
+  expect_equal(1540, sum(seuratObj$scDblFinder.class == 'singlet'), tolerance = 5)
+  
+  df <- read.table(fn, header = T, sep = '\t')
+  expect_equal(1557, nrow(df))
+  unlink(fn)
+})
+
