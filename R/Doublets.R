@@ -5,8 +5,10 @@
 #' @param assay The assay to use
 #' @param rawResultFile An optional path to a file where raw results will be written
 #' @param doPlot If true, a DimPlot will be generated, assuming reductions are calculated
+#' @param dropDoublets If true, any cells marked as doublets will be dropped
+#' @import Seurat
 #' @export
-FindDoublets <- function(seuratObj, assay = 'RNA', rawResultFile = NULL, doPlot = TRUE) {
+FindDoublets <- function(seuratObj, assay = 'RNA', rawResultFile = NULL, doPlot = TRUE, dropDoublets = FALSE) {
 	sce <- Seurat::as.SingleCellExperiment(seuratObj, assay = assay)
 	df <- scDblFinder::scDblFinder(sce, returnType = 'table')
 	df <- df[df$type == 'real',]
@@ -32,6 +34,12 @@ FindDoublets <- function(seuratObj, assay = 'RNA', rawResultFile = NULL, doPlot 
 		} else {
 			print(DimPlot(seuratObj, group.by = 'scDblFinder.class'))
 		}
+	}
+
+	if (dropDoublets) {
+		nDoublet = sum(seuratObj[['scDblFinder.class']] == 'doublet')
+		print('Dropping ', nDoublet, ' doublets')
+		seuratObj <- subset(seuratObj, subset = scDblFinder.class != 'doublet')
 	}
 
 	return(seuratObj)

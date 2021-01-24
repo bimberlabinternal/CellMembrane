@@ -4,7 +4,13 @@
 \alias{FindDoublets}
 \title{Find Doublets using scDblFinder}
 \usage{
-FindDoublets(seuratObj, assay = "RNA", rawResultFile = NULL, doPlot = TRUE)
+FindDoublets(
+  seuratObj,
+  assay = "RNA",
+  rawResultFile = NULL,
+  doPlot = TRUE,
+  dropDoublets = FALSE
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
@@ -14,6 +20,8 @@ FindDoublets(seuratObj, assay = "RNA", rawResultFile = NULL, doPlot = TRUE)
 \item{rawResultFile}{An optional path to a file where raw results will be written}
 
 \item{doPlot}{If true, a DimPlot will be generated, assuming reductions are calculated}
+
+\item{dropDoublets}{If true, any cells marked as doublets will be dropped}
 }
 \description{
 Find Doublets using scDblFinder
