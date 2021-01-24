@@ -1,5 +1,5 @@
 utils::globalVariables(
-	names = c('x', 'y', 'mitoGenes'),
+	names = c('x', 'y'),
 	package = 'CellMembrane',
 	add = TRUE
 )
@@ -40,7 +40,7 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 	if (!annotateMitoFromReference) {
 		mito.features <- grep(pattern = mitoGenesPattern, x = rownames(x = seuratObj), value = TRUE)
 	} else {
-		mito.features <- mitoGenes$Gene
+		mito.features <- CellMembrane::mitoGenes$Gene
 	}
 
 	print(paste0('Total mito features: ', length(mito.features)))

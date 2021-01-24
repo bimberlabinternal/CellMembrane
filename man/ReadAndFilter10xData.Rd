@@ -14,7 +14,7 @@ ReadAndFilter10xData(
 )
 }
 \arguments{
-\item{dataDir}{The directory holding raw count data}
+\item{dataDir}{The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder}
 
 \item{datasetName}{A name to use when creating the Seurat object}
 

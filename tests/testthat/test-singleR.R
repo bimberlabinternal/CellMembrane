@@ -13,11 +13,6 @@ test_that("SingleR works as expected", {
     datasets <- c('hpca', 'blueprint', 'dice', 'monaco')
     seuratObj <- RunSingleR(seuratObj = seuratObj, resultTableFile = results, rawDataFile = rawDataFile, datasets = datasets)
 
-    #TODO: aborting test on devel due to SingleR package error. Restore this once fixed.
-    if (BiocManager::version() > 3.12) {
-        return()
-    }
-
     nGene2 <- nrow(seuratObj)
     nCell2 <- ncol(seuratObj)
 
