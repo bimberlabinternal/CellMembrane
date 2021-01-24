@@ -14,5 +14,8 @@ test_that("Doublet detection works as expected", {
   df <- read.table(fn, header = T, sep = '\t')
   expect_equal(1557, nrow(df))
   unlink(fn)
+
+  seuratObj <- FindDoublets(seuratObj, rawResultFile = fn, dropDoublets = TRUE)
+  expect_equal(1540, ncol(seuratObj))
 })
 
