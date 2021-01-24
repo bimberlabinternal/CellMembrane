@@ -13,7 +13,8 @@ utils::globalVariables(
 #'
 #' @description Reads in 10X files using Read10X and filters abberent cells using PerformEmptyDropletFiltering and returns a Seurat object.
 #' @param dataDir The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder
-#' @param datasetName A name to use when creating the Seurat object
+#' @param datasetId This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.
+#' @param datasetName An optional print-friendly name that will be stored in metadata
 #' @param emptyDropNIters The number of iterations to use with PerformEmptyDrops()
 #' @param emptyDropsLower Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.
 #' @param storeGeneIds If true, a map to translate geneId and name (by default rownames will use gene name)
@@ -21,7 +22,7 @@ utils::globalVariables(
 #' @return A Seurat object.
 #' @export
 #' @importFrom Seurat Read10X
-ReadAndFilter10xData <- function(dataDir, datasetName, emptyDropNIters=10000, storeGeneIds=TRUE, emptyDropsLower = 100, annotateMitoFromReference = TRUE) {
+ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, storeGeneIds=TRUE, emptyDropsLower = 100, annotateMitoFromReference = TRUE) {
   if (!file.exists(dataDir)){
     stop(paste0("File does not exist: ", dataDir))
   }
@@ -40,7 +41,7 @@ ReadAndFilter10xData <- function(dataDir, datasetName, emptyDropNIters=10000, st
 
   seuratRawData <- PerformEmptyDropletFiltering(seuratRawData, emptyDropNIters=emptyDropNIters, emptyDropsLower=emptyDropsLower)
 
-  seuratObj <- CreateSeuratObj(seuratRawData, project = datasetName, annotateMitoFromReference = TRUE)
+  seuratObj <- CreateSeuratObj(seuratRawData, datasetId = datasetId, datasetName = datasetName, annotateMitoFromReference = TRUE)
   .PrintQcPlots(seuratObj)
 
   if (storeGeneIds) {
@@ -90,13 +91,11 @@ GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
 #' @title Merge Seurat Objects
 #' @description Merges a list of Seurat objects
 #' @param seuratObjs A named list of seurat objects, optionally named (in which case these will be used as dataset names).
-#' @param projectName The project name when creating the final seuratObj
-#' @param assay The assay to use
-#' @param normalization.method Normalization method
+#' @param projectName The project name when creating the final seurat object
 #' @return A modified Seurat object.
 #' @export
 #' @importFrom methods slot
-MergeSeuratObjs <- function(seuratObjs, projectName, assay = NULL, normalization.method = "LogNormalize"){
+MergeSeuratObjs <- function(seuratObjs, projectName){
   nameList <- names(seuratObjs)
   if (is.null(nameList)) {
     stop('Must provide a named list of seurat objects')
@@ -104,25 +103,15 @@ MergeSeuratObjs <- function(seuratObjs, projectName, assay = NULL, normalization
 
   # Ensure barcodes unique
   for (datasetId in nameList) {
-    print(paste0('adding dataset: ', datasetId))
-    prefix <- paste0(datasetId)
-    so <- seuratObjs[[datasetId]]
-    if (!('BarcodePrefix' %in% names(so@meta.data))) {
-      print(paste0('Adding barcode prefix: ', prefix))
-      so <- RenameCells(object = so, add.cell.id = prefix)
-      so[['BarcodePrefix']] <- c(prefix)
-      seuratObjs[[datasetId]] <- so
-    } else {
-      print('Barcode prefix already added')
-    }
+    print(paste0('Adding dataset: ', datasetId))
+    seuratObj <- seuratObjs[[datasetId]]
+		seuratObjs[[datasetId]] <- .PossiblyAddBarcodePrefix(seuratObj, datasetId = datasetId, datasetName = NULL)
   }
   
-  seuratObj <- .DoMergeSimple(seuratObjs = seuratObjs, nameList = nameList, projectName = projectName)
+  seuratObj <- .DoMergeSimple(seuratObjs = seuratObjs, projectName = projectName)
 
   return(seuratObj)
 }
-
-
 
 
 #' @title Run the primary seurat processing steps.

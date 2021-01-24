@@ -49,3 +49,18 @@ utils::globalVariables(
   return(perplexity)
 }
 
+.PossiblyAddBarcodePrefix <- function(seuratObj, datasetId, datasetName = NULL) {
+  if (!('BarcodePrefix' %in% names(seuratObj@meta.data))) {
+    print(paste0('Adding barcode prefix: ', datasetId))
+    seuratObj <- RenameCells(object = seuratObj, add.cell.id = datasetId)
+    seuratObj[['BarcodePrefix']] <- c(datasetId)
+    seuratObj[['DatasetId']] <- c(datasetId)
+    if (!is.null(datasetName)) {
+      seuratObj[['DatasetName']] <- datasetName
+    }
+  } else {
+    print('Barcode prefix already added')
+  }
+
+  return(seuratObj)
+}

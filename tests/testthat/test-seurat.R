@@ -7,7 +7,10 @@ test_that("Serat processing works as expected", {
   outPrefix <- paste0(outDir, 'testData')
   resolutionToUse <- 0.6
 
-  seuratObj <- ReadAndFilter10xData('../testdata/CellRanger2/raw_gene_bc_matrices/cellRanger-3204293', 'Set1', emptyDropNIters=5000)
+  seuratObj <- ReadAndFilter10xData('../testdata/CellRanger2/raw_gene_bc_matrices/cellRanger-3204293', datasetId = 'Set1', datasetName = 'datasetName', emptyDropNIters=5000)
+  expect_true('BarcodePrefix' %in% colnames(seuratObj@meta.data))
+  expect_true('DatasetId' %in% colnames(seuratObj@meta.data))
+  expect_true('DatasetName' %in% colnames(seuratObj@meta.data))
 
   expect_equal(ncol(seuratObj), 3353, tolerance = 5)
 

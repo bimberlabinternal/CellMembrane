@@ -9,18 +9,19 @@ utils::globalVariables(
 #' @title Wrapper around Seurat::CreateSeuratObject
 #'
 #' @description Create Seurat object from count data (usually from Read10X()). This also sets pct.mito.
-#' @param seuratData, Seurat input data, usually from Read10X().
-#' @param project, Sets the project name for the Seurat object.
-#' @param minFeatures, Include cells where at least this many features are detected.
-#' @param minCells, Include features detected in at least this many cells.
+#' @param seuratData Seurat input data, usually from Read10X().
+#' @param datasetId This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.
+#' @param datasetName An optional print-friendly name that will be stored in metadata
+#' @param minFeatures Include cells where at least this many features are detected.
+#' @param minCells Include features detected in at least this many cells.
 #' @param mitoGenesPattern The expression to use when identifying mitochondrial genes
 #' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
 #' @return A Seurat object with p.mito calculated.
 #' @export
 #' @importFrom Matrix colSums
-CreateSeuratObj <- function(seuratData, project, minFeatures = 25, minCells = 0, mitoGenesPattern = "^MT-", annotateMitoFromReference = TRUE){
-	seuratObj <- Seurat::CreateSeuratObject(counts = seuratData, min.cells = minCells, min.features = minFeatures, project = project)
-
+CreateSeuratObj <- function(seuratData, datasetId, datasetName = NULL, minFeatures = 25, minCells = 0, mitoGenesPattern = "^MT-", annotateMitoFromReference = TRUE){
+	seuratObj <- Seurat::CreateSeuratObject(counts = seuratData, min.cells = minCells, min.features = minFeatures, project = datasetId)
+	seuratObj <- .PossiblyAddBarcodePrefix(seuratObj, datasetId = datasetId, datasetName = datasetName)
 	seuratObj<- CalculatePercentMito(seuratObj, mitoGenesPattern = mitoGenesPattern, annotateMitoFromReference = annotateMitoFromReference)
 
 	return(seuratObj)
@@ -156,31 +157,28 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 }
 
 
-.DoMergeSimple <- function(seuratObjs, nameList, projectName){
+.DoMergeSimple <- function(seuratObjs, projectName){
 	seuratObj <- NULL
 
-	for (exptNum in nameList) {
-		print(exptNum)
+	for (datasetId in names(seuratObjs)) {
 		if (is.null(seuratObj)) {
-			seuratObj <- seuratObjs[[exptNum]]
+			seuratObj <- seuratObjs[[datasetId]]
 		} else {
 			assayName <- DefaultAssay(seuratObj)
-			hasGeneId = ifelse(is.null(GetAssay(seuratObjs[[exptNum]])@meta.features$GeneId), F, T)
+			hasGeneId = ifelse(is.null(GetAssay(seuratObjs[[datasetId]])@meta.features$GeneId), F, T)
 
-			if (any(rownames(seuratObj) != rownames(seuratObjs[[exptNum]]))) {
+			if (any(rownames(seuratObj) != rownames(seuratObjs[[datasetId]]))) {
 				stop('Gene names are not equal!')
 			}
 
 			if (hasGeneId) {
 				geneIds1 <- GetAssay(seuratObj)@meta.features$GeneId
-				geneIds2 <- GetAssay(seuratObjs[[exptNum]])@meta.features$GeneId
+				geneIds2 <- GetAssay(seuratObjs[[datasetId]])@meta.features$GeneId
 				names(geneIds1) <- rownames(seuratObj)
-				names(geneIds2) <- rownames(seuratObjs[[exptNum]])
+				names(geneIds2) <- rownames(seuratObjs[[datasetId]])
 			}
 
-			seuratObj <- merge(x = seuratObj,
-			y = seuratObjs[[exptNum]],
-			project = projectName)
+			seuratObj <- merge(x = seuratObj, y = seuratObjs[[datasetId]], project = projectName)
 
 			if (hasGeneId) {
 				if (any(is.na(geneIds1)) & !any(is.na(geneIds2))) {
