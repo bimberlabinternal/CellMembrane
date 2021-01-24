@@ -84,13 +84,6 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       refAssay <- 'normcounts'
     }
 
-    lc <- SingleCellExperiment::logcounts(sce)
-    print(class(lc))
-    print(typeof(lc))
-
-    print(class(sce))
-    print(typeof(sce))
-
     tryCatch({
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
       if (length(colnames(seuratObj)) != nrow(pred.results)) {
