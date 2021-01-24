@@ -9,13 +9,20 @@ test_that("Seurat-merge works as expected", {
   )
 
   seuratObjs <- list()
-  for (datasetName in names(data)) {
-    seuratObjs[[datasetName]] <- ReadAndFilter10xData(testthat::test_path(data[[datasetName]]), datasetName, emptyDropNIters=1000)
+  for (datasetId in names(data)) {
+    seuratObj <- ReadAndFilter10xData(testthat::test_path(data[[datasetId]]), datasetId = datasetId, emptyDropNIters=1000)
+    expect_true('BarcodePrefix' %in% colnames(seuratObj@meta.data))
+    expect_true('DatasetId' %in% colnames(seuratObj@meta.data))
+    expect_false('DatasetName' %in% colnames(seuratObj@meta.data))
+    seuratObjs[[datasetId]] <- seuratObj
   }
 
   expect_equal(length(seuratObjs), 2)
 
   seuratObj <- MergeSeuratObjs(seuratObjs, projectName = 'project')
+  expect_true('BarcodePrefix' %in% colnames(seuratObj@meta.data))
+  expect_true('DatasetId' %in% colnames(seuratObj@meta.data))
+
   expect_equal("RNA", Seurat::DefaultAssay(seuratObj))
 
   #Gene IDs preserved:

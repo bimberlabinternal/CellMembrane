@@ -60,12 +60,6 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
 		#Subset genes:
     genesPresent <- intersect(rownames(seuratObj@assays[[assay]]), rownames(ref))
-    ref <- ref[genesPresent,]
-
-    seuratObjSubset <- Seurat::DietSeurat(seuratObj, assays = c(assay), counts = T)
-    seuratObjSubset <- subset(seuratObj, features = genesPresent)
-
-    Seurat::DefaultAssay(seuratObjSubset) <- assay
     print(paste0('Total genes shared with reference data: ', length(genesPresent), ' of ', nrow(seuratObj)))
 
     if (length(genesPresent) < 100) {
@@ -73,8 +67,14 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       next
     }
 
+    ref <- ref[genesPresent,]
+
+    seuratObjSubset <- Seurat::DietSeurat(seuratObj, assays = c(assay), counts = TRUE)
+    seuratObjSubset <- subset(seuratObj, features = genesPresent)
+    Seurat::DefaultAssay(seuratObjSubset) <- assay
+
     #Convert to SingleCellExperiment
-    sce <- Seurat::as.SingleCellExperiment(seuratObjSubset, assay = assay)
+    sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = GetAssayData(object = seuratObjSubset, assay = assay, slot = "counts")))
     sce <- scuttle::logNormCounts(sce)
     rm(seuratObjSubset)
 
@@ -83,6 +83,13 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       print('logcount not present, using normcounts as assay type')
       refAssay <- 'normcounts'
     }
+
+    lc <- SingleCellExperiment::logcounts(sce)
+    print(class(lc))
+    print(typeof(lc))
+
+    print(class(sce))
+    print(typeof(sce))
 
     tryCatch({
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))

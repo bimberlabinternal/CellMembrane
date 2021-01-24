@@ -4,21 +4,12 @@
 \alias{MergeSeuratObjs}
 \title{Merge Seurat Objects}
 \usage{
-MergeSeuratObjs(
-  seuratObjs,
-  projectName,
-  assay = NULL,
-  normalization.method = "LogNormalize"
-)
+MergeSeuratObjs(seuratObjs, projectName)
 }
 \arguments{
 \item{seuratObjs}{A named list of seurat objects, optionally named (in which case these will be used as dataset names).}
 
-\item{projectName}{The project name when creating the final seuratObj}
-
-\item{assay}{The assay to use}
-
-\item{normalization.method}{Normalization method}
+\item{projectName}{The project name when creating the final seurat object}
 }
 \value{
 A modified Seurat object.

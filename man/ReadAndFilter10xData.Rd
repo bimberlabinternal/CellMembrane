@@ -6,7 +6,8 @@
 \usage{
 ReadAndFilter10xData(
   dataDir,
-  datasetName,
+  datasetId,
+  datasetName = NULL,
   emptyDropNIters = 10000,
   storeGeneIds = TRUE,
   emptyDropsLower = 100,
@@ -16,7 +17,9 @@ ReadAndFilter10xData(
 \arguments{
 \item{dataDir}{The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder}
 
-\item{datasetName}{A name to use when creating the Seurat object}
+\item{datasetId}{This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.}
+
+\item{datasetName}{An optional print-friendly name that will be stored in metadata}
 
 \item{emptyDropNIters}{The number of iterations to use with PerformEmptyDrops()}
 

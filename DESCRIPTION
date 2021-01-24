@@ -31,7 +31,8 @@ Imports:
     methods,
     egg,
     scuttle,
-    DT
+    DT,
+    SingleCellExperiment
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -50,7 +51,8 @@ Remotes:
     bioc::release/SingleR,
     bioc::release/SummarizedExperiment,
     bioc::release/scDblFinder,
-    bioc::release/scuttle
+    bioc::release/scuttle,
+    bioc::release/SingleCellExperiment
 Collate: 
     'Doublets.R'
     'Phenotyping.R'

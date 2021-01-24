@@ -6,7 +6,8 @@
 \usage{
 CreateSeuratObj(
   seuratData,
-  project,
+  datasetId,
+  datasetName = NULL,
   minFeatures = 25,
   minCells = 0,
   mitoGenesPattern = "^MT-",
@@ -14,13 +15,15 @@ CreateSeuratObj(
 )
 }
 \arguments{
-\item{seuratData, }{Seurat input data, usually from Read10X().}
+\item{seuratData}{Seurat input data, usually from Read10X().}
 
-\item{project, }{Sets the project name for the Seurat object.}
+\item{datasetId}{This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.}
 
-\item{minFeatures, }{Include cells where at least this many features are detected.}
+\item{datasetName}{An optional print-friendly name that will be stored in metadata}
 
-\item{minCells, }{Include features detected in at least this many cells.}
+\item{minFeatures}{Include cells where at least this many features are detected.}
+
+\item{minCells}{Include features detected in at least this many cells.}
 
 \item{mitoGenesPattern}{The expression to use when identifying mitochondrial genes}
 
