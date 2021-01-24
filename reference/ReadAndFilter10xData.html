@@ -119,7 +119,8 @@
 
     <pre class="usage"><span class='fu'>ReadAndFilter10xData</span><span class='op'>(</span>
   <span class='va'>dataDir</span>,
-  <span class='va'>datasetName</span>,
+  <span class='va'>datasetId</span>,
+  datasetName <span class='op'>=</span> <span class='cn'>NULL</span>,
   emptyDropNIters <span class='op'>=</span> <span class='fl'>10000</span>,
   storeGeneIds <span class='op'>=</span> <span class='cn'>TRUE</span>,
   emptyDropsLower <span class='op'>=</span> <span class='fl'>100</span>,
@@ -134,8 +135,12 @@
       <td><p>The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder</p></td>
     </tr>
     <tr>
+      <th>datasetId</th>
+      <td><p>This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.</p></td>
+    </tr>
+    <tr>
       <th>datasetName</th>
-      <td><p>A name to use when creating the Seurat object</p></td>
+      <td><p>An optional print-friendly name that will be stored in metadata</p></td>
     </tr>
     <tr>
       <th>emptyDropNIters</th>

@@ -119,7 +119,8 @@
 
     <pre class="usage"><span class='fu'>CreateSeuratObj</span><span class='op'>(</span>
   <span class='va'>seuratData</span>,
-  <span class='va'>project</span>,
+  <span class='va'>datasetId</span>,
+  datasetName <span class='op'>=</span> <span class='cn'>NULL</span>,
   minFeatures <span class='op'>=</span> <span class='fl'>25</span>,
   minCells <span class='op'>=</span> <span class='fl'>0</span>,
   mitoGenesPattern <span class='op'>=</span> <span class='st'>"^MT-"</span>,
@@ -130,19 +131,23 @@
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>seuratData, </th>
+      <th>seuratData</th>
       <td><p>Seurat input data, usually from Read10X().</p></td>
     </tr>
     <tr>
-      <th>project, </th>
-      <td><p>Sets the project name for the Seurat object.</p></td>
+      <th>datasetId</th>
+      <td><p>This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.</p></td>
     </tr>
     <tr>
-      <th>minFeatures, </th>
+      <th>datasetName</th>
+      <td><p>An optional print-friendly name that will be stored in metadata</p></td>
+    </tr>
+    <tr>
+      <th>minFeatures</th>
       <td><p>Include cells where at least this many features are detected.</p></td>
     </tr>
     <tr>
-      <th>minCells, </th>
+      <th>minCells</th>
       <td><p>Include features detected in at least this many cells.</p></td>
     </tr>
     <tr>
