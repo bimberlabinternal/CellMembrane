@@ -84,13 +84,8 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       refAssay <- 'normcounts'
     }
 
-    lc <- SingleCellExperiment::logcounts(sce)
-    print('logcounts')
-    print(typeof(lc))
-    print(class(lc))
-
     tryCatch({
-      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
+      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
       if (length(colnames(seuratObj)) != nrow(pred.results)) {
         stop('Length of SingleR results did not match seurat object')
       }
@@ -120,7 +115,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       allFields <- c(allFields, fn)
       seuratObj[[fn]] <- toAdd
 
-      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, assay.type.ref = refAssay))
+      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
       if (length(colnames(seuratObj)) != nrow(pred.results)) {
         stop('Length of SingleR results did not match seurat object')
       }
