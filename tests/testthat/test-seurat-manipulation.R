@@ -18,7 +18,7 @@ test_that("SingleR works as expected", {
   expect_equal(3, length(seuratList))
 
   #seuratObj2 <- SubsetSeurat(seuratObj, expressionStrings = c('ClusterNames_0.2 == 0'))
-  e <- expression(ClusterNames_0.2 == 0)
-  seuratObj2 <- subset(seuratObj, subset = e)
+  #e <- expression(ClusterNames_0.2 == 0)
+  #seuratObj2 <- subset(seuratObj, subset = e)
 })
 
