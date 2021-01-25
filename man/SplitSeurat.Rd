@@ -4,12 +4,14 @@
 \alias{SplitSeurat}
 \title{Split Seurat}
 \usage{
-SplitSeurat(seuratObj, splitField)
+SplitSeurat(seuratObj, splitField, minCellsToKeep = 0)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
 
 \item{splitField}{The name of the field on which to split the object}
+
+\item{minCellsToKeep}{If any of the resulting seurat objects have less than this many cells, they will be discarded.}
 }
 \description{
 Split a seurat object, dividing into new objects based on the value of a field
