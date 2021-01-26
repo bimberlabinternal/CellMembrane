@@ -72,8 +72,9 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetField = NULL, seed = 
 #' @description Split a seurat object, dividing into new objects based on the value of a field
 #' @param seuratObj The seurat object
 #' @param splitField The name of the field on which to split the object
+#' @param minCellsToKeep If any of the resulting seurat objects have less than this many cells, they will be discarded.
 #' @export
-SplitSeurat <- function(seuratObj, splitField) {
+SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0) {
 	if (!(splitField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not present in seurat object: ', splitField))
 	}
@@ -82,8 +83,12 @@ SplitSeurat <- function(seuratObj, splitField) {
 
 	ret <- list()
 	for (value in values) {
-		expr <- parse(text = paste0(splitField, " == '", value, "'"))
-		ret[value] <- seuratObj[, Seurat::WhichCells(object = seuratObj, expression = expr)]
+		s <- seuratObj[, colnames(seuratObj)[seuratObj@meta.data[[splitField]] == value]]
+		if (ncol(s) < minCellsToKeep) {
+			print(paste0('Too few cells (', ncol(s), '), discarding subset: ', value))
+		} else {
+			ret[[value]] <- s
+		}
 	}
 
 	return (ret)
