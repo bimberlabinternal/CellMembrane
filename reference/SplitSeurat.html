@@ -117,7 +117,7 @@
     <p>Split a seurat object, dividing into new objects based on the value of a field</p>
     </div>
 
-    <pre class="usage"><span class='fu'>SplitSeurat</span><span class='op'>(</span><span class='va'>seuratObj</span>, <span class='va'>splitField</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>SplitSeurat</span><span class='op'>(</span><span class='va'>seuratObj</span>, <span class='va'>splitField</span>, minCellsToKeep <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -129,6 +129,10 @@
     <tr>
       <th>splitField</th>
       <td><p>The name of the field on which to split the object</p></td>
+    </tr>
+    <tr>
+      <th>minCellsToKeep</th>
+      <td><p>If any of the resulting seurat objects have less than this many cells, they will be discarded.</p></td>
     </tr>
     </table>
 
