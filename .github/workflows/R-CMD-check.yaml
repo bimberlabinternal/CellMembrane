@@ -48,6 +48,7 @@ jobs:
           if (!requireNamespace("BiocManager", quietly=TRUE))  install.packages("BiocManager");
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE);cat(append = TRUE, file = "~/.Rprofile", "options(repos = BiocManager::repositories());")
           install.packages('remotes')
+          cat(append = TRUE, file = "~/.Rprofile", "options(BioC_git = 'https://git.bioconductor.org/packages/${{ matrix.config.bioc }}/');");
           saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
           writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
         shell: Rscript {0}
@@ -71,6 +72,7 @@ jobs:
       - name: Install dependencies
         run: |
           getOption('repos')
+          getOption('BioC_git')
           remotes::install_deps(dependencies = TRUE, upgrade = "always")
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
