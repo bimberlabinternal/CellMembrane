@@ -153,13 +153,47 @@ WriteCellBarcodes <- function(seuratObj, file) {
 #' @param cellNames The set of cells to export
 #' @export
 GetXYDataFromPlot <- function(plot, cellNames) {
-	xynames <- Seurat:::GetXYAesthetics(plot = plot)
+	xynames <- GetXYAesthetics(plot = plot)
 
 	plot.data <- plot$data[cellNames, ]
 	names(plot.data)[names(plot.data) == xynames$x] <- 'x'
 	names(plot.data)[names(plot.data) == xynames$y] <- 'y'
 
 	return(plot.data)
+}
+
+# Get X and Y aesthetics from a plot for a certain geom
+#
+# @param plot A ggplot2 object
+# @param geom Geom class to filter to
+# @param plot.first Use plot-wide X/Y aesthetics before geom-specific aesthetics
+# @author Seurat`
+# @return A named list with values 'x' for the name of the x aesthetic and 'y' for the y aesthetic
+#
+GetXYAesthetics <- function(plot, geom = 'GeomPoint', plot.first = TRUE) {
+	geoms <- sapply(
+		X = plot$layers,
+		FUN = function(layer) {
+			return(class(x = layer$geom)[1])
+		}
+	)
+	# handle case where raster is set to True
+	if (geom == "GeomPoint" && "GeomScattermore" %in% geoms){
+		geom <- "GeomScattermore"
+	}
+	geoms <- which(x = geoms == geom)
+	if (length(x = geoms) == 0) {
+		stop("Cannot find a geom of class ", geom)
+	}
+	geoms <- min(geoms)
+	if (plot.first) {
+		x <- as.character(x = plot$mapping$x %||% plot$layers[[geoms]]$mapping$x)[2]
+		y <- as.character(x = plot$mapping$y %||% plot$layers[[geoms]]$mapping$y)[2]
+	} else {
+		x <- as.character(x = plot$layers[[geoms]]$mapping$x %||% plot$mapping$x)[2]
+		y <- as.character(x = plot$layers[[geoms]]$mapping$y %||% plot$mapping$y)[2]
+	}
+	return(list('x' = x, 'y' = y))
 }
 
 #' @title AddClonesToPlot
