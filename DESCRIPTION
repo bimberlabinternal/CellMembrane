@@ -44,15 +44,15 @@ RoxygenNote: 7.1.1
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
-    bioc::release/DropletUtils,
-    bioc::release/DESeq2,
-    bioc::release/MAST,
-    bioc::release/celldex,
-    bioc::release/SingleR,
-    bioc::release/SummarizedExperiment,
-    bioc::release/scDblFinder,
-    bioc::release/scuttle,
-    bioc::release/SingleCellExperiment
+    bioc::DropletUtils,
+    bioc::DESeq2,
+    bioc::MAST,
+    bioc::celldex,
+    bioc::SingleR,
+    bioc::SummarizedExperiment,
+    bioc::scDblFinder,
+    bioc::scuttle,
+    bioc::SingleCellExperiment
 Collate: 
     'Doublets.R'
     'Phenotyping.R'
