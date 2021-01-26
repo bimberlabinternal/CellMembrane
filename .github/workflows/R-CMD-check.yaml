@@ -70,6 +70,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          getOption('repos')
           remotes::install_deps(dependencies = TRUE, upgrade = "always")
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
