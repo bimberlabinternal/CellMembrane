@@ -16,8 +16,10 @@ utils::globalVariables(
 #' @import Seurat
 #' @export
 FindDoublets <- function(seuratObj, assay = 'RNA', rawResultFile = NULL, doPlot = TRUE, dropDoublets = FALSE) {
+	print('Finding doublets using scDblFinder')
+
 	sce <- Seurat::as.SingleCellExperiment(seuratObj, assay = assay)
-	df <- scDblFinder::scDblFinder(sce, returnType = 'table')
+	df <- scDblFinder::scDblFinder(sce, returnType = 'table', verbose = FALSE)
 	df <- df[df$type == 'real',]
 
 	toAdd <- df$class
@@ -36,8 +38,10 @@ FindDoublets <- function(seuratObj, assay = 'RNA', rawResultFile = NULL, doPlot 
 	}
 
 	if (doPlot) {
-		if (length(seuratObj@reductions) == 0) {
+		print(FeatureScatter(object = seuratObj, feature1 = 'nCount_RNA', feature2 = 'nFeature_RNA', group.by = 'scDblFinder.class'))
 
+		if (length(seuratObj@reductions) == 0) {
+			print('No reductions calculated, cannot tSNE/UMAP')
 		} else {
 			print(DimPlot(seuratObj, group.by = 'scDblFinder.class'))
 		}
