@@ -38,6 +38,7 @@ Suggests:
     testthat (>= 2.1.0),
     knitr,
     rmdformats,
+    rmarkdown,
     shiny,
     pkgdown
 RoxygenNote: 7.1.1

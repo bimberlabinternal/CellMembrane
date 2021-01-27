@@ -44,12 +44,18 @@ jobs:
           python3 -m pip install --user umap-learn
 
       # Note: the environment variable R_BIOC_VERSION is set to force remotes::install_bioc to follow the proper version
-      - name: Query dependencies
+      - name: Setup Bioconductor
         run: |
           if (!requireNamespace("BiocManager", quietly=TRUE))  install.packages("BiocManager");
-          BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE);cat(append = TRUE, file = "~/.Rprofile", "options(repos = BiocManager::repositories());")
-          install.packages('remotes')
+          BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE);
+          cat(append = TRUE, file = "~/.Rprofile", "options(repos = BiocManager::repositories());")
           cat(append = TRUE, file = "~/.Rprofile", "Sys.setenv(R_BIOC_VERSION=paste0(utils::packageVersion('BiocVersion')[,1:2]));");
+        shell: Rscript {0}
+
+      - name: Query dependencies
+        run: |
+          install.packages('remotes')
+          print(paste0("R_BIOC_VERSION: ", Sys.getenv("R_BIOC_VERSION")));
           saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
           writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
         shell: Rscript {0}
@@ -59,8 +65,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-${{ matrix.config.bioc }}-1-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-${{ matrix.config.bioc }}-1-
+          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-${{ matrix.config.bioc }}-${{ secrets.CACHE_VERSION || 1 }}-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-${{ matrix.config.bioc }}-${{ secrets.CACHE_VERSION || 1 }}-
 
       - name: Install system dependencies
         if: runner.os == 'Linux'
@@ -72,8 +78,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          getOption('repos')
-          Sys.getenv('R_BIOC_VERSION')
+          getOption('repos');
+          print(paste0("R_BIOC_VERSION: ", Sys.getenv("R_BIOC_VERSION")));
           remotes::install_deps(dependencies = TRUE, upgrade = "always")
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
