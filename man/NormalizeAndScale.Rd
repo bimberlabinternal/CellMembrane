@@ -9,7 +9,8 @@ NormalizeAndScale(
   variableFeatureSelectionMethod = "vst",
   nVariableFeatures = 2000,
   mean.cutoff = c(0.0125, 3),
-  dispersion.cutoff = c(0.5, Inf)
+  dispersion.cutoff = c(0.5, Inf),
+  block.size = 1000
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ NormalizeAndScale(
 \item{mean.cutoff}{Passed directly to FindVariableFeatures}
 
 \item{dispersion.cutoff}{Passed directly to FindVariableFeatures}
+
+\item{block.size}{Passed directly to ScaleData}
 }
 \value{
 A modified Seurat object.

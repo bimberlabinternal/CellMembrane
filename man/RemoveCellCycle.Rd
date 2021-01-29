@@ -4,12 +4,14 @@
 \alias{RemoveCellCycle}
 \title{Remove Cell Cycle}
 \usage{
-RemoveCellCycle(seuratObj, min.genes = 10)
+RemoveCellCycle(seuratObj, min.genes = 10, block.size = 1000)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
 
 \item{min.genes}{If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.}
+
+\item{block.size}{Passed directly to ScaleData}
 }
 \value{
 A modified Seurat object.
