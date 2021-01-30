@@ -117,7 +117,7 @@
     <p>Remove Cell Cycle</p>
     </div>
 
-    <pre class="usage"><span class='fu'>RemoveCellCycle</span><span class='op'>(</span><span class='va'>seuratObj</span>, min.genes <span class='op'>=</span> <span class='fl'>10</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>RemoveCellCycle</span><span class='op'>(</span><span class='va'>seuratObj</span>, min.genes <span class='op'>=</span> <span class='fl'>10</span>, block.size <span class='op'>=</span> <span class='fl'>1000</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -129,6 +129,10 @@
     <tr>
       <th>min.genes</th>
       <td><p>If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.</p></td>
+    </tr>
+    <tr>
+      <th>block.size</th>
+      <td><p>Passed directly to ScaleData</p></td>
     </tr>
     </table>
 
