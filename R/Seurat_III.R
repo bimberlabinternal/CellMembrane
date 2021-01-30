@@ -423,7 +423,8 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 #' @import MAST
 #' @export
 Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'bimod', 'roc', 't', 'negbinom', 'poisson', 'LR', 'MAST', 'DESeq2'), numGenesToSave = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5) {
-  for (fieldName in identFields) {
+	seuratObj.markers <- NULL
+	for (fieldName in identFields) {
 		# Allow resolution to be passed directly:
 		if (!(fieldName %in% names(seuratObj@meta.data))) {
   		toTest <- paste0('ClusterNames_', fieldName)
@@ -435,8 +436,6 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   	print(paste0('Grouping by field: ', fieldName))
 		Idents(seuratObj) <- fieldName
 
-		seuratObj.markers <- NA
-		tMarkers <- NA
 		for (test in testsToUse) {
 			print(paste0('Running using test: ', test))
 			tryCatch({
@@ -445,40 +444,43 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 					print('No genes returned, skipping')
 				} else {
 					tMarkers$test <- c(test)
+					tMarkers$groupField <- c(fieldName)
 					tMarkers$cluster <- as.character(tMarkers$cluster)
+
+					logFcField <- ifelse('avg_log2FC' %in% colnames(tMarkers), yes = 'avg_log2FC', no = 'avg_logFC')
 					if (test == 'roc') {
 						toBind <- data.frame(
-							groupField = fieldName,
-							test = tMarkers$test,
-							cluster = tMarkers$cluster,
-							gene = tMarkers$gene,
+							groupField = tMarkers$groupField,
+							test = as.character(tMarkers$test),
+							cluster = as.character(tMarkers$cluster),
+							gene = as.character(tMarkers$gene),
 							pct.1 = tMarkers$pct.1,
 							pct.2 = tMarkers$pct.2,
 							avg_logFC = NA,
 							p_val_adj = NA,
 							myAUC = tMarkers$myAUC,
 							power = tMarkers$power,
-							avg_diff = tMarkers$avg_diff
+							avg_diff = tMarkers$avg_diff, stringsAsFactors=FALSE
 						)
 					} else {
 						toBind <- data.frame(
-							groupField = fieldName,
-							test = tMarkers$test,
-							cluster = tMarkers$cluster,
-							gene = tMarkers$gene,
+							groupField = tMarkers$groupField,
+							test = as.character(tMarkers$test),
+							cluster = as.character(tMarkers$cluster),
+							gene = as.character(tMarkers$gene),
 							pct.1 = tMarkers$pct.1,
 							pct.2 = tMarkers$pct.2,
-							avg_logFC = tMarkers$avg_logFC,
+							avg_logFC = tMarkers[[logFcField]],
 							p_val_adj = tMarkers$p_val_adj,
 							myAUC = NA,
 							power = NA,
-							avg_diff = NA
+							avg_diff = NA, stringsAsFactors=FALSE
 						)
 					}
 
 					print(paste0('Total genes returned: ', nrow(toBind)))
 
-					if (all(is.na(seuratObj.markers))) {
+					if (all(is.null(seuratObj.markers))) {
 						seuratObj.markers <- toBind
 					} else {
 						seuratObj.markers <- rbind(seuratObj.markers, toBind)
@@ -491,25 +493,19 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 				print(utils::str(tMarkers))
 				print(utils::str(seuratObj.markers))
 			})
-
-			if (all(is.na(seuratObj.markers))) {
-				print('All tests failed, no markers returned')
-				return()
-			}
-
-			if (!('cluster' %in% names(seuratObj.markers))) {
-				warning('cluster column not found!')
-			} else {
-				seuratObj.markers$cluster <- as.factor(seuratObj.markers$cluster)
-			}
 		}
 	}
 
-  if (nrow(seuratObj.markers) == 0) {
+	if (all(is.null(seuratObj.markers))) {
+		print('All tests failed, no markers returned')
+		return()
+	}
+  else if (nrow(seuratObj.markers) == 0) {
     print('No significant markers were found')
     return()
   } else {
-    toWrite <- seuratObj.markers %>% filter(p_val_adj < pValThreshold) %>% filter(avg_logFC > foldChangeThreshold) %>% group_by(groupField, cluster, test) %>% top_n(numGenesToSave, avg_logFC)
+		seuratObj.markers$cluster <- as.factor(seuratObj.markers$cluster)
+    toWrite <- seuratObj.markers %>% filter(p_val_adj < pValThreshold) %>% filter(avg_logFC > foldChangeThreshold)
     if (nrow(toWrite) == 0) {
       print('No significant markers were found')
     } else {
@@ -519,7 +515,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
       print(DimPlot(object = seuratObj, reduction = 'tsne'))
 
-      topGene <- toWrite %>% group_by(cluster, test) %>% top_n(20, avg_logFC)
+      topGene <- toWrite %>% group_by(groupField, cluster, test) %>% top_n(numGenesToSave, avg_logFC)
       print(DoHeatmap(object = seuratObj, features = unique(as.character(topGene$gene))))
 
       #Note: return the datatable, so it will be printed correctly by Rmarkdown::render()
