@@ -66,7 +66,9 @@ test_that("Serat processing works as expected", {
   mf <- paste0(outPrefix, '.markers.txt')
   Find_Markers(seuratObj, identFields = c(resolutionToUse), outFile = mf, testsToUse = c('wilcox', 't'))
 
-  expect_equal(nrow(utils::read.table(mf, sep = '\t', header = T)), 543, tolerance = 0)
+  df <- utils::read.table(mf, sep = '\t', header = T)
+  expect_equal(nrow(df), 543, tolerance = 0)
+  expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
 
