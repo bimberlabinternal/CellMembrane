@@ -445,10 +445,11 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 					print('No genes returned, skipping')
 				} else {
 					tMarkers$test <- c(test)
+					tMarkers$groupField <- c(fieldName)
 					tMarkers$cluster <- as.character(tMarkers$cluster)
 					if (test == 'roc') {
 						toBind <- data.frame(
-							groupField = c(fieldName),
+							groupField = tMarkers$groupField,
 							test = tMarkers$test,
 							cluster = tMarkers$cluster,
 							gene = tMarkers$gene,
@@ -462,7 +463,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 						)
 					} else {
 						toBind <- data.frame(
-							groupField = c(fieldName),
+							groupField = tMarkers$groupField,
 							test = tMarkers$test,
 							cluster = tMarkers$cluster,
 							gene = tMarkers$gene,
