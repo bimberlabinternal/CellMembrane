@@ -448,7 +448,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 					tMarkers$cluster <- as.character(tMarkers$cluster)
 					if (test == 'roc') {
 						toBind <- data.frame(
-							groupField = fieldName,
+							groupField = c(fieldName),
 							test = tMarkers$test,
 							cluster = tMarkers$cluster,
 							gene = tMarkers$gene,
@@ -462,7 +462,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 						)
 					} else {
 						toBind <- data.frame(
-							groupField = fieldName,
+							groupField = c(fieldName),
 							test = tMarkers$test,
 							cluster = tMarkers$cluster,
 							gene = tMarkers$gene,
