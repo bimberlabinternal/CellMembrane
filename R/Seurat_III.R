@@ -446,6 +446,8 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 					tMarkers$test <- c(test)
 					tMarkers$groupField <- c(fieldName)
 					tMarkers$cluster <- as.character(tMarkers$cluster)
+
+					logFcField <- ifelse('avg_log2FC' %in% colnames(tMarkers), yes = 'avg_log2FC', no = 'avg_logFC')
 					if (test == 'roc') {
 						toBind <- data.frame(
 							groupField = tMarkers$groupField,
@@ -468,7 +470,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 							gene = as.character(tMarkers$gene),
 							pct.1 = tMarkers$pct.1,
 							pct.2 = tMarkers$pct.2,
-							avg_logFC = tMarkers$avg_logFC,
+							avg_logFC = tMarkers[[logFcField]],
 							p_val_adj = tMarkers$p_val_adj,
 							myAUC = NA,
 							power = NA,
