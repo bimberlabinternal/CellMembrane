@@ -122,9 +122,10 @@ MergeSeuratObjs <- function(seuratObjs, projectName){
 #' @param nVariableFeatures The number of variable features to find
 #' @param dispersion.cutoff Passed directly to FindVariableFeatures
 #' @param mean.cutoff Passed directly to FindVariableFeatures
+#' @param block.size Passed directly to ScaleData
 #' @return A modified Seurat object.
 #' @export
-NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf)){
+NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000){
   seuratObj <- NormalizeData(object = seuratObj, normalization.method = "LogNormalize", verbose = F)
 
   print('Find variable features:')
@@ -142,7 +143,7 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 	}
 
   print('Scale data:')
-  seuratObj <- ScaleData(object = seuratObj, features = rownames(x = seuratObj), vars.to.regress = toRegress, verbose = F)
+  seuratObj <- ScaleData(object = seuratObj, features = rownames(x = seuratObj), vars.to.regress = toRegress, block.size = block.size, verbose = F)
 
   return(seuratObj)
 }
@@ -293,9 +294,10 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
 #' @title Remove Cell Cycle
 #' @param seuratObj The seurat object
 #' @param min.genes If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.
+#' @param block.size Passed directly to ScaleData
 #' @export
 #' @return A modified Seurat object.
-RemoveCellCycle <- function(seuratObj, min.genes = 10) {
+RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000) {
   print("Performing cell cycle cleaning")
 
   # We can segregate this list into markers of G2/M phase and markers of S-phase
@@ -333,7 +335,7 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10) {
   print(table(seuratObj$Phase))
 
   print("Regressing out S and G2M score ...")
-  seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = F, features = rownames(x = seuratObj), do.scale = T, do.center = T)
+  seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = F, features = rownames(x = seuratObj), do.scale = T, do.center = T, block.size = block.size)
 
   return(seuratObj)
 }
