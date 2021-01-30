@@ -478,7 +478,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
 					print(paste0('Total genes returned: ', nrow(toBind)))
 
-					if (all(is.na(seuratObj.markers))) {
+					if (all(is.null(seuratObj.markers))) {
 						seuratObj.markers <- toBind
 					} else {
 						seuratObj.markers <- rbind(seuratObj.markers, toBind)
