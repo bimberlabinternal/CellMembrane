@@ -364,8 +364,6 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
     dimMax <- .FindSeuratElbow(seuratObj)
     print(paste0('Inferred elbow: ', dimMax))
 
-    dimsToUse <- 1:dimMax
-
     if (!is.null(minDimsToUse)) {
       print(paste0('Min dims to use: ', minDimsToUse))
       dimMax <- max(minDimsToUse, dimMax)
@@ -383,7 +381,11 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
   }
 
   perplexity <- .InferPerplexityFromSeuratObj(seuratObj, perplexity = tsne.perplexity)
-  seuratObj <- RunTSNE(object = seuratObj, dims.use = dimsToUse, check_duplicates = FALSE, perplexity = perplexity, max_iter = max.tsne.iter)
+  seuratObj <- RunTSNE(object = seuratObj,
+									dims.use = dimsToUse,
+									check_duplicates = FALSE,
+									perplexity = perplexity,
+									max_iter = max.tsne.iter)
 
   seuratObj <- RunUMAP(seuratObj,
                    dims = dimsToUse,
