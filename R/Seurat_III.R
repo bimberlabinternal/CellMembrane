@@ -356,9 +356,10 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000) {
 #' @return A modified Seurat object.
 #' @export
 FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = NULL,
-                                   umap.method = 'umap-learn',
-                                   umap.n.neighbors = 40L, umap.min.dist = 0.2, umap.seed = 1234, 
-                                   umap.n.epochs = 500, max.tsne.iter = 10000, tsne.perplexity = 30,
+                                   umap.method = 'uwot',
+                                   umap.n.neighbors = 30L,
+																	 umap.min.dist = 0.3, umap.seed = 1234,
+                                   umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30,
                                    clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2) ){
   if (is.null(dimsToUse)) {
     dimMax <- .FindSeuratElbow(seuratObj)

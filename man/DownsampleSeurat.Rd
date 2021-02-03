@@ -4,14 +4,14 @@
 \alias{DownsampleSeurat}
 \title{Downsample Seurat}
 \usage{
-DownsampleSeurat(seuratObj, targetCells, subsetField = NULL, seed = NULL)
+DownsampleSeurat(seuratObj, targetCells, subsetFields = NULL, seed = NULL)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
 
 \item{targetCells}{The desired cell number to retain per unit of data. If a subsetField is provided, the string 'min' can also be used, in which case}
 
-\item{subsetField}{If provided, data will be grouped by this field, and up to targetCells will be retained per group}
+\item{subsetFields}{If provided, data will be grouped by these fields, and up to targetCells will be retained per group}
 
 \item{seed}{The random seed}
 }

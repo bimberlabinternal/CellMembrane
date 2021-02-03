@@ -32,7 +32,8 @@ Imports:
     egg,
     scuttle,
     DT,
-    SingleCellExperiment
+    SingleCellExperiment,
+    dsb
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -53,13 +54,15 @@ Remotes:
     bioc::SummarizedExperiment,
     bioc::scDblFinder,
     bioc::scuttle,
-    bioc::SingleCellExperiment
+    bioc::SingleCellExperiment,
+    gihub::niaid/dsb
 Collate: 
+    'Preprocessing.R'
+    'Utils.R'
+    'CiteSeq.R'
     'Doublets.R'
     'Phenotyping.R'
-    'Preprocessing.R'
     'SeuratUtils.R'
-    'Utils.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'data.R'

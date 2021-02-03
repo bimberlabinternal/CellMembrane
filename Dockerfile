@@ -23,6 +23,8 @@ RUN Rscript -e "install.packages(c('devtools', 'BiocManager', 'remotes'), depend
 # This should not be cached if the files change
 ADD . /CellMembrane
 
+ENV RETICULATE_PYTHON=/usr/bin/python3
+
 RUN cd /CellMembrane \
 	&& R CMD build . \
 	&& Rscript -e "BiocManager::install(ask = F, upgrade = 'always');" \
