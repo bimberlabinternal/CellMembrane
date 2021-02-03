@@ -36,11 +36,13 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	}
 
 	#TODO: normalize:
-	if (normalizeMethod == 'dsb') {
+	if (is.null(normalizeMethod )){
+		print('Normalization will not be performed')
+		assayData <- subset(assayData, cells = sharedCells)
+	} else if (normalizeMethod == 'dsb') {
 		assayData <- .NormalizeDsb(seuratObj, assayData, cellWhitelist = sharedCells)
 	} else {
-		print('No normalization will be performed')
-		assayData <- subset(assayData, cells = sharedCells)
+		stop('Unknown normalizationMethod. Pass NULL to skip normalization')
 	}
 
 	#Note: we need to support merging with any existing data and account for datasetId:
@@ -278,7 +280,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 }
 
 #' @import patchwork
-.NormalizeDsb <- function(seuratObj, unfilteredAdtAssay, rnaAssayName = 'RNA', prot.size.min = 1.4, prot.size.max = 2.5, cellWhitelist = sharedCells) {
+.NormalizeDsb <- function(seuratObj, unfilteredAdtAssay, cellWhitelist, rnaAssayName = 'RNA', prot.size.min = 1.4, prot.size.max = 2.5, prot.positivity.threshold = 2.8) {
 	gexCountMatrix <- GetAssayData(object = seuratObj, slot = 'counts', assay = rnaAssayName)
 	unfilteredAdtCountMatrix <- GetAssayData(object = unfilteredAdtAssay, slot = 'counts')
 
@@ -301,10 +303,13 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 	# define a vector of cell-containing droplet barcodes based on protein library size and mRNA content
 	filteredAdtCountMatrix <- unfilteredAdtCountMatrix[ , cellWhitelist]
-	hasProteinCounts <- rownames(md)[md$prot_size > 2.8]
-	filteredAdtCountMatrix <- unfilteredAdtCountMatrix[ , filteredAdtCountMatrix %in% hasProteinCounts] %>% as.matrix()
+	hasProteinCounts <- colnames(md)[md$prot_size > prot.positivity.threshold]
+	filteredAdtCountMatrix <- unfilteredAdtCountMatrix[ , colnames(filteredAdtCountMatrix) %in% hasProteinCounts] %>% as.matrix()
 
-	print(5)
+	print(paste0('ADT cells after filter: ', ncol(filteredAdtCountMatrix)))
+	if (ncol(filteredAdtCountMatrix) == 0) {
+		stop('No cells passed filters')
+	}
 
 	normCounts <- dsb::DSBNormalizeProtein(
 		cell_protein_matrix = filteredAdtCountMatrix, # cell containing droplets
@@ -313,7 +318,6 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		use.isotype.control = FALSE # use isotype controls to define the technical component
 	)
 
-	print(6)
 	return(Seurat::CreateAssayObject(counts = filteredAdtCountMatrix[,colnames(normCounts)], data = normCounts))
 }
 
