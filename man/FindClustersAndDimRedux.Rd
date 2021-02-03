@@ -9,6 +9,7 @@ FindClustersAndDimRedux(
   dimsToUse = NULL,
   minDimsToUse = NULL,
   umap.method = "uwot",
+  umap.metric = "cosine",
   umap.n.neighbors = 30L,
   umap.min.dist = 0.3,
   umap.seed = 1234,
@@ -26,6 +27,8 @@ FindClustersAndDimRedux(
 \item{minDimsToUse}{The minimum numbers of dims to use.  If dimsToUse is provided, this will override.}
 
 \item{umap.method}{The UMAP method, either uwot or umap-learn, passed directly to Seurat::RunUMAP}
+
+\item{umap.metric}{Passed directly to Seurat::RunUMAP}
 
 \item{umap.n.neighbors}{Passed directly to Seurat::RunUMAP}
 
