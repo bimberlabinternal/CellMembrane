@@ -63,7 +63,7 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 #' @importFrom Matrix colSums
 .PrintQcPlots <- function(seuratObj) {
 	if ('p.mito' %in% colnames(seuratObj@meta.data)) {
-		totalPMito = length(unique(seuratObj[['p.mito']]))
+		totalPMito = length(unique(seuratObj$p.mito))
 	} else {
 		totalPMito = -1
 	}
