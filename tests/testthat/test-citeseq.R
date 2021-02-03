@@ -69,18 +69,14 @@ test_that("Cite-Seq works", {
 	seuratObjCite3 <- AppendCiteSeq(seuratObj = seuratObjCite, unfilteredMatrixDir = inputPath3, datasetId = '67890', minRowSum = 0, normalizeMethod = NULL)
 	d1 <- Seurat::GetAssayData(seuratObjCite, 'ADT', slot = 'counts')
 	d2 <- Seurat::GetAssayData(seuratObjCite3, 'ADT', slot = 'counts')
-	expect_equal(nrow(d2), 2) #our new marker is added
-	expect_equal(d2[1,1:50], d1[1,1:50]) #The original data
-	values <- rep(0, 50)
-	names(values) <- colnames(d2)[1:50]
-	expect_equal(d2[2,1:50], values) #Blank appended data
-	expect_equal(max(d2[,41:59]), 0) #These have no data
-	expect_equal(max(d2[,60:100]), 1)
-
+	expect_equal(nrow(d2), 5) #our new marker is added
+	expect_equal(d2[1:4,1:50], d1[1:4,1:50]) #The original data
+	expect_equal(max(d2[1:4,51:100]), 0) #not present in original
+	expect_equal(max(d2[5,51:100]), 59)
+	
 	unlink(inputPath1, recursive = T)
 	unlink(inputPath2, recursive = T)
 	unlink(inputPath3, recursive = T)
-	unlink(metafile)
 })
 
 test_that("ADT Rename Works", {
