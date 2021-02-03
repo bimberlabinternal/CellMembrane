@@ -29,20 +29,24 @@ utils::globalVariables(
 #' @description Downsample a seurat object, either globally or subset by a field
 #' @param seuratObj The seurat object
 #' @param targetCells The desired cell number to retain per unit of data. If a subsetField is provided, the string 'min' can also be used, in which case
-#' @param subsetField If provided, data will be grouped by this field, and up to targetCells will be retained per group
+#' @param subsetFields If provided, data will be grouped by these fields, and up to targetCells will be retained per group
 #' @param seed The random seed
 #' @export
-DownsampleSeurat <- function(seuratObj, targetCells, subsetField = NULL, seed = NULL) {
+DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed = NULL) {
 	if (!is.null(seed)) {
 		set.seed(seed)
 	}
 
-	if (!is.null(subsetField) && !(subsetField %in% names(seuratObj@meta.data))){
-			stop(paste0('Field not found in seuratObj: ', subsetField))
+	if (!is.null(subsetFields)){
+		for (subsetField in subsetFields) {
+			if (!(subsetField %in% names(seuratObj@meta.data))) {
+				stop(paste0('Field not found in seuratObj: ', subsetField))
+			}
+		}
 	}
 
 	cellsToRetain <- c()
-	if (is.null(subsetField)) {
+	if (is.null(subsetFields)) {
 		toSample <- min(targetCells, ncol(seuratObj))
 		if (toSample != targetCells) {
 			print(paste0('There are only ', ncol(seuratObj), ' cells. Will not downsample.'))
@@ -51,9 +55,11 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetField = NULL, seed = 
 
 		cellsToRetain <- sample(colnames(seuratObj), toSample, replace = F)
 	} else {
-		counts <- table(seuratObj[[subsetField]])
+		groupVals <- (seuratObj@meta.data %>% tidyr::unite("x", subsetFields, remove = FALSE))$x
+		names(groupVals) <- colnames(seuratObj)
+		counts <- table(groupVals)
 		for (val in unique(names(counts))) {
-			availBarcodes <- colnames(seuratObj)[seuratObj[[subsetField]] == val]
+			availBarcodes <- colnames(seuratObj)[groupVals == val]
 			toSample <- min(targetCells, length(availBarcodes))
 			if (toSample != targetCells) {
 				print(paste0('There are only ', length(availBarcodes), ' cells available for group: ', val, '. Will retain all cells for this group.'))

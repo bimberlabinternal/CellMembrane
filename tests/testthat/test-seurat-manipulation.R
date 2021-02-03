@@ -8,8 +8,14 @@ test_that("SingleR works as expected", {
   seuratObj2 <- DownsampleSeurat(seuratObj, targetCells = 500)
   expect_equal(500, ncol(seuratObj2))
   
-  seuratObj2 <- DownsampleSeurat(seuratObj, targetCells = 100, subsetField = 'ClusterNames_0.2')
+  seuratObj2 <- DownsampleSeurat(seuratObj, targetCells = 100, subsetFields = 'ClusterNames_0.2')
   expect_equal(493, ncol(seuratObj2))
+
+  seuratObj2 <- DownsampleSeurat(seuratObj, targetCells = 100, subsetFields = c('ClusterNames_0.2'))
+  expect_equal(493, ncol(seuratObj2))
+
+  seuratObj2 <- DownsampleSeurat(seuratObj, targetCells = 100, subsetFields = c('ClusterNames_0.2', 'Phase'))
+  expect_equal(1062, ncol(seuratObj2))
 
   seuratList <- SplitSeurat(seuratObj, splitField = 'ClusterNames_0.2')
   expect_equal(5, length(seuratList))

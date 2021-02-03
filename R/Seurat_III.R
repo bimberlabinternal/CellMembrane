@@ -346,6 +346,7 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000) {
 #' @param dimsToUse The number of dims to use.  If null, this will be inferred using FindSeuratElbow()
 #' @param minDimsToUse The minimum numbers of dims to use.  If dimsToUse is provided, this will override.
 #' @param umap.method The UMAP method, either uwot or umap-learn, passed directly to Seurat::RunUMAP
+#' @param umap.metric Passed directly to Seurat::RunUMAP
 #' @param umap.n.neighbors Passed directly to Seurat::RunUMAP
 #' @param umap.min.dist Passed directly to Seurat::RunUMAP
 #' @param umap.seed Passed directly to Seurat::RunUMAP
@@ -356,9 +357,10 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000) {
 #' @return A modified Seurat object.
 #' @export
 FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = NULL,
-                                   umap.method = 'umap-learn',
-                                   umap.n.neighbors = 40L, umap.min.dist = 0.2, umap.seed = 1234, 
-                                   umap.n.epochs = 500, max.tsne.iter = 10000, tsne.perplexity = 30,
+                                   umap.method = 'uwot', umap.metric = 'cosine',
+                                   umap.n.neighbors = 30L,
+																	 umap.min.dist = 0.3, umap.seed = 1234,
+                                   umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30,
                                    clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2) ){
   if (is.null(dimsToUse)) {
     dimMax <- .FindSeuratElbow(seuratObj)
@@ -391,9 +393,10 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
                    dims = dimsToUse,
                    n.neighbors = umap.n.neighbors,
                    min.dist = umap.min.dist,
-                   metric = "correlation",
+                   metric = umap.metric,
                    umap.method = umap.method,
-                   seed.use = umap.seed, n.epochs = umap.n.epochs, verbose = FALSE)
+                   seed.use = umap.seed,
+									 n.epochs = umap.n.epochs, verbose = FALSE)
 
   for (reduction in c('tsne', 'umap')){
     plotLS <- list()

@@ -12,6 +12,7 @@ Depends:
     R (>= 4.0.0)
 Imports:
     Seurat,
+    tidyr,
     dplyr,
     naturalsort,
     Matrix,
@@ -32,7 +33,8 @@ Imports:
     egg,
     scuttle,
     DT,
-    SingleCellExperiment
+    SingleCellExperiment,
+    dsb
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -53,13 +55,15 @@ Remotes:
     bioc::SummarizedExperiment,
     bioc::scDblFinder,
     bioc::scuttle,
-    bioc::SingleCellExperiment
+    bioc::SingleCellExperiment,
+    niaid/dsb
 Collate: 
+    'Preprocessing.R'
+    'Utils.R'
+    'CiteSeq.R'
     'Doublets.R'
     'Phenotyping.R'
-    'Preprocessing.R'
     'SeuratUtils.R'
-    'Utils.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'data.R'
