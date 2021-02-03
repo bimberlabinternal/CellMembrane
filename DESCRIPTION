@@ -55,7 +55,7 @@ Remotes:
     bioc::scDblFinder,
     bioc::scuttle,
     bioc::SingleCellExperiment,
-    gihub::niaid/dsb
+    niaid/dsb
 Collate: 
     'Preprocessing.R'
     'Utils.R'
