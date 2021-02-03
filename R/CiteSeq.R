@@ -2,6 +2,12 @@
 #' @include Preprocessing.R
 #' @import Seurat
 
+utils::globalVariables(
+	names = c('TotalCount', 'Marker', 'sortorder'),
+	package = 'CellMembrane',
+	add = TRUE
+)
+
 
 #' @title Read/Append CITE-seq/ADT data to a Seurat Object
 #'
@@ -103,7 +109,8 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 }
 
 .MergeAdtWithExisting <- function(newAssay, existingAssay) {
-	if (sum(colnames(seuratObj) != colnames(newAssay)) > 0) {
+	#TODO: match cells
+	if (sum(colnames(existingAssay) != colnames(newAssay)) > 0) {
 		stop('The columns of the ADT matrix do not equal the seurat object')
 	}
 
@@ -124,7 +131,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 		# Add any new ADTs from this dataset, if needed:
 		if (length(newFeatures) > 0) {
-			missingMat <- matrix(rep(0, ncol(existingAssay) * length(newFeatures)), ncol = ncol(assayData), nrow = length(newFeatures))
+			missingMat <- matrix(rep(0, ncol(existingAssay) * length(newFeatures)), ncol = ncol(existingAssay), nrow = length(newFeatures))
 			rownames(missingMat) <- newFeatures
 			print(paste0('total ADT rows added to assay: ', length(newFeatures)))
 			existingData <- Seurat::as.sparse(rbind(existingData, missingMat))
