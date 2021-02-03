@@ -121,11 +121,12 @@
   <span class='va'>seuratObj</span>,
   dimsToUse <span class='op'>=</span> <span class='cn'>NULL</span>,
   minDimsToUse <span class='op'>=</span> <span class='cn'>NULL</span>,
-  umap.method <span class='op'>=</span> <span class='st'>"umap-learn"</span>,
-  umap.n.neighbors <span class='op'>=</span> <span class='fl'>40L</span>,
-  umap.min.dist <span class='op'>=</span> <span class='fl'>0.2</span>,
+  umap.method <span class='op'>=</span> <span class='st'>"uwot"</span>,
+  umap.metric <span class='op'>=</span> <span class='st'>"cosine"</span>,
+  umap.n.neighbors <span class='op'>=</span> <span class='fl'>30L</span>,
+  umap.min.dist <span class='op'>=</span> <span class='fl'>0.3</span>,
   umap.seed <span class='op'>=</span> <span class='fl'>1234</span>,
-  umap.n.epochs <span class='op'>=</span> <span class='fl'>500</span>,
+  umap.n.epochs <span class='op'>=</span> <span class='cn'>NULL</span>,
   max.tsne.iter <span class='op'>=</span> <span class='fl'>10000</span>,
   tsne.perplexity <span class='op'>=</span> <span class='fl'>30</span>,
   clusterResolutions <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.2</span>, <span class='fl'>0.4</span>, <span class='fl'>0.6</span>, <span class='fl'>0.8</span>, <span class='fl'>1.2</span><span class='op'>)</span>
@@ -149,6 +150,10 @@
     <tr>
       <th>umap.method</th>
       <td><p>The UMAP method, either uwot or umap-learn, passed directly to Seurat::RunUMAP</p></td>
+    </tr>
+    <tr>
+      <th>umap.metric</th>
+      <td><p>Passed directly to Seurat::RunUMAP</p></td>
     </tr>
     <tr>
       <th>umap.n.neighbors</th>

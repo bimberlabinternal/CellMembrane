@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Downsample Seurat — DownsampleSeurat • CellMembrane</title>
+<title>Read/Append CITE-seq/ADT data to a Seurat Object — AppendCiteSeq • CellMembrane</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Downsample Seurat — DownsampleSeurat" />
-<meta property="og:description" content="Downsample a seurat object, either globally or subset by a field" />
+<meta property="og:title" content="Read/Append CITE-seq/ADT data to a Seurat Object — AppendCiteSeq" />
+<meta property="og:description" content="Read/Append CITE-seq/ADT data to a Seurat Object" />
 
 
 
@@ -108,35 +108,60 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Downsample Seurat</h1>
-    <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/SeuratUtils.R'><code>R/SeuratUtils.R</code></a></small>
-    <div class="hidden name"><code>DownsampleSeurat.Rd</code></div>
+    <h1>Read/Append CITE-seq/ADT data to a Seurat Object</h1>
+    <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/CiteSeq.R'><code>R/CiteSeq.R</code></a></small>
+    <div class="hidden name"><code>AppendCiteSeq.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Downsample a seurat object, either globally or subset by a field</p>
+    <p>Read/Append CITE-seq/ADT data to a Seurat Object</p>
     </div>
 
-    <pre class="usage"><span class='fu'>DownsampleSeurat</span><span class='op'>(</span><span class='va'>seuratObj</span>, <span class='va'>targetCells</span>, subsetFields <span class='op'>=</span> <span class='cn'>NULL</span>, seed <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>AppendCiteSeq</span><span class='op'>(</span>
+  <span class='va'>seuratObj</span>,
+  <span class='va'>unfilteredMatrixDir</span>,
+  normalizeMethod <span class='op'>=</span> <span class='st'>"dsb"</span>,
+  datasetId <span class='op'>=</span> <span class='cn'>NULL</span>,
+  assayName <span class='op'>=</span> <span class='st'>"ADT"</span>,
+  featureMetadata <span class='op'>=</span> <span class='cn'>NULL</span>,
+  adtWhitelist <span class='op'>=</span> <span class='cn'>NULL</span>,
+  minRowSum <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>seuratObj</th>
-      <td><p>The seurat object</p></td>
+      <td><p>The seurat object where data will be added.</p></td>
     </tr>
     <tr>
-      <th>targetCells</th>
-      <td><p>The desired cell number to retain per unit of data. If a subsetField is provided, the string 'min' can also be used, in which case</p></td>
+      <th>unfilteredMatrixDir</th>
+      <td><p>The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder</p></td>
     </tr>
     <tr>
-      <th>subsetFields</th>
-      <td><p>If provided, data will be grouped by these fields, and up to targetCells will be retained per group</p></td>
+      <th>normalizeMethod</th>
+      <td><p>The method for normalization. If NULL, normalization will be skipped.</p></td>
     </tr>
     <tr>
-      <th>seed</th>
-      <td><p>The random seed</p></td>
+      <th>datasetId</th>
+      <td><p>If the seurat object includes cells from multiple datasets, and/or if the barcodes were prefixed with a dataset id, This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.</p></td>
+    </tr>
+    <tr>
+      <th>assayName</th>
+      <td><p>The name of the assay to store ADT data.</p></td>
+    </tr>
+    <tr>
+      <th>featureMetadata</th>
+      <td><p>If is common for the raw barcode to use non-human friendly names (like TotalSeq-C-XXXX). This is an optional dataframe that can be used to override that, and also provide other feature metadata. This dataframe must have rownames that match the rownames of the saved matrix. If this dataframe has the column 'name', this will be used to replace the original rownames on the ADT assay.</p></td>
+    </tr>
+    <tr>
+      <th>adtWhitelist</th>
+      <td><p>An optional whitelist of ADT names (matching the raw names from the matrix). If provided, the matrix will be subset to just these features</p></td>
+    </tr>
+    <tr>
+      <th>minRowSum</th>
+      <td><p>If provided, any ADTs (rows) with rowSum below this value will be dropped.</p></td>
     </tr>
     </table>
 
