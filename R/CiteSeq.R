@@ -41,13 +41,13 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		stop('No cells are shared')
 	}
 
-	#TODO: normalize:
 	if (is.null(normalizeMethod )){
 		print('Normalization will not be performed')
 		assayData <- subset(assayData, cells = sharedCells)
 	} else if (normalizeMethod == 'dsb') {
-		assayData <- .NormalizeDsb(seuratObj, assayData, cellWhitelist = sharedCells)
+		assayData <- .NormalizeDsbWithEmptyDrops(seuratObj, assayData)
 	} else if (normalizeMethod == 'clr') {
+		assayData <- subset(assayData, cells = sharedCells)
 		assayData <- Seurat::NormalizeData(assayData, normalization.method = 'CLR', margin = 2)
 	} else {
 		stop('Unknown normalizationMethod. Pass NULL to skip normalization')
@@ -333,31 +333,33 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 }
 
 #' @import patchwork
-.NormalizeDsb <- function(seuratObj, unfilteredAdtAssay, cellWhitelist, rnaAssayName = 'RNA', prot.size.min = 1.4, prot.size.max = 2.5, prot.positivity.threshold = 2.8) {
+.NormalizeDsbWithEmptyDrops <- function(seuratObj, unfilteredAdtAssay, rnaAssayName = 'RNA', fdrThreshold=0.01, emptyDropNIters=10000, emptyDropsLower=100) {
 	gexCountMatrix <- GetAssayData(object = seuratObj, slot = 'counts', assay = rnaAssayName)
 	unfilteredAdtCountMatrix <- GetAssayData(object = unfilteredAdtAssay, slot = 'counts')
+
+	emptyDrops <- CellMembrane:::PerformEmptyDrops(unfilteredAdtCountMatrix, fdrThreshold = fdrThreshold, emptyDropNIters = emptyDropNIters, emptyDropsLower = emptyDropsLower)
+	passingCells <- rownames(emptyDrops)[emptyDrops$is.cell]
+	passingCellsWithGex <- intersect(passingCells, colnames(gexCountMatrix))
+	print(paste0('ADT passing: ', length(passingCells), ', intersecting with GEX: ', length(passingCellsWithGex)))
 
 	# create a metadata dataframe of simple qc stats for each droplet
 	rna_size <- log10(Matrix::colSums(gexCountMatrix))
 	prot_size <- log10(Matrix::colSums(unfilteredAdtCountMatrix))
-	ngene <- Matrix::colSums(gexCountMatrix > 0)
 
-	md <- as.data.frame(cbind(rna_size, ngene, prot_size))
-	md$bc <- rownames(md)
+	df1 <- data.frame(rna_size = rna_size, is_cell = ifelse(colnames(gexCountMatrix) %in% passingCells, yes = 'Cell', no = 'Not Cell'))
+	p1 <- ggplot(df1[df1$rna_size > 0, ], aes(x = rna_size)) + geom_density(fill = "dodgerblue") + ggtitle("RNA library size \n distribution") + facet_grid(is_cell ~ .)
 
-	p1 <- ggplot(md[md$rna_size > 0, ], aes(x = rna_size)) + geom_density(fill = "dodgerblue") + ggtitle("RNA library size \n distribution")
-	p2 <- ggplot(md[md$prot_size> 0, ], aes(x = prot_size)) + geom_density(fill = "firebrick2") + ggtitle("Protein library size \n distribution")
+	df2 <- data.frame(prot_size = prot_size, is_cell = ifelse(colnames(unfilteredAdtCountMatrix) %in% passingCells, yes = 'Cell', no = 'Not Cell'))
+	p2 <- ggplot(df2[df2$prot_size> 0, ], aes(x = prot_size)) + geom_density(fill = "firebrick2") + ggtitle("Protein library size \n distribution") + facet_grid(is_cell ~ .)
 	print(p1 + p2)
 
 	# define a vector of background / empty droplet barcodes based on protein library size and mRNA content
-	background_drops <- md$bc[md$prot_size > prot.size.min & md$prot_size < prot.size.max]
+	background_drops <- !emptyDrops$is.cell
 	background_drops <- background_drops[!(background_drops %in% colnames(seuratObj))]
 	negative_mtx_rawprot <- unfilteredAdtCountMatrix[ , background_drops] %>% as.matrix()
 
 	# define a vector of cell-containing droplet barcodes based on protein library size and mRNA content
-	filteredAdtCountMatrix <- unfilteredAdtCountMatrix[ , cellWhitelist]
-	hasProteinCounts <- colnames(md)[md$prot_size > prot.positivity.threshold]
-	filteredAdtCountMatrix <- unfilteredAdtCountMatrix[ , colnames(filteredAdtCountMatrix) %in% hasProteinCounts] %>% as.matrix()
+	filteredAdtCountMatrix <- unfilteredAdtCountMatrix[ , passingCellsWithGex] %>% as.matrix()
 
 	print(paste0('ADT cells after filter: ', ncol(filteredAdtCountMatrix)))
 	if (ncol(filteredAdtCountMatrix) == 0) {
@@ -371,7 +373,10 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		use.isotype.control = FALSE # use isotype controls to define the technical component
 	)
 
-	return(Seurat::CreateAssayObject(counts = filteredAdtCountMatrix[,colnames(normCounts)], data = normCounts))
+	a <- Seurat::CreateAssayObject(counts = filteredAdtCountMatrix[ ,colnames(normCounts)])
+	a <- SetAssayData(a, slot = 'data', normCounts)
+
+	return(a)
 }
 
 #' @import Seurat

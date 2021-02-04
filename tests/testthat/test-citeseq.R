@@ -1,6 +1,23 @@
 context("scRNAseq")
 
-test_that("Cite-Seq works", {
+test_that("Cite-Seq Normalization Works", {
+	adts <- read.table('../testdata/raw_feature_bc_matrix/validADTS.32851.metadata.txt', sep = '\t', header = T, fill = TRUE)
+	adts$rowname <- adts$tagname
+	mat <- CellMembrane:::.LoadCiteSeqData('../testdata/raw_feature_bc_matrix', adtWhitelist = adts$tagname, featureMetadata = adts)
+	
+	df <- data.frame(cellbarcode = colnames(mat), count = colSums(as.matrix(mat@counts)))
+	df <- dplyr::arrange(df, desc(count))
+	
+	seuratObj <- readRDS('../testdata/seuratOutput.rds')
+	sc <- seuratObj@assays$RNA@counts[,1:1000]
+	colnames(sc) <- df$cellbarcode[1:1000]
+	seuratObj <- Seurat::CreateSeuratObject(counts = sc)
+	
+	ret <- CellMembrane:::.NormalizeDsbWithEmptyDrops(seuratObj, unfilteredAdtAssay = mat, emptyDropNIters = 1000)
+	expect_equal(nrow(ret@counts), nrow(adts))
+})
+
+test_that("Cite-Seq Append Works", {
 	#Reduce size, touch up data:
 	seuratObj <- readRDS('../testdata/seuratOutput.rds')
 	seuratObj <- seuratObj[1:1000,1:100]
