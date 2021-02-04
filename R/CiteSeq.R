@@ -62,11 +62,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	}
 
 	seuratObj[[assayName]] <- assayData
-
-	# if (!skipNormalize) {
-	# 	seuratObj <- NormalizeData(seuratObj, normalization.method = 'CLR', margin = 2, assay = assayName)
-	# 	seuratObj <- ScaleData(seuratObj, assay = assayName)
-	# }
+	.PlotMarkerQc(seuratObj, assayName = assayName)
 
 	return(seuratObj)
 }
@@ -386,8 +382,17 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	return(a)
 }
 
+#' @title Perform DimRedux on CiteSeq
+#'
+#' @description Perform DimRedux on CiteSeq
+#' @param seuratObj The seurat object
+#' @param assayName The name of the assay holding the ADT data.
+#' @param dist.method The method, passed to dist()
+#' @param print.plots If true, QC plots will be printed
+#' @export
+#' @importFrom dplyr arrange
 #' @import Seurat
-CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method="euclidean", print.plots = T, rnaAssayName = 'RNA'){
+CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclidean", print.plots = TRUE){
 	origAssay <- DefaultAssay(seuratObj)
 	DefaultAssay(seuratObj) <- assayName
 	print(paste0('Processing ADT data, features: ', paste0(rownames(seuratObj), collapse = ',')))
@@ -397,27 +402,23 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method="euclidean
 
 	#PCA:
 	print("Performing PCA on ADT")
-	seuratObj <- NormalizeData(seuratObj, normalization.method = 'CLR', margin = 2) %>% ScaleData() %>% RunPCA(reduction.name = 'pca_adt')
+	seuratObj <- NormalizeData(seuratObj, normalization.method = 'CLR', margin = 2, verbose = FALSE) %>% ScaleData(verbose = FALSE) %>% RunPCA(reduction.name = 'pca.adt', verbose = FALSE)
 	if (print.plots) {
-		print(DimPlot(seuratObj, reduction = "pca_adt"))
+		print(DimPlot(seuratObj, reduction = "pca.adt"))
 	}
 
 	#SNN:
 	print("Calculating Distance Matrix")
 	adt.data <- GetAssayData(seuratObj, slot = "data")
 	adt.dist <- dist(t(adt.data), method = dist.method)
-	seuratObj[["adt_snn"]]  <- FindNeighbors(adt.dist)$snn
+	seuratObj[["adt_snn"]]  <- FindNeighbors(adt.dist, verbose = FALSE)$snn
 
-	#Cluster with a few different resolutions
-	seuratObj <- FindClusters(seuratObj, resolution = 0.1, graph.name = "adt_snn")
-	seuratObj <- FindClusters(seuratObj, resolution = 0.2, graph.name = "adt_snn")
-	seuratObj <- FindClusters(seuratObj, resolution = 0.5, graph.name = "adt_snn")
-	seuratObj <- FindClusters(seuratObj, resolution = 1.0, graph.name = "adt_snn")
+	seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn", verbose = FALSE)
 	
 	#tSNE:
 	# Now, we rerun tSNE using our distance matrix defined only on ADT (protein) levels.
 	print("Performing tSNE on ADT")
-	seuratObj[["tsne_adt"]] <- RunTSNE(adt.dist, assay = assayName, reduction.key = "adtTSNE_")
+	seuratObj[["tsne_adt"]] <- RunTSNE(adt.dist, assay = assayName, reduction.name = 'adt.tsne', reduction.key = "adtTSNE_")
 
 	if (print.plots) {
 		print(DimPlot(seuratObj, reduction = "tsne_adt"))
@@ -426,7 +427,7 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method="euclidean
 	#UMAP:
 	# Now, we rerun UMAP using our distance matrix defined only on ADT (protein) levels.
 	print("Performing UMAP on ADT")
-	seuratObj[["umap_adt"]] <- RunUMAP(adt.dist, assay = assayName, reduction.key = "adtUMAP_")
+	seuratObj[["umap_adt"]] <- RunUMAP(adt.dist, assay = assayName, reduction.name = 'adt.umap', reduction.key = "adtUMAP_", verbose = FALSE)
 
 	if (print.plots) {
 		print(DimPlot(seuratObj, reduction = "umap_adt"))
@@ -438,36 +439,87 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method="euclidean
 	seuratObj[["origClusterID"]] <- NULL
 
 	if (print.plots) {
-		#Compare new/old:
-		tsne_orig <- DimPlot(seuratObj, reduction = "tsne", group.by = "origClusterID", combine = FALSE)[[1]] + NoLegend()
-		tsne_orig <- tsne_orig  +
-			labs(title = 'Clustering based on scRNA-seq')  +
-			theme(plot.title = element_text(hjust = 0.5))
-		tsne_orig <- LabelClusters(plot = tsne_orig, id = "origClusterID", size = 6)
+		for (reduction in c('tsne', 'umap')) {
+			#Compare new/old:
+			orig <- DimPlot(seuratObj, reduction = reduction, group.by = "origClusterID", combine = FALSE)[[1]] + NoLegend()
+			orig <- orig  +
+				labs(title = 'Clustering based on scRNA-seq')  +
+				theme(plot.title = element_text(hjust = 0.5))
+			orig <- LabelClusters(plot = orig, id = "origClusterID", size = 6)
 
-		tsne_adt <- DimPlot(seuratObj, reduction = "tsne_adt", pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
-		tsne_adt <- tsne_adt  +
-			labs(title = 'Clustering based on ADT signal') + theme(plot.title = element_text(hjust = 0.5))
-		tsne_adt <- LabelClusters(plot = tsne_adt, id = "ident", size = 6)
+			adt <- DimPlot(seuratObj, reduction = paste0(reduction, "_adt"), pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
+			adt <- adt  +
+				labs(title = 'Clustering based on ADT signal') + theme(plot.title = element_text(hjust = 0.5))
+			adt <- LabelClusters(plot = adt, id = "ident", size = 6)
 
-		# Note: for this comparison, both the RNA and protein clustering are visualized on a tSNE generated using the ADT distance matrix.
-		print(patchwork::wrap_plots(list(tsne_orig, tsne_adt), ncol = 2))
-	}
-
-	# WNN:
-	if (!is.null(rnaAssayName)) {
-		seuratObj <- FindMultiModalNeighbors(
-			seuratObj, reduction.list = list("pca", "pca_adt"),
-			dims.list = list(1:30, 1:18), modality.weight.name = "RNA.weight"
-		)
-
-		seuratObj <- RunUMAP(seuratObj, nn.name = "weighted.nn", reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
-		seuratObj <- FindClusters(seuratObj, graph.name = "wsnn", algorithm = 3, resolution = 2, verbose = FALSE)
-
-		if (print.plots) {
-			print(DimPlot(seuratObj, reduction = 'wnn.umap', label = TRUE, repel = TRUE, label.size = 2.5) + NoLegend())
+			# Note: for this comparison, both the RNA and protein clustering are visualized using the ADT distance matrix.
+			print(patchwork::wrap_plots(list(orig, adt), ncol = 2))
 		}
 	}
 
 	return(seuratObj)
+}
+
+#' @title Perform Seurat WNN on CiteSeq
+#'
+#' @description Perform Seurat WNN on CiteSeq
+#' @param seuratObj The seurat object
+#' @param dims.list Passed directly to Seurat::FindMultiModalNeighbors
+#' @param reduction.list Passed directly to Seurat::FindMultiModalNeighbors
+#' @export
+#' @import Seurat
+RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list = list("pca", "pca.adt")) {
+	seuratObj <- FindMultiModalNeighbors(
+		seuratObj, reduction.list = reduction.list,
+		dims.list = dims.list, modality.weight.name = "RNA.weight"
+	)
+
+	seuratObj <- RunUMAP(seuratObj, nn.name = "weighted.nn", reduction.name = "wnn.umap", reduction.key = "wnnUMAP_", verbose = FALSE)
+	seuratObj <- FindClusters(seuratObj, graph.name = "wsnn", algorithm = 3, resolution = 2, verbose = FALSE)
+
+	print(DimPlot(seuratObj, reduction = 'wnn.umap', label = TRUE, repel = TRUE, label.size = 2.5) + NoLegend())
+
+	return(seuratObj)
+}
+
+.PlotMarkerQc <- function(seuratObj, assayName = 'ADT') {
+	barcodeMatrix <- Seurat::GetAssayData(seuratObj, slot = 'counts', assay = assayName)
+	featuresToPlot <- rownames(barcodeMatrix)
+
+	setSize <- 2
+	steps <- ceiling(length(featuresToPlot) / setSize) - 1
+
+	for (i in 0:steps) {
+		start <- (i * setSize) + 1
+		end <- min((start + setSize - 1), length(featuresToPlot))
+		features <- featuresToPlot[start:end]
+
+		suppressMessages(print(RidgePlot(seuratObj, assay = assayName, features = features, ncol = 1)))
+	}
+
+	# Also total per ADT
+	countsPerAdt <- rowSums(as.matrix(barcodeMatrix))
+	countsPerAdt <- data.frame(Marker = names(countsPerAdt), TotalCount = countsPerAdt)
+
+	P1 <- ggplot(countsPerAdt, aes(x = TotalCount)) +
+		geom_density() +
+		xlab('Total Count/ADT') +
+		ylab('Density') +
+		theme(
+		axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+		) +
+		labs(title = 'Total Counts Per ADT')
+
+	print(P1)
+
+	P2 <- ggplot(countsPerAdt, aes(x = Marker, y = TotalCount)) +
+		geom_bar(stat = 'identity') +
+		xlab('Marker') +
+		ylab('Total Count') +
+		theme(
+		axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+		) +
+		labs(title = 'Total Counts Per ADT')
+
+	print(P2)
 }

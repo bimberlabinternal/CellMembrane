@@ -178,7 +178,7 @@ RunPcaSteps <- function(seuratObj, variableGenesWhitelist = NULL, variableGenesB
     write.table(sort(vg), file = variableGeneTable, sep = '\t', row.names = F, quote = F, col.names = F)
   }
 
-  seuratObj <- RunPCA(object = seuratObj, features = vg, verbose = F, npcs = npcs)
+  seuratObj <- RunPCA(object = seuratObj, features = vg, reduction.name = 'pca', verbose = F, npcs = npcs)
   seuratObj <- ProjectDim(object = seuratObj)
 
   seuratObj <- JackStraw(object = seuratObj, num.replicate = 100, verbose = F)
@@ -315,8 +315,8 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000) {
   }
 
   print("Running PCA with cell cycle genes")
-  seuratObj <- RunPCA(object = seuratObj, features = c(s.genes, g2m.genes), do.print = FALSE, verbose = F)
-  print(DimPlot(object = seuratObj, reduction = "pca"))
+  seuratObj <- RunPCA(object = seuratObj, reduction.name = 'cc.pca', features = c(s.genes, g2m.genes), do.print = FALSE, verbose = F)
+  print(DimPlot(object = seuratObj, reduction = "cc.pca"))
 
   seuratObj <- CellCycleScoring(object = seuratObj,
     s.features = s.genes,
@@ -325,10 +325,10 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000) {
   )
 
   print(
-    DimPlot(object = seuratObj, reduction = "pca", dims = c(1, 2)) +
-    DimPlot(object = seuratObj, reduction = "pca", dims = c(2, 3)) +
-    DimPlot(object = seuratObj, reduction = "pca", dims = c(3, 4)) +
-    DimPlot(object = seuratObj, reduction = "pca", dims = c(4, 5)) +
+    DimPlot(object = seuratObj, reduction = "cc.pca", dims = c(1, 2)) +
+    DimPlot(object = seuratObj, reduction = "cc.pca", dims = c(2, 3)) +
+    DimPlot(object = seuratObj, reduction = "cc.pca", dims = c(3, 4)) +
+    DimPlot(object = seuratObj, reduction = "cc.pca", dims = c(4, 5)) +
     patchwork::plot_layout(ncol = 2)
   )
 
@@ -336,6 +336,8 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000) {
 
   print("Regressing out S and G2M score ...")
   seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = F, features = rownames(x = seuratObj), do.scale = T, do.center = T, block.size = block.size)
+
+	seuratObj@reductions[['cc.pca']] <- NULL
 
   return(seuratObj)
 }
@@ -387,16 +389,18 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 									dims.use = dimsToUse,
 									check_duplicates = FALSE,
 									perplexity = perplexity,
+									reduction.key = 'rnaTSNE_',
 									max_iter = max.tsne.iter)
 
   seuratObj <- RunUMAP(seuratObj,
-                   dims = dimsToUse,
-                   n.neighbors = umap.n.neighbors,
-                   min.dist = umap.min.dist,
-                   metric = umap.metric,
-                   umap.method = umap.method,
-                   seed.use = umap.seed,
-									 n.epochs = umap.n.epochs, verbose = FALSE)
+                  dims = dimsToUse,
+                  n.neighbors = umap.n.neighbors,
+                  min.dist = umap.min.dist,
+                  metric = umap.metric,
+                  umap.method = umap.method,
+									reduction.key = 'rnaUMAP_',
+									seed.use = umap.seed,
+									n.epochs = umap.n.epochs, verbose = FALSE)
 
   for (reduction in c('tsne', 'umap')){
     plotLS <- list()
