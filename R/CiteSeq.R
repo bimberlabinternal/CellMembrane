@@ -189,6 +189,13 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 	bData <- Seurat::Read10X(unfilteredMatrixDir, gene.column=1, strip.suffix = TRUE)
 	bData <- bData[which(!(rownames(bData) %in% c('unmapped'))), , drop = FALSE]
+
+	#Cannot have underscores in feature names, Seurat will replace with hyphen anyway.  Perform upfront to avoid warning
+	if (sum(grepl(x = rownames(bData), pattern = '_')) > 0) {
+		print('Replacing underscores with hyphens in feature names')
+		rownames(bData) <- gsub(x = rownames(bData), pattern = '_', replacement = '-')
+	}
+
 	if (!is.null(datasetId)) {
 		colnames(bData) <- paste0(datasetId, '_', colnames(bData))
 	}
