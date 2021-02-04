@@ -255,7 +255,7 @@ Tabulate_SingleR <- function(seuratObject, plotIndividually = F, datasets = c('h
               legend.direction="horizontal",
               legend.title = element_blank(),
               axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
-        ggtitle(paste0("SingleR Classification (Fine):", dataset)) +
+        ggtitle(paste0("SingleR Classification (Fine): ", dataset)) +
         ylab("Number of cells") + xlab("")
     )
 

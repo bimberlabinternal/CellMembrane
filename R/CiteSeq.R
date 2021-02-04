@@ -47,6 +47,8 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		assayData <- subset(assayData, cells = sharedCells)
 	} else if (normalizeMethod == 'dsb') {
 		assayData <- .NormalizeDsb(seuratObj, assayData, cellWhitelist = sharedCells)
+	} else if (normalizeMethod == 'clr') {
+		assayData <- Seurat::NormalizeData(assayData, normalization.method = 'CLR', margin = 2)
 	} else {
 		stop('Unknown normalizationMethod. Pass NULL to skip normalization')
 	}
@@ -54,9 +56,8 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	#Note: we need to support merging with any existing data and account for datasetId:
 	if (assayName %in% names(seuratObj@assays)) {
 		print('Existing assay found, merging counts')
-		assayData <- .MergeAdtWithExisting(assayData, GetAssayData(seuratObj, assay = assayName))
+		assayData <- .MergeAdtWithExisting(assayData, GetAssay(seuratObj, assay = assayName))
 	} else {
-		print('no pre-existing assay, creating new')
 		assayData <- .PossiblyExpandAssay(seuratObj, assayData)
 	}
 
@@ -71,35 +72,8 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 }
 
 .PossiblyExpandAssay <- function(seuratObj, assayData) {
-	#now add empty cells for those lacking ADTs:
-	#Append blank cells for any in GEX but missing in ADT:
-	missing <- colnames(seuratObj)[!(colnames(seuratObj) %in% colnames(assayData))]
-	if (length(missing) > 0) {
-		missingMat <- matrix(rep(0, nrow(assayData) * length(missing)), nrow = nrow(assayData), ncol = length(missing))
-		colnames(missingMat) <- missing
-		print(paste0('total cells lacking data: ', length(missing)))
-
-		replacementAssay <- NULL
-		for (slot in c('counts', 'data')) {
-			newData <- GetAssayData(assayData, slot = slot)
-			if (is.null(newData)) {
-				next
-			}
-
-			extendedData <- cbind(newData, missingMat)
-			extendedData <- as.sparse(extendedData[,colnames(seuratObj), drop = F])
-
-			if (is.null(replacementAssay)) {
-				args <- list()
-				args[[slot]] <- extendedData
-				replacementAssay <- do.call(Seurat::CreateAssayObject, args)
-			} else {
-				replacementAssay <- SetAssayData(replacementAssay, slot = slot, extendedData)
-			}
-		}
-
-		assayData <- replacementAssay
-	}
+	allCells <- unique(c(colnames(seuratObj), colnames(assayData)))
+	assayData <- .EnsureCellsPresentInOrder(assayData, allCells)
 
 	if (sum(colnames(seuratObj) != colnames(assayData)) > 0) {
 		stop('The columns of the ADT matrix do not equal the seurat object')
@@ -108,37 +82,94 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	return(assayData)
 }
 
-.MergeAdtWithExisting <- function(newAssay, existingAssay) {
-	#TODO: match cells
-	if (sum(colnames(existingAssay) != colnames(newAssay)) > 0) {
-		stop('The columns of the ADT matrix do not equal the seurat object')
+.EnsureFeaturesPresentInOrder <- function(assayData, featureWhitelist) {
+	featuresToAdd <- featureWhitelist[!(featureWhitelist %in% rownames(assayData))]
+	if (length(featuresToAdd) == 0) {
+		return(subset(assayData, features = featureWhitelist))
 	}
-
-	allFeatures <- unique(rownames(existingAssay), rownames(newAssay))
-	newFeatures <- rownames(existingAssay)[!(rownames(existingAssay) %in% allFeatures)]
 
 	replacementAssay <- NULL
 	for (slot in c('counts', 'data')) {
-		newData <- GetAssayData(newAssay, slot = slot)
-		if (is.null(newData)) {
+		slotData <- GetAssayData(assayData, slot = slot)
+		if (is.null(slotData)) {
+			next
+		}
+
+		# Add any new ADTs from this dataset, if needed:
+		missingMat <- matrix(rep(0, ncol(slotData) * length(featuresToAdd)), ncol = ncol(slotData), nrow = length(featuresToAdd))
+		rownames(missingMat) <- featuresToAdd
+		print(paste0('total ADT rows added to assay: ', length(featuresToAdd)))
+		slotData <- Seurat::as.sparse(rbind(slotData, missingMat))
+		slotData <- slotData[featureWhitelist, ]
+
+		if (is.null(replacementAssay)) {
+			args <- list()
+			args[[slot]] <- slotData
+			replacementAssay <- do.call(Seurat::CreateAssayObject, args)
+		} else {
+			replacementAssay <- SetAssayData(replacementAssay, slot = slot, slotData)
+		}
+	}
+
+	return(replacementAssay)
+}
+
+.EnsureCellsPresentInOrder <- function(assayData, cellWhitelist) {
+	cellsToAdd <- cellWhitelist[!(cellWhitelist %in% colnames(assayData))]
+	if (length(cellsToAdd) == 0) {
+		return(subset(assayData, cells = cellWhitelist))
+	}
+
+	replacementAssay <- NULL
+	for (slot in c('counts', 'data')) {
+		slotData <- GetAssayData(assayData, slot = slot)
+		if (is.null(slotData)) {
+			next
+		}
+
+		# Add any new cells from this dataset, if needed:
+		missingMat <- matrix(rep(0, nrow(slotData) * length(cellsToAdd)), nrow = nrow(slotData), ncol = length(cellsToAdd))
+		colnames(missingMat) <- cellsToAdd
+		print(paste0('total cells added to assay: ', length(cellsToAdd)))
+		slotData <- Seurat::as.sparse(cbind(slotData, missingMat))
+		slotData <- slotData[, cellWhitelist]
+
+		if (is.null(replacementAssay)) {
+			args <- list()
+			args[[slot]] <- slotData
+			replacementAssay <- do.call(Seurat::CreateAssayObject, args)
+		} else {
+			replacementAssay <- SetAssayData(replacementAssay, slot = slot, slotData)
+		}
+	}
+
+	# Ensure metadata preserved:
+	replacementAssay@meta.features <- assayData@meta.features
+
+	return(replacementAssay)
+}
+
+.MergeAdtWithExisting <- function(newAssay, existingAssay) {
+	allFeatures <- unique(c(rownames(existingAssay), rownames(newAssay)))
+	allCells <- unique(c(colnames(existingAssay), colnames(newAssay)))
+	existingAssay <- .EnsureFeaturesPresentInOrder(existingAssay, allFeatures)
+	existingAssay <- .EnsureCellsPresentInOrder(existingAssay, allCells)
+
+	replacementAssay <- NULL
+	for (slot in c('counts', 'data')) {
+		data <- GetAssayData(newAssay, slot = slot)
+		if (is.null(data)) {
 			next
 		}
 
 		existingData <- GetAssayData(existingAssay, slot = slot)
 		if (is.null(existingData)) {
-			existingData <- Seurat::as.sparse(matrix(rep(0, ncol(existingAssay) * nrow(existingAssay),  ncol = ncol(existingAssay), nrow = length(existingAssay))))
+			existingData <- matrix(rep(0, ncol(data)*nrow(data), nrow = nrow(data), ncol = ncol(data)))
+			rownames(existingData) <- rownames(data)
+			colnames(existingData) <- colnames(data)
 		}
 
-		# Add any new ADTs from this dataset, if needed:
-		if (length(newFeatures) > 0) {
-			missingMat <- matrix(rep(0, ncol(existingAssay) * length(newFeatures)), ncol = ncol(existingAssay), nrow = length(newFeatures))
-			rownames(missingMat) <- newFeatures
-			print(paste0('total ADT rows added to assay: ', length(newFeatures)))
-			existingData <- Seurat::as.sparse(rbind(existingData, missingMat))
-		}
-
-		existingData[rownames(newData),colnames(newData), drop = F] <- newData
-
+		existingData[rownames(data), colnames(data)] <- data
 		if (is.null(replacementAssay)) {
 			args <- list()
 			args[[slot]] <- existingData
@@ -148,9 +179,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		}
 	}
 
-	existingAssay <- replacementAssay
-
-	return(existingAssay)
+	return(replacementAssay)
 }
 
 .LoadCiteSeqData <- function(unfilteredMatrixDir, datasetId = NULL, featureMetadata = NULL, adtWhitelist = NULL, minRowSum = NULL) {
@@ -159,7 +188,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	}
 
 	bData <- Seurat::Read10X(unfilteredMatrixDir, gene.column=1, strip.suffix = TRUE)
-	bData <- bData[which(!(rownames(bData) %in% c('unmapped'))), , drop = F]
+	bData <- bData[which(!(rownames(bData) %in% c('unmapped'))), , drop = FALSE]
 	if (!is.null(datasetId)) {
 		colnames(bData) <- paste0(datasetId, '_', colnames(bData))
 	}
@@ -172,7 +201,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		if (sum(toDrop) > 0){
 			print(paste0('ADTs dropped due to low counts across cells: ', sum(toDrop)))
 			print(paste0(rownames(bData)[toDrop], collapse = ','))
-			bData <- bData[!toDrop, , drop = FALSE]
+			bData <- bData[!toDrop, ]
 			print(paste0('ADTs after filter: ', nrow(bData)))
 			if (nrow(bData) == 0) {
 				stop('No ADTs remain after filter')
@@ -183,7 +212,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	# Apply this prior to rename:
 	if (!is.null(adtWhitelist)) {
 		print('Filtering ADTs based on whitelist')
-		bData <- bData[rownames(bData) %in% adtWhitelist, , drop = FALSE]
+		bData <- bData[rownames(bData) %in% adtWhitelist, ]
 		print(paste0('ADTs after filter: ', nrow(bData)))
 		if (nrow(bData) == 0) {
 			stop('No rows left after filter!')
@@ -194,45 +223,63 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 	# Optionally rename features
 	if (!all(is.null(featureMetadata))) {
-		if (!('tagname' %in% colnames(featureMetadata))) {
-			stop('featureMetadata must contain the column tagname')
+		if (!('rowname' %in% colnames(featureMetadata))) {
+			stop('featureMetadata must contain the column rowname, which matches the raw matrix')
 		}
 
 		print('Renaming ADTs')
 		rownames(featureMetadata) <- featureMetadata$featureName
-		featureMetadata$tagname <- paste0(featureMetadata$tagname, '-', featureMetadata$sequence)
-		newRows <- data.frame(tagname = rownames(bData), sortorder = 1:nrow(bData), stringsAsFactors = F)
-		newRows <- merge(newRows , featureMetadata, by = 'tagname', all.x = T, all.y = F)
+		newRows <- data.frame(rowname = rownames(bData), sortorder = 1:nrow(bData), stringsAsFactors = F)
+		newRows <- merge(newRows, featureMetadata, by = 'rowname', all.x = T, all.y = F)
 		newRows <- newRows %>% arrange(sortorder)
 		newRows <- newRows[names(newRows) != 'sortorder']
 
-		newRows$markername <- dplyr::coalesce(newRows$markername, newRows$tagname)
+		newRows$markername <- dplyr::coalesce(newRows$markername, newRows$rowname)
 		d <- duplicated(newRows$markername)
 		if (sum(d) > 0) {
 			stop('There were duplicate marker names after rename: ' + paste0(newRows$markername[d], collapse = ', '))
 		}
 
-		print(paste0('Total renamed: ', sum(newRows$markername != newRows$tagname)))
-
-		rownames(bData) <- newRows$markername
+		print(paste0('Total renamed: ', sum(newRows$markername != newRows$rowname)))
+		bData <- .RenameAssayFeatures(bData, newRows$markername)
 		featureMetadata <- newRows
-
-		bData <- Seurat::AddMetaData(object = bData, metadata = featureMetadata)
+		bData <- .AddFeatureMetadata(bData, featureMetadata)
 	}
 
 	return(bData)
 }
 
-.AddFeatureMetadata <- function(ft, assayData) {
+.RenameAssayFeatures <- function(assayData, newnames) {
+	if (nrow(assayData) != length(newnames)) {
+		stop("Gene set does not match, cannot rename")
+	}
+
+	if (length(assayData@counts))
+		assayData@counts@Dimnames[[1]] <- newnames
+	if (length(assayData@data))
+		assayData@data@Dimnames[[1]] <- newnames
+	if (length(assayData@scale.data))
+		assayData@scale.data@Dimnames[[1]] <- newnames
+
+	rownames(assayData@meta.features) <- newnames
+
+	return(assayData)
+}
+
+.AddFeatureMetadata <- function(assayData, featureMetadata) {
 	print('Adding feature metadata')
-	for (colname in names(ft)) {
+	for (colname in names(featureMetadata)) {
+		if (colname == 'rowname') {
+			next
+		}
+
 		print(paste0('adding column: ', colname))
-		toAdd <- ft[[colname]]
-		names(toAdd) <- ft$markernameUnique
+		toAdd <- featureMetadata[[colname]]
+		names(toAdd) <- featureMetadata$markername
 		select <- names(toAdd) %in% rownames(assayData)
 		toAdd <- toAdd[select]
-		if (length(toAdd) != nrow(ft)) {
-			print(paste0('Not all markers in feature table were present in found table, missing: ', paste0(ft$markernameUnique[!select])))
+		if (length(toAdd) != nrow(featureMetadata)) {
+			print(paste0('Not all markers in feature table were present in found table, missing: ', paste0(featureMetadata$markername[!select])))
 		}
 
 		if (length(toAdd) > 0) {
@@ -242,7 +289,6 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 	return(assayData)
 }
-
 
 .PlotCiteSeqCountData <- function(seuratObj, assayName = 'ADT') {
 	assayData <- GetAssayData(seuratObj, slot = "counts", assay = assayName)
@@ -321,14 +367,14 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	normCounts <- dsb::DSBNormalizeProtein(
 		cell_protein_matrix = filteredAdtCountMatrix, # cell containing droplets
 		empty_drop_matrix = negative_mtx_rawprot, # estimate ambient noise with the background drops
-		denoise.counts = TRUE, # model and remove each cell's technical component
+		denoise.counts = FALSE, # model and remove each cell's technical component
 		use.isotype.control = FALSE # use isotype controls to define the technical component
 	)
 
 	return(Seurat::CreateAssayObject(counts = filteredAdtCountMatrix[,colnames(normCounts)], data = normCounts))
 }
 
-
+#' @import Seurat
 CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method="euclidean", print.plots = T, rnaAssayName = 'RNA'){
 	origAssay <- DefaultAssay(seuratObj)
 	DefaultAssay(seuratObj) <- assayName
@@ -339,7 +385,7 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method="euclidean
 
 	#PCA:
 	print("Performing PCA on ADT")
-	seuratObj <- RunPCA(seuratObj, features = rownames(seuratObj), reduction.name = "pca_adt", reduction.key = "pcaadt_", verbose = FALSE)
+	seuratObj <- NormalizeData(seuratObj, normalization.method = 'CLR', margin = 2) %>% ScaleData() %>% RunPCA(reduction.name = 'pca_adt')
 	if (print.plots) {
 		print(DimPlot(seuratObj, reduction = "pca_adt"))
 	}
@@ -398,7 +444,17 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method="euclidean
 
 	# WNN:
 	if (!is.null(rnaAssayName)) {
+		seuratObj <- FindMultiModalNeighbors(
+			seuratObj, reduction.list = list("pca", "pca_adt"),
+			dims.list = list(1:30, 1:18), modality.weight.name = "RNA.weight"
+		)
 
+		seuratObj <- RunUMAP(seuratObj, nn.name = "weighted.nn", reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
+		seuratObj <- FindClusters(seuratObj, graph.name = "wsnn", algorithm = 3, resolution = 2, verbose = FALSE)
+
+		if (print.plots) {
+			print(DimPlot(seuratObj, reduction = 'wnn.umap', label = TRUE, repel = TRUE, label.size = 2.5) + NoLegend())
+		}
 	}
 
 	return(seuratObj)

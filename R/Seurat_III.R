@@ -132,7 +132,7 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
   seuratObj <- FindVariableFeatures(object = seuratObj, mean.cutoff = mean.cutoff, dispersion.cutoff = dispersion.cutoff , verbose = F, selection.method = variableFeatureSelectionMethod, nfeatures = nVariableFeatures)
 
   if ('p.mito' %in% names(seuratObj@meta.data)) {
-    totalPMito = length(unique(seuratObj[['p.mito']]))
+    totalPMito = length(unique(seuratObj$p.mito))
   } else {
     totalPMito <- -1
   }
@@ -208,7 +208,7 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
   print(paste0('Initial cells: ', length(colnames(x = seuratObj))))
 
   if ('p.mito' %in% colnames(seuratObj@meta.data)) {
-	  totalPMito = length(unique(seuratObj[['p.mito']]))
+	  totalPMito = length(unique(seuratObj$p.mito))
     if (totalPMito > 1) {
       P1 <- FeatureScatter(object = seuratObj, feature1 = "nCount_RNA", feature2 = "p.mito")
       P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.low), color="blue", linetype="dashed", size=1)
