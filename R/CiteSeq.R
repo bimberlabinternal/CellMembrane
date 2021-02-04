@@ -402,7 +402,7 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 
 	#PCA:
 	print("Performing PCA on ADT")
-	seuratObj <- NormalizeData(seuratObj, normalization.method = 'CLR', margin = 2) %>% ScaleData() %>% RunPCA(reduction.name = 'pca.adt')
+	seuratObj <- NormalizeData(seuratObj, normalization.method = 'CLR', margin = 2, verbose = FALSE) %>% ScaleData(verbose = FALSE) %>% RunPCA(reduction.name = 'pca.adt', verbose = FALSE)
 	if (print.plots) {
 		print(DimPlot(seuratObj, reduction = "pca.adt"))
 	}
@@ -411,13 +411,9 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	print("Calculating Distance Matrix")
 	adt.data <- GetAssayData(seuratObj, slot = "data")
 	adt.dist <- dist(t(adt.data), method = dist.method)
-	seuratObj[["adt_snn"]]  <- FindNeighbors(adt.dist)$snn
+	seuratObj[["adt_snn"]]  <- FindNeighbors(adt.dist, verbose = FALSE)$snn
 
-	#Cluster with a few different resolutions
-	seuratObj <- FindClusters(seuratObj, resolution = 0.1, graph.name = "adt_snn")
-	seuratObj <- FindClusters(seuratObj, resolution = 0.2, graph.name = "adt_snn")
-	seuratObj <- FindClusters(seuratObj, resolution = 0.5, graph.name = "adt_snn")
-	seuratObj <- FindClusters(seuratObj, resolution = 1.0, graph.name = "adt_snn")
+	seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn", verbose = FALSE)
 	
 	#tSNE:
 	# Now, we rerun tSNE using our distance matrix defined only on ADT (protein) levels.
@@ -431,7 +427,7 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	#UMAP:
 	# Now, we rerun UMAP using our distance matrix defined only on ADT (protein) levels.
 	print("Performing UMAP on ADT")
-	seuratObj[["umap_adt"]] <- RunUMAP(adt.dist, assay = assayName, reduction.name = 'adt.umap', reduction.key = "adtUMAP_")
+	seuratObj[["umap_adt"]] <- RunUMAP(adt.dist, assay = assayName, reduction.name = 'adt.umap', reduction.key = "adtUMAP_", verbose = FALSE)
 
 	if (print.plots) {
 		print(DimPlot(seuratObj, reduction = "umap_adt"))
@@ -478,7 +474,7 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 		dims.list = dims.list, modality.weight.name = "RNA.weight"
 	)
 
-	seuratObj <- RunUMAP(seuratObj, nn.name = "weighted.nn", reduction.name = "wnn.umap", reduction.key = "wnnUMAP_")
+	seuratObj <- RunUMAP(seuratObj, nn.name = "weighted.nn", reduction.name = "wnn.umap", reduction.key = "wnnUMAP_", verbose = FALSE)
 	seuratObj <- FindClusters(seuratObj, graph.name = "wsnn", algorithm = 3, resolution = 2, verbose = FALSE)
 
 	print(DimPlot(seuratObj, reduction = 'wnn.umap', label = TRUE, repel = TRUE, label.size = 2.5) + NoLegend())

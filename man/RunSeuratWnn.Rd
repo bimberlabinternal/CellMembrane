@@ -4,12 +4,18 @@
 \alias{RunSeuratWnn}
 \title{Perform Seurat WNN on CiteSeq}
 \usage{
-RunSeuratWnn(seuratObj, dims.list = list(1:30, 1:18))
+RunSeuratWnn(
+  seuratObj,
+  dims.list = list(1:30, 1:18),
+  reduction.list = list("pca", "pca.adt")
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
 
 \item{dims.list}{Passed directly to Seurat::FindMultiModalNeighbors}
+
+\item{reduction.list}{Passed directly to Seurat::FindMultiModalNeighbors}
 }
 \description{
 Perform Seurat WNN on CiteSeq
