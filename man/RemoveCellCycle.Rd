@@ -4,7 +4,12 @@
 \alias{RemoveCellCycle}
 \title{Remove Cell Cycle}
 \usage{
-RemoveCellCycle(seuratObj, min.genes = 10, block.size = 1000)
+RemoveCellCycle(
+  seuratObj,
+  min.genes = 10,
+  block.size = 1000,
+  scaleVariableFeaturesOnly = TRUE
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
