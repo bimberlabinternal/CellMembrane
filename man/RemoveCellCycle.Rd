@@ -12,6 +12,8 @@ RemoveCellCycle(seuratObj, min.genes = 10, block.size = 1000)
 \item{min.genes}{If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.}
 
 \item{block.size}{Passed directly to ScaleData}
+
+\item{scaleVariableFeaturesOnly}{If true, ScaleData will only be performed on genes specified in FindVariableFeatures()}
 }
 \value{
 A modified Seurat object.

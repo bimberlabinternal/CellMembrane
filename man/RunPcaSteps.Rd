@@ -4,20 +4,10 @@
 \alias{RunPcaSteps}
 \title{Run Seurat PCA}
 \usage{
-RunPcaSteps(
-  seuratObj,
-  variableGenesWhitelist = NULL,
-  variableGenesBlacklist = NULL,
-  npcs = 50,
-  variableGeneTable = NULL
-)
+RunPcaSteps(seuratObj, npcs = 50, variableGeneTable = NULL)
 }
 \arguments{
 \item{seuratObj}{A Seurat object.}
-
-\item{variableGenesWhitelist}{An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()}
-
-\item{variableGenesBlacklist}{An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()}
 
 \item{npcs}{Number of PCs to use for RunPCA()}
 

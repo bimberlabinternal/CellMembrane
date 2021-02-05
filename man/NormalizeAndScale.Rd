@@ -10,7 +10,10 @@ NormalizeAndScale(
   nVariableFeatures = 2000,
   mean.cutoff = c(0.0125, 3),
   dispersion.cutoff = c(0.5, Inf),
-  block.size = 1000
+  block.size = 1000,
+  variableGenesWhitelist = NULL,
+  variableGenesBlacklist = NULL,
+  scaleVariableFeaturesOnly = TRUE
 )
 }
 \arguments{
@@ -25,6 +28,12 @@ NormalizeAndScale(
 \item{dispersion.cutoff}{Passed directly to FindVariableFeatures}
 
 \item{block.size}{Passed directly to ScaleData}
+
+\item{variableGenesWhitelist}{An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()}
+
+\item{variableGenesBlacklist}{An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()}
+
+\item{scaleVariableFeaturesOnly}{If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist}
 }
 \value{
 A modified Seurat object.
