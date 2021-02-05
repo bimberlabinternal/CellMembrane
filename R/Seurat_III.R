@@ -126,9 +126,10 @@ MergeSeuratObjs <- function(seuratObjs, projectName){
 #' @param variableGenesWhitelist An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()
 #' @param variableGenesBlacklist An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()
 #' @param scaleVariableFeaturesOnly If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist
+#' includeCellCycleGenesInScaleData If true, cell cycle genes will always be included in the features passed to ScaleData().
 #' @return A modified Seurat object.
 #' @export
-NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, scaleVariableFeaturesOnly = TRUE){
+NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE){
   seuratObj <- NormalizeData(object = seuratObj, normalization.method = "LogNormalize", verbose = F)
 
   print('Find variable features:')
@@ -162,6 +163,12 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 	toRegress <- c("nCount_RNA")
 	if (totalPMito > 1) {
 		toRegress <- c(toRegress, "p.mito")
+	}
+
+	if (includeCellCycleGenesInScaleData) {
+		cc.genes <- .GetCCGenes()
+		cc.genes <- cc.genes[which(cc.genes %in% rownames(seuratObj))]
+		feats <- unique(c(feats, cc.genes))
 	}
 
   print('Scale data:')
@@ -324,7 +331,7 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000, scaleV
   }
 
   print("Running PCA with cell cycle genes")
-  seuratObj <- RunPCA(object = seuratObj, reduction.name = 'cc.pca', features = c(s.genes, g2m.genes), do.print = FALSE, verbose = F)
+  seuratObj <- suppressWarnings(RunPCA(object = seuratObj, reduction.name = 'cc.pca', features = c(s.genes, g2m.genes), do.print = FALSE, verbose = F))
   print(DimPlot(object = seuratObj, reduction = "cc.pca"))
 
   seuratObj <- CellCycleScoring(object = seuratObj,
@@ -546,7 +553,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
       print(DimPlot(object = seuratObj, reduction = 'tsne'))
 
       topGene <- toWrite %>% group_by(groupField, cluster, test) %>% top_n(numGenesToSave, avg_logFC)
-      print(DoHeatmap(object = seuratObj, features = unique(as.character(topGene$gene))))
+      print(DoHeatmap(object = seuratObj, features = unique(as.character(topGene$gene)), slot = 'data'))
 
       #Note: return the datatable, so it will be printed correctly by Rmarkdown::render()
   		return(DT::datatable(topGene,

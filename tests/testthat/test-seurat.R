@@ -53,7 +53,8 @@ test_that("Serat processing works as expected", {
   expect_equal(ncol(seuratObj), 485)
   expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 7)
 
-  expect_equal(length(rownames(seuratObj@assays$RNA@scale.data)), length(rownames(seuratObj@assays$RNA@counts)))
+  # NOTE: we no longer expect this to be true:
+  #expect_equal(length(rownames(seuratObj@assays$RNA@scale.data)), length(rownames(seuratObj@assays$RNA@counts)))
 
   #Note: Seurat::PercentageFeatureSet returns 0-100.  our code is currently a fraction (0-1.0)
   expect_true(max(seuratObj$p.mito) < 1.0)
