@@ -349,12 +349,15 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000, scaleV
   print("Regressing out S and G2M score ...")
 	if (scaleVariableFeaturesOnly) {
 		feats <- VariableFeatures(object = seuratObj)
+		if (length(feats) == 0) {
+			stop('Must run FindVariableFeatures() upstream on this seurat object when using scaleVariableFeaturesOnly==TRUE')
+		}
+
 		print(paste0('ScaleData will use only the ', length(feats), ' variableFeatures'))
 	} else {
 		feats <- rownames(x = seuratObj)
 	}
 
-	feats <- VariableGenes(seuratObj)
   seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = F, features = feats, do.scale = T, do.center = T, block.size = block.size)
 
   return(seuratObj)
