@@ -34,8 +34,9 @@ NormalizeAndScale(
 
 \item{variableGenesBlacklist}{An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()}
 
-\item{scaleVariableFeaturesOnly}{If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist
-includeCellCycleGenesInScaleData If true, cell cycle genes will always be included in the features passed to ScaleData().}
+\item{scaleVariableFeaturesOnly}{If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist}
+
+\item{includeCellCycleGenesInScaleData}{If true, cell cycle genes will always be included in the features passed to ScaleData().}
 }
 \value{
 A modified Seurat object.

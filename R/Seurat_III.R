@@ -126,7 +126,7 @@ MergeSeuratObjs <- function(seuratObjs, projectName){
 #' @param variableGenesWhitelist An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()
 #' @param variableGenesBlacklist An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()
 #' @param scaleVariableFeaturesOnly If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist
-#' includeCellCycleGenesInScaleData If true, cell cycle genes will always be included in the features passed to ScaleData().
+#' @param includeCellCycleGenesInScaleData If true, cell cycle genes will always be included in the features passed to ScaleData().
 #' @return A modified Seurat object.
 #' @export
 NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE){
