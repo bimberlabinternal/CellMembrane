@@ -123,13 +123,36 @@ MergeSeuratObjs <- function(seuratObjs, projectName){
 #' @param dispersion.cutoff Passed directly to FindVariableFeatures
 #' @param mean.cutoff Passed directly to FindVariableFeatures
 #' @param block.size Passed directly to ScaleData
+#' @param variableGenesWhitelist An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()
+#' @param variableGenesBlacklist An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()
+#' @param scaleVariableFeaturesOnly If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist
+#' @param includeCellCycleGenesInScaleData If true, cell cycle genes will always be included in the features passed to ScaleData().
 #' @return A modified Seurat object.
 #' @export
-NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000){
+NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE){
   seuratObj <- NormalizeData(object = seuratObj, normalization.method = "LogNormalize", verbose = F)
 
   print('Find variable features:')
   seuratObj <- FindVariableFeatures(object = seuratObj, mean.cutoff = mean.cutoff, dispersion.cutoff = dispersion.cutoff , verbose = F, selection.method = variableFeatureSelectionMethod, nfeatures = nVariableFeatures)
+
+	if (!all(is.null(variableGenesWhitelist))) {
+		print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list'))
+		VariableFeatures(seuratObj) <- unique(c(VariableFeatures(seuratObj), variableGenesWhitelist))
+		print(paste0('Total after', length(VariableFeatures(seuratObj))))
+	}
+
+	if (!all(is.null(variableGenesBlacklist))){
+		print(paste0('Removing ', length(variableGenesBlacklist), ' from variable gene list'))
+		VariableFeatures(seuratObj) <- unique(VariableFeatures(seuratObj)[!(VariableFeatures(seuratObj) %in% variableGenesBlacklist)])
+		print(paste0('Total after', length(VariableFeatures(seuratObj))))
+	}
+
+	if (scaleVariableFeaturesOnly) {
+		feats <- VariableFeatures(object = seuratObj)
+		print(paste0('ScaleData will use only the ', length(feats), ' variableFeatures'))
+	} else {
+		feats <- rownames(x = seuratObj)
+	}
 
   if ('p.mito' %in% names(seuratObj@meta.data)) {
     totalPMito = length(unique(seuratObj$p.mito))
@@ -142,8 +165,14 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 		toRegress <- c(toRegress, "p.mito")
 	}
 
+	if (includeCellCycleGenesInScaleData) {
+		cc.genes <- .GetCCGenes()
+		cc.genes <- cc.genes[which(cc.genes %in% rownames(seuratObj))]
+		feats <- unique(c(feats, cc.genes))
+	}
+
   print('Scale data:')
-  seuratObj <- ScaleData(object = seuratObj, features = rownames(x = seuratObj), vars.to.regress = toRegress, block.size = block.size, verbose = F)
+  seuratObj <- ScaleData(object = seuratObj, features = feats, vars.to.regress = toRegress, block.size = block.size, verbose = F)
 
   return(seuratObj)
 }
@@ -152,25 +181,11 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 #' @title Run Seurat PCA
 #'
 #' @param seuratObj A Seurat object.
-#' @param variableGenesWhitelist An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()
-#' @param variableGenesBlacklist An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()
 #' @param npcs Number of PCs to use for RunPCA()
 #' @param variableGeneTable If provided, a table of variable genes will be written to this file
 #' @return A modified Seurat object.
 #' @export
-RunPcaSteps <- function(seuratObj, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, npcs = 50, variableGeneTable = NULL) {
-  if (!all(is.null(variableGenesWhitelist))) {
-    print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list'))
-    VariableFeatures(seuratObj) <- unique(c(VariableFeatures(seuratObj), variableGenesWhitelist))
-    print(paste0('Total after', length(VariableFeatures(seuratObj))))
-  }
-
-  if (!all(is.null(variableGenesBlacklist))){
-    print(paste0('Removing ', length(variableGenesBlacklist), ' from variable gene list'))
-    VariableFeatures(seuratObj) <- unique(VariableFeatures(seuratObj)[!(VariableFeatures(seuratObj) %in% variableGenesBlacklist)])
-    print(paste0('Total after', length(VariableFeatures(seuratObj))))
-  }
-
+RunPcaSteps <- function(seuratObj, npcs = 50, variableGeneTable = NULL) {
   vg <- VariableFeatures(object = seuratObj)
 
   print(paste0('Total variable genes: ', length(vg)))
@@ -294,10 +309,11 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
 #' @title Remove Cell Cycle
 #' @param seuratObj The seurat object
 #' @param min.genes If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.
+#' @param scaleVariableFeaturesOnly If true, ScaleData will only be performed on genes specified in FindVariableFeatures()
 #' @param block.size Passed directly to ScaleData
 #' @export
 #' @return A modified Seurat object.
-RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000) {
+RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000, scaleVariableFeaturesOnly = TRUE) {
   print("Performing cell cycle cleaning")
 
   # We can segregate this list into markers of G2/M phase and markers of S-phase
@@ -315,7 +331,7 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000) {
   }
 
   print("Running PCA with cell cycle genes")
-  seuratObj <- RunPCA(object = seuratObj, reduction.name = 'cc.pca', features = c(s.genes, g2m.genes), do.print = FALSE, verbose = F)
+  seuratObj <- suppressWarnings(RunPCA(object = seuratObj, reduction.name = 'cc.pca', features = c(s.genes, g2m.genes), do.print = FALSE, verbose = F))
   print(DimPlot(object = seuratObj, reduction = "cc.pca"))
 
   seuratObj <- CellCycleScoring(object = seuratObj,
@@ -332,12 +348,24 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000) {
     patchwork::plot_layout(ncol = 2)
   )
 
+	# Discard un-necessary data:
+	seuratObj@reductions[['cc.pca']] <- NULL
+
   print(table(seuratObj$Phase))
 
   print("Regressing out S and G2M score ...")
-  seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = F, features = rownames(x = seuratObj), do.scale = T, do.center = T, block.size = block.size)
+	if (scaleVariableFeaturesOnly) {
+		feats <- VariableFeatures(object = seuratObj)
+		if (length(feats) == 0) {
+			stop('Must run FindVariableFeatures() upstream on this seurat object when using scaleVariableFeaturesOnly==TRUE')
+		}
 
-	seuratObj@reductions[['cc.pca']] <- NULL
+		print(paste0('ScaleData will use only the ', length(feats), ' variableFeatures'))
+	} else {
+		feats <- rownames(x = seuratObj)
+	}
+
+  seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = F, features = feats, do.scale = T, do.center = T, block.size = block.size)
 
   return(seuratObj)
 }
@@ -525,7 +553,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
       print(DimPlot(object = seuratObj, reduction = 'tsne'))
 
       topGene <- toWrite %>% group_by(groupField, cluster, test) %>% top_n(numGenesToSave, avg_logFC)
-      print(DoHeatmap(object = seuratObj, features = unique(as.character(topGene$gene))))
+      print(DoHeatmap(object = seuratObj, features = unique(as.character(topGene$gene)), slot = 'data'))
 
       #Note: return the datatable, so it will be printed correctly by Rmarkdown::render()
   		return(DT::datatable(topGene,
