@@ -117,13 +117,7 @@
     <p>Run Seurat PCA</p>
     </div>
 
-    <pre class="usage"><span class='fu'>RunPcaSteps</span><span class='op'>(</span>
-  <span class='va'>seuratObj</span>,
-  variableGenesWhitelist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  variableGenesBlacklist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  npcs <span class='op'>=</span> <span class='fl'>50</span>,
-  variableGeneTable <span class='op'>=</span> <span class='cn'>NULL</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>RunPcaSteps</span><span class='op'>(</span><span class='va'>seuratObj</span>, npcs <span class='op'>=</span> <span class='fl'>50</span>, variableGeneTable <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -131,14 +125,6 @@
     <tr>
       <th>seuratObj</th>
       <td><p>A Seurat object.</p></td>
-    </tr>
-    <tr>
-      <th>variableGenesWhitelist</th>
-      <td><p>An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()</p></td>
-    </tr>
-    <tr>
-      <th>variableGenesBlacklist</th>
-      <td><p>An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()</p></td>
     </tr>
     <tr>
       <th>npcs</th>

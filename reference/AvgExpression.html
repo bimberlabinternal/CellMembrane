@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Run the primary seurat processing steps. — NormalizeAndScale • CellMembrane</title>
+<title>Calculate Avg Expression — AvgExpression • CellMembrane</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Run the primary seurat processing steps. — NormalizeAndScale" />
-<meta property="og:description" content="This is the primary entry point for processing scRNAseq data with Seurat" />
+<meta property="og:title" content="Calculate Avg Expression — AvgExpression" />
+<meta property="og:description" content="This is a wrapper around Seurat::AverageExpression, which computes the AverageExpression per group (all assays), then flattens this to a single data frame. It also saves library size and total cells per group." />
 
 
 
@@ -108,76 +108,34 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Run the primary seurat processing steps.</h1>
-    <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/Seurat_III.R'><code>R/Seurat_III.R</code></a></small>
-    <div class="hidden name"><code>NormalizeAndScale.Rd</code></div>
+    <h1>Calculate Avg Expression</h1>
+    <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/SeuratUtils.R'><code>R/SeuratUtils.R</code></a></small>
+    <div class="hidden name"><code>AvgExpression.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This is the primary entry point for processing scRNAseq data with Seurat</p>
+    <p>This is a wrapper around Seurat::AverageExpression, which computes the AverageExpression per group (all assays), then flattens this to a single data frame. It also saves library size and total cells per group.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>NormalizeAndScale</span><span class='op'>(</span>
-  <span class='va'>seuratObj</span>,
-  variableFeatureSelectionMethod <span class='op'>=</span> <span class='st'>"vst"</span>,
-  nVariableFeatures <span class='op'>=</span> <span class='fl'>2000</span>,
-  mean.cutoff <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.0125</span>, <span class='fl'>3</span><span class='op'>)</span>,
-  dispersion.cutoff <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.5</span>, <span class='cn'>Inf</span><span class='op'>)</span>,
-  block.size <span class='op'>=</span> <span class='fl'>1000</span>,
-  variableGenesWhitelist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  variableGenesBlacklist <span class='op'>=</span> <span class='cn'>NULL</span>,
-  scaleVariableFeaturesOnly <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  includeCellCycleGenesInScaleData <span class='op'>=</span> <span class='cn'>TRUE</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>AvgExpression</span><span class='op'>(</span><span class='va'>seuratObj</span>, <span class='va'>groupField</span>, slot <span class='op'>=</span> <span class='st'>"counts"</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>seuratObj</th>
-      <td><p>A Seurat object.</p></td>
+      <td><p>The seurat object</p></td>
     </tr>
     <tr>
-      <th>variableFeatureSelectionMethod</th>
-      <td><p>The selection method to be passed to FindVariableFeatures()</p></td>
+      <th>groupField</th>
+      <td><p>The field on which to group. Must be present in seuratObj@meta.data</p></td>
     </tr>
     <tr>
-      <th>nVariableFeatures</th>
-      <td><p>The number of variable features to find</p></td>
-    </tr>
-    <tr>
-      <th>mean.cutoff</th>
-      <td><p>Passed directly to FindVariableFeatures</p></td>
-    </tr>
-    <tr>
-      <th>dispersion.cutoff</th>
-      <td><p>Passed directly to FindVariableFeatures</p></td>
-    </tr>
-    <tr>
-      <th>block.size</th>
-      <td><p>Passed directly to ScaleData</p></td>
-    </tr>
-    <tr>
-      <th>variableGenesWhitelist</th>
-      <td><p>An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()</p></td>
-    </tr>
-    <tr>
-      <th>variableGenesBlacklist</th>
-      <td><p>An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()</p></td>
-    </tr>
-    <tr>
-      <th>scaleVariableFeaturesOnly</th>
-      <td><p>If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist</p></td>
-    </tr>
-    <tr>
-      <th>includeCellCycleGenesInScaleData</th>
-      <td><p>If true, cell cycle genes will always be included in the features passed to ScaleData().</p></td>
+      <th>slot</th>
+      <td><p>The slot on which to calculate average expression</p></td>
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>A modified Seurat object.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

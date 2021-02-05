@@ -117,7 +117,12 @@
     <p>Remove Cell Cycle</p>
     </div>
 
-    <pre class="usage"><span class='fu'>RemoveCellCycle</span><span class='op'>(</span><span class='va'>seuratObj</span>, min.genes <span class='op'>=</span> <span class='fl'>10</span>, block.size <span class='op'>=</span> <span class='fl'>1000</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>RemoveCellCycle</span><span class='op'>(</span>
+  <span class='va'>seuratObj</span>,
+  min.genes <span class='op'>=</span> <span class='fl'>10</span>,
+  block.size <span class='op'>=</span> <span class='fl'>1000</span>,
+  scaleVariableFeaturesOnly <span class='op'>=</span> <span class='cn'>TRUE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -133,6 +138,10 @@
     <tr>
       <th>block.size</th>
       <td><p>Passed directly to ScaleData</p></td>
+    </tr>
+    <tr>
+      <th>scaleVariableFeaturesOnly</th>
+      <td><p>If true, ScaleData will only be performed on genes specified in FindVariableFeatures()</p></td>
     </tr>
     </table>
 
