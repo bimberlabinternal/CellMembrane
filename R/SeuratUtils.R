@@ -272,3 +272,53 @@ FilterCloneNames <- function(seuratObj, minValue) {
 
 	return(seuratObj)
 }
+
+
+#' @title Calculate Avg Expression
+#' @description This is a wrapper around Seurat::AverageExpression, which computes the AverageExpression per group (all assays), then flattens this to a single data frame. It also saves library size and total cells per group.
+#' @param seuratObj The seurat object
+#' @param groupField The field on which to group. Must be present in seuratObj@meta.data
+#' @param slot The slot on which to calculate average expression
+#' @export
+AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
+	if (!(groupField %in% names(seuratObj@meta.data))) {
+		stop(paste0('Field not found in seuratObj: ', groupField))
+	}
+
+	ret <- Seurat::AverageExpression(seuratObj, assays = NULL, features = rownames(seuratObj), group.by = groupField, slot = slot, verbose = FALSE)
+
+	df <- NULL
+	for (assay in names(ret)) {
+		df2 <- as.data.frame(ret[[assay]])
+		df2$assay <- assay
+		df2$feature <- rownames(ret[[assay]])
+		df2 <- df2[unique(c('assay', 'feature', colnames(df2)))]
+		if (is.null(df)) {
+			df <- df2
+		} else {
+			df <- rbind(df, df2)
+		}
+	}
+
+	libraryMetrics <- as.data.frame(t(as.matrix(table(seuratObj[[groupField]]))))
+	libraryMetrics$feature <- 'TotalCells'
+	libraryMetrics$assay <- 'ExperimentMetrics'
+	libraryMetrics <- libraryMetrics[unique(c('assay', 'feature', colnames(libraryMetrics)))]
+	df <- rbind(df, libraryMetrics)
+
+	for (assay in names(seuratObj@assays)) {
+		toAdd <- data.frame(assay = assay, feature = 'LibrarySize')
+		for (val in unique(seuratObj@meta.data[[groupField]])) {
+			cellsWhitelist <- colnames(seuratObj)[seuratObj@meta.data[[groupField]] == val]
+
+			dat <- Seurat::GetAssay(seuratObj, assay = assay)
+			dat <- subset(dat, cells = cellsWhitelist)
+
+			toAdd[val] <- sum(Seurat::GetAssayData(dat, slot = slot))
+		}
+
+		df <- rbind(df, toAdd[colnames(df)])
+	}
+
+	return(df)
+}
