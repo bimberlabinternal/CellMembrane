@@ -81,7 +81,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 .EnsureFeaturesPresentInOrder <- function(assayData, featureWhitelist) {
 	featuresToAdd <- featureWhitelist[!(featureWhitelist %in% rownames(assayData))]
 	if (length(featuresToAdd) == 0) {
-		return(subset(assayData, features = featureWhitelist))
+		return(.ReorderAssayFeatures(assayData, featureWhitelist))
 	}
 
 	replacementAssay <- NULL
@@ -110,10 +110,42 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	return(replacementAssay)
 }
 
+.ReorderAssayFeatures <- function(assayData, featureWhitelist) {
+	if (nrow(assayData) != length(featureWhitelist)) {
+		stop("Feature set does not match, cannot reorder")
+	}
+
+	if (length(assayData@counts))
+		assayData@counts <- assayData@counts[featureWhitelist, ]
+	if (length(assayData@data))
+		assayData@data <- assayData@data[featureWhitelist, ]
+	if (length(assayData@scale.data))
+		assayData@scale.data <- assayData@scale.data[featureWhitelist, ]
+
+	assayData@meta.features <- assayData@meta.features[featureWhitelist]
+
+	return(assayData)
+}
+
+.ReorderAssayCells <- function(assayData, cellWhitelist) {
+	if (ncol(assayData) != length(cellWhitelist)) {
+		stop("Cell list does not match, cannot reorder")
+	}
+
+	if (length(assayData@counts))
+		assayData@counts <- assayData@counts[, cellWhitelist]
+	if (length(assayData@data))
+		assayData@data <- assayData@data[, cellWhitelist]
+	if (length(assayData@scale.data))
+		assayData@scale.data <- assayData@scale.data[, cellWhitelist]
+
+	return(assayData)
+}
+
 .EnsureCellsPresentInOrder <- function(assayData, cellWhitelist) {
 	cellsToAdd <- cellWhitelist[!(cellWhitelist %in% colnames(assayData))]
 	if (length(cellsToAdd) == 0) {
-		return(subset(assayData, cells = cellWhitelist))
+		return(.ReorderAssayCells(assayData, cellWhitelist))
 	}
 
 	replacementAssay <- NULL
