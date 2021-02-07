@@ -27,6 +27,7 @@ test_that("Cite-Seq Append Works", {
 	
 	citeseqData1 <- dummyCounts[1:4,1:50]
 	colnames(citeseqData1) <- colnames(seuratObj)[1:50]
+	colnames(citeseqData1) <- sample(colnames(citeseqData1), length(colnames(citeseqData1)), replace = FALSE)
 	rownames(citeseqData1) <- paste0('ADT', 1:4)
 	inputPath1 <- './input1'
 	if (dir.exists(inputPath1)) {
@@ -36,6 +37,7 @@ test_that("Cite-Seq Append Works", {
 	
 	citeseqData2 <- dummyCounts[3:8,41:100]
 	colnames(citeseqData2) <- colnames(seuratObj)[41:100]
+	colnames(citeseqData2) <- sample(colnames(citeseqData2), length(colnames(citeseqData2)), replace = FALSE)
 	rownames(citeseqData2) <- paste0('ADT', 3:8)
 	inputPath2 <- './input2'
 	if (dir.exists(inputPath2)) {
@@ -45,6 +47,7 @@ test_that("Cite-Seq Append Works", {
 
 	citeseqData3 <- dummyCounts[1:2,61:100]
 	colnames(citeseqData3) <- colnames(seuratObj)[61:100]
+	colnames(citeseqData3) <- sample(colnames(citeseqData3), length(colnames(citeseqData3)), replace = FALSE)
 	rownames(citeseqData3) <- c('NewMarkerName', 'unmapped')
 	inputPath3 <- './input3'
 	if (dir.exists(inputPath3)) {
