@@ -291,7 +291,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 	if (sum(grepl(x = newnames, pattern = '_')) > 0) {
 		print('Replacing underscores with hyphens in feature names')
-		newRows$markername <- gsub(x = newnames, pattern = '_', replacement = '-')
+		newnames <- gsub(x = newnames, pattern = '_', replacement = '-')
 	}
 
 	if (length(assayData@counts))
