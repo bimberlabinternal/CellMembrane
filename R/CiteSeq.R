@@ -289,6 +289,11 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		stop("Gene set does not match, cannot rename")
 	}
 
+	if (sum(grepl(x = newnames, pattern = '_')) > 0) {
+		print('Replacing underscores with hyphens in feature names')
+		newnames <- gsub(x = newnames, pattern = '_', replacement = '-')
+	}
+
 	if (length(assayData@counts))
 		assayData@counts@Dimnames[[1]] <- newnames
 	if (length(assayData@data))
