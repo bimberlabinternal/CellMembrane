@@ -4,12 +4,14 @@
 \alias{MergeSeuratObjs}
 \title{Merge Seurat Objects}
 \usage{
-MergeSeuratObjs(seuratObjs, projectName)
+MergeSeuratObjs(seuratObjs, projectName, merge.data = FALSE)
 }
 \arguments{
 \item{seuratObjs}{A named list of seurat objects, optionally named (in which case these will be used as dataset names).}
 
 \item{projectName}{The project name when creating the final seurat object}
+
+\item{merge.data}{Passed directly to Seurat::merge}
 }
 \value{
 A modified Seurat object.
