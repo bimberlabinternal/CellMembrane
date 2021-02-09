@@ -121,9 +121,8 @@
   <span class='va'>seuratObj</span>,
   <span class='va'>identFields</span>,
   outFile <span class='op'>=</span> <span class='cn'>NULL</span>,
-  testsToUse <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"wilcox"</span>, <span class='st'>"bimod"</span>, <span class='st'>"roc"</span>, <span class='st'>"t"</span>, <span class='st'>"negbinom"</span>, <span class='st'>"poisson"</span>, <span class='st'>"LR"</span>, <span class='st'>"MAST"</span>,
-    <span class='st'>"DESeq2"</span><span class='op'>)</span>,
-  numGenesToSave <span class='op'>=</span> <span class='fl'>20</span>,
+  testsToUse <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"wilcox"</span>, <span class='st'>"MAST"</span>, <span class='st'>"DESeq2"</span><span class='op'>)</span>,
+  numGenesToPrint <span class='op'>=</span> <span class='fl'>20</span>,
   onlyPos <span class='op'>=</span> <span class='cn'>F</span>,
   pValThreshold <span class='op'>=</span> <span class='fl'>0.001</span>,
   foldChangeThreshold <span class='op'>=</span> <span class='fl'>0.5</span>
@@ -138,7 +137,7 @@
     </tr>
     <tr>
       <th>identFields</th>
-      <td><p>A vector of grouping fields for DE. Ofte these are the resolution, computed during FindClustersAndDimRedux()</p></td>
+      <td><p>A vector of grouping fields for DE. Often these are the resolution, computed during FindClustersAndDimRedux()</p></td>
     </tr>
     <tr>
       <th>outFile</th>
@@ -146,11 +145,11 @@
     </tr>
     <tr>
       <th>testsToUse</th>
-      <td><p>A vector of tests to be used.  Each will be used to run FindAllMarkers() and the results merged</p></td>
+      <td><p>A vector of tests to be used.  Each will be used to run FindAllMarkers() and the results merged. Available are: wilcox, bimod, roc, t, negbinom, poisson, LR, MAST, DESeq2</p></td>
     </tr>
     <tr>
-      <th>numGenesToSave</th>
-      <td><p>The number of top markers per cluster to save</p></td>
+      <th>numGenesToPrint</th>
+      <td><p>The number of top markers per cluster to print in a table</p></td>
     </tr>
     <tr>
       <th>onlyPos</th>
@@ -162,7 +161,7 @@
     </tr>
     <tr>
       <th>foldChangeThreshold</th>
-      <td><p>Only genes with log-foldchange above this will be reported</p></td>
+      <td><p>Only genes with log2 fold-change above this will be reported</p></td>
     </tr>
     </table>
 

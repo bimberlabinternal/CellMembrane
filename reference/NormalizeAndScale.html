@@ -126,6 +126,7 @@
   block.size <span class='op'>=</span> <span class='fl'>1000</span>,
   variableGenesWhitelist <span class='op'>=</span> <span class='cn'>NULL</span>,
   variableGenesBlacklist <span class='op'>=</span> <span class='cn'>NULL</span>,
+  featuresToRegress <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"nCount_RNA"</span>, <span class='st'>"p.mito"</span><span class='op'>)</span>,
   scaleVariableFeaturesOnly <span class='op'>=</span> <span class='cn'>TRUE</span>,
   includeCellCycleGenesInScaleData <span class='op'>=</span> <span class='cn'>TRUE</span>
 <span class='op'>)</span></pre>
@@ -164,6 +165,10 @@
     <tr>
       <th>variableGenesBlacklist</th>
       <td><p>An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()</p></td>
+    </tr>
+    <tr>
+      <th>featuresToRegress</th>
+      <td><p>The set of features which will be passed to Seurat::ScaleData vars.to.regress</p></td>
     </tr>
     <tr>
       <th>scaleVariableFeaturesOnly</th>
