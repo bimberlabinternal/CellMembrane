@@ -8,9 +8,8 @@ Find_Markers(
   seuratObj,
   identFields,
   outFile = NULL,
-  testsToUse = c("wilcox", "bimod", "roc", "t", "negbinom", "poisson", "LR", "MAST",
-    "DESeq2"),
-  numGenesToSave = 20,
+  testsToUse = c("wilcox", "MAST", "DESeq2"),
+  numGenesToPrint = 20,
   onlyPos = F,
   pValThreshold = 0.001,
   foldChangeThreshold = 0.5
@@ -19,19 +18,19 @@ Find_Markers(
 \arguments{
 \item{seuratObj}{A seurat object}
 
-\item{identFields}{A vector of grouping fields for DE. Ofte these are the resolution, computed during FindClustersAndDimRedux()}
+\item{identFields}{A vector of grouping fields for DE. Often these are the resolution, computed during FindClustersAndDimRedux()}
 
 \item{outFile}{A file where a table of markers will be saved}
 
-\item{testsToUse}{A vector of tests to be used.  Each will be used to run FindAllMarkers() and the results merged}
+\item{testsToUse}{A vector of tests to be used.  Each will be used to run FindAllMarkers() and the results merged. Available are: wilcox, bimod, roc, t, negbinom, poisson, LR, MAST, DESeq2}
 
-\item{numGenesToSave}{The number of top markers per cluster to save}
+\item{numGenesToPrint}{The number of top markers per cluster to print in a table}
 
 \item{onlyPos}{If true, only positive markers will be saved}
 
 \item{pValThreshold}{Only genes with adjusted p-values below this will be reported}
 
-\item{foldChangeThreshold}{Only genes with log-foldchange above this will be reported}
+\item{foldChangeThreshold}{Only genes with log2 fold-change above this will be reported}
 }
 \value{
 A DT::datatable object with the top markers, suitable for printing
