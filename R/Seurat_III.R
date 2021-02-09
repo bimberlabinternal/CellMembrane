@@ -127,10 +127,11 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE){
 #' @param variableGenesWhitelist An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()
 #' @param variableGenesBlacklist An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()
 #' @param scaleVariableFeaturesOnly If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist
+#' @param featuresToRegress The set of features which will be passed to Seurat::ScaleData vars.to.regress
 #' @param includeCellCycleGenesInScaleData If true, cell cycle genes will always be included in the features passed to ScaleData().
 #' @return A modified Seurat object.
 #' @export
-NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE){
+NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA", "p.mito"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE){
   seuratObj <- NormalizeData(object = seuratObj, normalization.method = "LogNormalize", verbose = F)
 
   print('Find variable features:')
@@ -155,15 +156,23 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 		feats <- rownames(x = seuratObj)
 	}
 
-  if ('p.mito' %in% names(seuratObj@meta.data)) {
-    totalPMito = length(unique(seuratObj$p.mito))
-  } else {
-    totalPMito <- -1
-  }
+	if (!is.null(featuresToRegress)) {
+		if ('p.mito' %in% featuresToRegress) {
+			if ('p.mito' %in% names(seuratObj@meta.data)) {
+				uniquePMito = length(unique(seuratObj$p.mito))
+			} else {
+				uniquePMito <- -1
+			}
 
-	toRegress <- c("nCount_RNA")
-	if (totalPMito > 1) {
-		toRegress <- c(toRegress, "p.mito")
+			if (uniquePMito <= 1) {
+				print('Either p.mito not present in the seurat object, or all cells have the same value, skipping from regression')
+				featuresToRegress <- featuresToRegress[featuresToRegress != 'p.mito']
+			}
+		}
+
+		if (length(featuresToRegress) == 0) {
+			featuresToRegress <- NULL
+		}
 	}
 
 	if (includeCellCycleGenesInScaleData) {
@@ -173,7 +182,7 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 	}
 
   print('Scale data:')
-  seuratObj <- ScaleData(object = seuratObj, features = feats, vars.to.regress = toRegress, block.size = block.size, verbose = F)
+  seuratObj <- ScaleData(object = seuratObj, features = feats, vars.to.regress = featuresToRegress, block.size = block.size, verbose = F)
 
   return(seuratObj)
 }
@@ -224,8 +233,8 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
   print(paste0('Initial cells: ', length(colnames(x = seuratObj))))
 
   if ('p.mito' %in% colnames(seuratObj@meta.data)) {
-	  totalPMito = length(unique(seuratObj$p.mito))
-    if (totalPMito > 1) {
+	  uniquePMito = length(unique(seuratObj$p.mito))
+    if (uniquePMito > 1) {
       P1 <- FeatureScatter(object = seuratObj, feature1 = "nCount_RNA", feature2 = "p.mito")
       P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.low), color="blue", linetype="dashed", size=1)
       P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.high), color="blue", linetype="dashed", size=1)
@@ -448,19 +457,19 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 
 #' @title Find_Markers
 #' @param seuratObj A seurat object
-#' @param identFields A vector of grouping fields for DE. Ofte these are the resolution, computed during FindClustersAndDimRedux()
+#' @param identFields A vector of grouping fields for DE. Often these are the resolution, computed during FindClustersAndDimRedux()
 #' @param outFile A file where a table of markers will be saved
-#' @param testsToUse A vector of tests to be used.  Each will be used to run FindAllMarkers() and the results merged
-#' @param numGenesToSave The number of top markers per cluster to save
+#' @param testsToUse A vector of tests to be used.  Each will be used to run FindAllMarkers() and the results merged. Available are: wilcox, bimod, roc, t, negbinom, poisson, LR, MAST, DESeq2
+#' @param numGenesToPrint The number of top markers per cluster to print in a table
 #' @param onlyPos If true, only positive markers will be saved
 #' @param pValThreshold Only genes with adjusted p-values below this will be reported
-#' @param foldChangeThreshold Only genes with log-foldchange above this will be reported
+#' @param foldChangeThreshold Only genes with log2 fold-change above this will be reported
 #' @return A DT::datatable object with the top markers, suitable for printing
 #' @importFrom dplyr %>% coalesce group_by summarise filter top_n select everything
 #' @import DESeq2
 #' @import MAST
 #' @export
-Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'bimod', 'roc', 't', 'negbinom', 'poisson', 'LR', 'MAST', 'DESeq2'), numGenesToSave = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5) {
+Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5) {
 	seuratObj.markers <- NULL
 	for (fieldName in identFields) {
 		# Allow resolution to be passed directly:
@@ -553,7 +562,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
       print(DimPlot(object = seuratObj, reduction = 'tsne'))
 
-      topGene <- toWrite %>% group_by(groupField, cluster, test) %>% top_n(numGenesToSave, avg_logFC)
+      topGene <- toWrite %>% group_by(groupField, cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
       print(DoHeatmap(object = seuratObj, features = unique(as.character(topGene$gene)), slot = 'data'))
 
       #Note: return the datatable, so it will be printed correctly by Rmarkdown::render()

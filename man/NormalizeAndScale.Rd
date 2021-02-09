@@ -13,6 +13,7 @@ NormalizeAndScale(
   block.size = 1000,
   variableGenesWhitelist = NULL,
   variableGenesBlacklist = NULL,
+  featuresToRegress = c("nCount_RNA", "p.mito"),
   scaleVariableFeaturesOnly = TRUE,
   includeCellCycleGenesInScaleData = TRUE
 )
@@ -33,6 +34,8 @@ NormalizeAndScale(
 \item{variableGenesWhitelist}{An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()}
 
 \item{variableGenesBlacklist}{An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()}
+
+\item{featuresToRegress}{The set of features which will be passed to Seurat::ScaleData vars.to.regress}
 
 \item{scaleVariableFeaturesOnly}{If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist}
 
