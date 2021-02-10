@@ -20,9 +20,10 @@ utils::globalVariables(
 #' @param featureMetadata If is common for the raw barcode to use non-human friendly names (like TotalSeq-C-XXXX). This is an optional dataframe that can be used to override that, and also provide other feature metadata. This dataframe must have rownames that match the rownames of the saved matrix. If this dataframe has the column 'name', this will be used to replace the original rownames on the ADT assay.
 #' @param adtWhitelist An optional whitelist of ADT names (matching the raw names from the matrix). If provided, the matrix will be subset to just these features
 #' @param minRowSum If provided, any ADTs (rows) with rowSum below this value will be dropped.
+#' @param failIfAdtsInWhitelistNotFound If an adtWhitelist is provided and this is TRUE, an error will be thrown if any of these features are missing in the input matrix
 #' @export
 #' @importFrom dplyr arrange
-AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb', datasetId = NULL, assayName = 'ADT', featureMetadata = NULL, adtWhitelist = NULL, minRowSum = NULL) {
+AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb', datasetId = NULL, assayName = 'ADT', featureMetadata = NULL, adtWhitelist = NULL, minRowSum = NULL, failIfAdtsInWhitelistNotFound = TRUE) {
 	print(paste0('Initial cell barcodes in GEX data: ', ncol(seuratObj)))
 	if (!is.null(datasetId)) {
 		gexCells <- colnames(seuratObj)[seuratObj$DatasetId == datasetId]
@@ -30,7 +31,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	} else {
 		gexCells <- colnames(seuratObj)
 	}
-	assayData <- .LoadCiteSeqData(unfilteredMatrixDir, datasetId = datasetId, featureMetadata = featureMetadata, adtWhitelist = adtWhitelist, minRowSum = minRowSum)
+	assayData <- .LoadCiteSeqData(unfilteredMatrixDir, datasetId = datasetId, featureMetadata = featureMetadata, adtWhitelist = adtWhitelist, minRowSum = minRowSum, failIfAdtsInWhitelistNotFound = failIfAdtsInWhitelistNotFound)
 
 	sharedCells <- colnames(assayData)[which(colnames(assayData) %in% gexCells)]
 	print(paste0('Intersect with GEX data: ', length(sharedCells)))
@@ -210,7 +211,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	return(replacementAssay)
 }
 
-.LoadCiteSeqData <- function(unfilteredMatrixDir, datasetId = NULL, featureMetadata = NULL, adtWhitelist = NULL, minRowSum = NULL) {
+.LoadCiteSeqData <- function(unfilteredMatrixDir, datasetId = NULL, featureMetadata = NULL, adtWhitelist = NULL, minRowSum = NULL, failIfAdtsInWhitelistNotFound = TRUE) {
 	if (!dir.exists(unfilteredMatrixDir)){
 		stop("Count matrix not found")
 	}
@@ -251,6 +252,13 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		print(paste0('ADTs after filter: ', nrow(bData)))
 		if (nrow(bData) == 0) {
 			stop('No rows left after filter!')
+		}
+
+		if (failIfAdtsInWhitelistNotFound) {
+			missing <- adtWhitelist[!(adtWhitelist %in% rownames(bData))]
+			if (length(missing) > 0) {
+				stop(paste0('The following ADTs were requested but not in adtWhitelist: ', paste0(missing, collapse = ',')))
+			}
 		}
 	}
 
