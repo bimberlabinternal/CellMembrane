@@ -12,7 +12,8 @@ AppendCiteSeq(
   assayName = "ADT",
   featureMetadata = NULL,
   adtWhitelist = NULL,
-  minRowSum = NULL
+  minRowSum = NULL,
+  failIfAdtsInWhitelistNotFound = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ AppendCiteSeq(
 \item{adtWhitelist}{An optional whitelist of ADT names (matching the raw names from the matrix). If provided, the matrix will be subset to just these features}
 
 \item{minRowSum}{If provided, any ADTs (rows) with rowSum below this value will be dropped.}
+
+\item{failIfAdtsInWhitelistNotFound}{If an adtWhitelist is provided and this is TRUE, an error will be thrown if any of these features are missing in the input matrix}
 }
 \description{
 Read/Append CITE-seq/ADT data to a Seurat Object
