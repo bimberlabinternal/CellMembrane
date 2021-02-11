@@ -8,7 +8,8 @@ CiteSeqDimRedux(
   seuratObj,
   assayName = "ADT",
   dist.method = "euclidean",
-  print.plots = TRUE
+  print.plots = TRUE,
+  performClrNormalization = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ CiteSeqDimRedux(
 \item{dist.method}{The method, passed to dist()}
 
 \item{print.plots}{If true, QC plots will be printed}
+
+\item{performClrNormalization}{If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized}
 }
 \description{
 Perform DimRedux on CiteSeq
