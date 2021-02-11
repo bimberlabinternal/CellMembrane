@@ -435,11 +435,12 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 #' @param seuratObj The seurat object
 #' @param assayName The name of the assay holding the ADT data.
 #' @param dist.method The method, passed to dist()
+#' @param performClrNormalization If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized
 #' @param print.plots If true, QC plots will be printed
 #' @export
 #' @importFrom dplyr arrange
 #' @import Seurat
-CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclidean", print.plots = TRUE){
+CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclidean", print.plots = TRUE, performClrNormalization = TRUE){
 	origAssay <- DefaultAssay(seuratObj)
 	DefaultAssay(seuratObj) <- assayName
 	print(paste0('Processing ADT data, features: ', paste0(rownames(seuratObj), collapse = ',')))
@@ -447,9 +448,15 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	# Before we recluster the data on ADT levels, we'll stash the original cluster IDs for later
 	seuratObj[["origClusterID"]] <- Idents(seuratObj)
 
+	if (performClrNormalization) {
+		seuratObj <- NormalizeData(seuratObj, normalization.method = 'CLR', margin = 2, verbose = FALSE) %>% ScaleData(verbose = FALSE)
+	} else {
+		print('Using pre-existing normalization')
+	}
+
 	#PCA:
 	print("Performing PCA on ADT")
-	seuratObj <- NormalizeData(seuratObj, normalization.method = 'CLR', margin = 2, verbose = FALSE) %>% ScaleData(verbose = FALSE) %>% RunPCA(reduction.name = 'pca.adt', verbose = FALSE)
+	seuratObj <- RunPCA(reduction.name = 'pca.adt', verbose = FALSE)
 	if (print.plots) {
 		print(DimPlot(seuratObj, reduction = "pca.adt"))
 	}
