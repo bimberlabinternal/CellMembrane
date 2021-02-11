@@ -248,6 +248,8 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	# Apply this prior to rename:
 	if (!is.null(adtWhitelist)) {
 		print('Filtering ADTs based on whitelist')
+		adtWhitelist <- gsub(x = adtWhitelist, pattern = '_', replacement = '-')
+
 		bData <- bData[rownames(bData) %in% adtWhitelist, ]
 		print(paste0('ADTs after filter: ', nrow(bData)))
 		if (nrow(bData) == 0) {
@@ -257,7 +259,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		if (failIfAdtsInWhitelistNotFound) {
 			missing <- adtWhitelist[!(adtWhitelist %in% rownames(bData))]
 			if (length(missing) > 0) {
-				stop(paste0('The following ADTs were requested but not in adtWhitelist: ', paste0(missing, collapse = ',')))
+				stop(paste0('The following ADTs were requested but not in adtWhitelist: ', paste0(missing, collapse = ','), '. Markers present: ', paste0(rownames(bData), collapse = ',')))
 			}
 		}
 	}
