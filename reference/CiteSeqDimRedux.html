@@ -121,7 +121,8 @@
   <span class='va'>seuratObj</span>,
   assayName <span class='op'>=</span> <span class='st'>"ADT"</span>,
   dist.method <span class='op'>=</span> <span class='st'>"euclidean"</span>,
-  print.plots <span class='op'>=</span> <span class='cn'>TRUE</span>
+  print.plots <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  performClrNormalization <span class='op'>=</span> <span class='cn'>TRUE</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -142,6 +143,10 @@
     <tr>
       <th>print.plots</th>
       <td><p>If true, QC plots will be printed</p></td>
+    </tr>
+    <tr>
+      <th>performClrNormalization</th>
+      <td><p>If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized</p></td>
     </tr>
     </table>
 
