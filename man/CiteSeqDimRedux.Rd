@@ -9,7 +9,8 @@ CiteSeqDimRedux(
   assayName = "ADT",
   dist.method = "euclidean",
   print.plots = TRUE,
-  performClrNormalization = TRUE
+  performClrNormalization = TRUE,
+  doUMAP = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ CiteSeqDimRedux(
 \item{print.plots}{If true, QC plots will be printed}
 
 \item{performClrNormalization}{If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized}
+
+\item{doUMAP}{If true, RunUMAP will be performed on the ADT distance matrix.}
 }
 \description{
 Perform DimRedux on CiteSeq

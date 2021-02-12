@@ -437,10 +437,11 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 #' @param dist.method The method, passed to dist()
 #' @param performClrNormalization If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized
 #' @param print.plots If true, QC plots will be printed
+#' @param doUMAP If true, RunUMAP will be performed on the ADT distance matrix.
 #' @export
 #' @importFrom dplyr arrange
 #' @import Seurat
-CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclidean", print.plots = TRUE, performClrNormalization = TRUE){
+CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclidean", print.plots = TRUE, performClrNormalization = TRUE, doUMAP = TRUE){
 	origAssay <- DefaultAssay(seuratObj)
 	DefaultAssay(seuratObj) <- assayName
 	print(paste0('Processing ADT data, features: ', paste0(rownames(seuratObj), collapse = ',')))
@@ -485,11 +486,13 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 
 	#UMAP:
 	# Now, we rerun UMAP using our distance matrix defined only on ADT (protein) levels.
-	print("Performing UMAP on ADT")
-	seuratObj[["umap_adt"]] <- RunUMAP(adt.dist, assay = assayName, reduction.name = 'adt.umap', reduction.key = "adtUMAP_", verbose = FALSE)
+	if (doUMAP) {
+		print("Performing UMAP on ADT")
+		seuratObj[["umap_adt"]] <- RunUMAP(adt.dist, assay = assayName, reduction.name = 'adt.umap', reduction.key = "adtUMAP_", verbose = FALSE)
 
-	if (print.plots) {
-		print(DimPlot(seuratObj, reduction = "umap_adt"))
+		if (print.plots) {
+			print(DimPlot(seuratObj, reduction = "umap_adt"))
+		}
 	}
 
 	#Restore original state:
@@ -497,8 +500,13 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	DefaultAssay(seuratObj) <- origAssay
 	seuratObj[["origClusterID"]] <- NULL
 
+	reductions <- c('tsne')
+	if (doUMAP) {
+		reductions <- c(reductions, 'umap')
+	}
+
 	if (print.plots) {
-		for (reduction in c('tsne', 'umap')) {
+		for (reduction in reductions) {
 			#Compare new/old:
 			orig <- DimPlot(seuratObj, reduction = reduction, group.by = "ident", combine = FALSE)[[1]] + NoLegend()
 			orig <- orig  +
