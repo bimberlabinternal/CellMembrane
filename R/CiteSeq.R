@@ -456,7 +456,7 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 
 	#PCA:
 	print("Performing PCA on ADT")
-	seuratObj <- RunPCA(reduction.name = 'pca.adt', verbose = FALSE)
+	seuratObj <- RunPCA(seuratObj, reduction.name = 'pca.adt', verbose = FALSE)
 	if (print.plots) {
 		print(DimPlot(seuratObj, reduction = "pca.adt"))
 	}
