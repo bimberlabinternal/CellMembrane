@@ -449,7 +449,9 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	seuratObj[["origClusterID"]] <- Idents(seuratObj)
 
 	if (performClrNormalization) {
-		seuratObj <- NormalizeData(seuratObj, normalization.method = 'CLR', margin = 2, verbose = FALSE) %>% ScaleData(verbose = FALSE)
+		seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
+	} else if (is.null(seuratObj[[assayName]]@data) || length(seuratObj[[assayName]]@data) == 0){
+		stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
 	} else {
 		print('Using pre-existing normalization')
 	}
@@ -457,19 +459,21 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	#PCA:
 	print("Performing PCA on ADT")
 	VariableFeatures(seuratObj) <- rownames(seuratObj[[assayName]])
-	seuratObj <- RunPCA(seuratObj, reduction.name = 'pca.adt', verbose = FALSE)
+	seuratObj <- ScaleData(verbose = FALSE, assay = assayName)
+	seuratObj <- RunPCA(seuratObj, reduction.name = 'pca.adt', assay = assayName, verbose = FALSE)
 	if (print.plots) {
 		print(DimPlot(seuratObj, reduction = "pca.adt"))
 	}
 
 	#SNN:
 	print("Calculating Distance Matrix")
-	adt.data <- GetAssayData(seuratObj, slot = "data")
+	adt.data <- GetAssayData(seuratObj, assay = assayName, slot = "data")
 	adt.dist <- dist(t(adt.data), method = dist.method)
 	seuratObj[["adt_snn"]]  <- FindNeighbors(adt.dist, verbose = FALSE)$snn
 
 	seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn", verbose = FALSE)
-	
+	seuratObj[["AdtClusterNames_2.0"]] <- Idents(object = seuratObj)
+
 	#tSNE:
 	# Now, we rerun tSNE using our distance matrix defined only on ADT (protein) levels.
 	print("Performing tSNE on ADT")
@@ -496,15 +500,16 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	if (print.plots) {
 		for (reduction in c('tsne', 'umap')) {
 			#Compare new/old:
-			orig <- DimPlot(seuratObj, reduction = reduction, group.by = "origClusterID", combine = FALSE)[[1]] + NoLegend()
+			orig <- DimPlot(seuratObj, reduction = reduction, group.by = "ident", combine = FALSE)[[1]] + NoLegend()
 			orig <- orig  +
-				labs(title = 'Clustering based on scRNA-seq')  +
+				labs(title = 'Clustering based on RNA')  +
 				theme(plot.title = element_text(hjust = 0.5))
-			orig <- LabelClusters(plot = orig, id = "origClusterID", size = 6)
+			orig <- LabelClusters(plot = orig, id = "ident", size = 6)
 
-			adt <- DimPlot(seuratObj, reduction = paste0(reduction, "_adt"), pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
+			adt <- DimPlot(seuratObj, reduction = paste0(reduction, "_adt"), group.by = 'AdtClusterNames_2.0', pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
 			adt <- adt  +
-				labs(title = 'Clustering based on ADT signal') + theme(plot.title = element_text(hjust = 0.5))
+				labs(title = 'Clustering based on ADT signal') +
+				theme(plot.title = element_text(hjust = 0.5))
 			adt <- LabelClusters(plot = adt, id = "ident", size = 6)
 
 			# Note: for this comparison, both the RNA and protein clustering are visualized using the ADT distance matrix.
