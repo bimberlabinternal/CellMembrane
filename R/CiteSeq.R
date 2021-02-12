@@ -512,13 +512,11 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 			orig <- orig  +
 				labs(title = 'Clustering based on RNA')  +
 				theme(plot.title = element_text(hjust = 0.5))
-			orig <- LabelClusters(plot = orig, id = "ident", size = 6)
 
 			adt <- DimPlot(seuratObj, reduction = paste0(reduction, "_adt"), group.by = 'AdtClusterNames_2.0', pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
 			adt <- adt  +
 				labs(title = 'Clustering based on ADT signal') +
 				theme(plot.title = element_text(hjust = 0.5))
-			adt <- LabelClusters(plot = adt, id = "ident", size = 6)
 
 			# Note: for this comparison, both the RNA and protein clustering are visualized using the ADT distance matrix.
 			print(patchwork::wrap_plots(list(orig, adt), ncol = 2))
