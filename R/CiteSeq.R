@@ -469,7 +469,7 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	#SNN:
 	print("Calculating Distance Matrix")
 	adt.data <- GetAssayData(seuratObj, assay = assayName, slot = "data")
-	adt.dist <- dist(t(adt.data), method = dist.method)
+	adt.dist <- dist(Matrix::t(adt.data), method = dist.method)
 	seuratObj[["adt_snn"]]  <- FindNeighbors(adt.dist, verbose = FALSE)$snn
 
 	seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn", verbose = FALSE)
@@ -535,6 +535,22 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 #' @export
 #' @import Seurat
 RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list = list("pca", "pca.adt")) {
+	if (length(reduction.list) != length(dims.list)) {
+		stop('Length of reduction.list and dims.list must be equal')
+	}
+
+	i <- 1
+	for (reduction in reduction.list) {
+		maxDim <- length(seuratObj@reductions[[reduction]])
+		argMax <- max(dims.list[[i]])
+		if (argMax > maxDim) {
+			print(paste0('dims.list requested for: ', reduction, ' is greater than available dims (', maxDim, '), will reduce for FindMultiModalNeighbors'))
+			dims.list[[i]] <- 1:maxDim
+		}
+
+		i <- i + 1
+	}
+
 	seuratObj <- FindMultiModalNeighbors(
 		seuratObj, reduction.list = reduction.list,
 		dims.list = dims.list, modality.weight.name = "RNA.weight"
