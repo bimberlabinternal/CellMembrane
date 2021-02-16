@@ -429,7 +429,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	return(a)
 }
 
-#' @title Perform DimRedux on CiteSeq
+#' @title Perform DimRedux on CiteSeq using euclidean distance
 #'
 #' @description Perform DimRedux on CiteSeq
 #' @param seuratObj The seurat object
@@ -455,15 +455,6 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 		stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
 	} else {
 		print('Using pre-existing normalization')
-	}
-
-	#PCA:
-	print("Performing PCA on ADT")
-	VariableFeatures(seuratObj) <- rownames(seuratObj[[assayName]])
-	seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = assayName)
-	seuratObj <- RunPCA(seuratObj, reduction.name = 'pca.adt', assay = assayName, verbose = FALSE, reduction.key  = 'adtPCA_')
-	if (print.plots) {
-		print(DimPlot(seuratObj, reduction = "pca.adt"))
 	}
 
 	#SNN:
@@ -521,6 +512,37 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 			# Note: for this comparison, both the RNA and protein clustering are visualized using the ADT distance matrix.
 			print(patchwork::wrap_plots(list(orig, adt), ncol = 2))
 		}
+	}
+
+	return(seuratObj)
+}
+
+
+#' @title Perform PCA on CiteSeq/ADT Data
+#'
+#' @description Perform PCA on CiteSeq/ADT Data
+#' @param seuratObj The seurat object
+#' @param assayName The name of the assay holding the ADT data.
+#' @param performClrNormalization If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized
+#' @param print.plots If true, QC plots will be printed
+#' @export
+#' @import Seurat
+RunAdtPca <- function(seuratObj, assayName = 'ADT', print.plots = TRUE, performClrNormalization = TRUE){
+	if (performClrNormalization) {
+		seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
+	} else if (is.null(seuratObj[[assayName]]@data) || length(seuratObj[[assayName]]@data) == 0){
+		stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
+	} else {
+		print('Using pre-existing normalization')
+	}
+
+	print("Performing PCA on ADT")
+	feats <- rownames(seuratObj[[assayName]])
+	seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = assayName, features = feats)
+	seuratObj <- RunPCA(seuratObj, reduction.name = 'pca.adt', assay = assayName, verbose = FALSE, reduction.key  = 'adtPCA_', npcs = length(rownames(seuratObj[[assayName]]))-1)
+	if (print.plots) {
+		print(DimPlot(seuratObj, reduction = "pca.adt"))
+		print(ElbowPlot(object = seuratObj, reduction = 'pca.adt'))
 	}
 
 	return(seuratObj)
