@@ -322,3 +322,39 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 
 	return(df)
 }
+
+#' @title FeaturePlot Across Reductions
+#' @description Create FeaturePlots for the selected reductions
+#' @param seuratObj The seurat object
+#' @param features A vector of features to plot
+#' @param reductions The list of reductions to plot
+#' @param plotsPerRow The number of plots to print per row
+#' @import patchwork
+#' @export
+FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsne', 'umap', 'wnn.umap'), plotsPerRow = 3) {
+	for (feature in features) {
+		reductionToPlot <- intersect(reductions, names(seuratObj@reductions))
+		steps <- ceiling(length(reductionToPlot) / plotsPerRow) - 1
+
+		for (i in 0:steps) {
+			start1 <- (i * plotsPerRow) + 1
+			end <- min((start1 + plotsPerRow - 1), length(reductionToPlot))
+			toPlot <- reductionToPlot[start1:end]
+
+			plots <- NULL
+			for (reduction in toPlot) {
+				P1 <- Seurat::FeaturePlot(seuratObj, reduction = reduction, features = c(feature))
+				if (is.null(plots)) {
+					plots <- P1
+				} else {
+					plots <- plots + P1
+				}
+			}
+
+			plots <- plots + patchwork::plot_layout(ncol = plotsPerRow)
+
+			print(plots + plot_layout(guides = 'collect'))
+		}
+	}
+}
+

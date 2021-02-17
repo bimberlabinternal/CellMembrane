@@ -5,7 +5,12 @@
 #' @param reductions Vector of reduction(s) to use
 #' @export
 #' @import Seurat
-PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
+PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap', 'wnn.umap')) {
+	reductions <- intersect(reductions, names(seuratObj@reductions))
+	if (length(reductions) == 0) {
+		stop('None of the requested reductions are present!')
+	}
+
 	#ENSMMUG00000003532=CD8b
 	PlotMarkerSet(seuratObj, reductions, 'CD8/CD4 Markers', c('CD8A', 'CD8B', 'ENSMMUG00000003532', 'CD4', 'IL7R', 'CD3D', 'CD3E','CD3G'))
 

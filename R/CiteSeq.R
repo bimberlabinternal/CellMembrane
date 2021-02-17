@@ -387,7 +387,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	gexCountMatrix <- GetAssayData(object = seuratObj, slot = 'counts', assay = rnaAssayName)
 	unfilteredAdtCountMatrix <- GetAssayData(object = unfilteredAdtAssay, slot = 'counts')
 
-	emptyDrops <- CellMembrane:::PerformEmptyDrops(unfilteredAdtCountMatrix, fdrThreshold = fdrThreshold, emptyDropNIters = emptyDropNIters, emptyDropsLower = emptyDropsLower)
+	emptyDrops <- PerformEmptyDrops(unfilteredAdtCountMatrix, fdrThreshold = fdrThreshold, emptyDropNIters = emptyDropNIters, emptyDropsLower = emptyDropsLower)
 	passingCells <- rownames(emptyDrops)[emptyDrops$is.cell]
 	passingCellsWithGex <- intersect(passingCells, colnames(gexCountMatrix))
 	print(paste0('ADT passing: ', length(passingCells), ', intersecting with GEX: ', length(passingCellsWithGex)))
@@ -431,7 +431,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 #' @title Perform DimRedux on CiteSeq using euclidean distance
 #'
-#' @description Perform DimRedux on CiteSeq
+#' @description Perform DimRedux on CiteSeq using euclidean distance
 #' @param seuratObj The seurat object
 #' @param assayName The name of the assay holding the ADT data.
 #' @param dist.method The method, passed to dist()
@@ -441,7 +441,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 #' @export
 #' @importFrom dplyr arrange
 #' @import Seurat
-CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclidean", print.plots = TRUE, performClrNormalization = TRUE, doUMAP = TRUE){
+CiteSeqDimRedux.Dist <- function(seuratObj, assayName = 'ADT', dist.method = "euclidean", print.plots = TRUE, performClrNormalization = TRUE, doUMAP = TRUE){
 	origAssay <- DefaultAssay(seuratObj)
 	DefaultAssay(seuratObj) <- assayName
 	print(paste0('Processing ADT data, features: ', paste0(rownames(seuratObj), collapse = ',')))
@@ -461,28 +461,28 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	print("Calculating Distance Matrix")
 	adt.data <- GetAssayData(seuratObj, assay = assayName, slot = "data")
 	adt.dist <- dist(Matrix::t(adt.data), method = dist.method)
-	seuratObj[["adt_snn"]]  <- FindNeighbors(adt.dist, verbose = FALSE)$snn
+	seuratObj[["adt_snn.dist"]]  <- FindNeighbors(adt.dist, verbose = FALSE)$snn
 
-	seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn", verbose = FALSE)
-	seuratObj[["AdtClusterNames_2.0"]] <- Idents(object = seuratObj)
+	seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn.dist", verbose = FALSE)
+	seuratObj[["AdtClusterNames_2.0.dist"]] <- Idents(object = seuratObj)
 
 	#tSNE:
 	# Now, we rerun tSNE using our distance matrix defined only on ADT (protein) levels.
 	print("Performing tSNE on ADT")
-	seuratObj[["tsne_adt"]] <- RunTSNE(adt.dist, assay = assayName, reduction.name = 'adt.tsne', reduction.key = "adtTSNE_")
+	seuratObj[["tsne_adt.dist"]] <- RunTSNE(adt.dist, assay = assayName, reduction.name = 'adt.tsne.dist', reduction.key = "adtTSNEDist_")
 
 	if (print.plots) {
-		print(DimPlot(seuratObj, reduction = "tsne_adt"))
+		print(DimPlot(seuratObj, reduction = "tsne_adt.dist"))
 	}
 
 	#UMAP:
 	# Now, we rerun UMAP using our distance matrix defined only on ADT (protein) levels.
 	if (doUMAP) {
 		print("Performing UMAP on ADT")
-		seuratObj[["umap_adt"]] <- RunUMAP(adt.dist, assay = assayName, reduction.name = 'adt.umap', reduction.key = "adtUMAP_", verbose = FALSE)
+		seuratObj[["umap_adt.dist"]] <- RunUMAP(adt.dist, assay = assayName, reduction.name = 'adt.umap.dist', reduction.key = "adtUMAPDist_", verbose = FALSE)
 
 		if (print.plots) {
-			print(DimPlot(seuratObj, reduction = "umap_adt"))
+			print(DimPlot(seuratObj, reduction = "umap_adt.dist"))
 		}
 	}
 
@@ -504,7 +504,7 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 				labs(title = 'Clustering based on RNA')  +
 				theme(plot.title = element_text(hjust = 0.5))
 
-			adt <- DimPlot(seuratObj, reduction = paste0(reduction, "_adt"), group.by = 'AdtClusterNames_2.0', pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
+			adt <- DimPlot(seuratObj, reduction = paste0(reduction, "_adt.dist"), group.by = 'AdtClusterNames_2.0.dist', pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
 			adt <- adt  +
 				labs(title = 'Clustering based on ADT signal') +
 				theme(plot.title = element_text(hjust = 0.5))
@@ -517,17 +517,46 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	return(seuratObj)
 }
 
-
-#' @title Perform PCA on CiteSeq/ADT Data
+#' @title Perform DimRedux on CiteSeq using PCA input
 #'
-#' @description Perform PCA on CiteSeq/ADT Data
+#' @description Perform DimRedux on CiteSeq
 #' @param seuratObj The seurat object
 #' @param assayName The name of the assay holding the ADT data.
 #' @param performClrNormalization If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized
 #' @param print.plots If true, QC plots will be printed
+#' @param doUMAP If true, RunUMAP will be performed
+#' @param adtWhitelist An optional vector of ADTs that will be included in PCA. If NULL, all will be used.
+#' @param adtBlacklist An optional vector of ADTs that will be excluded from PCA. If NULL, all will be used.
+#' @param dimsToUse An optional vector of PCs to use in tSNE/UMAP
 #' @export
+#' @importFrom dplyr arrange
 #' @import Seurat
-RunAdtPca <- function(seuratObj, assayName = 'ADT', print.plots = TRUE, performClrNormalization = TRUE){
+CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE, performClrNormalization = TRUE, doUMAP = TRUE, dimsToUse = NULL, adtWhitelist = NULL, adtBlacklist = NULL){
+  origAssay <- DefaultAssay(seuratObj)
+  DefaultAssay(seuratObj) <- assayName
+  print(paste0('Processing ADT data, features: ', paste0(rownames(seuratObj), collapse = ',')))
+  
+  # Before we recluster the data on ADT levels, we'll stash the original cluster IDs for later
+  seuratObj[["origClusterID"]] <- Idents(seuratObj)
+
+	if (!is.null(adtWhitelist)) {
+		sharedADTs <- intersect(adtWhitelist, rownames(seuratObj[[assayName]]))
+		if (length(sharedADTs) != length(adtWhitelist)) {
+			missing <- adtWhitelist[!(adtWhitelist %in% rownames(seuratObj[[assayName]]))]
+			stop(paste0('The following ADTs were requested in adtWhitelist, but not found in the seurat object: ', paste0(missing, collapse = ',')))
+		}
+	}
+
+  if (is.null(adtWhitelist)) {
+		adtsForPca <- rownames(seuratObj[[assayName]])
+	} else {
+		adtsForPca <- adtWhitelist
+	}
+
+	if (!is.null(adtBlacklist)) {
+		adtsForPca <- adtsForPca[!(adtsForPca %in% adtBlacklist)]
+	}
+
 	if (performClrNormalization) {
 		seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
 	} else if (is.null(seuratObj[[assayName]]@data) || length(seuratObj[[assayName]]@data) == 0){
@@ -536,17 +565,74 @@ RunAdtPca <- function(seuratObj, assayName = 'ADT', print.plots = TRUE, performC
 		print('Using pre-existing normalization')
 	}
 
-	print("Performing PCA on ADT")
-	feats <- rownames(seuratObj[[assayName]])
-	seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = assayName, features = feats)
-	seuratObj <- RunPCA(seuratObj, reduction.name = 'pca.adt', assay = assayName, verbose = FALSE, reduction.key  = 'adtPCA_', npcs = length(rownames(seuratObj[[assayName]]))-1)
+	print("Performing PCA on ADTs")
+	print(paste0('ADTs used: ', paste0(adtsForPca, collapse = ',')))
+	seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = assayName, features = adtsForPca)
+	seuratObj <- RunPCA(seuratObj, reduction.name = 'pca.adt', assay = assayName, verbose = FALSE, reduction.key  = 'adtPCA_', npcs = length(adtsForPca)-1, features = adtsForPca)
 	if (print.plots) {
 		print(DimPlot(seuratObj, reduction = "pca.adt"))
 		print(ElbowPlot(object = seuratObj, reduction = 'pca.adt'))
 	}
 
-	return(seuratObj)
+  if (is.null(dimsToUse)) {
+		dimsToUse = 1:ncol(seuratObj@reductions[["pca.adt"]])
+		print(paste0('Using dims 1:', max(dimsToUse)))
+	}
+
+  seuratObj <- FindNeighbors(seuratObj, verbose = FALSE, reduction = "pca.adt", dims = dimsToUse, graph.name = "adt_snn.pca")
+	seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn.pca", verbose = FALSE)
+  seuratObj[["AdtClusterNames_2.0.PCA"]] <- Idents(object = seuratObj)
+  
+  #tSNE:
+  print("Performing tSNE on ADT with PCA")
+  seuratObj <- RunTSNE(seuratObj, assay = assayName, reduction = "pca.adt", dims = dimsToUse, reduction.name = 'adt.tsne.pca', reduction.key = "adtTSNEPCA_", check_duplicates = FALSE)
+  
+  if (print.plots) {
+    print(DimPlot(seuratObj, reduction = "adt.tsne.pca"))
+  }
+  
+  #UMAP:
+  # Now, we rerun UMAP using our distance matrix defined only on ADT (protein) levels.
+  if (doUMAP) {
+    print("Performing UMAP on ADT with PCA")
+    seuratObj <- RunUMAP(seuratObj, assay = assayName, reduction = "pca.adt", dims = dimsToUse, reduction.name = 'adt.umap.pca', reduction.key = "adtUMAPPCA_", verbose = FALSE)
+    
+    if (print.plots) {
+      print(DimPlot(seuratObj, reduction = "adt.umap.pca"))
+    }
+  }
+  
+  #Restore original state:
+  Idents(seuratObj) <- seuratObj[["origClusterID"]]
+  DefaultAssay(seuratObj) <- origAssay
+  seuratObj[["origClusterID"]] <- NULL
+  
+  reductions <- c('tsne')
+  if (doUMAP) {
+    reductions <- c(reductions, 'umap')
+  }
+  
+  if (print.plots) {
+    for (reduction in reductions) {
+      #Compare new/old:
+      orig <- DimPlot(seuratObj, reduction = reduction, group.by = "ident", combine = FALSE)[[1]] + NoLegend()
+      orig <- orig  +
+        labs(title = 'Clustering based on RNA')  +
+        theme(plot.title = element_text(hjust = 0.5))
+      
+      adt <- DimPlot(seuratObj, reduction = paste0("adt.", reduction, ".pca"), group.by = 'AdtClusterNames_2.0.PCA', pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
+      adt <- adt  +
+        labs(title = 'Clustering based on ADT signal') +
+        theme(plot.title = element_text(hjust = 0.5))
+      
+      # Note: for this comparison, both the RNA and protein clustering are visualized using the ADT distance matrix.
+      print(patchwork::wrap_plots(list(orig, adt), ncol = 2))
+    }
+  }
+  
+  return(seuratObj)
 }
+
 
 #' @title Perform Seurat WNN on CiteSeq
 #'
@@ -610,7 +696,7 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 		xlab('Total Count/ADT') +
 		ylab('Density') +
 		theme(
-		axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+			axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
 		) +
 		labs(title = 'Total Counts Per ADT')
 
@@ -621,7 +707,7 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 		xlab('Marker') +
 		ylab('Total Count') +
 		theme(
-		axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+			axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
 		) +
 		labs(title = 'Total Counts Per ADT')
 
