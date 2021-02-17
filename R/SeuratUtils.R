@@ -328,6 +328,7 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 #' @param seuratObj The seurat object
 #' @param features A vector of features to plot
 #' @param reductions The list of reductions to plot
+#' @param plotsPerRow The number of plots to print per row
 #' @import patchwork
 #' @export
 FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsne', 'umap', 'wnn.umap'), plotsPerRow = 3) {

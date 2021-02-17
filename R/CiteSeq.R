@@ -585,7 +585,7 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
   
   #tSNE:
   print("Performing tSNE on ADT with PCA")
-  seuratObj <- RunTSNE(seuratObj, assay = assayName, reduction = "pca.adt", dims = dimsToUse, reduction.name = 'adt.tsne.pca', reduction.key = "adt.tsne.pca_", check_duplicates = FALSE)
+  seuratObj <- RunTSNE(seuratObj, assay = assayName, reduction = "pca.adt", dims = dimsToUse, reduction.name = 'adt.tsne.pca', reduction.key = "adtTSNEPCA_", check_duplicates = FALSE)
   
   if (print.plots) {
     print(DimPlot(seuratObj, reduction = "adt.tsne.pca"))
@@ -595,7 +595,7 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
   # Now, we rerun UMAP using our distance matrix defined only on ADT (protein) levels.
   if (doUMAP) {
     print("Performing UMAP on ADT with PCA")
-    seuratObj <- RunUMAP(seuratObj, assay = assayName, reduction = "pca.adt", dims = dimsToUse, reduction.name = 'adt.umap.pca', reduction.key = "adt.umap.pca_", verbose = FALSE)
+    seuratObj <- RunUMAP(seuratObj, assay = assayName, reduction = "pca.adt", dims = dimsToUse, reduction.name = 'adt.umap.pca', reduction.key = "adtUMAPPCA_", verbose = FALSE)
     
     if (print.plots) {
       print(DimPlot(seuratObj, reduction = "adt.umap.pca"))

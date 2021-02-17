@@ -17,6 +17,8 @@ FeaturePlotAcrossReductions(
 \item{features}{A vector of features to plot}
 
 \item{reductions}{The list of reductions to plot}
+
+\item{plotsPerRow}{The number of plots to print per row}
 }
 \description{
 Create FeaturePlots for the selected reductions
