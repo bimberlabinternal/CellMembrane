@@ -517,6 +517,101 @@ CiteSeqDimRedux <- function(seuratObj, assayName = 'ADT', dist.method = "euclide
 	return(seuratObj)
 }
 
+#' @title Perform DimRedux on CiteSeq using PCA input
+#'
+#' @description Perform DimRedux on CiteSeq
+#' @param seuratObj The seurat object
+#' @param assayName The name of the assay holding the ADT data.
+#' @param performClrNormalization If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized
+#' @param print.plots If true, QC plots will be printed
+#' @param doUMAP If true, RunUMAP will be performed
+#' @export
+#' @importFrom dplyr arrange
+#' @import Seurat
+CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE, performClrNormalization = TRUE, doUMAP = TRUE, dims=NULL){
+  origAssay <- DefaultAssay(seuratObj)
+  DefaultAssay(seuratObj) <- assayName
+  print(paste0('Processing ADT data, features: ', paste0(rownames(seuratObj), collapse = ',')))
+  
+  # Before we recluster the data on ADT levels, we'll stash the original cluster IDs for later
+  seuratObj[["origClusterID"]] <- Idents(seuratObj)
+  
+  #TODO: need a better way to get at the PCA dims
+  if(is.null(dims)) dims = 1:(nrow(seuratObj)-1)
+  
+  if (performClrNormalization) {
+    seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
+  } else if (is.null(seuratObj[[assayName]]@data) || length(seuratObj[[assayName]]@data) == 0){
+    stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
+  } else {
+    print('Using pre-existing normalization')
+  }
+  
+  print("Performin RunAdtPca")
+  seuratObj = RunAdtPca(seuratObj, assayName = assayName, print.plots = print.plots, performClrNormalization = performClrNormalization)
+ 
+  seuratObj[["adt_snn.pca"]]  <- FindNeighbors(seuratObj, verbose = FALSE, 
+                                           reduction = "pca.adt",
+                                           dims = dims)$snn
+  
+  seuratObj <- FindClusters(seuratObj, resolution = 2.0, 
+                            graph.name = "adt_snn.pca", verbose = FALSE)
+  seuratObj[["AdtClusterNames_2.0.pca"]] <- Idents(object = seuratObj)
+  
+  #tSNE:
+  print("Performing tSNE on ADT with PCA")
+  seuratObj <- RunTSNE(seuratObj, assay = assayName, 
+                       reduction = "pca.adt",dims = dims, 
+                       reduction.name = 'adt.tsne.pca', reduction.key = "adt.tsne.pca_")
+  
+  if (print.plots) {
+    print(DimPlot(seuratObj, reduction = "adt.tsne.pca"))
+  }
+  
+  #UMAP:
+  # Now, we rerun UMAP using our distance matrix defined only on ADT (protein) levels.
+  if (doUMAP) {
+    print("Performing UMAP on ADT with PCA")
+    seuratObj <- RunUMAP(seuratObj, assay = assayName,
+                         reduction = "pca.adt",dims = dims,
+                         reduction.name = 'adt.umap.pca', reduction.key = "adt.umap.pca_", verbose = FALSE)
+    
+    if (print.plots) {
+      print(DimPlot(seuratObj, reduction = "adt.umap.pca"))
+    }
+  }
+  
+  #Restore original state:
+  Idents(seuratObj) <- seuratObj[["origClusterID"]]
+  DefaultAssay(seuratObj) <- origAssay
+  seuratObj[["origClusterID"]] <- NULL
+  
+  reductions <- c('tsne')
+  if (doUMAP) {
+    reductions <- c(reductions, 'umap')
+  }
+  
+  if (print.plots) {
+    for (reduction in reductions) {
+      #Compare new/old:
+      orig <- DimPlot(seuratObj, reduction = reduction, group.by = "ident", combine = FALSE)[[1]] + NoLegend()
+      orig <- orig  +
+        labs(title = 'Clustering based on RNA')  +
+        theme(plot.title = element_text(hjust = 0.5))
+      
+      adt <- DimPlot(seuratObj, reduction = paste0(reduction, ".pca_adt"), group.by = 'AdtClusterNames_2.0.pca', pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
+      adt <- adt  +
+        labs(title = 'Clustering based on ADT signal') +
+        theme(plot.title = element_text(hjust = 0.5))
+      
+      # Note: for this comparison, both the RNA and protein clustering are visualized using the ADT distance matrix.
+      print(patchwork::wrap_plots(list(orig, adt), ncol = 2))
+    }
+  }
+  
+  return(seuratObj)
+}
+
 
 #' @title Perform PCA on CiteSeq/ADT Data
 #'
