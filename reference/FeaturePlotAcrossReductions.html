@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>PlotImmuneMarkers — PlotImmuneMarkers • CellMembrane</title>
+<title>FeaturePlot Across Reductions — FeaturePlotAcrossReductions • CellMembrane</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="PlotImmuneMarkers — PlotImmuneMarkers" />
-<meta property="og:description" content="Generate a set of Seurat FeaturePlots for common immune cell markers" />
+<meta property="og:title" content="FeaturePlot Across Reductions — FeaturePlotAcrossReductions" />
+<meta property="og:description" content="Create FeaturePlots for the selected reductions" />
 
 
 
@@ -108,27 +108,40 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>PlotImmuneMarkers</h1>
-    <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/Phenotyping.R'><code>R/Phenotyping.R</code></a></small>
-    <div class="hidden name"><code>PlotImmuneMarkers.Rd</code></div>
+    <h1>FeaturePlot Across Reductions</h1>
+    <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/SeuratUtils.R'><code>R/SeuratUtils.R</code></a></small>
+    <div class="hidden name"><code>FeaturePlotAcrossReductions.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Generate a set of Seurat FeaturePlots for common immune cell markers</p>
+    <p>Create FeaturePlots for the selected reductions</p>
     </div>
 
-    <pre class="usage"><span class='fu'>PlotImmuneMarkers</span><span class='op'>(</span><span class='va'>seuratObj</span>, reductions <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"tsne"</span>, <span class='st'>"umap"</span>, <span class='st'>"wnn.umap"</span><span class='op'>)</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>FeaturePlotAcrossReductions</span><span class='op'>(</span>
+  <span class='va'>seuratObj</span>,
+  <span class='va'>features</span>,
+  reductions <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"tsne"</span>, <span class='st'>"umap"</span>, <span class='st'>"wnn.umap"</span><span class='op'>)</span>,
+  plotsPerRow <span class='op'>=</span> <span class='fl'>3</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>seuratObj</th>
-      <td><p>A seurat object</p></td>
+      <td><p>The seurat object</p></td>
+    </tr>
+    <tr>
+      <th>features</th>
+      <td><p>A vector of features to plot</p></td>
     </tr>
     <tr>
       <th>reductions</th>
-      <td><p>Vector of reduction(s) to use</p></td>
+      <td><p>The list of reductions to plot</p></td>
+    </tr>
+    <tr>
+      <th>plotsPerRow</th>
+      <td><p>The number of plots to print per row</p></td>
     </tr>
     </table>
 

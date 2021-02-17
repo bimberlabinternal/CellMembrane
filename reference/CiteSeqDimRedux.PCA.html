@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Perform PCA on CiteSeq/ADT Data — RunAdtPca • CellMembrane</title>
+<title>Perform DimRedux on CiteSeq using PCA input — CiteSeqDimRedux.PCA • CellMembrane</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Perform PCA on CiteSeq/ADT Data — RunAdtPca" />
-<meta property="og:description" content="Perform PCA on CiteSeq/ADT Data" />
+<meta property="og:title" content="Perform DimRedux on CiteSeq using PCA input — CiteSeqDimRedux.PCA" />
+<meta property="og:description" content="Perform DimRedux on CiteSeq" />
 
 
 
@@ -108,20 +108,24 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Perform PCA on CiteSeq/ADT Data</h1>
+    <h1>Perform DimRedux on CiteSeq using PCA input</h1>
     <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/CiteSeq.R'><code>R/CiteSeq.R</code></a></small>
-    <div class="hidden name"><code>RunAdtPca.Rd</code></div>
+    <div class="hidden name"><code>CiteSeqDimRedux.PCA.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Perform PCA on CiteSeq/ADT Data</p>
+    <p>Perform DimRedux on CiteSeq</p>
     </div>
 
-    <pre class="usage"><span class='fu'>RunAdtPca</span><span class='op'>(</span>
+    <pre class="usage"><span class='fu'>CiteSeqDimRedux.PCA</span><span class='op'>(</span>
   <span class='va'>seuratObj</span>,
   assayName <span class='op'>=</span> <span class='st'>"ADT"</span>,
   print.plots <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  performClrNormalization <span class='op'>=</span> <span class='cn'>TRUE</span>
+  performClrNormalization <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  doUMAP <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  dimsToUse <span class='op'>=</span> <span class='cn'>NULL</span>,
+  adtWhitelist <span class='op'>=</span> <span class='cn'>NULL</span>,
+  adtBlacklist <span class='op'>=</span> <span class='cn'>NULL</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -142,6 +146,22 @@
     <tr>
       <th>performClrNormalization</th>
       <td><p>If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized</p></td>
+    </tr>
+    <tr>
+      <th>doUMAP</th>
+      <td><p>If true, RunUMAP will be performed</p></td>
+    </tr>
+    <tr>
+      <th>dimsToUse</th>
+      <td><p>An optional vector of PCs to use in tSNE/UMAP</p></td>
+    </tr>
+    <tr>
+      <th>adtWhitelist</th>
+      <td><p>An optional vector of ADTs that will be included in PCA. If NULL, all will be used.</p></td>
+    </tr>
+    <tr>
+      <th>adtBlacklist</th>
+      <td><p>An optional vector of ADTs that will be excluded from PCA. If NULL, all will be used.</p></td>
     </tr>
     </table>
 
