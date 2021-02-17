@@ -556,7 +556,7 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
   print("Performing tSNE on ADT with PCA")
   seuratObj <- RunTSNE(seuratObj, assay = assayName, 
                        reduction = "pca.adt",dims = dims, 
-                       reduction.name = 'adt.tsne.pca', reduction.key = "adt.tsne.pca_")
+                       reduction.name = 'adt.tsne.pca', reduction.key = "adt.tsne.pca_", check_duplicates=F)
   
   if (print.plots) {
     print(DimPlot(seuratObj, reduction = "adt.tsne.pca"))
@@ -593,7 +593,7 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
         labs(title = 'Clustering based on RNA')  +
         theme(plot.title = element_text(hjust = 0.5))
       
-      adt <- DimPlot(seuratObj, reduction = paste0(reduction, ".pca_adt"), group.by = 'AdtClusterNames_2.0.pca', pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
+      adt <- DimPlot(seuratObj, reduction = paste0("adt.", reduction, ".pca"), group.by = 'AdtClusterNames_2.0.pca', pt.size = 0.5, combine = FALSE)[[1]] + NoLegend()
       adt <- adt  +
         labs(title = 'Clustering based on ADT signal') +
         theme(plot.title = element_text(hjust = 0.5))
