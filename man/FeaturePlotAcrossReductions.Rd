@@ -8,7 +8,7 @@ FeaturePlotAcrossReductions(
   seuratObj,
   features,
   reductions = c("tsne", "umap", "wnn.umap"),
-  plotsPerRow = 2
+  plotsPerRow = 3
 )
 }
 \arguments{
