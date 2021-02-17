@@ -536,23 +536,17 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
   # Before we recluster the data on ADT levels, we'll stash the original cluster IDs for later
   seuratObj[["origClusterID"]] <- Idents(seuratObj)
   
-  #TODO: need a better way to get at the PCA dims
-  if(is.null(dims)) dims = 1:(nrow(seuratObj)-1)
-  
-  if (performClrNormalization) {
-    seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
-  } else if (is.null(seuratObj[[assayName]]@data) || length(seuratObj[[assayName]]@data) == 0){
-    stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
-  } else {
-    print('Using pre-existing normalization')
-  }
+  VariableFeatures(seuratObj) = rownames(seuratObj)
   
   print("Performin RunAdtPca")
-  seuratObj = RunAdtPca(seuratObj, assayName = assayName, print.plots = print.plots, performClrNormalization = performClrNormalization)
- 
+  seuratObj = RunAdtPca(seuratObj=seuratObj, assayName = assayName, print.plots = print.plots, performClrNormalization = performClrNormalization)
+  
+  #TODO: need a better way to get at the PCA dims
+  if(is.null(dims)) dims = 1:ncol(seuratObj@reductions[["pca.adt"]])
+  
   seuratObj[["adt_snn.pca"]]  <- FindNeighbors(seuratObj, verbose = FALSE, 
-                                           reduction = "pca.adt",
-                                           dims = dims)$snn
+                                               reduction = "pca.adt",
+                                               dims = dims)$snn
   
   seuratObj <- FindClusters(seuratObj, resolution = 2.0, 
                             graph.name = "adt_snn.pca", verbose = FALSE)
