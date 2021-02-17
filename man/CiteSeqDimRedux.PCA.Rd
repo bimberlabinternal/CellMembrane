@@ -10,7 +10,9 @@ CiteSeqDimRedux.PCA(
   print.plots = TRUE,
   performClrNormalization = TRUE,
   doUMAP = TRUE,
-  dims = NULL
+  dimsToUse = NULL,
+  adtWhitelist = NULL,
+  adtBlacklist = NULL
 )
 }
 \arguments{
@@ -23,6 +25,12 @@ CiteSeqDimRedux.PCA(
 \item{performClrNormalization}{If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized}
 
 \item{doUMAP}{If true, RunUMAP will be performed}
+
+\item{dimsToUse}{An optional vector of PCs to use in tSNE/UMAP}
+
+\item{adtWhitelist}{An optional vector of ADTs that will be included in PCA. If NULL, all will be used.}
+
+\item{adtBlacklist}{An optional vector of ADTs that will be excluded from PCA. If NULL, all will be used.}
 }
 \description{
 Perform DimRedux on CiteSeq
