@@ -713,3 +713,35 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 
 	print(P2)
 }
+
+
+
+
+
+
+#' @title Fiter ADTs based on nCountADT 
+#'
+#' @description The sum of all ADT reads per cells i.e., nCountADT is used to fiter
+#' @param seuratObj The seurat object
+#' @param min.thresh minimum ADT value, default 0 to remove cells with (> thresh) no ADT counts at all
+#' @param max.thresh maximum nCountADT, default to NULL so to not clip cells (< thresh)
+#' @export
+#' @import Seurat
+Filter.ADT.nCountADT = function(seuratObj, min.thresh = 0, max.thresh = NULL){
+  
+  if(!"cell.barcode" %in% colnames(seuratObj@meta.data)){
+    seuratObj$cell.barcode = colnames(seuratObj)
+  }
+  
+  DPE.mat <- GetAssayData(seuratObj, slot = "counts", assay = "ADT")
+  
+  KeepCells <- colnames(DPE.mat)[colSums(DPE.mat)>min.thresh]
+  
+  if(!is.null(max.thresh)){
+    DPE.mat = DPE.mat[,KeepCells]
+    KeepCells <- colnames(DPE.mat)[colSums(DPE.mat)<max.thresh]
+  }
+  
+  print("Subsetting the cells by ADT")
+  return(subset(seuratObj, cell.barcode %in% KeepCells))
+}
