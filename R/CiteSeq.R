@@ -273,13 +273,14 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		}
 
 		print('Renaming ADTs')
-		rownames(featureMetadata) <- featureMetadata$featureName
 		newRows <- data.frame(rowname = rownames(bData), sortorder = 1:nrow(bData), stringsAsFactors = F)
+		featureMetadata$rowname <- gsub(x = featureMetadata$rowname, pattern = '_', replacement = '-')
 		newRows <- merge(newRows, featureMetadata, by = 'rowname', all.x = T, all.y = F)
 		newRows <- newRows %>% arrange(sortorder)
 		newRows <- newRows[names(newRows) != 'sortorder']
 
 		newRows$markername <- dplyr::coalesce(newRows$markername, newRows$rowname)
+		newRows$markername <- gsub(x = newRows$markername, pattern = '_', replacement = '-')
 		d <- duplicated(newRows$markername)
 		if (sum(d) > 0) {
 			stop('There were duplicate marker names after rename: ' + paste0(newRows$markername[d], collapse = ', '))
@@ -340,10 +341,27 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	return(assayData)
 }
 
+.GetNonZeroFeatures <- function(seuratObj, assayName) {
+	assayData <- GetAssayData(seuratObj, slot = "counts", assay = assayName)
+	featuresToPlot <- rownames(assayData)
+	toSkip <- character()
+	dat <- Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')
+	for (feature in featuresToPlot) {
+		if (max(dat[feature,]) == 0) {
+			print(paste0('Skipping feature with zero counts: ', feature))
+			toSkip <- c(toSkip, feature)
+		}
+	}
+	featuresToPlot <- featuresToPlot[!(featuresToPlot %in% toSkip)]
+
+	return(featuresToPlot)
+}
+
 .PlotCiteSeqCountData <- function(seuratObj, assayName = 'ADT') {
 	assayData <- GetAssayData(seuratObj, slot = "counts", assay = assayName)
 
-	featuresToPlot <- rownames(assayData)
+	featuresToPlot <- .GetNonZeroFeatures(seuratObj, assayName)
+
 	setSize <- 2
 	steps <- ceiling(length(featuresToPlot) / setSize) - 1
 
@@ -674,7 +692,7 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 
 .PlotMarkerQc <- function(seuratObj, assayName = 'ADT') {
 	barcodeMatrix <- Seurat::GetAssayData(seuratObj, slot = 'counts', assay = assayName)
-	featuresToPlot <- rownames(barcodeMatrix)
+	featuresToPlot <- .GetNonZeroFeatures(seuratObj, assayName)
 
 	setSize <- 2
 	steps <- ceiling(length(featuresToPlot) / setSize) - 1
@@ -684,7 +702,13 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 		end <- min((start + setSize - 1), length(featuresToPlot))
 		features <- featuresToPlot[start:end]
 
-		suppressMessages(print(RidgePlot(seuratObj, assay = assayName, features = features, ncol = 1)))
+		tryCatch({
+			suppressMessages(print(RidgePlot(seuratObj, assay = assayName, features = features, ncol = 1)))
+		}, error = function(e){
+			print(paste0('Error generating ridgeplot: ', paste0(features, collapse = ',')))
+			print(conditionMessage(e))
+			traceback()
+		})
 	}
 
 	# Also total per ADT
