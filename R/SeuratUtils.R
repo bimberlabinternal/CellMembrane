@@ -358,3 +358,37 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	}
 }
 
+#' @title compressSerHD5
+#'
+#' @description compressSerHD5 will save space on your drives. Generally, a major compression is observed with older saved object, however more recent seurat objects saved as .rds are 1:1 with the hd5 version.
+#' @param so A Seurat Object 
+#' @param load.path the path to a seurat .rds file
+#' @param save.path the path to the desired hd5 seurat file. Default is NULL which then load.path is used to save the new object next to it.
+#' @param overwrite  default F overwirtes the new hd5 if exists
+#' @param updateSerObj  default F if T runs UpdateSeuratObject()
+#' @param returnSerObj  default F if T returns the Seurat object to be used in a pipeline
+#' @return Saves HD5 Seurat object to path given
+#' @export
+compressSerHD5 <- function(so = NULL, load.path = NULL, overwrite = F,
+                           save.path = NULL, updateSerObj = F, returnSerObj = F){
+  if(is.null(so) & is.null(load.path)) stop("give seurat object so or load.path to one")
+  
+  if((!is.null(so)) & (!is.null(load.path))) warning("both so and load.path given, load.path is ignored")
+  
+  
+  if(is.null(so)){
+    print("loading in RDS")
+    so = readRDS(load.path)
+    print("load of RDS from drives complete")
+  }
+  
+  if(updateSerObj) so = SeuratDisk::UpdateSeuratObject(so)
+  
+  if(is.null(save.path)) save.path = gsub(".rds", "hd5Ser", load.path)
+  print("saving file path:")
+  print(save.path)
+  SeuratDisk::SaveH5Seurat(so, filename=save.path,  overwrite = overwrite)
+  print("save complete")
+  if(returnSerObj) return(so)
+  
+}
