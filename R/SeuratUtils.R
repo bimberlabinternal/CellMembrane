@@ -73,7 +73,7 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 	}
 
 	print(paste('Total cells retained ', length(cellsToRetain), ' of ', ncol(seuratObj)))
-	ret <- subset(seuratObj, cells = cellsToRetain)
+	seuratObj <- subset(seuratObj, cells = cellsToRetain)
 
 	if (ncol(seuratObj) != length(cellsToRetain)) {
 		stop('Incorrect number of cells retained!')
@@ -81,7 +81,7 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 
 	print(paste0('Final cells: ', ncol(seuratObj)))
 
-	return(ret)
+	return(seuratObj)
 }
 
 #' @title Split Seurat
