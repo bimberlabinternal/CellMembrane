@@ -59,7 +59,7 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 		groupVals <- (seuratObj@meta.data %>% tidyr::unite("x", subsetFields, remove = FALSE))$x
 		names(groupVals) <- colnames(seuratObj)
 		counts <- table(groupVals)
-		print('Unique values: ', paste0(unique(names(counts)), collapse = ','))
+		print(paste0('Unique values: ', paste0(unique(names(counts)), collapse = ',')))
 		for (val in unique(names(counts))) {
 			availBarcodes <- colnames(seuratObj)[groupVals == val]
 			toSample <- min(targetCells, length(availBarcodes))
@@ -76,7 +76,7 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 	seuratObj <- subset(seuratObj, cells = cellsToRetain)
 
 	if (ncol(seuratObj) != length(cellsToRetain)) {
-		stop('Incorrect number of cells retained!')
+		stop(paste('Incorrect number of cells retained!, was: ', ncol(seuratObj), ', expected: ', length(cellsToRetain)))
 	}
 
 	print(paste0('Final cells: ', ncol(seuratObj)))
