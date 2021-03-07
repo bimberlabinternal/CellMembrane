@@ -184,6 +184,8 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
   print('Scale data:')
   seuratObj <- ScaleData(object = seuratObj, features = feats, vars.to.regress = featuresToRegress, block.size = block.size, verbose = F)
 
+	seuratObj <- ScoreCellCycle(seuratObj)
+
   return(seuratObj)
 }
 
@@ -316,15 +318,13 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
 }
 
 
-#' @title Remove Cell Cycle
+#' @title Score Cell Cycle
 #' @param seuratObj The seurat object
 #' @param min.genes If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.
-#' @param scaleVariableFeaturesOnly If true, ScaleData will only be performed on genes specified in FindVariableFeatures()
-#' @param block.size Passed directly to ScaleData
 #' @export
 #' @return A modified Seurat object.
-RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000, scaleVariableFeaturesOnly = TRUE) {
-  print("Performing cell cycle cleaning")
+ScoreCellCycle <- function(seuratObj, min.genes = 10) {
+	print('Scoring cell cycle:')
 
   # We can segregate this list into markers of G2/M phase and markers of S-phase
   s.genes <- .GetSPhaseGenes()
@@ -363,6 +363,16 @@ RemoveCellCycle <- function(seuratObj, min.genes = 10, block.size = 1000, scaleV
 
   print(table(seuratObj$Phase))
 
+	return(seuratObj)
+}
+
+#' @title Regress Cell Cycle
+#' @param seuratObj The seurat object
+#' @param scaleVariableFeaturesOnly If true, ScaleData will only be performed on genes specified in FindVariableFeatures()
+#' @param block.size Passed directly to ScaleData
+#' @export
+#' @return A modified Seurat object.
+RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.size = 1000) {
   print("Regressing out S and G2M score ...")
 	if (scaleVariableFeaturesOnly) {
 		feats <- VariableFeatures(object = seuratObj)
