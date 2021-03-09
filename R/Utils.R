@@ -9,6 +9,11 @@ utils::globalVariables(
   add = TRUE
 )
 
+pkg.env <- new.env(parent=emptyenv());
+
+pkg.env$RANDOM_SEED <- 1234
+set.seed(pkg.env$RANDOM_SEED)
+
 .GetCCGenes <- function(){
   # Cell cycle genes were obtained from the Seurat example (See regev_lab_cell_cycle_genes.txt)
   # and stored using use_data(internal = T) (https://github.com/r-lib/usethis and use_data)
@@ -63,4 +68,23 @@ utils::globalVariables(
   }
 
   return(seuratObj)
+}
+
+#' @title Set random seed
+#'
+#' @description Sets the seed used for R‘s random number generator, which should be used in all internal functions
+#' @param seed The random seed
+#' @export
+SetSeed <- function(seed) {
+  pkg.env$RANDOM_SEED <- seed
+  set.seed(pkg.env$RANDOM_SEED)
+}
+
+#' @title Get random seed
+#'
+#' @description Sets a random seed, which should be used in all internal functions
+#' @param seed The random seed
+#' @export
+GetSeed <- function(seed) {
+  return(pkg.env$RANDOM_SEED)
 }

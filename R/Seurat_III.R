@@ -409,7 +409,7 @@ RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.siz
 FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = NULL,
                                    umap.method = 'uwot', umap.metric = 'cosine',
                                    umap.n.neighbors = 30L,
-																	 umap.min.dist = 0.3, umap.seed = 1234,
+																	 umap.min.dist = 0.3, umap.seed = GetSeed(),
                                    umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30,
                                    clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2) ){
   if (is.null(dimsToUse)) {

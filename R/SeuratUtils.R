@@ -32,7 +32,7 @@ utils::globalVariables(
 #' @param subsetFields If provided, data will be grouped by these fields, and up to targetCells will be retained per group
 #' @param seed The random seed
 #' @export
-DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed = NULL) {
+DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed = GetSeed()) {
 	if (!is.null(seed)) {
 		set.seed(seed)
 	}

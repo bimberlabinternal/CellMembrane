@@ -1,7 +1,7 @@
 context("scRNAseq")
 
 test_that("SingleR works as expected", {
-    set.seed(1234)
+    set.seed(CellMembrane::GetSeed())
 
     seuratObj <- readRDS('../testdata/seuratOutput.rds')
 

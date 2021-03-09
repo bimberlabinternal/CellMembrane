@@ -1,7 +1,7 @@
 context("scRNAseq")
 
 test_that("Seurat-manipulation works as expected", {
-  set.seed(1234)
+  set.seed(CellMembrane::GetSeed())
 
   seuratObj <- readRDS('../testdata/seuratOutput.rds')
 
