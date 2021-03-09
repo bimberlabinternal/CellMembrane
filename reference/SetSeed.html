@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Find Clusters And Perform DimRedux — FindClustersAndDimRedux • CellMembrane</title>
+<title>Set random seed — SetSeed • CellMembrane</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Find Clusters And Perform DimRedux — FindClustersAndDimRedux" />
-<meta property="og:description" content="Find Clusters And Perform DimRedux" />
+<meta property="og:title" content="Set random seed — SetSeed" />
+<meta property="og:description" content="Sets the seed used for R‘s random number generator, which should be used in all internal functions" />
 
 
 
@@ -108,86 +108,26 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Find Clusters And Perform DimRedux</h1>
-    <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/Seurat_III.R'><code>R/Seurat_III.R</code></a></small>
-    <div class="hidden name"><code>FindClustersAndDimRedux.Rd</code></div>
+    <h1>Set random seed</h1>
+    <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/Utils.R'><code>R/Utils.R</code></a></small>
+    <div class="hidden name"><code>SetSeed.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Find Clusters And Perform DimRedux</p>
+    <p>Sets the seed used for R‘s random number generator, which should be used in all internal functions</p>
     </div>
 
-    <pre class="usage"><span class='fu'>FindClustersAndDimRedux</span><span class='op'>(</span>
-  <span class='va'>seuratObj</span>,
-  dimsToUse <span class='op'>=</span> <span class='cn'>NULL</span>,
-  minDimsToUse <span class='op'>=</span> <span class='cn'>NULL</span>,
-  umap.method <span class='op'>=</span> <span class='st'>"uwot"</span>,
-  umap.metric <span class='op'>=</span> <span class='st'>"cosine"</span>,
-  umap.n.neighbors <span class='op'>=</span> <span class='fl'>30L</span>,
-  umap.min.dist <span class='op'>=</span> <span class='fl'>0.3</span>,
-  umap.seed <span class='op'>=</span> <span class='fu'><a href='GetSeed.html'>GetSeed</a></span><span class='op'>(</span><span class='op'>)</span>,
-  umap.n.epochs <span class='op'>=</span> <span class='cn'>NULL</span>,
-  max.tsne.iter <span class='op'>=</span> <span class='fl'>10000</span>,
-  tsne.perplexity <span class='op'>=</span> <span class='fl'>30</span>,
-  clusterResolutions <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.2</span>, <span class='fl'>0.4</span>, <span class='fl'>0.6</span>, <span class='fl'>0.8</span>, <span class='fl'>1.2</span><span class='op'>)</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>SetSeed</span><span class='op'>(</span><span class='va'>seed</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>seuratObj</th>
-      <td><p>A Seurat object.</p></td>
-    </tr>
-    <tr>
-      <th>dimsToUse</th>
-      <td><p>The number of dims to use.  If null, this will be inferred using FindSeuratElbow()</p></td>
-    </tr>
-    <tr>
-      <th>minDimsToUse</th>
-      <td><p>The minimum numbers of dims to use.  If dimsToUse is provided, this will override.</p></td>
-    </tr>
-    <tr>
-      <th>umap.method</th>
-      <td><p>The UMAP method, either uwot or umap-learn, passed directly to Seurat::RunUMAP</p></td>
-    </tr>
-    <tr>
-      <th>umap.metric</th>
-      <td><p>Passed directly to Seurat::RunUMAP</p></td>
-    </tr>
-    <tr>
-      <th>umap.n.neighbors</th>
-      <td><p>Passed directly to Seurat::RunUMAP</p></td>
-    </tr>
-    <tr>
-      <th>umap.min.dist</th>
-      <td><p>Passed directly to Seurat::RunUMAP</p></td>
-    </tr>
-    <tr>
-      <th>umap.seed</th>
-      <td><p>Passed directly to Seurat::RunUMAP</p></td>
-    </tr>
-    <tr>
-      <th>umap.n.epochs</th>
-      <td><p>Passed directly to Seurat::RunUMAP</p></td>
-    </tr>
-    <tr>
-      <th>max.tsne.iter</th>
-      <td><p>The value of max_iter to provide to RunTSNE.  Increasing can help large datasets.</p></td>
-    </tr>
-    <tr>
-      <th>tsne.perplexity</th>
-      <td><p>tSNE perplexity. Passed directly to Seurat::RunTSNE(), but CellMembrane:::.InferPerplexityFromSeuratObj() corrects it if need be based dataset dims.</p></td>
-    </tr>
-    <tr>
-      <th>clusterResolutions</th>
-      <td><p>A vector of clustering resolutions, default is (0.2, 0.4, 0.6, 0.8, 1.2).</p></td>
+      <th>seed</th>
+      <td><p>The random seed</p></td>
     </tr>
     </table>
 
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>A modified Seurat object.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
