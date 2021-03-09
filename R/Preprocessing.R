@@ -135,8 +135,12 @@ PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.01, empty
 	return(seuratRawData[,passingCells])
 }
 
-PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01, emptyDropsLower = 100){
+PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01, emptyDropsLower = 100, seed = GetSeed()){
 	print(paste0('Performing emptyDrops with ', emptyDropNIters, ' iterations'))
+
+	if (!is.null(seed)) {
+		set.seed(seed)
+	}
 
 	e.out <- DropletUtils::emptyDrops(seuratRawData, niters = emptyDropNIters, lower = emptyDropsLower)
 
@@ -152,7 +156,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 	if (totalLimited == 0){
 		return(e.out)
 	} else {
-		return(PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters * 2, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower))
+		return(PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters * 2, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower, seed = seed))
 	}
 }
 

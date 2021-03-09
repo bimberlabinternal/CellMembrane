@@ -12,7 +12,7 @@ FindClustersAndDimRedux(
   umap.metric = "cosine",
   umap.n.neighbors = 30L,
   umap.min.dist = 0.3,
-  umap.seed = 1234,
+  umap.seed = GetSeed(),
   umap.n.epochs = NULL,
   max.tsne.iter = 10000,
   tsne.perplexity = 30,

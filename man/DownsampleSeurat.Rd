@@ -4,7 +4,7 @@
 \alias{DownsampleSeurat}
 \title{Downsample Seurat}
 \usage{
-DownsampleSeurat(seuratObj, targetCells, subsetFields = NULL, seed = NULL)
+DownsampleSeurat(seuratObj, targetCells, subsetFields = NULL, seed = GetSeed())
 }
 \arguments{
 \item{seuratObj}{The seurat object}
