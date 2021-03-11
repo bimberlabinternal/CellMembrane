@@ -12,7 +12,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap', 'wnn.uma
 	}
 
 	#ENSMMUG00000003532=CD8b
-	PlotMarkerSet(seuratObj, reductions, 'CD8/CD4 Markers', c('CD8A', 'CD8B', 'ENSMMUG00000003532', 'CD4', 'IL7R', 'CD3D', 'CD3E','CD3G'))
+	PlotMarkerSeries(seuratObj, reductions, c('CD8A', 'CD8B', 'ENSMMUG00000003532', 'CD4', 'IL7R', 'CD3D', 'CD3E','CD3G'), 'CD8/CD4 Markers')
 
 	#Eff v. Mem:
 	#IL7R = CD127
@@ -42,7 +42,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap', 'wnn.uma
 
 	PlotMarkerSeries(seuratObj, reductions, c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX'), 'Transcription Factors')
 
-	PlotMarkerSet(seuratObj, reductions, 'Inhibitory Markers', c('TIGIT', 'CTLA4', 'BTLA', 'PDCD1', 'CD274'))
+	PlotMarkerSeries(seuratObj, reductions, c('TIGIT', 'CTLA4', 'BTLA', 'PDCD1', 'CD274'), 'Inhibitory Markers')
 
 	#DAP10/12
 	PlotMarkerSet(seuratObj, reductions, 'Signaling', c('HCST', 'TYROBP', 'SYK', 'ZAP70'))
