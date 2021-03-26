@@ -129,13 +129,50 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE){
 #' @param scaleVariableFeaturesOnly If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist
 #' @param featuresToRegress The set of features which will be passed to Seurat::ScaleData vars.to.regress
 #' @param includeCellCycleGenesInScaleData If true, cell cycle genes will always be included in the features passed to ScaleData().
+#' @param useSCTransform If true, SCTransform will be used in place of the standard Seurat workflow (NormalizeData, ScaleData, FindVariableFeatures)
 #' @return A modified Seurat object.
 #' @export
-NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA", "p.mito"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE){
-  seuratObj <- NormalizeData(object = seuratObj, normalization.method = "LogNormalize", verbose = F)
+NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE, useSCTransform = FALSE){
+	if (!is.null(featuresToRegress)) {
+		if ('p.mito' %in% featuresToRegress) {
+			if ('p.mito' %in% names(seuratObj@meta.data)) {
+				uniquePMito = length(unique(seuratObj$p.mito))
+			} else {
+				uniquePMito <- -1
+			}
 
-  print('Find variable features:')
-  seuratObj <- FindVariableFeatures(object = seuratObj, mean.cutoff = mean.cutoff, dispersion.cutoff = dispersion.cutoff , verbose = F, selection.method = variableFeatureSelectionMethod, nfeatures = nVariableFeatures)
+			if (uniquePMito <= 1) {
+				print('Either p.mito not present in the seurat object, or all cells have the same value, skipping from regression')
+				featuresToRegress <- featuresToRegress[featuresToRegress != 'p.mito']
+			}
+		}
+
+		if (length(featuresToRegress) == 0) {
+			featuresToRegress <- NULL
+		}
+	}
+
+	if (useSCTransform) {
+		seuratObj <- .NormalizeAndScaleSCTransform(seuratObj = seuratObj, featuresToRegress = featuresToRegress)
+	} else {
+		seuratObj <- .NormalizeAndScaleDefault(seuratObj = seuratObj, variableFeatureSelectionMethod = variableFeatureSelectionMethod, nVariableFeatures = nVariableFeatures, mean.cutoff = mean.cutoff, dispersion.cutoff = dispersion.cutoff, block.size = block.size, variableGenesWhitelist = variableGenesWhitelist, variableGenesBlacklist = variableGenesBlacklist, featuresToRegress = featuresToRegress, scaleVariableFeaturesOnly = scaleVariableFeaturesOnly, includeCellCycleGenesInScaleData = includeCellCycleGenesInScaleData)
+	}
+
+	return(seuratObj)
+}
+
+.NormalizeAndScaleSCTransform <- function(seuratObj, featuresToRegress) {
+	print('Using SCTransform')
+	seuratObj <- SCTransform(seuratObj, vars.to.regress = featuresToRegress, verbose = FALSE, return.only.var.genes = F)
+
+	return(seuratObj)
+}
+
+.NormalizeAndScaleDefault <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA", "p.mito"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE) {
+	seuratObj <- NormalizeData(object = seuratObj, normalization.method = "LogNormalize", verbose = F)
+
+	print('Find variable features:')
+	seuratObj <- FindVariableFeatures(object = seuratObj, mean.cutoff = mean.cutoff, dispersion.cutoff = dispersion.cutoff , verbose = F, selection.method = variableFeatureSelectionMethod, nfeatures = nVariableFeatures)
 
 	if (!all(is.null(variableGenesWhitelist))) {
 		print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list'))
@@ -154,25 +191,6 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 		print(paste0('ScaleData will use only the ', length(feats), ' variableFeatures'))
 	} else {
 		feats <- rownames(x = seuratObj)
-	}
-
-	if (!is.null(featuresToRegress)) {
-		if ('p.mito' %in% featuresToRegress) {
-			if ('p.mito' %in% names(seuratObj@meta.data)) {
-				uniquePMito = length(unique(seuratObj$p.mito))
-			} else {
-				uniquePMito <- -1
-			}
-
-			if (uniquePMito <= 1) {
-				print('Either p.mito not present in the seurat object, or all cells have the same value, skipping from regression')
-				featuresToRegress <- featuresToRegress[featuresToRegress != 'p.mito']
-			}
-		}
-
-		if (length(featuresToRegress) == 0) {
-			featuresToRegress <- NULL
-		}
 	}
 
 	if (includeCellCycleGenesInScaleData) {
@@ -208,9 +226,11 @@ RunPcaSteps <- function(seuratObj, npcs = 50, variableGeneTable = NULL) {
   seuratObj <- RunPCA(object = seuratObj, features = vg, reduction.name = 'pca', verbose = F, npcs = npcs)
   seuratObj <- ProjectDim(object = seuratObj)
 
-  seuratObj <- JackStraw(object = seuratObj, num.replicate = 100, verbose = F)
-  seuratObj <- ScoreJackStraw(object = seuratObj, dims = 1:20)
-  
+	if (!('SCT' %in% names(seuratObj@assays))) {
+  	seuratObj <- JackStraw(object = seuratObj, num.replicate = 100, verbose = F)
+  	seuratObj <- ScoreJackStraw(object = seuratObj, dims = 1:20)
+	}
+
 	.PrintSeuratPlots(seuratObj)
 
   return(seuratObj)
@@ -385,7 +405,12 @@ RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.siz
 		feats <- rownames(x = seuratObj)
 	}
 
-  seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = F, features = feats, do.scale = T, do.center = T, block.size = block.size)
+	usedSCTransform <- 'SCT' %in% names(seuratObj@assays)
+	if (usedSCTransform) {
+		seuratObj <- SCTransform(seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = FALSE, return.only.var.genes = F, do.scale = do.scale, do.center = do.center)
+	} else {
+  	seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = FALSE, features = feats, do.scale = T, do.center = T, block.size = block.size)
+	}
 
   return(seuratObj)
 }

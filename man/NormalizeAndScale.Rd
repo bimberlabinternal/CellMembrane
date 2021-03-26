@@ -13,9 +13,10 @@ NormalizeAndScale(
   block.size = 1000,
   variableGenesWhitelist = NULL,
   variableGenesBlacklist = NULL,
-  featuresToRegress = c("nCount_RNA", "p.mito"),
+  featuresToRegress = c("nCount_RNA"),
   scaleVariableFeaturesOnly = TRUE,
-  includeCellCycleGenesInScaleData = TRUE
+  includeCellCycleGenesInScaleData = TRUE,
+  useSCTransform = FALSE
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ NormalizeAndScale(
 \item{scaleVariableFeaturesOnly}{If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist}
 
 \item{includeCellCycleGenesInScaleData}{If true, cell cycle genes will always be included in the features passed to ScaleData().}
+
+\item{useSCTransform}{If true, SCTransform will be used in place of the standard Seurat workflow (NormalizeData, ScaleData, FindVariableFeatures)}
 }
 \value{
 A modified Seurat object.
