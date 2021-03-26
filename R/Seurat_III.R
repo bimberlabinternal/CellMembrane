@@ -153,7 +153,7 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 	}
 
 	if (useSCTransform) {
-		seuratObj <- .NormalizeAndScaleSCTransform(seuratObj = seuratObj, featuresToRegress = featuresToRegress)
+		seuratObj <- .NormalizeAndScaleSCTransform(seuratObj = seuratObj, featuresToRegress = featuresToRegress, nVariableFeatures = nVariableFeatures)
 	} else {
 		seuratObj <- .NormalizeAndScaleDefault(seuratObj = seuratObj, variableFeatureSelectionMethod = variableFeatureSelectionMethod, nVariableFeatures = nVariableFeatures, mean.cutoff = mean.cutoff, dispersion.cutoff = dispersion.cutoff, block.size = block.size, variableGenesWhitelist = variableGenesWhitelist, variableGenesBlacklist = variableGenesBlacklist, featuresToRegress = featuresToRegress, scaleVariableFeaturesOnly = scaleVariableFeaturesOnly, includeCellCycleGenesInScaleData = includeCellCycleGenesInScaleData)
 	}
@@ -161,9 +161,9 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 	return(seuratObj)
 }
 
-.NormalizeAndScaleSCTransform <- function(seuratObj, featuresToRegress) {
+.NormalizeAndScaleSCTransform <- function(seuratObj, featuresToRegress, nVariableFeatures) {
 	print('Using SCTransform')
-	seuratObj <- SCTransform(seuratObj, vars.to.regress = featuresToRegress, verbose = FALSE, return.only.var.genes = F)
+	seuratObj <- SCTransform(seuratObj, vars.to.regress = featuresToRegress, verbose = FALSE, return.only.var.genes = FALSE, variable.features.n = nVariableFeatures)
 
 	return(seuratObj)
 }
@@ -407,7 +407,7 @@ RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.siz
 
 	usedSCTransform <- 'SCT' %in% names(seuratObj@assays)
 	if (usedSCTransform) {
-		seuratObj <- SCTransform(seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = FALSE, return.only.var.genes = F, do.scale = do.scale, do.center = do.center)
+		seuratObj <- SCTransform(seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = FALSE, return.only.var.genes = FALSE)
 	} else {
   	seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = FALSE, features = feats, do.scale = T, do.center = T, block.size = block.size)
 	}
