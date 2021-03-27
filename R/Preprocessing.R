@@ -15,7 +15,7 @@ utils::globalVariables(
 #' @param minFeatures Include cells where at least this many features are detected.
 #' @param minCells Include features detected in at least this many cells.
 #' @param mitoGenesPattern The expression to use when identifying mitochondrial genes
-#' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
+#' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://en.wikipedia.org/wiki/Category:Human_mitochondrial_genes) will be used to calculate p.mito
 #' @return A Seurat object with p.mito calculated.
 #' @export
 #' @importFrom Matrix colSums
@@ -41,7 +41,15 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 	if (!annotateMitoFromReference) {
 		mito.features <- grep(pattern = mitoGenesPattern, x = rownames(x = seuratObj), value = TRUE)
 	} else {
-		mito.features <- CellMembrane::mitoGenes$Gene
+		mito.features <- c('ATP6','ATP8','COX1','COX2','COX3','CYTB','ND1','ND2','ND3','ND4','ND4L','ND5','ND6')
+
+		mito.features.prefix = c('MT-', mito.features)
+		i1 <- intersect(mito.features, rownames(seuratObj))
+		i2 <- intersect(mito.features.prefix, rownames(seuratObj))
+		if (i2 > i1) {
+			print('Selecting using reference gene set with MT- prefix')
+			mito.features <- mito.features.prefix
+		}
 	}
 
 	print(paste0('Total mito features: ', length(mito.features)))
