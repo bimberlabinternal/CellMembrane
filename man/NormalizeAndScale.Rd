@@ -6,29 +6,21 @@
 \usage{
 NormalizeAndScale(
   seuratObj,
-  variableFeatureSelectionMethod = "vst",
-  nVariableFeatures = 2000,
-  mean.cutoff = c(0.0125, 3),
-  dispersion.cutoff = c(0.5, Inf),
+  nVariableFeatures = NULL,
   block.size = 1000,
   variableGenesWhitelist = NULL,
   variableGenesBlacklist = NULL,
   featuresToRegress = c("nCount_RNA"),
   scaleVariableFeaturesOnly = TRUE,
   includeCellCycleGenesInScaleData = TRUE,
-  useSCTransform = FALSE
+  useSCTransform = FALSE,
+  additionalFindVariableFeatureArgList = NULL
 )
 }
 \arguments{
 \item{seuratObj}{A Seurat object.}
 
-\item{variableFeatureSelectionMethod}{The selection method to be passed to FindVariableFeatures()}
-
-\item{nVariableFeatures}{The number of variable features to find}
-
-\item{mean.cutoff}{Passed directly to FindVariableFeatures}
-
-\item{dispersion.cutoff}{Passed directly to FindVariableFeatures}
+\item{nVariableFeatures}{The number of variable features, passed to either FindVariableFeatures or SCTransform}
 
 \item{block.size}{Passed directly to ScaleData}
 
@@ -43,6 +35,8 @@ NormalizeAndScale(
 \item{includeCellCycleGenesInScaleData}{If true, cell cycle genes will always be included in the features passed to ScaleData().}
 
 \item{useSCTransform}{If true, SCTransform will be used in place of the standard Seurat workflow (NormalizeData, ScaleData, FindVariableFeatures)}
+
+\item{additionalFindVariableFeatureArgList}{A list of arguments passed directly to FindVariableFeatures}
 }
 \value{
 A modified Seurat object.

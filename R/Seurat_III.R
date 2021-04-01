@@ -119,10 +119,7 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE){
 #'
 #' @description This is the primary entry point for processing scRNAseq data with Seurat
 #' @param seuratObj A Seurat object.
-#' @param variableFeatureSelectionMethod The selection method to be passed to FindVariableFeatures()
-#' @param nVariableFeatures The number of variable features to find
-#' @param dispersion.cutoff Passed directly to FindVariableFeatures
-#' @param mean.cutoff Passed directly to FindVariableFeatures
+#' @param nVariableFeatures The number of variable features, passed to either FindVariableFeatures or SCTransform
 #' @param block.size Passed directly to ScaleData
 #' @param variableGenesWhitelist An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()
 #' @param variableGenesBlacklist An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()
@@ -130,9 +127,10 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE){
 #' @param featuresToRegress The set of features which will be passed to Seurat::ScaleData vars.to.regress
 #' @param includeCellCycleGenesInScaleData If true, cell cycle genes will always be included in the features passed to ScaleData().
 #' @param useSCTransform If true, SCTransform will be used in place of the standard Seurat workflow (NormalizeData, ScaleData, FindVariableFeatures)
+#' @param additionalFindVariableFeatureArgList A list of arguments passed directly to FindVariableFeatures
 #' @return A modified Seurat object.
 #' @export
-NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE, useSCTransform = FALSE){
+NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE, useSCTransform = FALSE, additionalFindVariableFeatureArgList = NULL){
 	if (!is.null(featuresToRegress)) {
 		if ('p.mito' %in% featuresToRegress) {
 			if ('p.mito' %in% names(seuratObj@meta.data)) {
@@ -153,26 +151,58 @@ NormalizeAndScale <- function(seuratObj, variableFeatureSelectionMethod = 'vst',
 	}
 
 	if (useSCTransform) {
-		seuratObj <- .NormalizeAndScaleSCTransform(seuratObj = seuratObj, featuresToRegress = featuresToRegress, nVariableFeatures = nVariableFeatures)
+		additionalArgs <- list()
+		if (!is.null(nVariableFeatures)) {
+			additionalArgs[['variable.features.n']] <- nVariableFeatures
+		}
+
+		seuratObj <- .NormalizeAndScaleSCTransform(seuratObj, featuresToRegress = featuresToRegress, additionalArgs = additionalArgs)
 	} else {
-		seuratObj <- .NormalizeAndScaleDefault(seuratObj = seuratObj, variableFeatureSelectionMethod = variableFeatureSelectionMethod, nVariableFeatures = nVariableFeatures, mean.cutoff = mean.cutoff, dispersion.cutoff = dispersion.cutoff, block.size = block.size, variableGenesWhitelist = variableGenesWhitelist, variableGenesBlacklist = variableGenesBlacklist, featuresToRegress = featuresToRegress, scaleVariableFeaturesOnly = scaleVariableFeaturesOnly, includeCellCycleGenesInScaleData = includeCellCycleGenesInScaleData)
+		if (is.null(additionalFindVariableFeatureArgList)) {
+			additionalFindVariableFeatureArgList <- list()
+		}
+
+		if (!is.null(nVariableFeatures)) {
+			additionalFindVariableFeatureArgList[['nfeatures']] <- nVariableFeatures
+		}
+
+		seuratObj <- .NormalizeAndScaleDefault(seuratObj, featuresToRegress = featuresToRegress, scaleVariableFeaturesOnly = scaleVariableFeaturesOnly, includeCellCycleGenesInScaleData = includeCellCycleGenesInScaleData, block.size = block.size, variableGenesWhitelist = variableGenesWhitelist, variableGenesBlacklist = variableGenesBlacklist, additionalFindVariableFeatureArgList = additionalFindVariableFeatureArgList)
 	}
 
 	return(seuratObj)
 }
 
-.NormalizeAndScaleSCTransform <- function(seuratObj, featuresToRegress, nVariableFeatures) {
+.NormalizeAndScaleSCTransform <- function(seuratObj, featuresToRegress, additionalArgs = NULL) {
 	print('Using SCTransform')
-	seuratObj <- SCTransform(seuratObj, vars.to.regress = featuresToRegress, verbose = FALSE, return.only.var.genes = FALSE, variable.features.n = nVariableFeatures)
+
+	toBind <- additionalArgs
+	if (is.null(toBind)) {
+		toBind <- list()
+	}
+
+	toBind[['object']] <- seuratObj
+	toBind[['vars.to.regress']] <- featuresToRegress
+	toBind[['verbose']] <- FALSE
+	toBind[['return.only.var.genes']] <- FALSE
+
+	seuratObj <- do.call(SCTransform, toBind)
 
 	return(seuratObj)
 }
 
-.NormalizeAndScaleDefault <- function(seuratObj, variableFeatureSelectionMethod = 'vst', nVariableFeatures = 2000, mean.cutoff = c(0.0125, 3), dispersion.cutoff = c(0.5, Inf), block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA", "p.mito"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE) {
+.NormalizeAndScaleDefault <- function(seuratObj, additionalFindVariableFeatureArgList = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE) {
 	seuratObj <- NormalizeData(object = seuratObj, normalization.method = "LogNormalize", verbose = F)
 
 	print('Find variable features:')
-	seuratObj <- FindVariableFeatures(object = seuratObj, mean.cutoff = mean.cutoff, dispersion.cutoff = dispersion.cutoff , verbose = F, selection.method = variableFeatureSelectionMethod, nfeatures = nVariableFeatures)
+	toBind <- additionalFindVariableFeatureArgList
+	if (is.null(toBind)) {
+		toBind <- list()
+	}
+
+	toBind[['object']] <- seuratObj
+	toBind[['verbose']] <- FALSE
+
+	seuratObj <- do.call(FindVariableFeatures, toBind)
 
 	if (!all(is.null(variableGenesWhitelist))) {
 		print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list'))
