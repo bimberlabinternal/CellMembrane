@@ -44,8 +44,8 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 		mito.features <- c('ATP6','ATP8','COX1','COX2','COX3','CYTB','ND1','ND2','ND3','ND4','ND4L','ND5','ND6')
 
 		mito.features.prefix = c('MT-', mito.features)
-		i1 <- intersect(mito.features, rownames(seuratObj))
-		i2 <- intersect(mito.features.prefix, rownames(seuratObj))
+		i1 <- length(intersect(mito.features, rownames(seuratObj)))
+		i2 <- length(intersect(mito.features.prefix, rownames(seuratObj)))
 		if (i2 > i1) {
 			print('Selecting using reference gene set with MT- prefix')
 			mito.features <- mito.features.prefix
