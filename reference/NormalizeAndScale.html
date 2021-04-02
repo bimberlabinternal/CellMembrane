@@ -119,17 +119,15 @@
 
     <pre class="usage"><span class='fu'>NormalizeAndScale</span><span class='op'>(</span>
   <span class='va'>seuratObj</span>,
-  variableFeatureSelectionMethod <span class='op'>=</span> <span class='st'>"vst"</span>,
-  nVariableFeatures <span class='op'>=</span> <span class='fl'>2000</span>,
-  mean.cutoff <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.0125</span>, <span class='fl'>3</span><span class='op'>)</span>,
-  dispersion.cutoff <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.5</span>, <span class='cn'>Inf</span><span class='op'>)</span>,
+  nVariableFeatures <span class='op'>=</span> <span class='cn'>NULL</span>,
   block.size <span class='op'>=</span> <span class='fl'>1000</span>,
   variableGenesWhitelist <span class='op'>=</span> <span class='cn'>NULL</span>,
   variableGenesBlacklist <span class='op'>=</span> <span class='cn'>NULL</span>,
   featuresToRegress <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"nCount_RNA"</span><span class='op'>)</span>,
   scaleVariableFeaturesOnly <span class='op'>=</span> <span class='cn'>TRUE</span>,
   includeCellCycleGenesInScaleData <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  useSCTransform <span class='op'>=</span> <span class='cn'>FALSE</span>
+  useSCTransform <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  additionalFindVariableFeatureArgList <span class='op'>=</span> <span class='cn'>NULL</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -140,20 +138,8 @@
       <td><p>A Seurat object.</p></td>
     </tr>
     <tr>
-      <th>variableFeatureSelectionMethod</th>
-      <td><p>The selection method to be passed to FindVariableFeatures()</p></td>
-    </tr>
-    <tr>
       <th>nVariableFeatures</th>
-      <td><p>The number of variable features to find</p></td>
-    </tr>
-    <tr>
-      <th>mean.cutoff</th>
-      <td><p>Passed directly to FindVariableFeatures</p></td>
-    </tr>
-    <tr>
-      <th>dispersion.cutoff</th>
-      <td><p>Passed directly to FindVariableFeatures</p></td>
+      <td><p>The number of variable features, passed to either FindVariableFeatures or SCTransform</p></td>
     </tr>
     <tr>
       <th>block.size</th>
@@ -182,6 +168,10 @@
     <tr>
       <th>useSCTransform</th>
       <td><p>If true, SCTransform will be used in place of the standard Seurat workflow (NormalizeData, ScaleData, FindVariableFeatures)</p></td>
+    </tr>
+    <tr>
+      <th>additionalFindVariableFeatureArgList</th>
+      <td><p>A list of arguments passed directly to FindVariableFeatures</p></td>
     </tr>
     </table>
 
