@@ -169,10 +169,12 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 		seuratObj <- .NormalizeAndScaleDefault(seuratObj, featuresToRegress = featuresToRegress, scaleVariableFeaturesOnly = scaleVariableFeaturesOnly, includeCellCycleGenesInScaleData = includeCellCycleGenesInScaleData, block.size = block.size, variableGenesWhitelist = variableGenesWhitelist, variableGenesBlacklist = variableGenesBlacklist, additionalFindVariableFeatureArgList = additionalFindVariableFeatureArgList)
 	}
 
+	seuratObj <- ScoreCellCycle(seuratObj)
+
 	return(seuratObj)
 }
 
-.NormalizeAndScaleSCTransform <- function(seuratObj, featuresToRegress, additionalArgs = NULL) {
+.NormalizeAndScaleSCTransform <- function(seuratObj, featuresToRegress, additionalArgs = NULL, verbose = TRUE) {
 	print('Using SCTransform')
 
 	toBind <- additionalArgs
@@ -182,10 +184,11 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 
 	toBind[['object']] <- seuratObj
 	toBind[['vars.to.regress']] <- featuresToRegress
-	toBind[['verbose']] <- FALSE
+	toBind[['verbose']] <- verbose
 	toBind[['return.only.var.genes']] <- FALSE
 
-	seuratObj <- do.call(SCTransform, toBind)
+	# To avoid 'reached iteration limit' warnings
+	seuratObj <- suppressWarnings(do.call(SCTransform, toBind))
 
 	return(seuratObj)
 }
@@ -231,8 +234,6 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 
   print('Scale data:')
   seuratObj <- ScaleData(object = seuratObj, features = feats, vars.to.regress = featuresToRegress, block.size = block.size, verbose = F)
-
-	seuratObj <- ScoreCellCycle(seuratObj)
 
   return(seuratObj)
 }
@@ -334,7 +335,10 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
 
 .PrintSeuratPlots <- function(seuratObj) {
   print(VizDimLoadings(object = seuratObj, dims = 1:2))
-	suppressWarnings(print(LabelPoints(plot = VariableFeaturePlot(seuratObj), points = head(VariableFeatures(seuratObj), 20), repel = TRUE, xnudge = 0, ynudge = 0)))
+
+	if (!('SCT' %in% names(seuratObj@assays))) {
+		suppressWarnings(print(LabelPoints(plot = VariableFeaturePlot(seuratObj), points = head(VariableFeatures(seuratObj), 20), repel = TRUE, xnudge = 0, ynudge = 0)))
+	}
 
   print(DimPlot(object = seuratObj))
   if (('Phase' %in% names(seuratObj@meta.data))) {
