@@ -153,6 +153,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	if (useSCTransform) {
 		additionalArgs <- list()
 		if (!is.null(nVariableFeatures)) {
+			print(paste0('SCTransform will use the top ', nVariableFeatures, ' variableFeatures'))
 			additionalArgs[['variable.features.n']] <- nVariableFeatures
 		}
 
@@ -221,7 +222,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 
 	if (scaleVariableFeaturesOnly) {
 		feats <- VariableFeatures(object = seuratObj)
-		print(paste0('ScaleData will use only the ', length(feats), ' variableFeatures'))
+		print(paste0('ScaleData will use the top ', length(feats), ' variableFeatures'))
 	} else {
 		feats <- rownames(x = seuratObj)
 	}
