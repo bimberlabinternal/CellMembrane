@@ -187,6 +187,8 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	toBind[['vars.to.regress']] <- featuresToRegress
 	toBind[['verbose']] <- verbose
 	toBind[['return.only.var.genes']] <- FALSE
+	print('SCTransform args: ')
+	print(toBind)
 
 	# To avoid 'reached iteration limit' warnings
 	seuratObj <- suppressWarnings(do.call(SCTransform, toBind))
@@ -205,6 +207,8 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 
 	toBind[['object']] <- seuratObj
 	toBind[['verbose']] <- FALSE
+	print('FindVariableFeatures args: ')
+	print(toBind)
 
 	seuratObj <- do.call(FindVariableFeatures, toBind)
 
