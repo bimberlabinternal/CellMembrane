@@ -41,7 +41,7 @@ FindDoublets <- function(seuratObj, assay = 'RNA', rawResultFile = NULL, doPlot 
 		print(FeatureScatter(object = seuratObj, feature1 = 'nCount_RNA', feature2 = 'nFeature_RNA', group.by = 'scDblFinder.class'))
 
 		if (length(seuratObj@reductions) == 0) {
-			print('No reductions calculated, cannot tSNE/UMAP')
+			print('No reductions calculated, cannot plot tSNE/UMAP')
 		} else {
 			print(DimPlot(seuratObj, group.by = 'scDblFinder.class'))
 		}
