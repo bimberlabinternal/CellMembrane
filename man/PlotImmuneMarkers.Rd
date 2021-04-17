@@ -4,7 +4,7 @@
 \alias{PlotImmuneMarkers}
 \title{PlotImmuneMarkers}
 \usage{
-PlotImmuneMarkers(seuratObj, reductions = c("tsne", "umap", "wnn.umap"))
+PlotImmuneMarkers(seuratObj, reductions = c("tsne", "umap"))
 }
 \arguments{
 \item{seuratObj}{A seurat object}
