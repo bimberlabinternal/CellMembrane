@@ -5,7 +5,7 @@
 #' @param reductions Vector of reduction(s) to use
 #' @export
 #' @import Seurat
-PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap', 'wnn.umap')) {
+PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	reductions <- intersect(reductions, names(seuratObj@reductions))
 	if (length(reductions) == 0) {
 		stop('None of the requested reductions are present!')
@@ -28,7 +28,8 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap', 'wnn.uma
 	# LOC100430627 = CCL4, ENSMMUG00000008111
 	# LOC100426632 = C-C motif chemokine 4
 	# LOC100426537 = C-C motif chemokine 3-like
-	PlotMarkerSeries(seuratObj, reductions, c('IFNG', 'CD69', 'TNF', 'NFKBID', 'LTB', 'TNFRSF9', 'CCL4L1', 'NR4A3', 'TNFSF14', 'CD82', 'PIGT', 'IRF8', 'IRF4', 'RGCC', 'PD1', 'PDCD1', 'TNFAIP3', 'LOC100423131', 'LOC100430627', 'ENSMMUG00000013779', 'XCL1', 'ENSMMUG00000060218', 'CCL4', 'ENSMMUG00000008111', 'CCL3', 'PLEK', 'NR4A2', 'LOC100426537', 'LOC114673087', 'KLF10', 'GADD45B'), 'CD8 Activation Markers')
+	# CD154 = CD40L
+	PlotMarkerSeries(seuratObj, reductions, c('IFNG', 'CD69', 'TNF', 'NFKBID', 'LTB', 'TNFRSF9', 'CCL4L1', 'NR4A3', 'TNFSF14', 'CD82', 'PIGT', 'IRF8', 'IRF4', 'RGCC', 'PD1', 'PDCD1', 'TNFAIP3', 'LOC100423131', 'LOC100430627', 'ENSMMUG00000013779', 'XCL1', 'ENSMMUG00000060218', 'CCL4', 'ENSMMUG00000008111', 'CCL3', 'PLEK', 'NR4A2', 'LOC100426537', 'LOC114673087', 'KLF10', 'GADD45B', 'CD154'), 'CD8 Activation Markers')
 
 	PlotMarkerSeries(seuratObj, reductions, c('PRF1', 'GNLY', 'NKG7', 'GZMA','GZMB','GZMH','GZMK','GZMM'), 'Cytotoxicity')
 
@@ -39,6 +40,8 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap', 'wnn.uma
 	PlotMarkerSet(seuratObj, reductions, 'Regulatory Markers', c('CD4', 'FOXP3', 'IL2RA'))
 
 	PlotMarkerSet(seuratObj, reductions, 'Treg17', c('RORA', 'RORB', 'RORC', 'IL4', 'STAT3'))
+
+	PlotMarkerSeries(seuratObj, reductions, c('ZBTB16', 'DPP4'), 'MAIT')
 
 	PlotMarkerSeries(seuratObj, reductions, c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX'), 'Transcription Factors')
 
@@ -60,7 +63,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap', 'wnn.uma
 	klrs <- c('KLRB1', 'KLRC1', 'KLRD1', 'KLRF1', 'KLRF2', 'KLRG1', 'KLRG2', 'KLRC2', 'KLRC3', 'ENSMMUG00000050862')
 	PlotMarkerSeries(seuratObj, reductions, klrs, 'KLRs')
 
-	PlotMarkerSet(seuratObj, reductions, 'Resident Memory', c('ITGAE', 'CD69', 'CXCR6'))
+	PlotMarkerSet(seuratObj, reductions, 'Resident Memory', c('ITGAE', 'ITGB7', 'CD69', 'CXCR6'))
 
 	#chemokines
 	chemokines <- c('CCL1','CCL11','CCL13','CCL16','CCL17','CCL18','CCL19','CCL2','CCL20','CCL21','CCL22','CCL24','CCL25','CCL26','CCL27','CCL28','CCL5','CCL7','CCL8')
