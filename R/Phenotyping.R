@@ -71,6 +71,8 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	chemokines <- c(chemokines, c('CXCL1','CXCL10','CXCL11','CXCL12','CXCL13','CXCL14','CXCL16','CXCL17','CXCL5','CXCL6','CXCL8','CXCL9','CXCR1','CXCR2','CXCR3','CXCR4','CXCR5','CXCR6','XCR1'))
 
 	PlotMarkerSeries(seuratObj, reductions, chemokines, 'Chemokines/Receptors')
+
+	PlotMarkerSeries(seuratObj, reductions, c('MKI67'), 'Cell Proliferation')
 }
 
 PlotMarkerSeries <- function(seuratObj, reductions, features, title, setSize = 4) {
