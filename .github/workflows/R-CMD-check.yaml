@@ -47,7 +47,6 @@ jobs:
       - name: Setup Bioconductor
         run: |
           install.packages('devtools')
-          devtools::install_version('Matrix', version = '1.3-2', dependencies=TRUE, ask = FALSE)
           if (!requireNamespace("BiocManager", quietly=TRUE))  install.packages("BiocManager");
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE);
           cat(append = TRUE, file = "~/.Rprofile", "options(repos = BiocManager::repositories());")
@@ -79,12 +78,14 @@ jobs:
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
 
       - name: Install dependencies
+        # NOTE: Matrix install related to: https://github.com/satijalab/seurat/issues/4436. Should remove this once Matrix issue is fixed.
         run: |
           getOption('repos');
           print(paste0("R_BIOC_VERSION: ", Sys.getenv("R_BIOC_VERSION")));
           remotes::install_deps(dependencies = TRUE, upgrade = "always")
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
+          devtools::install_version('Matrix', version = '1.3-2', dependencies=TRUE, ask = FALSE)
         shell: Rscript {0}
 
       - name: Session info
