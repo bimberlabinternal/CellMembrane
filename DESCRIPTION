@@ -15,7 +15,7 @@ Imports:
     tidyr,
     dplyr,
     naturalsort,
-    Matrix (==1.3-2),
+    Matrix (== 1.3-2),
     ggplot2,
     patchwork,
     utils,
