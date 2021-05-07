@@ -46,6 +46,7 @@ jobs:
       # Note: the environment variable R_BIOC_VERSION is set to force remotes::install_bioc to follow the proper version
       - name: Setup Bioconductor
         run: |
+          install.packages('devtools')
           devtools::install_version('Matrix', version = '1.3-2', dependencies=TRUE, ask = FALSE)
           if (!requireNamespace("BiocManager", quietly=TRUE))  install.packages("BiocManager");
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE);
