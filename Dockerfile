@@ -13,13 +13,14 @@ RUN apt-get update -y \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Let this run for the purpose of installing/caching dependencies
-RUN Rscript -e "install.packages(c('devtools', 'BiocManager', 'remotes'), dependencies=TRUE, ask = FALSE)" \
+RUN Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
 	&& echo "local({\noptions(repos = BiocManager::repositories())\n})\n" >> ~/.Rprofile \
 	&& echo "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));" >> ~/.Rprofile \
 	# NOTE: this was added to avoid the build dying if this downloads a binary built on a later R version
 	&& echo "Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS='true');" >> ~/.Rprofile \
     && Rscript -e "print(version)" \
-    && Rscript -e "devtools::install_github(repo = 'BimberLabInternal/CellMembrane', ref = 'master', dependencies = T, upgrade = 'always')" \
+    # NOTE: related to: https://github.com/satijalab/seurat/issues/4436. Should remove this once Matrix issue is fixed.
+    && Rscript -e "devtools::install_version('Matrix', version = '1.3-2', dependencies=TRUE, ask = FALSE)" \
 	&& rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
 # This should not be cached if the files change
