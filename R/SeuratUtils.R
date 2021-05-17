@@ -104,7 +104,7 @@ SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0) {
 		if (ncol(s) < minCellsToKeep) {
 			print(paste0('Too few cells (', ncol(s), '), discarding subset: ', value))
 		} else {
-			ret[[value]] <- s
+			ret[[as.character(value)]] <- s
 		}
 	}
 
