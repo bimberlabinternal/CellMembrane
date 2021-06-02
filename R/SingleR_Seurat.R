@@ -197,7 +197,10 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
   if (length(allFields) == 0) {
     print('No singleR calls were added, this probably indicates there were errors with singleR')
   } else {
-    DimPlot_SingleR(seuratObj, plotIndividually = TRUE, datasets = datasets)
+    if ('tsne' %in% names(seuratObj@reductions) || 'umap' %in% names(seuratObj@reductions)) {
+      DimPlot_SingleR(seuratObj, plotIndividually = TRUE, datasets = datasets)
+    }
+
     Tabulate_SingleR(seuratObj, plotIndividually = TRUE, datasets = datasets)
   }
 
