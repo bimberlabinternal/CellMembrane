@@ -125,7 +125,8 @@
   numGenesToPrint <span class='op'>=</span> <span class='fl'>20</span>,
   onlyPos <span class='op'>=</span> <span class='cn'>F</span>,
   pValThreshold <span class='op'>=</span> <span class='fl'>0.001</span>,
-  foldChangeThreshold <span class='op'>=</span> <span class='fl'>0.5</span>
+  foldChangeThreshold <span class='op'>=</span> <span class='fl'>0.5</span>,
+  datasetName <span class='op'>=</span> <span class='cn'>NULL</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -162,6 +163,10 @@
     <tr>
       <th>foldChangeThreshold</th>
       <td><p>Only genes with log2 fold-change above this will be reported</p></td>
+    </tr>
+    <tr>
+      <th>datasetName</th>
+      <td><p>An optional label for this dataset. If provided, this will be appended to the resulting table.</p></td>
     </tr>
     </table>
 
