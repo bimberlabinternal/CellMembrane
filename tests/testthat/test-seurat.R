@@ -66,7 +66,7 @@ test_that("Serat processing works as expected", {
 
   mf <- paste0(outPrefix, '.markers.txt')
   dt <- Find_Markers(seuratObj, identFields = c(resolutionToUse), outFile = mf, testsToUse = c('wilcox', 't'), datasetName = 'Label')
-  expect_equal(dt$x$caption, '<caption>Top DE Genes: Label</caption>'
+  expect_equal(dt$x$caption, '<caption>Top DE Genes: Label</caption>')
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
