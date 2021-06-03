@@ -1,4 +1,4 @@
-from bioconductor/bioconductor_docker:latest
+from bioconductor/bioconductor_docker:RELEASE_3_12
 
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
