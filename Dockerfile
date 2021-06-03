@@ -1,4 +1,4 @@
-from bioconductor/bioconductor_docker:RELEASE_3_12
+from bioconductor/bioconductor_docker:latest
 
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
@@ -26,9 +26,11 @@ ADD . /CellMembrane
 
 ENV RETICULATE_PYTHON=/usr/bin/python3
 
+# NOTE: manual install of seurat added to fix: https://github.com/satijalab/seurat/issues/4531. Should remain until >4.0.2 is published
 RUN cd /CellMembrane \
 	&& R CMD build . \
-	&& Rscript -e "BiocManager::install(ask = F, version = BiocManager::version());" \
-	&& Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
+	&& Rscript -e "remotes::install_github(repo = 'satijalab/seurat', ref = 'develop');" \
+	&& Rscript -e "BiocManager::install(ask = F);" \
+	&& Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE);" \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds
