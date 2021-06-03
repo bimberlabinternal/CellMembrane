@@ -538,12 +538,13 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 #' @param onlyPos If true, only positive markers will be saved
 #' @param pValThreshold Only genes with adjusted p-values below this will be reported
 #' @param foldChangeThreshold Only genes with log2 fold-change above this will be reported
+#' @param datasetName An optional label for this dataset. If provided, this will be appended to the resulting table.
 #' @return A DT::datatable object with the top markers, suitable for printing
 #' @importFrom dplyr %>% coalesce group_by summarise filter top_n select everything
 #' @import DESeq2
 #' @import MAST
 #' @export
-Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5) {
+Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, datasetName = NULL) {
 	seuratObj.markers <- NULL
 	for (fieldName in identFields) {
 		# Allow resolution to be passed directly:
@@ -641,7 +642,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
       #Note: return the datatable, so it will be printed correctly by Rmarkdown::render()
   		return(DT::datatable(topGene,
-        caption = 'Top DE Genes',
+        caption = paste0('Top DE Genes', ifelse(is.null(datasetName), yes = '', no = paste0(': ', datasetName))),
         filter = 'none',
         escape = FALSE,
         extensions = 'Buttons',
