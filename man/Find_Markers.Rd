@@ -12,7 +12,8 @@ Find_Markers(
   numGenesToPrint = 20,
   onlyPos = F,
   pValThreshold = 0.001,
-  foldChangeThreshold = 0.5
+  foldChangeThreshold = 0.5,
+  datasetName = NULL
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ Find_Markers(
 \item{pValThreshold}{Only genes with adjusted p-values below this will be reported}
 
 \item{foldChangeThreshold}{Only genes with log2 fold-change above this will be reported}
+
+\item{datasetName}{An optional label for this dataset. If provided, this will be appended to the resulting table.}
 }
 \value{
 A DT::datatable object with the top markers, suitable for printing
