@@ -117,7 +117,7 @@
     <p>Calculate and Append Per-cell Saturation to a Seurat Object</p>
     </div>
 
-    <pre class="usage"><span class='fu'>AppendPerCellSaturation</span><span class='op'>(</span><span class='va'>seuratObj</span>, <span class='va'>molInfoFile</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>AppendPerCellSaturation</span><span class='op'>(</span><span class='va'>seuratObj</span>, <span class='va'>molInfoFile</span>, cellbarcodePrefix <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -129,6 +129,10 @@
     <tr>
       <th>molInfoFile</th>
       <td><p>The 10x molecule_info.h5 file</p></td>
+    </tr>
+    <tr>
+      <th>cellbarcodePrefix</th>
+      <td><p>An optional string appended to the barcodes parsed from the molecule_info.h5 file. This is necessary if the seurat object has a prefix applied to cell barcodes. This value is directly concatenated and must include any delimiter.</p></td>
     </tr>
     </table>
 
