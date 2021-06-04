@@ -1,3 +1,75 @@
+#' @title sumRNA_ADT
+#'
+#' @description Sums up given ADT and RNA features and returns a vector
+#' @param seuratObj A seurat object
+#' @param adt_feat ADT feature(s)
+#' @param rna_feat RNA feature(s)
+#' @param slot passed to Seurat default data to use normalized DGE
+#' @export
+#' @import Seurat
+sumRNA_ADT <- function(seuratObj=NULL, adt_feat=NULL, rna_feat=NULL, slot="data"){
+  
+  v1 = GetAssayData(seuratObj, assay = "ADT", slot=slot)[adt_feat, ]
+  v2 = GetAssayData(seuratObj, assay = "RNA", slot=slot)[rna_feat, ]
+  
+  if(length(rna_feat)>1) v2 =  Matrix::colSums(v2)
+  if(length(adt_feat)>1) v1 = Matrix::colSums(v1)
+  
+  #ideas: normalize by sd? 
+  return(v1 + v2)
+}
+
+#' @title AddKeyPhenoMeta
+#'
+#' @description Computes pre-selected set of known ADT and RNA marker sets
+#' @param seuratObj A seurat object
+#' @import Seurat
+AddKeyPhenoMeta <- function(seuratObj){
+  seuratObj$CD14_sum = sumRNA_ADT(seuratObj=seuratObj, adt_feat = "CD14", rna_feat = "CD14")
+  seuratObj$CD20_sum = sumRNA_ADT(seuratObj=seuratObj, adt_feat = "CD20", rna_feat = "MS4A1")
+  seuratObj$CD3_sum  = sumRNA_ADT(seuratObj=seuratObj, adt_feat = "CD3", rna_feat = c("CD3G", "CD3D", "CD3E"))
+  seuratObj$CD16_sum = sumRNA_ADT(seuratObj=seuratObj, adt_feat = "CD16", rna_feat = "FCGR3")
+  seuratObj$NKG2A_sum = sumRNA_ADT(seuratObj=seuratObj, adt_feat = "NKG2A", rna_feat = "KLRC1")
+}
+
+#' @title ModuleScore.NK
+#'
+#' @description Scores NK cells
+#' @param seuratObj A seurat object
+#' @import Seurat
+ModuleScore.NK <-function(seuratObj){
+  seuratObj <- AddModuleScore(seuratObj, features = list(c("GNLY", "PRF1", "NKG7")), name = "ModuleScore_NK1")
+  seuratObj <- AddModuleScore(seuratObj, features = list(c("KLRC1", "KLRB1", "FCGR3", "CD8A")), name = "ModuleScore_NK2")
+  
+  seuratObj$NKcell_BL = 0
+  seuratObj$NKcell_BL[seuratObj$ModuleScore_NK11>0 & seuratObj$ModuleScore_NK21 >0] = 1
+  seuratObj$NKcell_BL[seuratObj$ModuleScore_NK11>0 & seuratObj$ModuleScore_NK21 <0] = 2
+  seuratObj$NKcell_BL[seuratObj$ModuleScore_NK11<0 & seuratObj$ModuleScore_NK21 >0] = 3
+  
+}
+
+#' @title ModuleScore.Megakaryocyte
+#'
+#' @description Scores Megakaryocytes and most platelettes
+#' @param seuratObj A seurat object
+#' @import Seurat
+ModuleScore.Megakaryocyte <- function(seuratObj){
+  seuratObj <- AddModuleScore(seuratObj, features = list(c("GP1BB", "PF4V1", "LOC703451")), name = "ModuleScore_MegaKaryocytes1")
+  seuratObj <- AddModuleScore(seuratObj, features = list(c("ITGA2B", "GP5",  "PPBP")), name = "ModuleScore_MegaKaryocytes2")
+
+  
+  FeaturePlot(seuratObj, features = c("ModuleScore_MegaKaryocytes11", "ModuleScore_MegaKaryocytes21"), 
+              reduction ="umap", order = T, blend = T, pt.size = .5,
+              cols=c("lightgrey", "navy", "red")) 
+  
+  seuratObj$MegaKaryocytes_BL = 0
+  seuratObj$MegaKaryocytes_BL[seuratObj$ModuleScore_MegaKaryocytes11>1.5 & seuratObj$ModuleScore_MegaKaryocytes21 >.5] = 1
+  seuratObj$MegaKaryocytes_BL[seuratObj$ModuleScore_MegaKaryocytes11>1.5 & seuratObj$ModuleScore_MegaKaryocytes21 <.5] = 2
+  seuratObj$MegaKaryocytes_BL[seuratObj$ModuleScore_MegaKaryocytes11<1.5 & seuratObj$ModuleScore_MegaKaryocytes21 >.5] = 3
+  
+}
+
+
 #' @title PlotImmuneMarkers
 #'
 #' @description Generate a set of Seurat FeaturePlots for common immune cell markers
