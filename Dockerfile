@@ -28,6 +28,7 @@ ENV RETICULATE_PYTHON=/usr/bin/python3
 
 # Create location for BioConductor AnnotationHub/ExperimentHub caches:
 ENV ANNOTATION_HUB_CACHE=/BiocFileCache
+ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
 RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
 # NOTE: manual install of seurat added to fix: https://github.com/satijalab/seurat/issues/4531. Should remain until >4.0.2 is published
