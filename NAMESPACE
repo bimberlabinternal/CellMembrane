@@ -2,6 +2,7 @@
 
 export(AddClonesToPlot)
 export(AppendCiteSeq)
+export(AppendPerCellSaturation)
 export(AvgExpression)
 export(CalculatePercentMito)
 export(CiteSeqDimRedux.Dist)

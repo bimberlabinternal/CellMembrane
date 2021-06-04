@@ -369,3 +369,33 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	}
 }
 
+#' @title Append Per Cell Saturation
+#' @description Calculate and Append Per-cell Saturation to a Seurat Object
+#' @param seuratObj The seurat object
+#' @param molInfoFile The 10x molecule_info.h5 file
+#' @export
+AppendPerCellSaturation <- function(seuratObj, molInfoFile) {
+	df <- DropletUtils::get10xMolInfoStats(molInfoFile)
+	df <- data.frame(cellbarcode = paste0(df$cell, '-', df$gem_group), num.umis = df$num.umis, CountsPerCell = df$num.reads)
+	df$Saturation <- 1 - (df$num.umis / df$CountsPerCell)
+	df <- df[df$cellbarcode %in% colnames(seuratObj),]
+
+	overall <- 1 - round((sum(df$num.umis) / sum(df$CountsPerCell)), 2)
+
+	print(ggplot(df, aes(x = CountsPerCell, y = Saturation)) +
+		labs(x = 'Counts/Cell', y = '% Saturation') +
+		egg::theme_presentation(base_size = 18) +
+		geom_point() +
+		annotate("text", x = max(df$CountsPerCell), y = min(df$Saturation), hjust = 1, vjust = -1, label = paste0(
+		'Total Counts: ', format(sum(df$CountsPerCell), big.mark=','), '\n',
+		'UMI Counts: ', format(sum(df$num.umis), big.mark=','), '\n',
+		'Saturation: ', overall
+		)) + ggtitle('Library Saturation')
+	)
+
+	toMerge <- df$Saturation
+	names(toMerge) <- df$cellbarcode
+	seuratObj$Saturation <- toMerge[colnames(seuratObj)]
+
+	return(seuratObj)
+}
