@@ -30,6 +30,24 @@ AddKeyPhenoMeta <- function(seuratObj){
   seuratObj$CD3_sum  = sumRNA_ADT(seuratObj=seuratObj, adt_feat = "CD3", rna_feat = c("CD3G", "CD3D", "CD3E"))
   seuratObj$CD16_sum = sumRNA_ADT(seuratObj=seuratObj, adt_feat = "CD16", rna_feat = "FCGR3")
   seuratObj$NKG2A_sum = sumRNA_ADT(seuratObj=seuratObj, adt_feat = "NKG2A", rna_feat = "KLRC1")
+  #do this for all ADTs?
+}
+
+#' @title Add all immune modules scores
+#'
+#' @description Scores NK cells
+#' @param seuratObj A seurat object
+#' @import Seurat
+AddModueScores.Immune <- function(seuratObj){
+  print("Starting NK")
+  seuratObj <- ModuleScore.NK(seuratObj)
+  print("Starting MK")
+  seuratObj <- ModuleScore.Megakaryocyte(seuratObj)
+  print("Starting DC")
+  seuratObj <- ModuleScore.DC(seuratObj)
+  print("Starting CD14negMyeloid")
+  seuratObj <- ModuleScore.MyeloidCD14neg(seuratObj)
+  
 }
 
 #' @title ModuleScore.NK
@@ -45,7 +63,7 @@ ModuleScore.NK <-function(seuratObj){
   seuratObj$NKcell_BL[seuratObj$ModuleScore_NK11>0 & seuratObj$ModuleScore_NK21 >0] = 1
   seuratObj$NKcell_BL[seuratObj$ModuleScore_NK11>0 & seuratObj$ModuleScore_NK21 <0] = 2
   seuratObj$NKcell_BL[seuratObj$ModuleScore_NK11<0 & seuratObj$ModuleScore_NK21 >0] = 3
-  
+  seuratObj
 }
 
 #' @title ModuleScore.Megakaryocyte
@@ -54,19 +72,61 @@ ModuleScore.NK <-function(seuratObj){
 #' @param seuratObj A seurat object
 #' @import Seurat
 ModuleScore.Megakaryocyte <- function(seuratObj){
+  
   seuratObj <- AddModuleScore(seuratObj, features = list(c("GP1BB", "PF4V1", "LOC703451")), name = "ModuleScore_MegaKaryocytes1")
   seuratObj <- AddModuleScore(seuratObj, features = list(c("ITGA2B", "GP5",  "PPBP")), name = "ModuleScore_MegaKaryocytes2")
-
-  
-  FeaturePlot(seuratObj, features = c("ModuleScore_MegaKaryocytes11", "ModuleScore_MegaKaryocytes21"), 
-              reduction ="umap", order = T, blend = T, pt.size = .5,
-              cols=c("lightgrey", "navy", "red")) 
   
   seuratObj$MegaKaryocytes_BL = 0
   seuratObj$MegaKaryocytes_BL[seuratObj$ModuleScore_MegaKaryocytes11>1.5 & seuratObj$ModuleScore_MegaKaryocytes21 >.5] = 1
   seuratObj$MegaKaryocytes_BL[seuratObj$ModuleScore_MegaKaryocytes11>1.5 & seuratObj$ModuleScore_MegaKaryocytes21 <.5] = 2
   seuratObj$MegaKaryocytes_BL[seuratObj$ModuleScore_MegaKaryocytes11<1.5 & seuratObj$ModuleScore_MegaKaryocytes21 >.5] = 3
+  seuratObj
+}
+
+#' @title ModuleScore.DC
+#'
+#' @description Scores DCs
+#' @param seuratObj A seurat object
+#' @import Seurat
+ModuleScore.DC <- function(seuratObj){
+  seuratObj <- AddModuleScore(seuratObj, features = list(c("GP1BB", "PF4V1", "LOC703451")), name = "ModuleScore_DC1")
+  seuratObj <- AddModuleScore(seuratObj, features = list(c("ITGA2B", "GP5",  "PPBP")), name = "ModuleScore_DC2")
   
+  
+  seuratObj$DC_BL = 0
+  seuratObj$DC_BL[seuratObj$ModuleScore_DC11>0 & seuratObj$ModuleScore_DC21 >0] = 1
+  seuratObj$DC_BL[seuratObj$ModuleScore_DC11>0 & seuratObj$ModuleScore_DC21 <0] = 2
+  seuratObj$DC_BL[seuratObj$ModuleScore_DC11<0 & seuratObj$ModuleScore_DC21 >0] = 3
+  
+  seuratObj
+}
+
+
+#' @title ModuleScore.MyeloidCD14neg
+#'
+#' @description Scores MyeloidCD14neg
+#' @param seuratObj A seurat object
+#' @import Seurat
+ModuleScore.MyeloidCD14neg <- function(seuratObj){
+  seuratObj <- AddModuleScore(seuratObj, 
+                              assay = "ADT", 
+                              features = 
+                                list(c("CD16")), 
+                              name = "ModuleScore_MyeloidCD14neg1", 
+                              ctrl = 6, nbin = 6)
+  
+  seuratObj <- AddModuleScore(seuratObj, 
+                              assay = "RNA", 
+                              features = 
+                                list(c("FCER1G","APOE", "CST3", "SELENOP", "IFI27", 
+                                       "FCGR3", "C1QB","C1QC", "HMOX1")), 
+                              name = "ModuleScore_MyeloidCD14neg2")
+  
+  seuratObj$MyeloidCD14neg_BL = 0
+  seuratObj$MyeloidCD14neg_BL[seuratObj$ModuleScore_MyeloidCD14neg11>0 & seuratObj$ModuleScore_MyeloidCD14neg21 >2] = 1
+  seuratObj$MyeloidCD14neg_BL[seuratObj$ModuleScore_MyeloidCD14neg11>0 & seuratObj$ModuleScore_MyeloidCD14neg21 <2] = 2
+  seuratObj$MyeloidCD14neg_BL[seuratObj$ModuleScore_MyeloidCD14neg11<0 & seuratObj$ModuleScore_MyeloidCD14neg21 >2] = 3
+  seuratObj
 }
 
 
