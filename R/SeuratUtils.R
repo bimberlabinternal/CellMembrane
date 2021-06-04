@@ -376,17 +376,23 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 #' @export
 AppendPerCellSaturation <- function(seuratObj, molInfoFile) {
 	df <- DropletUtils::get10xMolInfoStats(molInfoFile)
-	cellbarcodes <- df$cell
-	if (length(intersect(colnames(seuratObj), cellbarcodes)) == 0) {
-		cellbarcodes <- paste0(df$cell, '-', df$gem_group)
+
+	datasetId <- unique(seuratObj$DatasetId)
+	if (length(datasetId) != 1) {
+		stop('Saturation can only be executed using single-dataset seurat objects!')
 	}
 
-	if (length(cellbarcodes) == 0) {
+	df$cellbarcode <- paste0(datasetId, '_', df$cell)
+	if (length(intersect(colnames(seuratObj), df$cellbarcode)) == 0) {
+		df$cellbarcode <- paste0(df$cellbarcode, '-', df$gem_group)
+	}
+
+	if (length(intersect(colnames(seuratObj), df$cellbarcode)) == 0) {
 		warning('No overlapping barcodes found between seuratObj and molecule_info.h5 file')
 		return(seuratObj)
 	}
 
-	df <- data.frame(cellbarcode = cellbarcodes, num.umis = df$num.umis, CountsPerCell = df$num.reads)
+	df <- data.frame(cellbarcode = df$cellbarcode, num.umis = df$num.umis, CountsPerCell = df$num.reads)
 	df <- df[df$cellbarcode %in% colnames(seuratObj),]
 	df$Saturation <- 1 - (df$num.umis / df$CountsPerCell)
 
@@ -406,6 +412,8 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile) {
 	toMerge <- df$Saturation
 	names(toMerge) <- df$cellbarcode
 	seuratObj$Saturation <- toMerge[colnames(seuratObj)]
+
+	print(FeatureScatter(seuratObj, 'nFeature_RNA', 'Saturation') + NoLegend())
 
 	return(seuratObj)
 }
