@@ -378,12 +378,6 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = NULL) {
 	df <- DropletUtils::get10xMolInfoStats(molInfoFile)
 
-
-	datasetId <- unique(seuratObj$DatasetId)
-	if (length(datasetId) != 1) {
-		stop('Saturation can only be executed using single-dataset seurat objects!')
-	}
-
 	df$cellbarcode <- df$cell
 	if (!is.null(cellbarcodePrefix)) {
 		df$cellbarcode <- paste0(datasetId, '_', df$cellbarcode)
