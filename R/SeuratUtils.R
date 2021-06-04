@@ -1,5 +1,5 @@
 utils::globalVariables(
-	names = c('subsetField'),
+	names = c('subsetField', 'CountsPerCell', 'Saturation'),
 	package = 'CellMembrane',
 	add = TRUE
 )
@@ -373,16 +373,22 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 #' @description Calculate and Append Per-cell Saturation to a Seurat Object
 #' @param seuratObj The seurat object
 #' @param molInfoFile The 10x molecule_info.h5 file
+#' @param cellbarcodePrefix An optional string appended to the barcodes parsed from the molecule_info.h5 file. This is necessary if the seurat object has a prefix applied to cell barcodes. This value is directly concatenated and must include any delimiter.
 #' @export
-AppendPerCellSaturation <- function(seuratObj, molInfoFile) {
+AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = NULL) {
 	df <- DropletUtils::get10xMolInfoStats(molInfoFile)
+
 
 	datasetId <- unique(seuratObj$DatasetId)
 	if (length(datasetId) != 1) {
 		stop('Saturation can only be executed using single-dataset seurat objects!')
 	}
 
-	df$cellbarcode <- paste0(datasetId, '_', df$cell)
+	df$cellbarcode <- df$cell
+	if (!is.null(cellbarcodePrefix)) {
+		df$cellbarcode <- paste0(datasetId, '_', df$cellbarcode)
+	}
+
 	if (length(intersect(colnames(seuratObj), df$cellbarcode)) == 0) {
 		df$cellbarcode <- paste0(df$cellbarcode, '-', df$gem_group)
 	}

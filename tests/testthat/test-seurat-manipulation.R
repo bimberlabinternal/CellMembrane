@@ -38,7 +38,7 @@ context("scRNAseq")
 test_that("Seurat-saturation works as expected", {
 	molInfoFile <- '../testdata/512-5-molecule_info.h5'
 	df <- DropletUtils::get10xMolInfoStats(molInfoFile)
-	df <- data.frame(cellbarcode = paste0(df$cell, '-', df$gem_group), num.umis = df$num.umis, CountsPerCell = df$num.reads)
+	df <- data.frame(cellbarcode = df$cell, num.umis = df$num.umis, CountsPerCell = df$num.reads)
 	df <- df[df$CountsPerCell > 100,]
 	dat <- matrix(df$CountsPerCell, nrow = 1)
 	colnames(dat) <- df$cellbarcode
