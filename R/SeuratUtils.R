@@ -376,9 +376,19 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 #' @export
 AppendPerCellSaturation <- function(seuratObj, molInfoFile) {
 	df <- DropletUtils::get10xMolInfoStats(molInfoFile)
-	df <- data.frame(cellbarcode = paste0(df$cell, '-', df$gem_group), num.umis = df$num.umis, CountsPerCell = df$num.reads)
-	df$Saturation <- 1 - (df$num.umis / df$CountsPerCell)
+	cellbarcodes <- df$cell
+	if (length(intersect(colnames(seuratObj), cellbarcodes)) == 0) {
+		cellbarcodes <- paste0(df$cell, '-', df$gem_group)
+	}
+
+	if (length(cellbarcodes) == 0) {
+		warning('No overlapping barcodes found between seuratObj and molecule_info.h5 file')
+		return(seuratObj)
+	}
+
+	df <- data.frame(cellbarcode = cellbarcodes, num.umis = df$num.umis, CountsPerCell = df$num.reads)
 	df <- df[df$cellbarcode %in% colnames(seuratObj),]
+	df$Saturation <- 1 - (df$num.umis / df$CountsPerCell)
 
 	overall <- 1 - round((sum(df$num.umis) / sum(df$CountsPerCell)), 2)
 
