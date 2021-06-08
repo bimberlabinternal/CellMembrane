@@ -29,7 +29,8 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	# LOC100426632 = C-C motif chemokine 4
 	# LOC100426537 = C-C motif chemokine 3-like
 	# CD154 = CD40L
-	PlotMarkerSeries(seuratObj, reductions, c('IFNG', 'CD69', 'TNF', 'NFKBID', 'LTB', 'TNFRSF9', 'CCL4L1', 'NR4A3', 'TNFSF14', 'CD82', 'PIGT', 'IRF8', 'IRF4', 'RGCC', 'PD1', 'PDCD1', 'TNFAIP3', 'LOC100423131', 'LOC100430627', 'ENSMMUG00000013779', 'XCL1', 'ENSMMUG00000060218', 'CCL4', 'ENSMMUG00000008111', 'CCL3', 'PLEK', 'NR4A2', 'LOC100426537', 'LOC114673087', 'KLF10', 'GADD45B', 'CD154'), 'CD8 Activation Markers')
+	# LAMP1 = CD107a, cytotoxic capacity
+	PlotMarkerSeries(seuratObj, reductions, c('IFNG', 'CD69', 'TNF', 'NFKBID', 'LTB', 'TNFRSF9', 'CCL4L1', 'NR4A3', 'TNFSF14', 'CD82', 'PIGT', 'IRF8', 'IRF4', 'RGCC', 'PD1', 'PDCD1', 'TNFAIP3', 'LOC100423131', 'LOC100430627', 'ENSMMUG00000013779', 'XCL1', 'ENSMMUG00000060218', 'CCL4', 'ENSMMUG00000008111', 'CCL3', 'PLEK', 'NR4A2', 'LOC100426537', 'LOC114673087', 'KLF10', 'GADD45B', 'CD154', 'LAMP1'), 'CD8 Activation Markers')
 
 	PlotMarkerSeries(seuratObj, reductions, c('PRF1', 'GNLY', 'NKG7', 'GZMA','GZMB','GZMH','GZMK','GZMM'), 'Cytotoxicity')
 
