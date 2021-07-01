@@ -93,6 +93,8 @@ test_that("Serat processing works as expected", {
 
   HighlightCellsOnSeuratPlot(plot = P1, seuratObj = seuratObj)
 
+  PlotSeuratVariables(seuratObj, xvar = 'ClusterNames_0.6', yvar = 'ClusterNames_0.2')
+
   #Note: if the expectations change, save this output as a reference:
   #seuratObjSS <- seuratObj[1:100]
   #saveRDS(seuratObjSS, file = '../testdata/seuratOutputSS.rds')

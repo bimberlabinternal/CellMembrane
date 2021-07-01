@@ -234,23 +234,24 @@ GetXYAesthetics <- function(plot, geom = 'GeomPoint', plot.first = TRUE) {
 #' @title HighlightCellsOnSeuratPlot
 #' @description Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes. Note: this uses ggnewscale::new_scale_color to enable multiple color scales. The original aesthetics are suffixed with '_new' (i.e. color_new). This has also only been tested thoroughly with DimPlots.
 #' @param seuratObj The seurat object
-#' @param plot The plot object, such as the result from DimPlot()
+#' @param seuratPlot The plot object, such as the result from DimPlot()
 #' @param cellSelectField The name of the field to select which cells to plot
 #' @param colorLegendLabel This is passed to labs(color = XXX) to label the legend
 #' @param colorField The name of the field to assign colors to the cells. This provides the option to use a different value from cellSelectField. If colorField and dotColor are NA, cellSelectField will be used.
 #' @param dotColor An optional string passed to geom_point(color = XX). This will assign all cells the same color. Ignored if colorField is provided.
 #' @param pt.size The size, passed to geom_point().
-#' @param useShape If true, the values of colorField will be used to assign shape. Note: if there are more than 6 unique values this will be ignored.
+#' @param shapeField If true, provided, these values will be used for shape. Note: if there are more than 6 unique values this will be ignored.
 #' @param horizontalLegend If true, theme(legend.box = "horizontal") is added to the plot. This can be useful if the original plot also has a legend (such as cluster names)
+#' @param resetLegendSize Using ggnewscale::new_scale_color seems to reset the dot size of the legend. If resetLegendSize=TRUE, the function will call "guides(colour_new = guide_legend(override.aes = list(size=3)))" to restore dot size to 3.
 #' @export
 #' @import ggplot2
-HighlightCellsOnSeuratPlot <- function(seuratObj, plot, cellSelectField = 'CloneNames', colorLegendLabel = 'Clone', colorField = NA, dotColor = NA, pt.size = 1, useShape = TRUE, horizontalLegend = TRUE) {
+HighlightCellsOnSeuratPlot <- function(seuratObj, seuratPlot, cellSelectField = 'CloneNames', colorLegendLabel = 'Clone', colorField = NA, dotColor = NA, pt.size = 1, shapeField = NA, horizontalLegend = TRUE, resetLegendSize = TRUE) {
 	cellNames <- colnames(seuratObj)[!is.na(seuratObj[[cellSelectField]])]
-	plot.data <- GetXYDataFromPlot(P, cellNames)
+	plot.data <- GetXYDataFromPlot(seuratPlot, cellNames)
 	plot.data$Clone <- seuratObj[[cellSelectField]][!is.na(seuratObj[[cellSelectField]])]
 	cellsWithData <- !is.na(seuratObj[[cellSelectField]])
 
-	P1 <- plot + ggnewscale::new_scale_color()
+	seuratPlot <- seuratPlot + ggnewscale::new_scale_color()
 
 	if (is.na(dotColor) && is.na(colorField)) {
 		colorField <- cellSelectField
@@ -259,14 +260,14 @@ HighlightCellsOnSeuratPlot <- function(seuratObj, plot, cellSelectField = 'Clone
 	if (!is.na(colorField)) {
 		plot.data$Color <- naturalsort::naturalfactor(seuratObj[[colorField]][cellsWithData])
 
-		P1 <- P1 + geom_point(
+		seuratPlot <- seuratPlot + geom_point(
 			mapping = aes(x = x, y = y, color = Color),
 			data = plot.data,
 			size = pt.size,
 			inherit.aes = F
 		)
 	} else if (!is.na(dotColor)) {
-		P1 <- P1 + geom_point(
+		seuratPlot <- seuratPlot + geom_point(
 			mapping = aes(x = x, y = y),
 			data = plot.data,
 			size = pt.size,
@@ -277,29 +278,31 @@ HighlightCellsOnSeuratPlot <- function(seuratObj, plot, cellSelectField = 'Clone
 		stop('Must provide either dotColor or colorField')
 	}
 
-	if (useShape) {
-		plot.data$ShapeField <- as.character(seuratObj[[colorField]][cellsWithData])
+	if (!is.na(shapeField)) {
+		plot.data$ShapeField <- as.character(seuratObj[[shapeField]][cellsWithData])
 
 		if (length(unique(plot.data$ShapeField)) > 6) {
 			warning('There are more than 6 unique values, all points will be assigned the same shape')
 		} else {
-			P1 <- P1 + aes(shape = 'ShapeField')
-			P1 <- P1 + guides(shape = FALSE)
+			seuratPlot <- seuratPlot + aes(shape = 'ShapeField')
+			seuratPlot <- seuratPlot + guides(shape = FALSE)
 		}
 	}
 
 	if (!is.na(colorLegendLabel)) {
-		P1 <- P1 + labs(color = colorLegendLabel)
+		seuratPlot <- seuratPlot + labs(color = colorLegendLabel)
 	}
 
 	if (horizontalLegend) {
-		P1 <- P1 + theme(legend.box = 'horizontal')
+		seuratPlot <- seuratPlot + theme(legend.box = 'horizontal')
 	}
 
-	# This restores the original DimP1lot dot size
-	P1 <- P1 + guides(colour_new = guide_legend(override.aes = list(size=3)))
+	# This restores the original DimPlot dot size
+	if (resetLegendSize) {
+		seuratPlot <- seuratPlot + guides(colour_new = guide_legend(override.aes = list(size=3)))
+	}
 
-	return(P1)
+	return(seuratPlot)
 }
 
 #' @title FilterCloneNames
@@ -405,23 +408,43 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 #' @description Calculate and Append Per-cell Saturation to a Seurat Object
 #' @param seuratObj The seurat object
 #' @param molInfoFile The 10x molecule_info.h5 file
-#' @param cellbarcodePrefix An optional string appended to the barcodes parsed from the molecule_info.h5 file. This is necessary if the seurat object has a prefix applied to cell barcodes. This value is directly concatenated and must include any delimiter.
+#' @param cellbarcodePrefix An optional string appended to the barcodes parsed from the molecule_info.h5 file. This is necessary if the seurat object has a prefix applied to cell barcodes. This value is directly concatenated and must include any delimiter. Note: if this is absent, but the seuratObj has the columns DatasetId or BarcodePrefix, the latter will be used.
 #' @export
 AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = NULL) {
 	df <- DropletUtils::get10xMolInfoStats(molInfoFile)
 
 	df$cellbarcode <- df$cell
+
+	barcodePrefix <- NULL
 	if (!is.null(cellbarcodePrefix)) {
-		df$cellbarcode <- paste0(cellbarcodePrefix, '_', df$cellbarcode)
+		barcodePrefix <- cellbarcodePrefix
+	} else if ('DatasetId' %in% names(seuratObj@meta.data)) {
+		datasetId <- unique(seuratObj$DatasetId)
+		if (length(datasetId) != 1) {
+			stop('Saturation can only be computed from single-dataset seurat objects!')
+		}
+
+		barcodePrefix <- paste0(datasetId, '_')
+	} else if ('BarcodePrefix' %in% names(seuratObj@meta.data)) {
+		datasetId <- unique(seuratObj$BarcodePrefix)
+		if (length(datasetId) != 1) {
+			stop('Saturation can only be computed from single-dataset seurat objects!')
+		}
+
+		barcodePrefix <- paste0(datasetId, '_')
+	}
+
+	if (!is.null(datasetId)) {
+		df$cellbarcode <- paste0(barcodePrefix, '_', df$cellbarcode)
 	}
 
 	if (length(intersect(colnames(seuratObj), df$cellbarcode)) == 0) {
+		print('No overlapping barcodes found, adding gem_group')
 		df$cellbarcode <- paste0(df$cellbarcode, '-', df$gem_group)
 	}
 
 	if (length(intersect(colnames(seuratObj), df$cellbarcode)) == 0) {
-		warning('No overlapping barcodes found between seuratObj and molecule_info.h5 file')
-		return(seuratObj)
+		stop('No overlapping barcodes found between seuratObj and molecule_info.h5 file')
 	}
 
 	df <- data.frame(cellbarcode = df$cellbarcode, num.umis = df$num.umis, CountsPerCell = df$num.reads)
@@ -448,4 +471,33 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 	print(FeatureScatter(seuratObj, 'nFeature_RNA', 'Saturation') + NoLegend())
 
 	return(seuratObj)
+}
+
+
+#' @title Plot Seurat Variables
+#' @description Create a panel of plots summarizing two variables within the seurat object
+#' @param seuratObj The seurat object
+#' @param xvar The first variable to summarize (i.e. ClusterNames_0.2)
+#' @param yvar The second variable to summarize (i.e. SubjectId)
+#' @export
+PlotSeuratVariables <- function(seuratObj, xvar, yvar) {
+	data <- seuratObj@meta.data[c(xvar, yvar)]
+	names(data) <- c('x', 'y')
+
+	P0 <- DimPlot(seuratObj, group.by = xvar)
+	P2 <- DimPlot(seuratObj, group.by = yvar)
+
+	P1 <- ggplot(data, aes(x = x, fill = y)) +
+		geom_bar(position = 'fill') +
+		xlab(xvar) +
+		labs(fill = yvar) +
+		egg::theme_presentation(base_size = 12)
+
+	P3 <- ggplot(data, aes(x = x, fill = y)) +
+		geom_bar() +
+		xlab(xvar) +
+		labs(fill = yvar) +
+		egg::theme_presentation(base_size = 12)
+
+	return(P0 + P2 + P1 + P3)
 }
