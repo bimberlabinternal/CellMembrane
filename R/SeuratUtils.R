@@ -231,37 +231,42 @@ GetXYAesthetics <- function(plot, geom = 'GeomPoint', plot.first = TRUE) {
 	return(list('x' = x, 'y' = y))
 }
 
-#' @title AddClonesToPlot
-#' @description Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes. Note: this uses ggnewscale::new_scale_color to enable multiple color scales. The original aesthetics are suffixed with '_new' (i.e. color_new)
+#' @title HighlightCellsOnSeuratPlot
+#' @description Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes. Note: this uses ggnewscale::new_scale_color to enable multiple color scales. The original aesthetics are suffixed with '_new' (i.e. color_new). This has also only been tested thoroughly with DimPlots.
 #' @param seuratObj The seurat object
-#' @param plot The plot object, such as the result from FeaturePlot()
-#' @param fieldName The name of the field on the seurat object holding cloneName
-#' @param colorField If provided, this field will be used
-#' @param dotColor An optional string passed to geom_point. Ignored if colorField is provided.
-#' @param pt.size The size, passed to geom_point
-#' @param useShape If true, the values of fieldName will be used to assign shape. Note: if there are more than 6 unique values this will be ignored.
-#' @param colorFieldLabel This is passed to labs(color = XXX) to label the legend
-#' @param horizontalLegend If true, theme(legend.box = "horizontal") is added to the plot
+#' @param plot The plot object, such as the result from DimPlot()
+#' @param cellSelectField The name of the field to select which cells to plot
+#' @param colorLegendLabel This is passed to labs(color = XXX) to label the legend
+#' @param colorField The name of the field to assign colors to the cells. This provides the option to use a different value from cellSelectField. If colorField and dotColor are NA, cellSelectField will be used.
+#' @param dotColor An optional string passed to geom_point(color = XX). This will assign all cells the same color. Ignored if colorField is provided.
+#' @param pt.size The size, passed to geom_point().
+#' @param useShape If true, the values of colorField will be used to assign shape. Note: if there are more than 6 unique values this will be ignored.
+#' @param horizontalLegend If true, theme(legend.box = "horizontal") is added to the plot. This can be useful if the original plot also has a legend (such as cluster names)
 #' @export
 #' @import ggplot2
-AddClonesToPlot <- function(seuratObj, P, fieldName = 'CloneNames', colorField = NA, dotColor = NA, pt.size = 1, useShape = TRUE, colorFieldLabel = 'Clone', horizontalLegend = TRUE) {
-	cellNames <- colnames(seuratObj)[!is.na(seuratObj[[fieldName]])]
+HighlightCellsOnSeuratPlot <- function(seuratObj, plot, cellSelectField = 'CloneNames', colorLegendLabel = 'Clone', colorField = NA, dotColor = NA, pt.size = 1, useShape = TRUE, horizontalLegend = TRUE) {
+	cellNames <- colnames(seuratObj)[!is.na(seuratObj[[cellSelectField]])]
 	plot.data <- GetXYDataFromPlot(P, cellNames)
-	plot.data$Clone <- seuratObj[[fieldName]][!is.na(seuratObj[[fieldName]])]
+	plot.data$Clone <- seuratObj[[cellSelectField]][!is.na(seuratObj[[cellSelectField]])]
+	cellsWithData <- !is.na(seuratObj[[cellSelectField]])
 
-	P <- P + ggnewscale::new_scale_color()
+	P1 <- plot + ggnewscale::new_scale_color()
+
+	if (is.na(dotColor) && is.na(colorField)) {
+		colorField <- cellSelectField
+	}
 
 	if (!is.na(colorField)) {
-		plot.data$Color <- naturalsort::naturalfactor(seuratObj[[colorField]][sel])
+		plot.data$Color <- naturalsort::naturalfactor(seuratObj[[colorField]][cellsWithData])
 
-		P <- P + geom_point(
+		P1 <- P1 + geom_point(
 			mapping = aes(x = x, y = y, color = Color),
 			data = plot.data,
-			inherit.aes = F,
-			size = pt.size
+			size = pt.size,
+			inherit.aes = F
 		)
 	} else if (!is.na(dotColor)) {
-		P <- P + geom_point(
+		P1 <- P1 + geom_point(
 			mapping = aes(x = x, y = y),
 			data = plot.data,
 			size = pt.size,
@@ -273,27 +278,28 @@ AddClonesToPlot <- function(seuratObj, P, fieldName = 'CloneNames', colorField =
 	}
 
 	if (useShape) {
-		sel <- !is.na(seuratObj[[fieldName]])
-		plot.data$ShapeField <- as.character(seuratObj[[fieldName]][sel])
+		plot.data$ShapeField <- as.character(seuratObj[[colorField]][cellsWithData])
 
 		if (length(unique(plot.data$ShapeField)) > 6) {
 			warning('There are more than 6 unique values, all points will be assigned the same shape')
 		} else {
-			P <- P + aes(shape = 'ShapeField')
-			P <- P + guides(shape = FALSE)
+			P1 <- P1 + aes(shape = 'ShapeField')
+			P1 <- P1 + guides(shape = FALSE)
 		}
 	}
 
-	P <- P + labs(color = colorFieldLabel)
-
-	if (horizontalLegend) {
-		P <- P + theme(legend.box = "horizontal")
+	if (!is.na(colorLegendLabel)) {
+		P1 <- P1 + labs(color = colorLegendLabel)
 	}
 
-	# This restores the original DimPlot dot size
-	P <- P + guides(colour_new = guide_legend(override.aes = list(size=3)))
+	if (horizontalLegend) {
+		P1 <- P1 + theme(legend.box = 'horizontal')
+	}
 
-	return(P)
+	# This restores the original DimP1lot dot size
+	P1 <- P1 + guides(colour_new = guide_legend(override.aes = list(size=3)))
+
+	return(P1)
 }
 
 #' @title FilterCloneNames

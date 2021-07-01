@@ -86,6 +86,7 @@ jobs:
           R CMD build --no-build-vignettes .
           R CMD INSTALL --build remotes_2.3.0.9000.tar.gz
           cd ../
+          rm -Rf remotes
 
       # NOTE: manual install of seurat added to fix: https://github.com/satijalab/seurat/issues/4531. Should remain until >4.0.2 is published
       - name: Bugfix Seurat
