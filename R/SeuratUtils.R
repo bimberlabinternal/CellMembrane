@@ -239,27 +239,33 @@ GetXYAesthetics <- function(plot, geom = 'GeomPoint', plot.first = TRUE) {
 #' @param colorField If provided, this field will be used
 #' @param dotColor An optional string passed to geom_point. Ignored if colorField is provided.
 #' @param pt.size The size, passed to geom_point
+#' @param assignShapeByClone If false, all points will use the same shape. This is necessary if there are too many factor levels
 #' @export
 #' @import ggplot2
-AddClonesToPlot <- function(seuratObj, plot, fieldName = 'CloneNames', colorField = NA, dotColor = NA, pt.size = 1) {
+AddClonesToPlot <- function(seuratObj, plot, fieldName = 'CloneNames', colorField = NA, dotColor = NA, pt.size = 1, assignShapeByClone = TRUE) {
 	cellNames <- colnames(seuratObj)[!is.na(seuratObj[[fieldName]])]
 	plot.data <- GetXYDataFromPlot(plot, cellNames)
 	plot.data$Clone <- seuratObj[[fieldName]][!is.na(seuratObj[[fieldName]])]
 
 	sel <- !is.na(seuratObj[[fieldName]])
-	plot.data$CloneName <- naturalsort::naturalfactor(seuratObj[[fieldName]][sel])
+	plot.data$ShapeField <- naturalsort::naturalfactor(seuratObj[[fieldName]][sel])
+	if (!assignShapeByClone) {
+		# Assign constant value to all use a single shape
+		plot.data$ShapeField[!is.na(plot.data$ShapeField)] <- 1
+	}
+
 	if (!is.na(colorField)) {
 		plot.data$CloneColor <- naturalsort::naturalfactor(seuratObj[[colorField]][sel])
 
-		plot <- plot + geom_point(
-			mapping = aes_string(x = 'x', y = 'y', shape = 'CloneName', color = 'CloneColor'),
+		plot <- plot + ggnewscale::new_scale_color() + geom_point(
+			mapping = aes_string(x = 'x', y = 'y', shape = 'ShapeField', color = 'CloneColor'),
 			data = plot.data,
 			size = pt.size,
 			inherit.aes = F
 		)
 	} else {
-		plot <- plot + geom_point(
-			mapping = aes_string(x = 'x', y = 'y', shape = 'CloneName'),
+		plot <- plot + ggnewscale::new_scale_color() + geom_point(
+			mapping = aes_string(x = 'x', y = 'y', shape = 'ShapeField'),
 			data = plot.data,
 			size = pt.size,
 			inherit.aes = F,

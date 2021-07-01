@@ -10,7 +10,8 @@ AddClonesToPlot(
   fieldName = "CloneNames",
   colorField = NA,
   dotColor = NA,
-  pt.size = 1
+  pt.size = 1,
+  assignShapeByClone = TRUE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ AddClonesToPlot(
 \item{dotColor}{An optional string passed to geom_point. Ignored if colorField is provided.}
 
 \item{pt.size}{The size, passed to geom_point}
+
+\item{assignShapeByClone}{If false, all points will use the same shape. This is necessary if there are too many factor levels}
 }
 \description{
 Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes
