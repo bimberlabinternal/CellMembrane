@@ -248,11 +248,12 @@ AddClonesToPlot <- function(seuratObj, plot, fieldName = 'CloneNames', colorFiel
 	plot.data$Clone <- seuratObj[[fieldName]][!is.na(seuratObj[[fieldName]])]
 
 	sel <- !is.na(seuratObj[[fieldName]])
-	plot.data$ShapeField <- naturalsort::naturalfactor(seuratObj[[fieldName]][sel])
+	plot.data$ShapeField <- as.character(seuratObj[[fieldName]][sel])
 	if (!assignShapeByClone) {
 		# Assign constant value to all use a single shape
 		plot.data$ShapeField[!is.na(plot.data$ShapeField)] <- 1
 	}
+	plot.data$ShapeField <- naturalsort::naturalfactor(plot.data$ShapeField)
 
 	if (!is.na(colorField)) {
 		plot.data$CloneColor <- naturalsort::naturalfactor(seuratObj[[colorField]][sel])
@@ -270,7 +271,7 @@ AddClonesToPlot <- function(seuratObj, plot, fieldName = 'CloneNames', colorFiel
 			size = pt.size,
 			inherit.aes = F,
 			color = dotColor
-		)
+		) + guides(shape = FALSE)
 	}
 
 	return(plot)
