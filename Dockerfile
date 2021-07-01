@@ -31,10 +31,8 @@ ENV ANNOTATION_HUB_CACHE=/BiocFileCache
 ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
 RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
-# NOTE: manual install of seurat added to fix: https://github.com/satijalab/seurat/issues/4531. Should remain until >4.0.2 is published
 RUN cd /CellMembrane \
 	&& R CMD build . \
-	&& Rscript -e "remotes::install_github(repo = 'satijalab/seurat', ref = 'develop');" \
 	&& Rscript -e "BiocManager::install(ask = F);" \
 	&& Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE);" \
 	&& R CMD INSTALL --build *.tar.gz \
