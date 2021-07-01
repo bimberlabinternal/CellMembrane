@@ -48,6 +48,5 @@ test_that("Seurat-saturation works as expected", {
 	seuratObj <- AppendPerCellSaturation(seuratObj, molInfoFile)
 	expect_equal(max(seuratObj$Saturation), 0.9765625)
 	expect_equal(length(unique((seuratObj$Saturation))), 7126)
-	
-	
+
 })

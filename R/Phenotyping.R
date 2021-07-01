@@ -38,6 +38,18 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 
 	PlotMarkerSet(seuratObj, reductions, 'Monocyte', c('LYZ', 'CST3', 'S100A6', 'VIM'))
 
+	# MRC1 = CD206
+	# ITGAM = CD11b
+	# Non-AMs: CD16+/CD206-/HLA-DR+/CD11b+
+	PlotMarkerSeries(seuratObj, reductions, c('CD14', 'FCGR3A', 'S100A8', 'S100A6', 'MARCO', 'MRC1', 'CD163', 'CHIT1', 'APOBEC3A', 'ITGAM', 'HLA-DRB1'), 'Myeloid')
+
+	# IL3RA = CD123 / pDC
+	# CLEC4C = CD303 / pDC
+	# CD1c = mDC
+	# THBD = CD141 / mDC
+	# CD80, CD86 = co-stimulatory. low expression = tolerogenic
+	PlotMarkerSeries(seuratObj, reductions, c('CD14', 'FCGR3A', 'IL3RA', 'CLEC4C', 'CD1c', 'THBD', 'CD80', 'CD86', 'TGFB1'), 'DCs')
+
 	PlotMarkerSet(seuratObj, reductions, 'Regulatory Markers', c('CD4', 'FOXP3', 'IL2RA'))
 
 	PlotMarkerSet(seuratObj, reductions, 'Treg17', c('RORA', 'RORB', 'RORC', 'IL4', 'STAT3'))

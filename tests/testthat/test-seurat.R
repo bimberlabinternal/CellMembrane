@@ -85,6 +85,16 @@ test_that("Serat processing works as expected", {
   #At least execute this code, so over errors are caught
   PlotImmuneMarkers(seuratObj)
 
+  P1 <- Seurat::DimPlot(seuratObj)
+  seuratObj$CloneName <- NA
+
+  seuratObj$CloneName[rep(c( rep(FALSE, 5), TRUE ), ncol(seuratObj))] <- 'Clone1'
+  seuratObj$CloneName[rep(c( rep(FALSE, 6), TRUE ), ncol(seuratObj))] <- 'Clone2'
+
+  HighlightCellsOnSeuratPlot(seuratPlot = P1, seuratObj = seuratObj, cellSelectField = 'CloneName')
+
+  PlotSeuratVariables(seuratObj, xvar = 'ClusterNames_0.6', yvar = 'ClusterNames_0.2')
+
   #Note: if the expectations change, save this output as a reference:
   #seuratObjSS <- seuratObj[1:100]
   #saveRDS(seuratObjSS, file = '../testdata/seuratOutputSS.rds')

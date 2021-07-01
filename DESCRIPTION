@@ -34,7 +34,8 @@ Imports:
     scuttle,
     DT,
     SingleCellExperiment,
-    dsb
+    dsb,
+    ggnewscale
 Suggests:
     devtools,
     testthat (>= 2.1.0),

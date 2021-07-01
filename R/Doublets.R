@@ -18,7 +18,7 @@ utils::globalVariables(
 FindDoublets <- function(seuratObj, assay = 'RNA', rawResultFile = NULL, doPlot = TRUE, dropDoublets = FALSE) {
 	print('Finding doublets using scDblFinder')
 
-	sce <- Seurat::as.SingleCellExperiment(seuratObj, assay = assay)
+	sce <- Seurat::as.SingleCellExperiment(DietSeurat(seuratObj, assays = c(assay)), assay = assay)
 	df <- scDblFinder::scDblFinder(sce, returnType = 'table', verbose = FALSE)
 	df <- df[df$type == 'real',]
 
