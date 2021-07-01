@@ -274,6 +274,9 @@ AddClonesToPlot <- function(seuratObj, plot, fieldName = 'CloneNames', colorFiel
 		) + guides(shape = FALSE)
 	}
 
+	# This restores the original DimPlot dot size
+	plot <- plot + guides(colour_new = guide_legend(override.aes = list(size=3)))
+
 	return(plot)
 }
 
