@@ -91,7 +91,7 @@ test_that("Serat processing works as expected", {
   seuratObj$CloneName[rep(c( rep(FALSE, 5), TRUE ), ncol(seuratObj))] <- 'Clone1'
   seuratObj$CloneName[rep(c( rep(FALSE, 6), TRUE ), ncol(seuratObj))] <- 'Clone2'
 
-  HighlightCellsOnSeuratPlot(plot = P1, seuratObj = seuratObj)
+  HighlightCellsOnSeuratPlot(seuratPlot = P1, seuratObj = seuratObj, cellSelectField = 'CloneName')
 
   PlotSeuratVariables(seuratObj, xvar = 'ClusterNames_0.6', yvar = 'ClusterNames_0.2')
 
