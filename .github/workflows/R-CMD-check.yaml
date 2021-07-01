@@ -80,6 +80,7 @@ jobs:
 
       # NOTE: this is a temporary fix to manually install a patched remotes to allow it to properly install bioconductor-devel packages
       - name: Install Custom Remotes
+        if: matrix.config.bioc == 'devel'
         run: |
           git clone -b git_head https://github.com/bbimber/remotes.git
           cd remotes

@@ -434,7 +434,7 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 		barcodePrefix <- paste0(datasetId, '_')
 	}
 
-	if (!is.null(datasetId)) {
+	if (!is.null(barcodePrefix)) {
 		df$cellbarcode <- paste0(barcodePrefix, '_', df$cellbarcode)
 	}
 
