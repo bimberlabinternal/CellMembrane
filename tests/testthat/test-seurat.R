@@ -88,8 +88,8 @@ test_that("Serat processing works as expected", {
   P1 <- Seurat::Dimplot(seuratObj)
   seuratObj$CloneName <- NA
 
-  seuratObj$CloneName[rep(c( rep(FALSE, 5), TRUE ), ncol(seuratObj)] <- 'Clone1'
-  seuratObj$CloneName[rep(c( rep(FALSE, 6), TRUE ), ncol(seuratObj)] <- 'Clone2'
+  seuratObj$CloneName[rep(c( rep(FALSE, 5), TRUE ), ncol(seuratObj))] <- 'Clone1'
+  seuratObj$CloneName[rep(c( rep(FALSE, 6), TRUE ), ncol(seuratObj))] <- 'Clone2'
 
   AddClonesToPlot(plot = P1, seuratObj = seuratObj)
 
