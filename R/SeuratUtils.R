@@ -1,5 +1,5 @@
 utils::globalVariables(
-	names = c('subsetField', 'CountsPerCell', 'Saturation'),
+	names = c('subsetField', 'CountsPerCell', 'Saturation', 'Color'),
 	package = 'CellMembrane',
 	add = TRUE
 )
@@ -232,52 +232,68 @@ GetXYAesthetics <- function(plot, geom = 'GeomPoint', plot.first = TRUE) {
 }
 
 #' @title AddClonesToPlot
-#' @description Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes
+#' @description Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes. Note: this uses ggnewscale::new_scale_color to enable multiple color scales. The original aesthetics are suffixed with '_new' (i.e. color_new)
 #' @param seuratObj The seurat object
 #' @param plot The plot object, such as the result from FeaturePlot()
 #' @param fieldName The name of the field on the seurat object holding cloneName
 #' @param colorField If provided, this field will be used
 #' @param dotColor An optional string passed to geom_point. Ignored if colorField is provided.
 #' @param pt.size The size, passed to geom_point
-#' @param assignShapeByClone If false, all points will use the same shape. This is necessary if there are too many factor levels
+#' @param useShape If true, the values of fieldName will be used to assign shape. Note: if there are more than 6 unique values this will be ignored.
+#' @param colorFieldLabel This is passed to labs(color = XXX) to label the legend
+#' @param horizontalLegend If true, theme(legend.box = "horizontal") is added to the plot
 #' @export
 #' @import ggplot2
-AddClonesToPlot <- function(seuratObj, plot, fieldName = 'CloneNames', colorField = NA, dotColor = NA, pt.size = 1, assignShapeByClone = TRUE) {
+AddClonesToPlot <- function(seuratObj, P, fieldName = 'CloneNames', colorField = NA, dotColor = NA, pt.size = 1, useShape = TRUE, colorFieldLabel = 'Clone', horizontalLegend = TRUE) {
 	cellNames <- colnames(seuratObj)[!is.na(seuratObj[[fieldName]])]
-	plot.data <- GetXYDataFromPlot(plot, cellNames)
+	plot.data <- GetXYDataFromPlot(P, cellNames)
 	plot.data$Clone <- seuratObj[[fieldName]][!is.na(seuratObj[[fieldName]])]
 
-	sel <- !is.na(seuratObj[[fieldName]])
-	plot.data$ShapeField <- as.character(seuratObj[[fieldName]][sel])
-	if (!assignShapeByClone) {
-		# Assign constant value to all use a single shape
-		plot.data$ShapeField[!is.na(plot.data$ShapeField)] <- 1
-	}
-	plot.data$ShapeField <- naturalsort::naturalfactor(plot.data$ShapeField)
+	P <- P + ggnewscale::new_scale_color()
 
 	if (!is.na(colorField)) {
-		plot.data$CloneColor <- naturalsort::naturalfactor(seuratObj[[colorField]][sel])
+		plot.data$Color <- naturalsort::naturalfactor(seuratObj[[colorField]][sel])
 
-		plot <- plot + ggnewscale::new_scale_color() + geom_point(
-			mapping = aes_string(x = 'x', y = 'y', shape = 'ShapeField', color = 'CloneColor'),
+		P <- P + geom_point(
+			mapping = aes(x = x, y = y, color = Color),
 			data = plot.data,
-			size = pt.size,
-			inherit.aes = F
+			inherit.aes = F,
+			size = pt.size
 		)
-	} else {
-		plot <- plot + ggnewscale::new_scale_color() + geom_point(
-			mapping = aes_string(x = 'x', y = 'y', shape = 'ShapeField'),
+	} else if (!is.na(dotColor)) {
+		P <- P + geom_point(
+			mapping = aes(x = x, y = y),
 			data = plot.data,
 			size = pt.size,
 			inherit.aes = F,
 			color = dotColor
-		) + guides(shape = FALSE)
+		)
+	} else {
+		stop('Must provide either dotColor or colorField')
+	}
+
+	if (useShape) {
+		sel <- !is.na(seuratObj[[fieldName]])
+		plot.data$ShapeField <- as.character(seuratObj[[fieldName]][sel])
+
+		if (length(unique(plot.data$ShapeField)) > 6) {
+			warning('There are more than 6 unique values, all points will be assigned the same shape')
+		} else {
+			P <- P + aes(shape = 'ShapeField')
+			P <- P + guides(shape = FALSE)
+		}
+	}
+
+	P <- P + labs(color = colorFieldLabel)
+
+	if (horizontalLegend) {
+		P <- P + theme(legend.box = "horizontal")
 	}
 
 	# This restores the original DimPlot dot size
-	plot <- plot + guides(colour_new = guide_legend(override.aes = list(size=3)))
+	P <- P + guides(colour_new = guide_legend(override.aes = list(size=3)))
 
-	return(plot)
+	return(P)
 }
 
 #' @title FilterCloneNames

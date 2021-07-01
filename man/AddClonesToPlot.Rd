@@ -6,18 +6,18 @@
 \usage{
 AddClonesToPlot(
   seuratObj,
-  plot,
+  P,
   fieldName = "CloneNames",
   colorField = NA,
   dotColor = NA,
   pt.size = 1,
-  assignShapeByClone = TRUE
+  useShape = TRUE,
+  colorFieldLabel = "Clone",
+  horizontalLegend = TRUE
 )
 }
 \arguments{
 \item{seuratObj}{The seurat object}
-
-\item{plot}{The plot object, such as the result from FeaturePlot()}
 
 \item{fieldName}{The name of the field on the seurat object holding cloneName}
 
@@ -27,8 +27,14 @@ AddClonesToPlot(
 
 \item{pt.size}{The size, passed to geom_point}
 
-\item{assignShapeByClone}{If false, all points will use the same shape. This is necessary if there are too many factor levels}
+\item{useShape}{If true, the values of fieldName will be used to assign shape. Note: if there are more than 6 unique values this will be ignored.}
+
+\item{colorFieldLabel}{This is passed to labs(color = XXX) to label the legend}
+
+\item{horizontalLegend}{If true, theme(legend.box = "horizontal") is added to the plot}
+
+\item{plot}{The plot object, such as the result from FeaturePlot()}
 }
 \description{
-Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes
+Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes. Note: this uses ggnewscale::new_scale_color to enable multiple color scales. The original aesthetics are suffixed with '_new' (i.e. color_new)
 }
