@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Append Per Cell Saturation — AppendPerCellSaturation • CellMembrane</title>
+<title>Plot Seurat Variables — PlotSeuratVariables • CellMembrane</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Append Per Cell Saturation — AppendPerCellSaturation" />
-<meta property="og:description" content="Calculate and Append Per-cell Saturation to a Seurat Object" />
+<meta property="og:title" content="Plot Seurat Variables — PlotSeuratVariables" />
+<meta property="og:description" content="Create a panel of plots summarizing two variables within the seurat object" />
 
 
 
@@ -108,16 +108,16 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Append Per Cell Saturation</h1>
+    <h1>Plot Seurat Variables</h1>
     <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/SeuratUtils.R'><code>R/SeuratUtils.R</code></a></small>
-    <div class="hidden name"><code>AppendPerCellSaturation.Rd</code></div>
+    <div class="hidden name"><code>PlotSeuratVariables.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Calculate and Append Per-cell Saturation to a Seurat Object</p>
+    <p>Create a panel of plots summarizing two variables within the seurat object</p>
     </div>
 
-    <pre class="usage"><span class='fu'>AppendPerCellSaturation</span><span class='op'>(</span><span class='va'>seuratObj</span>, <span class='va'>molInfoFile</span>, cellbarcodePrefix <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>PlotSeuratVariables</span><span class='op'>(</span><span class='va'>seuratObj</span>, <span class='va'>xvar</span>, <span class='va'>yvar</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -127,12 +127,12 @@
       <td><p>The seurat object</p></td>
     </tr>
     <tr>
-      <th>molInfoFile</th>
-      <td><p>The 10x molecule_info.h5 file</p></td>
+      <th>xvar</th>
+      <td><p>The first variable to summarize (i.e. ClusterNames_0.2)</p></td>
     </tr>
     <tr>
-      <th>cellbarcodePrefix</th>
-      <td><p>An optional string appended to the barcodes parsed from the molecule_info.h5 file. This is necessary if the seurat object has a prefix applied to cell barcodes. This value is directly concatenated and must include any delimiter. Note: if this is absent, but the seuratObj has the columns DatasetId or BarcodePrefix, the latter will be used.</p></td>
+      <th>yvar</th>
+      <td><p>The second variable to summarize (i.e. SubjectId)</p></td>
     </tr>
     </table>
 

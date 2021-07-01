@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>AddClonesToPlot — AddClonesToPlot • CellMembrane</title>
+<title>HighlightCellsOnSeuratPlot — HighlightCellsOnSeuratPlot • CellMembrane</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="AddClonesToPlot — AddClonesToPlot" />
-<meta property="og:description" content="Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes" />
+<meta property="og:title" content="HighlightCellsOnSeuratPlot — HighlightCellsOnSeuratPlot" />
+<meta property="og:description" content="Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes. Note: this uses ggnewscale::new_scale_color to enable multiple color scales. The original aesthetics are suffixed with '_new' (i.e. color_new). This has also only been tested thoroughly with DimPlots." />
 
 
 
@@ -108,22 +108,26 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>AddClonesToPlot</h1>
+    <h1>HighlightCellsOnSeuratPlot</h1>
     <small class="dont-index">Source: <a href='https://github.com/BimberLabInternal/CellMembrane/blob/master/R/SeuratUtils.R'><code>R/SeuratUtils.R</code></a></small>
-    <div class="hidden name"><code>AddClonesToPlot.Rd</code></div>
+    <div class="hidden name"><code>HighlightCellsOnSeuratPlot.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes</p>
+    <p>Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes. Note: this uses ggnewscale::new_scale_color to enable multiple color scales. The original aesthetics are suffixed with '_new' (i.e. color_new). This has also only been tested thoroughly with DimPlots.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>AddClonesToPlot</span><span class='op'>(</span>
+    <pre class="usage"><span class='fu'>HighlightCellsOnSeuratPlot</span><span class='op'>(</span>
   <span class='va'>seuratObj</span>,
-  <span class='va'>plot</span>,
-  fieldName <span class='op'>=</span> <span class='st'>"CloneNames"</span>,
+  <span class='va'>seuratPlot</span>,
+  cellSelectField <span class='op'>=</span> <span class='st'>"CloneNames"</span>,
+  colorLegendLabel <span class='op'>=</span> <span class='st'>"Clone"</span>,
   colorField <span class='op'>=</span> <span class='cn'>NA</span>,
   dotColor <span class='op'>=</span> <span class='cn'>NA</span>,
-  pt.size <span class='op'>=</span> <span class='fl'>1</span>
+  pt.size <span class='op'>=</span> <span class='fl'>1</span>,
+  shapeField <span class='op'>=</span> <span class='cn'>NA</span>,
+  horizontalLegend <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  resetLegendSize <span class='op'>=</span> <span class='cn'>TRUE</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -134,24 +138,40 @@
       <td><p>The seurat object</p></td>
     </tr>
     <tr>
-      <th>plot</th>
-      <td><p>The plot object, such as the result from FeaturePlot()</p></td>
+      <th>seuratPlot</th>
+      <td><p>The plot object, such as the result from DimPlot()</p></td>
     </tr>
     <tr>
-      <th>fieldName</th>
-      <td><p>The name of the field on the seurat object holding cloneName</p></td>
+      <th>cellSelectField</th>
+      <td><p>The name of the field to select which cells to plot</p></td>
+    </tr>
+    <tr>
+      <th>colorLegendLabel</th>
+      <td><p>This is passed to labs(color = XXX) to label the legend</p></td>
     </tr>
     <tr>
       <th>colorField</th>
-      <td><p>If provided, this field will be used</p></td>
+      <td><p>The name of the field to assign colors to the cells. This provides the option to use a different value from cellSelectField. If colorField and dotColor are NA, cellSelectField will be used.</p></td>
     </tr>
     <tr>
       <th>dotColor</th>
-      <td><p>An optional string passed to geom_point. Ignored if colorField is provided.</p></td>
+      <td><p>An optional string passed to geom_point(color = XX). This will assign all cells the same color. Ignored if colorField is provided.</p></td>
     </tr>
     <tr>
       <th>pt.size</th>
-      <td><p>The size, passed to geom_point</p></td>
+      <td><p>The size, passed to geom_point().</p></td>
+    </tr>
+    <tr>
+      <th>shapeField</th>
+      <td><p>If true, provided, these values will be used for shape. Note: if there are more than 6 unique values this will be ignored.</p></td>
+    </tr>
+    <tr>
+      <th>horizontalLegend</th>
+      <td><p>If true, theme(legend.box = "horizontal") is added to the plot. This can be useful if the original plot also has a legend (such as cluster names)</p></td>
+    </tr>
+    <tr>
+      <th>resetLegendSize</th>
+      <td><p>Using ggnewscale::new_scale_color seems to reset the dot size of the legend. If resetLegendSize=TRUE, the function will call "guides(colour_new = guide_legend(override.aes = list(size=3)))" to restore dot size to 3.</p></td>
     </tr>
     </table>
 
