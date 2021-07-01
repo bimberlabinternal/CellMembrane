@@ -88,13 +88,6 @@ jobs:
           cd ../
           rm -Rf remotes
 
-      # NOTE: manual install of seurat added to fix: https://github.com/satijalab/seurat/issues/4531. Should remain until >4.0.2 is published
-      #- name: Bugfix Seurat
-      #  #if: runner.bioc == 'devel'
-      #  run: |
-      #    remotes::install_github(repo = 'satijalab/seurat', ref = 'develop');
-      #  shell: Rscript {0}
-
       - name: Install dependencies
         run: |
           getOption('repos');
