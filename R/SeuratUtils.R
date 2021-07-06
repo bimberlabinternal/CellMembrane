@@ -435,16 +435,20 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 	}
 
 	if (!is.null(barcodePrefix)) {
-		df$cellbarcode <- paste0(barcodePrefix, '_', df$cellbarcode)
+		df$cellbarcode <- paste0(barcodePrefix, df$cellbarcode)
 	}
 
 	if (length(intersect(colnames(seuratObj), df$cellbarcode)) == 0) {
-		print('No overlapping barcodes found, adding gem_group')
+		bc1 <- paste0(head(df$cellbarcode, n = 2), collapse = ';')
+		bc2 <- paste0(head(colnames(seuratObj), n = 2), collapse = ';')
+		print(paste0('No overlapping barcodes found (example: ', bc1, ' / ', bc2,'), adding gem_group'))
 		df$cellbarcode <- paste0(df$cellbarcode, '-', df$gem_group)
 	}
 
 	if (length(intersect(colnames(seuratObj), df$cellbarcode)) == 0) {
-		stop('No overlapping barcodes found between seuratObj and molecule_info.h5 file')
+		bc1 <- paste0(head(df$cellbarcode, n = 2), collapse = ';')
+		bc2 <- paste0(head(colnames(seuratObj), n = 2), collapse = ';')
+		stop(paste0('No overlapping barcodes found between seuratObj and molecule_info.h5 file, example: ', bc1, ' / ', bc2))
 	}
 
 	df <- data.frame(cellbarcode = df$cellbarcode, num.umis = df$num.umis, CountsPerCell = df$num.reads)
