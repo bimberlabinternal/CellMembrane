@@ -126,8 +126,10 @@
   dotColor <span class='op'>=</span> <span class='cn'>NA</span>,
   pt.size <span class='op'>=</span> <span class='fl'>1</span>,
   shapeField <span class='op'>=</span> <span class='cn'>NA</span>,
+  dotShapes <span class='op'>=</span> <span class='cn'>NA</span>,
   horizontalLegend <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  resetLegendSize <span class='op'>=</span> <span class='cn'>TRUE</span>
+  resetLegendSize <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  maxAllowableShapeValues <span class='op'>=</span> <span class='fl'>6</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -166,12 +168,20 @@
       <td><p>If true, provided, these values will be used for shape. Note: if there are more than 6 unique values this will be ignored.</p></td>
     </tr>
     <tr>
+      <th>dotShapes</th>
+      <td><p>An optional vector of shape values passed to scale_shape_manual(values = XX). If dotShapes is provided, but shapeField is not, all cells will receive the same shape.</p></td>
+    </tr>
+    <tr>
       <th>horizontalLegend</th>
       <td><p>If true, theme(legend.box = "horizontal") is added to the plot. This can be useful if the original plot also has a legend (such as cluster names)</p></td>
     </tr>
     <tr>
       <th>resetLegendSize</th>
       <td><p>Using ggnewscale::new_scale_color seems to reset the dot size of the legend. If resetLegendSize=TRUE, the function will call "guides(colour_new = guide_legend(override.aes = list(size=3)))" to restore dot size to 3.</p></td>
+    </tr>
+    <tr>
+      <th>maxAllowableShapeValues</th>
+      <td><p>If shapes are used and there are more than this many values, all cells will receive the same shape.</p></td>
     </tr>
     </table>
 
