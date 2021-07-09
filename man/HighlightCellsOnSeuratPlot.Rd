@@ -13,8 +13,10 @@ HighlightCellsOnSeuratPlot(
   dotColor = NA,
   pt.size = 1,
   shapeField = NA,
+  dotShapes = NA,
   horizontalLegend = TRUE,
-  resetLegendSize = TRUE
+  resetLegendSize = TRUE,
+  maxAllowableShapeValues = 6
 )
 }
 \arguments{
@@ -34,9 +36,13 @@ HighlightCellsOnSeuratPlot(
 
 \item{shapeField}{If true, provided, these values will be used for shape. Note: if there are more than 6 unique values this will be ignored.}
 
+\item{dotShapes}{An optional vector of shape values passed to scale_shape_manual(values = XX). If dotShapes is provided, but shapeField is not, all cells will receive the same shape.}
+
 \item{horizontalLegend}{If true, theme(legend.box = "horizontal") is added to the plot. This can be useful if the original plot also has a legend (such as cluster names)}
 
 \item{resetLegendSize}{Using ggnewscale::new_scale_color seems to reset the dot size of the legend. If resetLegendSize=TRUE, the function will call "guides(colour_new = guide_legend(override.aes = list(size=3)))" to restore dot size to 3.}
+
+\item{maxAllowableShapeValues}{If shapes are used and there are more than this many values, all cells will receive the same shape.}
 }
 \description{
 Can be used to highlight a set of cells from a seurat plot, such as overlaying specific clonotypes. Note: this uses ggnewscale::new_scale_color to enable multiple color scales. The original aesthetics are suffixed with '_new' (i.e. color_new). This has also only been tested thoroughly with DimPlots.

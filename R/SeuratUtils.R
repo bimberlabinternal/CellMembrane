@@ -239,13 +239,15 @@ GetXYAesthetics <- function(plot, geom = 'GeomPoint', plot.first = TRUE) {
 #' @param colorLegendLabel This is passed to labs(color = XXX) to label the legend
 #' @param colorField The name of the field to assign colors to the cells. This provides the option to use a different value from cellSelectField. If colorField and dotColor are NA, cellSelectField will be used.
 #' @param dotColor An optional string passed to geom_point(color = XX). This will assign all cells the same color. Ignored if colorField is provided.
+#' @param dotShapes An optional vector of shape values passed to scale_shape_manual(values = XX). If dotShapes is provided, but shapeField is not, all cells will receive the same shape.
 #' @param pt.size The size, passed to geom_point().
 #' @param shapeField If true, provided, these values will be used for shape. Note: if there are more than 6 unique values this will be ignored.
 #' @param horizontalLegend If true, theme(legend.box = "horizontal") is added to the plot. This can be useful if the original plot also has a legend (such as cluster names)
 #' @param resetLegendSize Using ggnewscale::new_scale_color seems to reset the dot size of the legend. If resetLegendSize=TRUE, the function will call "guides(colour_new = guide_legend(override.aes = list(size=3)))" to restore dot size to 3.
+#' @param maxAllowableShapeValues If shapes are used and there are more than this many values, all cells will receive the same shape.
 #' @export
 #' @import ggplot2
-HighlightCellsOnSeuratPlot <- function(seuratObj, seuratPlot, cellSelectField = 'CloneNames', colorLegendLabel = 'Clone', colorField = NA, dotColor = NA, pt.size = 1, shapeField = NA, horizontalLegend = TRUE, resetLegendSize = TRUE) {
+HighlightCellsOnSeuratPlot <- function(seuratObj, seuratPlot, cellSelectField = 'CloneNames', colorLegendLabel = 'Clone', colorField = NA, dotColor = NA, pt.size = 1, shapeField = NA, dotShapes = NA, horizontalLegend = TRUE, resetLegendSize = TRUE, maxAllowableShapeValues = 6) {
 	cellNames <- colnames(seuratObj)[!is.na(seuratObj[[cellSelectField]])]
 	plot.data <- GetXYDataFromPlot(seuratPlot, cellNames)
 	plot.data$Clone <- seuratObj[[cellSelectField]][!is.na(seuratObj[[cellSelectField]])]
@@ -278,14 +280,23 @@ HighlightCellsOnSeuratPlot <- function(seuratObj, seuratPlot, cellSelectField = 
 		stop('Must provide either dotColor or colorField')
 	}
 
+	# If shape field is not provided, but dotShape is, add a dummy field and assume all are the same value
 	if (!is.na(shapeField)) {
-		plot.data$ShapeField <- as.character(seuratObj[[shapeField]][cellsWithData])
+		plot.data$ShapeField <- as.factor(seuratObj[[shapeField]][cellsWithData])
+	} else if (!is.na(dotShapes)) {
+		plot.data$ShapeField <- 1
+	}
 
-		if (length(unique(plot.data$ShapeField)) > 6) {
-			warning('There are more than 6 unique values, all points will be assigned the same shape')
+	if ('ShapeField' %in% names(plot.data)) {
+		if (length(unique(plot.data$ShapeField)) > maxAllowableShapeValues) {
+			warning(paste0('There are more than ', maxAllowableShapeValues, ' unique values, all points will be assigned the same shape. See maxAllowableShapeValues'))
 		} else {
 			seuratPlot <- seuratPlot + aes(shape = 'ShapeField')
 			seuratPlot <- seuratPlot + guides(shape = FALSE)
+
+			if (!is.na(dotShapes)) {
+				seuratPlot <- seuratPlot + scale_shape_manual(values = dotShapes)
+			}
 		}
 	}
 
