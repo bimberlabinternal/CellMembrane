@@ -35,7 +35,8 @@ Imports:
     DT,
     SingleCellExperiment,
     dsb,
-    ggnewscale
+    ggnewscale,
+    BiocParallel
 Suggests:
     devtools,
     testthat (>= 2.1.0),
