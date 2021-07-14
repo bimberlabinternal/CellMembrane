@@ -125,7 +125,8 @@
   rawDataFile <span class='op'>=</span> <span class='cn'>NULL</span>,
   minFraction <span class='op'>=</span> <span class='fl'>0.01</span>,
   showHeatmap <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  maxCellsForHeatmap <span class='op'>=</span> <span class='fl'>20000</span>
+  maxCellsForHeatmap <span class='op'>=</span> <span class='fl'>20000</span>,
+  nThreads <span class='op'>=</span> <span class='cn'>NULL</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -162,6 +163,10 @@
     <tr>
       <th>maxCellsForHeatmap</th>
       <td><p>The heatmap will only be plotted if the total cells is below this number</p></td>
+    </tr>
+    <tr>
+      <th>nThreads</th>
+      <td><p>If provided, this integer value is passed to SingleR's BPPARAM argument. On windows ths is passed to BiocParallel::SnowParam(). On other OS it is passed to BiocParallel::MulticoreParam()</p></td>
     </tr>
     </table>
 
