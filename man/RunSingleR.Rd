@@ -12,7 +12,8 @@ RunSingleR(
   rawDataFile = NULL,
   minFraction = 0.01,
   showHeatmap = TRUE,
-  maxCellsForHeatmap = 20000
+  maxCellsForHeatmap = 20000,
+  nThreads = NULL
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ RunSingleR(
 \item{showHeatmap}{If true, heatmaps will be generated showing the SingleR calls}
 
 \item{maxCellsForHeatmap}{The heatmap will only be plotted if the total cells is below this number}
+
+\item{nThreads}{If provided, this integer value is passed to SingleR's BPPARAM argument. On windows ths is passed to BiocParallel::SnowParam(). On other OS it is passed to BiocParallel::MulticoreParam()}
 }
 \value{
 The modified seurat object

@@ -15,13 +15,14 @@ utils::globalVariables(
 #' @param minFraction If provided, any labels present with fraction of this or fewer across cells will be converted to Unknown
 #' @param showHeatmap If true, heatmaps will be generated showing the SingleR calls
 #' @param maxCellsForHeatmap The heatmap will only be plotted if the total cells is below this number
+#' @param nThreads If provided, this integer value is passed to SingleR's BPPARAM argument. On windows ths is passed to BiocParallel::SnowParam(). On other OS it is passed to BiocParallel::MulticoreParam()
 #' @return The modified seurat object
 #' @importFrom pheatmap pheatmap
 #' @import Seurat
 #' @import SingleR
 #' @export
 #' @importFrom scuttle logNormCounts
-RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco'), assay = NULL, resultTableFile = NULL, rawDataFile = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000){
+RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco'), assay = NULL, resultTableFile = NULL, rawDataFile = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000, nThreads = NULL){
   if (is.null(seuratObj)){
       stop("Seurat object is required")
   }
@@ -84,8 +85,18 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       refAssay <- 'normcounts'
     }
 
+    if (!is.null(nThreads)) {
+      if (.Platform$OS.type == 'windows') {
+        BPPARAM <- BiocParallel::SnowParam(nThreads)
+      } else {
+        BPPARAM <- BiocParallel::MulticoreParam(nThreads)
+      }
+    } else {
+      BPPARAM <- BiocParallel::SerialParam()
+    }
+
     tryCatch({
-      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
+      pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE, BPPARAM = BPPARAM))
       if (length(colnames(seuratObj)) != nrow(pred.results)) {
         stop('Length of SingleR results did not match seurat object')
       }
