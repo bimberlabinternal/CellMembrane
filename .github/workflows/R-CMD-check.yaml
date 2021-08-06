@@ -18,8 +18,8 @@ jobs:
       matrix:
         config:
           - {os: ubuntu-20.04, r: '4.1', bioc: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
-          - {os: ubuntu-20.04, r: 'release', bioc: '3.13', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
-          - {os: ubuntu-20.04, r: '4.0', bioc: '3.12', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest", pkgdown: "true"}
+          - {os: ubuntu-20.04, r: 'release', bioc: '3.13', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest", pkgdown: "true"}
+          - {os: ubuntu-20.04, r: '4.0', bioc: '3.12', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -88,6 +88,19 @@ jobs:
           R CMD INSTALL --build remotes_2.3.0.9000.tar.gz
           cd ../
           rm -Rf remotes
+
+      # See: https://github.com/PeteHaitch/DelayedMatrixStats/issues/84
+      - name: Temporary Fixes 3.13
+        if: matrix.config.bioc == '3.13'
+        run: |
+          BiocManager::install("PeteHaitch/DelayedMatrixStats@906ef69596558b0b7436ce95ad81a529062fa38c")
+        shell: Rscript {0}
+
+      - name: Temporary Fixes Devel
+        if: matrix.config.bioc == 'devel'
+        run: |
+          BiocManager::install("PeteHaitch/DelayedMatrixStats@949d3868d26a63861abe6109e18e62f352c0c41e")
+        shell: Rscript {0}
 
       - name: Install dependencies
         run: |

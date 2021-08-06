@@ -12,6 +12,9 @@ RUN apt-get update -y \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 
+# Temporary fix. See: https://github.com/PeteHaitch/DelayedMatrixStats/issues/84
+RUN Rscript -e 'BiocManager::install("PeteHaitch/DelayedMatrixStats@906ef69596558b0b7436ce95ad81a529062fa38c")'
+
 # Let this run for the purpose of installing/caching dependencies
 RUN Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
 	&& echo "local({\noptions(repos = BiocManager::repositories())\n})\n" >> ~/.Rprofile \
