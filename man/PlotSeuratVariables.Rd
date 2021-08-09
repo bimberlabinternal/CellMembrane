@@ -4,7 +4,7 @@
 \alias{PlotSeuratVariables}
 \title{Plot Seurat Variables}
 \usage{
-PlotSeuratVariables(seuratObj, xvar, yvar)
+PlotSeuratVariables(seuratObj, xvar, yvar, labelDimplot = FALSE)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
@@ -12,6 +12,8 @@ PlotSeuratVariables(seuratObj, xvar, yvar)
 \item{xvar}{The first variable to summarize (i.e. ClusterNames_0.2)}
 
 \item{yvar}{The second variable to summarize (i.e. SubjectId)}
+
+\item{labelDimplot}{This value is passed directly to the Seurat::DimPlot label argument}
 }
 \description{
 Create a panel of plots summarizing two variables within the seurat object

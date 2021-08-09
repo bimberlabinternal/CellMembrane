@@ -494,13 +494,14 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 #' @param seuratObj The seurat object
 #' @param xvar The first variable to summarize (i.e. ClusterNames_0.2)
 #' @param yvar The second variable to summarize (i.e. SubjectId)
+#' @param labelDimplot This value is passed directly to the Seurat::DimPlot label argument
 #' @export
-PlotSeuratVariables <- function(seuratObj, xvar, yvar) {
+PlotSeuratVariables <- function(seuratObj, xvar, yvar, labelDimplot = FALSE) {
 	data <- seuratObj@meta.data[c(xvar, yvar)]
 	names(data) <- c('x', 'y')
 
-	P0 <- DimPlot(seuratObj, group.by = xvar)
-	P2 <- DimPlot(seuratObj, group.by = yvar)
+	P0 <- DimPlot(seuratObj, group.by = xvar, label = labelDimplot)
+	P2 <- DimPlot(seuratObj, group.by = yvar, label = labelDimplot)
 
 	P1 <- ggplot(data, aes(x = x, fill = y)) +
 		geom_bar(position = 'fill') +
