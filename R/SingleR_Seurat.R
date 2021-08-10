@@ -71,7 +71,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     ref <- ref[genesPresent,]
 
     seuratObjSubset <- Seurat::DietSeurat(seuratObj, assays = c(assay), counts = TRUE)
-    seuratObjSubset <- subset(seuratObj, features = genesPresent)
+    seuratObjSubset <- subset(seuratObjSubset, features = genesPresent)
     Seurat::DefaultAssay(seuratObjSubset) <- assay
 
     #Convert to SingleCellExperiment
