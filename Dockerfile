@@ -12,7 +12,7 @@ RUN apt-get update -y \
         locales \
         locales-all \
     && python3 -m pip install --upgrade pip \
-	&& pip3 install umap-learn \
+	&& pip3 install umap-learn phate \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 
