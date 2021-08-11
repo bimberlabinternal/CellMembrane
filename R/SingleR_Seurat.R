@@ -119,12 +119,18 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         print(SingleR::plotScoreHeatmap(pred.results, cells.use = cells.use))
       }
 
+      print(SingleR::plotScoreDistribution(pred.results))
+      print(SingleR::plotDeltaDistribution(pred.results))
+
       toAdd <- pred.results$pruned.labels
       toAdd[is.na(toAdd)] <- 'Unknown'
       names(toAdd) <- colnames(seuratObj)
       fn <- paste0(dataset, '.label')
       allFields <- c(allFields, fn)
       seuratObj[[fn]] <- toAdd
+
+      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn]][[fn]]))
+      pheatmap::pheatmap(log10(tab+10)) # using a larger pseudo-count for smoothing.
 
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
       if (length(colnames(seuratObj)) != nrow(pred.results)) {
@@ -149,13 +155,18 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         print(SingleR::plotScoreHeatmap(pred.results, cells.use = cells.use))
       }
 
+      print(SingleR::plotScoreDistribution(pred.results))
+      print(SingleR::plotDeltaDistribution(pred.results))
+
       toAdd <- pred.results$pruned.labels
       toAdd[is.na(toAdd)] <- 'Unknown'
       names(toAdd) <- colnames(seuratObj)
-
       fn2 <- paste0(dataset, '.label.fine')
       allFields <- c(allFields, fn2)
       seuratObj[[fn2]] <- toAdd
+
+      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn2]][[fn2]]))
+      pheatmap::pheatmap(log10(tab+10)) # using a larger pseudo-count for smoothing.
 
       if (!is.null(minFraction)){
         for (label in c(fn, fn2)) {
