@@ -36,7 +36,8 @@ Imports:
     SingleCellExperiment,
     dsb,
     ggnewscale,
-    BiocParallel
+    BiocParallel,
+    phateR
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -59,6 +60,12 @@ Remotes:
     bioc::scuttle,
     bioc::SingleCellExperiment,
     niaid/dsb
+Config/reticulate:
+  list(
+    packages = list(
+      list(package = "phate")
+    )
+  )
 Collate: 
     'Preprocessing.R'
     'Utils.R'

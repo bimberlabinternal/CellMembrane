@@ -42,7 +42,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -yq python3-pip libcurl4-openssl-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
-          python3 -m pip install --user umap-learn
+          python3 -m pip install --user umap-learn phate
 
       # Note: the environment variable R_BIOC_VERSION is set to force remotes::install_bioc to follow the proper version
       - name: Setup Bioconductor
