@@ -4,7 +4,13 @@
 \alias{PlotSeuratVariables}
 \title{Plot Seurat Variables}
 \usage{
-PlotSeuratVariables(seuratObj, xvar, yvar, labelDimplot = FALSE)
+PlotSeuratVariables(
+  seuratObj,
+  xvar,
+  yvar,
+  labelDimplot = FALSE,
+  reduction = "umap"
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
@@ -14,6 +20,8 @@ PlotSeuratVariables(seuratObj, xvar, yvar, labelDimplot = FALSE)
 \item{yvar}{The second variable to summarize (i.e. SubjectId)}
 
 \item{labelDimplot}{This value is passed directly to the Seurat::DimPlot label argument}
+
+\item{reduction}{The reduction to use for the Seurat::DimPlot}
 }
 \description{
 Create a panel of plots summarizing two variables within the seurat object
