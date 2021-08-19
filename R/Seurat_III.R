@@ -134,7 +134,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	if (!is.null(featuresToRegress)) {
 		if ('p.mito' %in% featuresToRegress) {
 			if ('p.mito' %in% names(seuratObj@meta.data)) {
-				uniquePMito = length(unique(seuratObj$p.mito))
+				uniquePMito <- length(unique(seuratObj$p.mito))
 			} else {
 				uniquePMito <- -1
 			}
@@ -203,12 +203,13 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	toBind <- additionalFindVariableFeatureArgList
 	if (is.null(toBind)) {
 		toBind <- list()
-	}
+	} else {
+      print('Additional FindVariableFeatures arguments: ')
+      print(toBind)
+    }
 
-	toBind[['object']] <- seuratObj
 	toBind[['verbose']] <- FALSE
-	print('FindVariableFeatures args: ')
-	print(toBind)
+    toBind[['object']] <- seuratObj
 
 	seuratObj <- do.call(FindVariableFeatures, toBind)
 
@@ -291,7 +292,7 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
   print(paste0('Initial cells: ', length(colnames(x = seuratObj))))
 
   if ('p.mito' %in% colnames(seuratObj@meta.data)) {
-	  uniquePMito = length(unique(seuratObj$p.mito))
+	  uniquePMito <- length(unique(seuratObj$p.mito))
     if (uniquePMito > 1) {
       P1 <- FeatureScatter(object = seuratObj, feature1 = "nCount_RNA", feature2 = "p.mito")
       P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.low), color="blue", linetype="dashed", size=1)
@@ -566,7 +567,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 					print('No genes returned, skipping')
 				} else {
 					tMarkers$test <- c(test)
-					tMarkers$groupField <- c(fieldName)
+					tMarkers$groupField <- fieldName
 					tMarkers$cluster <- as.character(tMarkers$cluster)
 
 					logFcField <- ifelse('avg_log2FC' %in% colnames(tMarkers), yes = 'avg_log2FC', no = 'avg_logFC')
@@ -674,9 +675,9 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   elbowX <- try(.FindElbow(data.use[1:ndims], plot = FALSE, ignore.concavity = F, min.y = min.y))
   if (class(elbowX)=="try-error" || elbowX[1]==2) {
     if (is.null(ndims)){
-      elbowX = 2
+      elbowX <- 2
     } else {
-      elbowX = ndims
+      elbowX <- ndims
     }
   }
 
@@ -822,14 +823,14 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   if (is.na(min.x)){
     if (!is.na(min.y)){
       if (!length(which(DF$y<=min.y))<1){
-        min.x = min(DF[which(DF$y<=min.y), ]$x)
+        min.x <- min(DF[which(DF$y<=min.y), ]$x)
       } else {
         print("min.y greater than smallest y")
-        min.x = 2
+        min.x <- 2
       }
     } else {
       print("min.x and min.y are NA")
-      min.x = 2
+      min.x <- 2
     }
   }
 
@@ -856,9 +857,3 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     return(which.max(DF$dist))
   }
 }
-
-
-
-
-
-

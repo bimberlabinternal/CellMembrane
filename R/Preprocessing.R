@@ -43,7 +43,7 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 	} else {
 		mito.features <- c('ATP6','ATP8','COX1','COX2','COX3','CYTB','ND1','ND2','ND3','ND4','ND4L','ND5','ND6')
 
-		mito.features.prefix = c('MT-', mito.features)
+		mito.features.prefix <- c('MT-', mito.features)
 		i1 <- length(intersect(mito.features, rownames(seuratObj)))
 		i2 <- length(intersect(mito.features.prefix, rownames(seuratObj)))
 		if (i2 > i1) {
@@ -71,9 +71,9 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 #' @importFrom Matrix colSums
 .PrintQcPlots <- function(seuratObj) {
 	if ('p.mito' %in% colnames(seuratObj@meta.data)) {
-		totalPMito = length(unique(seuratObj$p.mito))
+		totalPMito <- length(unique(seuratObj$p.mito))
 	} else {
-		totalPMito = -1
+		totalPMito <- -1
 	}
 
 	feats <- c("nFeature_RNA", "nCount_RNA")
@@ -177,7 +177,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 			seuratObj <- seuratObjs[[datasetId]]
 		} else {
 			assayName <- DefaultAssay(seuratObj)
-			hasGeneId = ifelse(is.null(GetAssay(seuratObjs[[datasetId]])@meta.features$GeneId), F, T)
+			hasGeneId <- ifelse(is.null(GetAssay(seuratObjs[[datasetId]])@meta.features$GeneId), F, T)
 
 			if (any(rownames(seuratObj) != rownames(seuratObjs[[datasetId]]))) {
 				missing <- rownames(seuratObj)[!(rownames(seuratObj) %in% rownames(seuratObjs[[datasetId]]))]
