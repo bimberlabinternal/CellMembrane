@@ -117,7 +117,13 @@
     <p>Create a panel of plots summarizing two variables within the seurat object</p>
     </div>
 
-    <pre class="usage"><span class='fu'>PlotSeuratVariables</span><span class='op'>(</span><span class='va'>seuratObj</span>, <span class='va'>xvar</span>, <span class='va'>yvar</span>, labelDimplot <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>PlotSeuratVariables</span><span class='op'>(</span>
+  <span class='va'>seuratObj</span>,
+  <span class='va'>xvar</span>,
+  <span class='va'>yvar</span>,
+  labelDimplot <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  reduction <span class='op'>=</span> <span class='st'>"umap"</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -137,6 +143,10 @@
     <tr>
       <th>labelDimplot</th>
       <td><p>This value is passed directly to the Seurat::DimPlot label argument</p></td>
+    </tr>
+    <tr>
+      <th>reduction</th>
+      <td><p>The reduction to use for the Seurat::DimPlot</p></td>
     </tr>
     </table>
 
