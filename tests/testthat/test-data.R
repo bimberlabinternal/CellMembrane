@@ -9,3 +9,7 @@ test_that("Cell cycle gene data OK", {
 test_that("CD genes data OK", {
 	expect_equal(nrow(cdGenes), 394)
 })
+
+test_that("CD genes translation works", {
+	expect_equal(RenameUsingCD(c('ITGB1', 'EGLN3', 'Other', 'CD52')), c('ITGB1 (CD29)', 'EGLN3', 'Other', 'CD52 (CDW52)'))
+})

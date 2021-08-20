@@ -88,3 +88,32 @@ SetSeed <- function(seed) {
 GetSeed <- function(seed) {
   return(pkg.env$RANDOM_SEED)
 }
+
+#' @title Rename a vector of genes using CD nomenclature
+#'
+#' @description This compares a vector of genes to CD nomenclature, based on https://www.genenames.org/data/genegroup/#!/group/471. Any gene symbol that matches will have the CD name appended to the end (i.e. KLRB1 becomes "KLRB1 (CD161)")
+#' @param inputGenes A vector of genes to be aliased.
+#' @export
+RenameUsingCD <- function(inputGenes) {
+  vals <- CellMembrane::cdGenes[c('GeneSymbol', 'PreviousSymbols', 'Synonyms')]
+  vals$Aliases <- sapply(paste0(vals$PreviousSymbols, ',', vals$Synonyms), function(x){
+    x <- unlist(strsplit(x, split = ','))
+    x <- x[x != '']
+    x <- x[grep(x, pattern = '^CD')]
+    x <- sort(x)
+    x <- unique(toupper(x))
+
+    return(paste0(x, collapse = ','))
+  })
+  vals <- vals[!is.na(vals$Aliases) & vals$Aliases != '',]
+  vals <- vals[c('GeneSymbol','Aliases')]
+  vals
+
+  toMerge <- data.frame(Name = inputGenes, SortOrder = 1:length(inputGenes))
+  toMerge <- merge(toMerge, vals, by.x = 'Name', by.y = 'GeneSymbol', all.x = T)
+  sel <- !is.na(toMerge$Aliases)
+  toMerge$Name[sel] <- paste0(toMerge$Name[sel], ' (', toMerge$Aliases[sel], ')')
+  toMerge <- arrange(toMerge, SortOrder)
+
+  return(toMerge$Name)
+}
