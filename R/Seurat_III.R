@@ -225,7 +225,9 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 		print(paste0('Total after', length(VariableFeatures(seuratObj))))
 	}
 
-	if (scaleVariableFeaturesOnly) {
+  .PlotVariableFeatures(seuratObj)
+
+  if (scaleVariableFeaturesOnly) {
 		feats <- VariableFeatures(object = seuratObj)
 		print(paste0('ScaleData will use the top ', length(feats), ' variableFeatures'))
 	} else {
@@ -856,4 +858,24 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   } else {
     return(which.max(DF$dist))
   }
+}
+
+.PlotVariableFeatures <- function(seuratObj) {
+  df <- seuratObj@assays[[DefaultAssay(seuratObj)]]@meta.features
+  dat <- sort(df$vst.variance.standardized)
+  countAbove <-unlist(lapply(dat, function(x){
+    sum(dat >= x)
+  }))
+
+  print(paste0('Total variable features: ', sum(df$vst.variable)))
+  minVal <- min(df$vst.variance.standardized[df$vst.variable])
+
+  print(ggplot(data.frame(x = countAbove, y = dat), aes(x = x, y = y)) +
+          geom_point() + ylab("vst.variance.standardized") + xlab("# Features") +
+          geom_hline(yintercept = minVal, color = 'red') +
+          egg::theme_presentation(base_size = 12) +
+          scale_x_continuous(trans = 'log10') +
+          scale_y_continuous(trans = 'log10') +
+          ggtitle('Top Variable Features')
+  )
 }
