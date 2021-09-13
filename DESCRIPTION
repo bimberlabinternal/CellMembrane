@@ -45,7 +45,7 @@ Suggests:
     rmarkdown,
     shiny,
     pkgdown
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:

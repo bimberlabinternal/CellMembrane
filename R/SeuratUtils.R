@@ -508,13 +508,19 @@ PlotSeuratVariables <- function(seuratObj, xvar, yvar, labelDimplot = FALSE, red
 		geom_bar(position = 'fill') +
 		xlab(xvar) +
 		labs(fill = yvar) +
-		egg::theme_presentation(base_size = 12)
+		egg::theme_presentation(base_size = 12) +
+		theme(
+			axis.text.x = element_text(angle = 45, hjust = 1)
+		)
 
 	P3 <- ggplot(data, aes(x = x, fill = y)) +
 		geom_bar() +
 		xlab(xvar) +
 		labs(fill = yvar) +
-		egg::theme_presentation(base_size = 12)
+		egg::theme_presentation(base_size = 12) +
+		theme(
+			axis.text.x = element_text(angle = 45, hjust = 1)
+		)
 
 	return(P0 + P2 + P1 + P3)
 }
