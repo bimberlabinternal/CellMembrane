@@ -24,7 +24,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	#CD8 Activation
 	# XCL1 = ENSMMUG00000060218
 	# CCL4 = ENSMMUG00000008111
-	# LOC100423131 = XCL1, ENSMMUG00000013779
+	# LOC100423131 = XCL1, ENSMMUG00000013779, Lymphotactin
 	# LOC100430627 = CCL4, ENSMMUG00000008111
 	# LOC100426632 = C-C motif chemokine 4
 	# LOC100426537 = C-C motif chemokine 3-like
