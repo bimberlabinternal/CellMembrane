@@ -466,19 +466,20 @@ RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.siz
 #' @param umap.metric Passed directly to Seurat::RunUMAP
 #' @param umap.n.neighbors Passed directly to Seurat::RunUMAP
 #' @param umap.min.dist Passed directly to Seurat::RunUMAP
+#' @param umap.spread Passed directly to Seurat::RunUMAP
 #' @param umap.seed Passed directly to Seurat::RunUMAP
 #' @param umap.n.epochs Passed directly to Seurat::RunUMAP
+#' @param umap.densmap Passed directly to Seurat::RunUMAP
 #' @param max.tsne.iter The value of max_iter to provide to RunTSNE.  Increasing can help large datasets.
 #' @param tsne.perplexity tSNE perplexity. Passed directly to Seurat::RunTSNE(), but CellMembrane:::.InferPerplexityFromSeuratObj() corrects it if need be based dataset dims.
 #' @param clusterResolutions A vector of clustering resolutions, default is (0.2, 0.4, 0.6, 0.8, 1.2).
 #' @return A modified Seurat object.
 #' @export
 FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = NULL,
-                                   umap.method = 'uwot', umap.metric = 'cosine',
-                                   umap.n.neighbors = 30L,
-																	 umap.min.dist = 0.3, umap.seed = GetSeed(),
-                                   umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30,
-                                   clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2) ){
+                                   umap.method = 'uwot', umap.metric = NULL,
+                                   umap.n.neighbors = NULL, umap.min.dist = NULL, umap.spread = NULL, umap.seed = GetSeed(),
+                                   umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30, umap.densmap = FALSE,
+  clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2) ){
   if (is.null(dimsToUse)) {
     dimMax <- .FindSeuratElbow(seuratObj)
     print(paste0('Inferred elbow: ', dimMax))
@@ -507,15 +508,31 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 									reduction.key = 'rnaTSNE_',
 									max_iter = max.tsne.iter)
 
-  seuratObj <- RunUMAP(seuratObj,
-                  dims = dimsToUse,
-                  n.neighbors = umap.n.neighbors,
-                  min.dist = umap.min.dist,
-                  metric = umap.metric,
-                  umap.method = umap.method,
-									reduction.key = 'rnaUMAP_',
-									seed.use = umap.seed,
-									n.epochs = umap.n.epochs, verbose = FALSE)
+  umapArgs <- list()
+  umapArgs['verbose'] <- FALSE
+  umapArgs['seuratObj'] <- seuratObj
+  umapArgs['dims'] <- dimsToUse
+  umapArgs['reduction.key'] <- 'rnaUMAP_'
+
+  possibleArgs <- list(
+    n.neighbors = umap.n.neighbors,
+    min.dist = umap.min.dist,
+    metric = umap.metric,
+    umap.method = umap.method,
+    seed.use = umap.seed,
+    spread = umap.spread,
+    densmap = umap.densmap,
+    n.epochs = umap.n.epochs
+  )
+
+  for (param in names(possibleArgs)) {
+    if (!is.null(possibleArgs[param])) {
+      print(paste0('Setting RunUMAP arg: ', param, ' to ', possibleArgs[param]))
+      umapArgs[param] <- possibleArgs[param]
+    }
+  }
+
+  seuratObj <- do.call(RunUMAP, umapArgs)
 
   for (reduction in c('tsne', 'umap')){
     plotLS <- list()

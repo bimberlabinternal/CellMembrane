@@ -38,6 +38,9 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 
 	PlotMarkerSet(seuratObj, reductions, 'Monocyte', c('LYZ', 'CST3', 'S100A6', 'VIM'))
 
+	# ITGB3 = CD61
+	PlotMarkerSet(seuratObj, reductions, 'Platelet', c('ITGB3'))
+
 	# MRC1 = CD206
 	# ITGAM = CD11b
 	# Non-AMs: CD16+/CD206-/HLA-DR+/CD11b+
