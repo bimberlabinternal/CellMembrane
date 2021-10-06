@@ -175,7 +175,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	return(seuratObj)
 }
 
-.NormalizeAndScaleSCTransform <- function(seuratObj, featuresToRegress, additionalArgs = NULL, verbose = TRUE) {
+.NormalizeAndScaleSCTransform <- function(seuratObj, featuresToRegress, additionalArgs = NULL, verbose = FALSE) {
 	print('Using SCTransform')
 
 	toBind <- additionalArgs
@@ -510,7 +510,7 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 
   umapArgs <- list()
   umapArgs['verbose'] <- FALSE
-  umapArgs['seuratObj'] <- seuratObj
+  umapArgs['object'] <- seuratObj
   umapArgs['dims'] <- dimsToUse
   umapArgs['reduction.key'] <- 'rnaUMAP_'
 
