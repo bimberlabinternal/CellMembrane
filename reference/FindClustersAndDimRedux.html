@@ -122,13 +122,15 @@
   dimsToUse <span class='op'>=</span> <span class='cn'>NULL</span>,
   minDimsToUse <span class='op'>=</span> <span class='cn'>NULL</span>,
   umap.method <span class='op'>=</span> <span class='st'>"uwot"</span>,
-  umap.metric <span class='op'>=</span> <span class='st'>"cosine"</span>,
-  umap.n.neighbors <span class='op'>=</span> <span class='fl'>30L</span>,
-  umap.min.dist <span class='op'>=</span> <span class='fl'>0.3</span>,
+  umap.metric <span class='op'>=</span> <span class='cn'>NULL</span>,
+  umap.n.neighbors <span class='op'>=</span> <span class='cn'>NULL</span>,
+  umap.min.dist <span class='op'>=</span> <span class='cn'>NULL</span>,
+  umap.spread <span class='op'>=</span> <span class='cn'>NULL</span>,
   umap.seed <span class='op'>=</span> <span class='fu'><a href='GetSeed.html'>GetSeed</a></span><span class='op'>(</span><span class='op'>)</span>,
   umap.n.epochs <span class='op'>=</span> <span class='cn'>NULL</span>,
   max.tsne.iter <span class='op'>=</span> <span class='fl'>10000</span>,
   tsne.perplexity <span class='op'>=</span> <span class='fl'>30</span>,
+  umap.densmap <span class='op'>=</span> <span class='cn'>FALSE</span>,
   clusterResolutions <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.2</span>, <span class='fl'>0.4</span>, <span class='fl'>0.6</span>, <span class='fl'>0.8</span>, <span class='fl'>1.2</span><span class='op'>)</span>
 <span class='op'>)</span></pre>
 
@@ -164,6 +166,10 @@
       <td><p>Passed directly to Seurat::RunUMAP</p></td>
     </tr>
     <tr>
+      <th>umap.spread</th>
+      <td><p>Passed directly to Seurat::RunUMAP</p></td>
+    </tr>
+    <tr>
       <th>umap.seed</th>
       <td><p>Passed directly to Seurat::RunUMAP</p></td>
     </tr>
@@ -178,6 +184,10 @@
     <tr>
       <th>tsne.perplexity</th>
       <td><p>tSNE perplexity. Passed directly to Seurat::RunTSNE(), but CellMembrane:::.InferPerplexityFromSeuratObj() corrects it if need be based dataset dims.</p></td>
+    </tr>
+    <tr>
+      <th>umap.densmap</th>
+      <td><p>Passed directly to Seurat::RunUMAP</p></td>
     </tr>
     <tr>
       <th>clusterResolutions</th>
