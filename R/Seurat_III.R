@@ -509,10 +509,10 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 									max_iter = max.tsne.iter)
 
   umapArgs <- list()
-  umapArgs['verbose'] <- FALSE
-  umapArgs['object'] <- seuratObj
-  umapArgs['dims'] <- dimsToUse
-  umapArgs['reduction.key'] <- 'rnaUMAP_'
+  umapArgs[['verbose']] <- FALSE
+  umapArgs[['object']] <- seuratObj
+  umapArgs[['dims']] <- dimsToUse
+  umapArgs[['reduction.key']] <- 'rnaUMAP_'
 
   possibleArgs <- list(
     n.neighbors = umap.n.neighbors,
@@ -528,7 +528,7 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
   for (param in names(possibleArgs)) {
     if (!is.null(possibleArgs[[param]])) {
       print(paste0('Setting RunUMAP arg: ', param, ' to ', possibleArgs[[param]]))
-      umapArgs[param] <- possibleArgs[[param]]
+      umapArgs[[param]] <- possibleArgs[[param]]
     }
   }
 
