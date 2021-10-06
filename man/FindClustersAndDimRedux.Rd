@@ -9,13 +9,15 @@ FindClustersAndDimRedux(
   dimsToUse = NULL,
   minDimsToUse = NULL,
   umap.method = "uwot",
-  umap.metric = "cosine",
-  umap.n.neighbors = 30L,
-  umap.min.dist = 0.3,
+  umap.metric = NULL,
+  umap.n.neighbors = NULL,
+  umap.min.dist = NULL,
+  umap.spread = NULL,
   umap.seed = GetSeed(),
   umap.n.epochs = NULL,
   max.tsne.iter = 10000,
   tsne.perplexity = 30,
+  umap.densmap = FALSE,
   clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2)
 )
 }
@@ -34,6 +36,8 @@ FindClustersAndDimRedux(
 
 \item{umap.min.dist}{Passed directly to Seurat::RunUMAP}
 
+\item{umap.spread}{Passed directly to Seurat::RunUMAP}
+
 \item{umap.seed}{Passed directly to Seurat::RunUMAP}
 
 \item{umap.n.epochs}{Passed directly to Seurat::RunUMAP}
@@ -41,6 +45,8 @@ FindClustersAndDimRedux(
 \item{max.tsne.iter}{The value of max_iter to provide to RunTSNE.  Increasing can help large datasets.}
 
 \item{tsne.perplexity}{tSNE perplexity. Passed directly to Seurat::RunTSNE(), but CellMembrane:::.InferPerplexityFromSeuratObj() corrects it if need be based dataset dims.}
+
+\item{umap.densmap}{Passed directly to Seurat::RunUMAP}
 
 \item{clusterResolutions}{A vector of clustering resolutions, default is (0.2, 0.4, 0.6, 0.8, 1.2).}
 }
