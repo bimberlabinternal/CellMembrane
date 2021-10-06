@@ -183,12 +183,12 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 		toBind <- list()
 	}
 
-	toBind[['object']] <- seuratObj
 	toBind[['vars.to.regress']] <- featuresToRegress
 	toBind[['verbose']] <- verbose
 	toBind[['return.only.var.genes']] <- FALSE
 	print('SCTransform args: ')
 	print(toBind)
+    toBind[['object']] <- seuratObj
 
 	# To avoid 'reached iteration limit' warnings
 	seuratObj <- suppressWarnings(do.call(SCTransform, toBind))
@@ -526,9 +526,9 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
   )
 
   for (param in names(possibleArgs)) {
-    if (!is.null(possibleArgs[param])) {
-      print(paste0('Setting RunUMAP arg: ', param, ' to ', possibleArgs[param]))
-      umapArgs[param] <- possibleArgs[param]
+    if (!is.null(possibleArgs[[param]])) {
+      print(paste0('Setting RunUMAP arg: ', param, ' to ', possibleArgs[[param]]))
+      umapArgs[param] <- possibleArgs[[param]]
     }
   }
 
