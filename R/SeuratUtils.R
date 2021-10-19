@@ -389,8 +389,12 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 #' @import patchwork
 #' @export
 FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsne', 'umap', 'wnn.umap'), plotsPerRow = 3) {
+	reductionToPlot <- intersect(reductions, names(seuratObj@reductions))
+	if (length(reductionToPlot) == 0) {
+		print('None of the requested reductions were present, skipping')
+	}
+
 	for (feature in features) {
-		reductionToPlot <- intersect(reductions, names(seuratObj@reductions))
 		steps <- ceiling(length(reductionToPlot) / plotsPerRow) - 1
 
 		for (i in 0:steps) {
@@ -505,7 +509,7 @@ PlotSeuratVariables <- function(seuratObj, xvar, yvar, labelDimplot = FALSE, red
 	P2 <- DimPlot(seuratObj, group.by = yvar, label = labelDimplot, reduction = reduction)
 
 	P1 <- ggplot(data, aes(x = x, fill = y)) +
-		geom_bar(position = 'fill') +
+		geom_bar(position = 'fill', color = 'black') +
 		xlab(xvar) +
 		labs(fill = yvar) +
 		egg::theme_presentation(base_size = 12) +
@@ -514,7 +518,7 @@ PlotSeuratVariables <- function(seuratObj, xvar, yvar, labelDimplot = FALSE, red
 		)
 
 	P3 <- ggplot(data, aes(x = x, fill = y)) +
-		geom_bar() +
+		geom_bar(color = 'black') +
 		xlab(xvar) +
 		labs(fill = yvar) +
 		egg::theme_presentation(base_size = 12) +
