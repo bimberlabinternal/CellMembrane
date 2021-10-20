@@ -201,10 +201,10 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		existingData[rownames(data), colnames(data)] <- data
 		if (is.null(replacementAssay)) {
 			args <- list()
-			args[[slot]] <- existingData
+			args[[slot]] <- Seurat::as.sparse(existingData)
 			replacementAssay <- do.call(Seurat::CreateAssayObject, args)
 		} else {
-			replacementAssay <- SetAssayData(replacementAssay, slot = slot, existingData)
+			replacementAssay <- SetAssayData(replacementAssay, slot = slot, Seurat::as.sparse(existingData))
 		}
 	}
 
@@ -441,8 +441,8 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		use.isotype.control = FALSE # use isotype controls to define the technical component
 	)
 
-	a <- Seurat::CreateAssayObject(counts = filteredAdtCountMatrix[ ,colnames(normCounts)])
-	a <- SetAssayData(a, slot = 'data', normCounts)
+	a <- Seurat::CreateAssayObject(counts = Seurat::as.sparse(filteredAdtCountMatrix[ ,colnames(normCounts)]))
+	a <- SetAssayData(a, slot = 'data', Seurat::as.sparse(normCounts))
 
 	return(a)
 }
