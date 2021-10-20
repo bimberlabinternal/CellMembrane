@@ -62,7 +62,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		assayData <- .PossiblyExpandAssay(seuratObj, assayData)
 	}
 
-	seuratObj[[assayName]] <- Seurat::as.sparse(assayData)
+	seuratObj[[assayName]] <- assayData
 	.PlotMarkerQc(seuratObj, assayName = assayName)
 
 	return(seuratObj)
