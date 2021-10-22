@@ -201,9 +201,11 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 
 	print('Find variable features:')
 	toBind <- additionalFindVariableFeatureArgList
-	if (is.null(toBind)) {
+	if (all(is.null(toBind))) {
 		toBind <- list()
-	} else {
+	}
+
+    if (length(toBind) > 0) {
       print('Additional FindVariableFeatures arguments: ')
       print(toBind)
     }
