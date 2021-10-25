@@ -550,42 +550,42 @@ CiteSeqDimRedux.Dist <- function(seuratObj, assayName = 'ADT', dist.method = "eu
 #' @importFrom dplyr arrange
 #' @import Seurat
 CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE, performClrNormalization = TRUE, doUMAP = TRUE, dimsToUse = NULL, adtWhitelist = NULL, adtBlacklist = NULL){
-	origAssay <- DefaultAssay(seuratObj)
-	DefaultAssay(seuratObj) <- assayName
-	print(paste0('Processing ADT data, features: ', paste0(rownames(seuratObj), collapse = ',')))
-
-	# Before we recluster the data on ADT levels, we'll stash the original cluster IDs for later
-	seuratObj[["origClusterID"]] <- Idents(seuratObj)
-
-	if (!is.null(adtWhitelist)) {
-		sharedADTs <- intersect(adtWhitelist, rownames(seuratObj[[assayName]]))
-		if (length(sharedADTs) != length(adtWhitelist)) {
-			missing <- adtWhitelist[!(adtWhitelist %in% rownames(seuratObj[[assayName]]))]
-			stop(paste0('The following ADTs were requested in adtWhitelist, but not found in the seurat object: ', paste0(missing, collapse = ',')))
-		}
-	}
-
-	if (is.null(adtWhitelist)) {
-		adtsForPca <- rownames(seuratObj[[assayName]])
-	} else {
-		adtsForPca <- adtWhitelist
-	}
-
-	if (!is.null(adtBlacklist)) {
-		adtsForPca <- adtsForPca[!(adtsForPca %in% adtBlacklist)]
-	}
-
-	if (performClrNormalization) {
-		seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
-	} else if (is.null(seuratObj[[assayName]]@data) || length(seuratObj[[assayName]]@data) == 0){
-		stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
-	} else {
-		print('Using pre-existing normalization')
-	}
-
-	print("Performing PCA on ADTs")
-	print(paste0('ADTs used: ', paste0(adtsForPca, collapse = ',')))
 	tryCatch({
+		origAssay <- DefaultAssay(seuratObj)
+		DefaultAssay(seuratObj) <- assayName
+		print(paste0('Processing ADT data, features: ', paste0(rownames(seuratObj), collapse = ',')))
+
+		# Before we recluster the data on ADT levels, we'll stash the original cluster IDs for later
+		seuratObj[["origClusterID"]] <- Idents(seuratObj)
+
+		if (!is.null(adtWhitelist)) {
+			sharedADTs <- intersect(adtWhitelist, rownames(seuratObj[[assayName]]))
+			if (length(sharedADTs) != length(adtWhitelist)) {
+				missing <- adtWhitelist[!(adtWhitelist %in% rownames(seuratObj[[assayName]]))]
+				stop(paste0('The following ADTs were requested in adtWhitelist, but not found in the seurat object: ', paste0(missing, collapse = ',')))
+			}
+		}
+
+		if (is.null(adtWhitelist)) {
+			adtsForPca <- rownames(seuratObj[[assayName]])
+		} else {
+			adtsForPca <- adtWhitelist
+		}
+
+		if (!is.null(adtBlacklist)) {
+			adtsForPca <- adtsForPca[!(adtsForPca %in% adtBlacklist)]
+		}
+
+		if (performClrNormalization) {
+			seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
+		} else if (is.null(seuratObj[[assayName]]@data) || length(seuratObj[[assayName]]@data) == 0){
+			stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
+		} else {
+			print('Using pre-existing normalization')
+		}
+
+		print("Performing PCA on ADTs")
+		print(paste0('ADTs used: ', paste0(adtsForPca, collapse = ',')))
 		seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = assayName, features = adtsForPca)
 		seuratObj <- RunPCA(seuratObj, reduction.name = 'pca.adt', assay = assayName, verbose = FALSE, reduction.key  = 'adtPCA_', npcs = length(adtsForPca)-1, features = adtsForPca)
 		if (print.plots) {
