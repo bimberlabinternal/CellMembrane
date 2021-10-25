@@ -179,9 +179,9 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 			assayName <- DefaultAssay(seuratObj)
 			hasGeneId <- ifelse(is.null(GetAssay(seuratObjs[[datasetId]])@meta.features$GeneId), F, T)
 
-			if (any(rownames(seuratObj) != rownames(seuratObjs[[datasetId]]))) {
-				missing <- rownames(seuratObj)[!(rownames(seuratObj) %in% rownames(seuratObjs[[datasetId]]))]
-				missing <- c(missing, rownames(seuratObjs[[datasetId]])[!(rownames(seuratObjs[[datasetId]]) %in% rownames(seuratObj))])
+			if (any(rownames(seuratObj[[assayName]]) != rownames(seuratObjs[[datasetId]][[assayName]]))) {
+				missing <- rownames(seuratObj[[assayName]])[!(rownames(seuratObj[[assayName]]) %in% rownames(seuratObjs[[datasetId]][[assayName]]))]
+				missing <- c(missing, rownames(seuratObjs[[datasetId]][[assayName]])[!(rownames(seuratObjs[[datasetId]][[assayName]]) %in% rownames(seuratObj[[assayName]]))])
 				stop(paste0('Gene names are not equal! Missing: ', paste0(missing, collapse = ',')))
 			}
 
