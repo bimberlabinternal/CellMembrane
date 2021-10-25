@@ -186,10 +186,10 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 			}
 
 			if (hasGeneId) {
-				geneIds1 <- GetAssay(seuratObj)@meta.features$GeneId
-				geneIds2 <- GetAssay(seuratObjs[[datasetId]])@meta.features$GeneId
-				names(geneIds1) <- rownames(seuratObj)
-				names(geneIds2) <- rownames(seuratObjs[[datasetId]])
+				geneIds1 <- GetAssay(seuratObj, assay = assayName)@meta.features$GeneId
+				geneIds2 <- GetAssay(seuratObjs[[datasetId]], assay = assayName)@meta.features$GeneId
+				names(geneIds1) <- rownames(seuratObj[[assayName]])
+				names(geneIds2) <- rownames(seuratObjs[[datasetId]][[assayName]])
 			}
 
 			seuratObj <- merge(x = seuratObj, y = seuratObjs[[datasetId]], project = projectName, merge.data = merge.data)
