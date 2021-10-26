@@ -169,14 +169,19 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 }
 
 
-.DoMergeSimple <- function(seuratObjs, projectName, merge.data = FALSE){
+.DoMergeSimple <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = null){
 	seuratObj <- NULL
 
 	for (datasetId in names(seuratObjs)) {
 		if (is.null(seuratObj)) {
 			seuratObj <- seuratObjs[[datasetId]]
+			if (!is.null(expectedDefaultAssay)) {
+				DefaultAssay(seuratObj) <- expectedDefaultAssay
+			}
 		} else {
 			assayName <- DefaultAssay(seuratObj)
+			DefaultAssay(seuratObjs[[datasetId]]) <- assayName
+
 			hasGeneId <- ifelse(is.null(GetAssay(seuratObjs[[datasetId]], assay = assayName)@meta.features$GeneId), F, T)
 
 			if (any(rownames(seuratObj[[assayName]]) != rownames(seuratObjs[[datasetId]][[assayName]]))) {

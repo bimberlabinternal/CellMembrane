@@ -93,10 +93,11 @@ GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
 #' @param seuratObjs A named list of seurat objects, optionally named (in which case these will be used as dataset names).
 #' @param projectName The project name when creating the final seurat object
 #' @param merge.data Passed directly to Seurat::merge
+#' @param expectedDefaultAssay If not null, the DefaultAssay on the resulting seurat object will be set to this
 #' @return A modified Seurat object.
 #' @export
 #' @importFrom methods slot
-MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE){
+MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = 'RNA'){
   nameList <- names(seuratObjs)
   if (is.null(nameList)) {
     stop('Must provide a named list of seurat objects')
@@ -109,7 +110,7 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE){
 		seuratObjs[[datasetId]] <- .PossiblyAddBarcodePrefix(seuratObj, datasetId = datasetId, datasetName = NULL)
   }
   
-  seuratObj <- .DoMergeSimple(seuratObjs = seuratObjs, projectName = projectName, merge.data = merge.data)
+  seuratObj <- .DoMergeSimple(seuratObjs = seuratObjs, projectName = projectName, merge.data = merge.data, expectedDefaultAssay = expectedDefaultAssay)
 
   return(seuratObj)
 }

@@ -4,7 +4,12 @@
 \alias{MergeSeuratObjs}
 \title{Merge Seurat Objects}
 \usage{
-MergeSeuratObjs(seuratObjs, projectName, merge.data = FALSE)
+MergeSeuratObjs(
+  seuratObjs,
+  projectName,
+  merge.data = FALSE,
+  expectedDefaultAssay = "RNA"
+)
 }
 \arguments{
 \item{seuratObjs}{A named list of seurat objects, optionally named (in which case these will be used as dataset names).}
@@ -12,6 +17,8 @@ MergeSeuratObjs(seuratObjs, projectName, merge.data = FALSE)
 \item{projectName}{The project name when creating the final seurat object}
 
 \item{merge.data}{Passed directly to Seurat::merge}
+
+\item{expectedDefaultAssay}{If not null, the DefaultAssay on the resulting seurat object will be set to this}
 }
 \value{
 A modified Seurat object.
