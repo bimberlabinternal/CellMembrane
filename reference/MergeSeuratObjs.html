@@ -117,7 +117,12 @@
     <p>Merges a list of Seurat objects</p>
     </div>
 
-    <pre class="usage"><span class='fu'>MergeSeuratObjs</span><span class='op'>(</span><span class='va'>seuratObjs</span>, <span class='va'>projectName</span>, merge.data <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>MergeSeuratObjs</span><span class='op'>(</span>
+  <span class='va'>seuratObjs</span>,
+  <span class='va'>projectName</span>,
+  merge.data <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  expectedDefaultAssay <span class='op'>=</span> <span class='st'>"RNA"</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -133,6 +138,10 @@
     <tr>
       <th>merge.data</th>
       <td><p>Passed directly to Seurat::merge</p></td>
+    </tr>
+    <tr>
+      <th>expectedDefaultAssay</th>
+      <td><p>If not null, the DefaultAssay on the resulting seurat object will be set to this</p></td>
     </tr>
     </table>
 
