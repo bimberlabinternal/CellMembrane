@@ -177,7 +177,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 			seuratObj <- seuratObjs[[datasetId]]
 		} else {
 			assayName <- DefaultAssay(seuratObj)
-			hasGeneId <- ifelse(is.null(GetAssay(seuratObjs[[datasetId]])@meta.features$GeneId), F, T)
+			hasGeneId <- ifelse(is.null(GetAssay(seuratObjs[[datasetId]], assay = assayName)@meta.features$GeneId), F, T)
 
 			if (any(rownames(seuratObj[[assayName]]) != rownames(seuratObjs[[datasetId]][[assayName]]))) {
 				missing <- rownames(seuratObj[[assayName]])[!(rownames(seuratObj[[assayName]]) %in% rownames(seuratObjs[[datasetId]][[assayName]]))]
