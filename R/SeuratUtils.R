@@ -432,7 +432,7 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 	df$cellbarcode <- df$cell
 
 	if (is.null(assayName)) {
-		assayName <- DefaultAssay(seuratObj)
+		assayName <- Seurat::DefaultAssay(seuratObj)
 	}
 
 	barcodePrefix <- NULL
@@ -504,7 +504,7 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 	toMerge <- df$Saturation
 	names(toMerge) <- df$cellbarcode
 
-	d <- seuratObj[[targetField]]
+	d <- seuratObj[[targetField]][[1]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
 	seuratObj[[targetField]] <- d
@@ -512,14 +512,10 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 	toMerge <- df$CountsPerCell
 	names(toMerge) <- df$cellbarcode
 
-	d <- seuratObj[[targetFieldReads]]
+	d <- seuratObj[[targetFieldReads]][[1]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
 	seuratObj[[targetFieldReads]] <- d
-
-	if (doPlot) {
-		print(FeatureScatter(seuratObj, paste0('nFeature_', assayName), targetField) + NoLegend())
-	}
 
 	return(seuratObj)
 }
@@ -536,7 +532,7 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 		assayName <- unlist(strsplit(i, split = '-'))[2]
 		uniqueAssays <- c(uniqueAssays, assayName)
 
-		seuratObj <- AppendPerCellSaturation(seuratObj, molInfoList[[i]], cellbarcodePrefix = paste0(datasetId, '_'), assayName = assayName)
+		seuratObj <- AppendPerCellSaturation(seuratObj, molInfoList[[i]], cellbarcodePrefix = paste0(datasetId, '_'), assayName = assayName, doPlot = FALSE)
 	}
 
 	for (assayName in unique(uniqueAssays)) {
