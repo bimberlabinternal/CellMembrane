@@ -8,7 +8,8 @@ MergeSeuratObjs(
   seuratObjs,
   projectName,
   merge.data = FALSE,
-  expectedDefaultAssay = "RNA"
+  expectedDefaultAssay = "RNA",
+  doGC = FALSE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ MergeSeuratObjs(
 \item{merge.data}{Passed directly to Seurat::merge}
 
 \item{expectedDefaultAssay}{If not null, the DefaultAssay on the resulting seurat object will be set to this}
+
+\item{doGC}{If true, in an attempt to save memory gc() will be run after each seurat object is merged}
 }
 \value{
 A modified Seurat object.
