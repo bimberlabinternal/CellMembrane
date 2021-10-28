@@ -540,7 +540,7 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 		readField <- paste0('nReads_', assayName)
 		umiField <- paste0('nCount_', assayName)
 
-		df <- data.frame(CountsPerCell = seuratObj@meta.data[[readField]], Saturation = seuratObj@meta.data[[fieldName]], , num.umis = seuratObj@meta.data[[umiField]])
+		df <- data.frame(CountsPerCell = seuratObj@meta.data[[readField]], Saturation = seuratObj@meta.data[[fieldName]], num.umis = seuratObj@meta.data[[umiField]])
 		if ('DatasetName' %in% names(seuratObj@meta.data)) {
 			df$Label <- seuratObj@meta.data$DatasetName
 		} else {

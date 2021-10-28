@@ -49,9 +49,12 @@ test_that("Seurat-saturation works as expected", {
 	expect_equal(max(seuratObj$Saturation.RNA), 0.9765625)
 	expect_equal(length(unique((seuratObj$Saturation.RNA))), 7126)
 
+	colnames(dat) <- paste0('1234_', colnames(dat))
   seuratObj <- suppressWarnings(Seurat::CreateSeuratObject(dat))
+  seuratObj$DatasetId <- 1234
+  
   molInfoFileList <- list()
-  molInfoFileList[[paste0(unique(seuratObj$DatasetId, '-RNA'))]] <- molInfoFile
+  molInfoFileList[[paste0(unique(seuratObj$DatasetId), '-RNA')]] <- molInfoFile
 
   seuratObj <- AppendPerCellSaturationInBulk(seuratObj, molInfoFileList)
   expect_equal(max(seuratObj$Saturation.RNA), 0.9765625)
