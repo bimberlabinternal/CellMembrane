@@ -4,7 +4,13 @@
 \alias{AppendPerCellSaturation}
 \title{Append Per Cell Saturation}
 \usage{
-AppendPerCellSaturation(seuratObj, molInfoFile, cellbarcodePrefix = NULL)
+AppendPerCellSaturation(
+  seuratObj,
+  molInfoFile,
+  cellbarcodePrefix = NULL,
+  assayName = NULL,
+  doPlot = TRUE
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
@@ -12,6 +18,10 @@ AppendPerCellSaturation(seuratObj, molInfoFile, cellbarcodePrefix = NULL)
 \item{molInfoFile}{The 10x molecule_info.h5 file}
 
 \item{cellbarcodePrefix}{An optional string appended to the barcodes parsed from the molecule_info.h5 file. This is necessary if the seurat object has a prefix applied to cell barcodes. This value is directly concatenated and must include any delimiter. Note: if this is absent, but the seuratObj has the columns DatasetId or BarcodePrefix, the latter will be used.}
+
+\item{assayName}{An optional string indicating the assay these data are associated with. If null, they will use the DefaultAssay}
+
+\item{doPlot}{If true, plots summarizing saturation will be generated.}
 }
 \description{
 Calculate and Append Per-cell Saturation to a Seurat Object
