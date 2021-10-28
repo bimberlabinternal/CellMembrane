@@ -2,6 +2,7 @@
 
 export(AppendCiteSeq)
 export(AppendPerCellSaturation)
+export(AppendPerCellSaturationInBulk)
 export(AvgExpression)
 export(CalculatePercentMito)
 export(CiteSeqDimRedux.Dist)

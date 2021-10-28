@@ -561,7 +561,8 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 				  'UMI Counts: ', format(sum(df$num.umis), big.mark=','), '\n',
 				  'Saturation: ', overall
 			  )) + ggtitle(paste0('Library Saturation: ', assayName))
-	)
+		)
+	}
 
 	return(seuratObj)
 }
