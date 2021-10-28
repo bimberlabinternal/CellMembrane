@@ -45,7 +45,8 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	# ITGAM = CD11b, AM=CD11b-, Non-AM=CD11b+
 	# Non-AMs: CD16+/CD206-/HLA-DR+/CD11b+
 	# M1/M2: CCR7 (M1), CD163 (M2), https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7050058/
-	PlotMarkerSeries(seuratObj, reductions, c('CD14', 'FCGR3A', 'S100A8', 'S100A6', 'MARCO', 'MRC1', 'CD163', 'CHIT1', 'APOBEC3A', 'ITGAM', 'HLA-DRB1', 'CCR7'), 'Myeloid')
+	# CD163, CD68 = macrophage markers
+	PlotMarkerSeries(seuratObj, reductions, c('CD14', 'FCGR3A', 'S100A8', 'S100A6', 'MARCO', 'MRC1', 'CD163', 'CHIT1', 'APOBEC3A', 'ITGAM', 'HLA-DRB1', 'CCR7', 'CD68'), 'Myeloid')
 
 	# IL3RA = CD123 / pDC
 	# CLEC4C = CD303 / pDC

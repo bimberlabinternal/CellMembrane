@@ -169,7 +169,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 }
 
 
-.DoMergeSimple <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = null){
+.DoMergeSimple <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = null, doGC = FALSE){
 	seuratObj <- NULL
 
 	for (datasetId in names(seuratObjs)) {
@@ -198,6 +198,10 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 			}
 
 			seuratObj <- merge(x = seuratObj, y = seuratObjs[[datasetId]], project = projectName, merge.data = merge.data)
+			seuratObjs[[datasetId]] <- NULL
+			if (doGC) {
+				gc()
+			}
 
 			if (hasGeneId) {
 				if (any(is.na(geneIds1)) & !any(is.na(geneIds2))) {
