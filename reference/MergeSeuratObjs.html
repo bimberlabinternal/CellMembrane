@@ -121,7 +121,8 @@
   <span class='va'>seuratObjs</span>,
   <span class='va'>projectName</span>,
   merge.data <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  expectedDefaultAssay <span class='op'>=</span> <span class='st'>"RNA"</span>
+  expectedDefaultAssay <span class='op'>=</span> <span class='st'>"RNA"</span>,
+  doGC <span class='op'>=</span> <span class='cn'>FALSE</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -142,6 +143,10 @@
     <tr>
       <th>expectedDefaultAssay</th>
       <td><p>If not null, the DefaultAssay on the resulting seurat object will be set to this</p></td>
+    </tr>
+    <tr>
+      <th>doGC</th>
+      <td><p>If true, in an attempt to save memory gc() will be run after each seurat object is merged</p></td>
     </tr>
     </table>
 
