@@ -526,13 +526,30 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 #' @param molInfoList A list mapping dataset/assay to the filepath of the 10x molecule_info.h5 file. The format of the names should be DatasetId-Assayname (i.e. 283729-GEX or 384729-HTO)
 #' @export
 AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
+	print('Adding saturation')
+
+	if (!('DatasetId' %in% names(seuratObj@meta.data))) {
+		stop('This seuratObj must have a DatasetId column')
+	}
+
 	uniqueAssays <- c()
 	for (i in names(molInfoList)) {
 		datasetId <- unlist(strsplit(i, split = '-'))[1]
 		assayName <- unlist(strsplit(i, split = '-'))[2]
-		uniqueAssays <- c(uniqueAssays, assayName)
+
+		if (!(datasetId %in% unique(seuratObj$DatasetId))) {
+			print(paste0('Skipping dataset: ', i))
+			next
+		} else {
+			print(paste0('Add saturation: ', i))
+			uniqueAssays <- c(uniqueAssays, assayName)
+		}
 
 		seuratObj <- AppendPerCellSaturation(seuratObj, molInfoList[[i]], cellbarcodePrefix = paste0(datasetId, '_'), assayName = assayName, doPlot = FALSE)
+	}
+
+	if (length(uniqueAssays) == 0) {
+		print('No datasets had saturation added')
 	}
 
 	for (assayName in unique(uniqueAssays)) {
