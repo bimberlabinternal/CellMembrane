@@ -556,6 +556,10 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 		fieldName <- paste0('Saturation.', assayName)
 		readField <- paste0('nReads_', assayName)
 		umiField <- paste0('nCount_', assayName)
+		if (!umiField %in% names(seuratObj@meta.data)) {
+			print(paste0('seurat object lacks the assay ', assayName, ', skipping plots'))
+			next
+		}
 
 		df <- data.frame(CountsPerCell = seuratObj@meta.data[[readField]], Saturation = seuratObj@meta.data[[fieldName]], num.umis = seuratObj@meta.data[[umiField]])
 		if ('DatasetName' %in% names(seuratObj@meta.data)) {
