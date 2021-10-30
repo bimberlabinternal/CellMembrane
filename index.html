@@ -90,11 +90,11 @@
 <h3 class="hasAnchor">
 <a href="#installation" class="anchor"></a><a name="installation">Installation</a>
 </h3>
-<pre class="{r}"><code><a href="https://rdrr.io/r/base/eval.html"># Make sure to update your Rprofile to include Bioconductor repos, such as adding this line to ~/.Rprofile:
+<pre class="{r}"><code># Make sure to update your Rprofile to include Bioconductor repos, such as adding this line to ~/.Rprofile:
 local({options(repos = BiocManager::repositories())})
 
 #Latest version:
-devtools::install_github(repo = 'bimberlabinternal/cellmembrane', ref = 'master', dependencies = TRUE, upgrade = 'always')</a></code></pre>
+devtools::install_github(repo = 'bimberlabinternal/cellmembrane', ref = 'master', dependencies = TRUE, upgrade = 'always')</code></pre>
 <p>Pre-packaged Docker images with all needed dependencies installed can be found on our <a href="https://github.com/orgs/BimberLabInternal/packages/container/package/CellMembrane">GitHub Packages page</a>. We recommend using a specific release, which you can do using tags:</p>
 <pre><code>docker pull ghcr.io/bimberlabinternal/cellmembrane:latest</code></pre>
 </div>
