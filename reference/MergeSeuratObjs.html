@@ -122,6 +122,8 @@
   <span class='va'>projectName</span>,
   merge.data <span class='op'>=</span> <span class='cn'>FALSE</span>,
   expectedDefaultAssay <span class='op'>=</span> <span class='st'>"RNA"</span>,
+  enforceUniqueCells <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  errorOnBarcodeSuffix <span class='op'>=</span> <span class='cn'>FALSE</span>,
   doGC <span class='op'>=</span> <span class='cn'>FALSE</span>
 <span class='op'>)</span></pre>
 
@@ -143,6 +145,14 @@
     <tr>
       <th>expectedDefaultAssay</th>
       <td><p>If not null, the DefaultAssay on the resulting seurat object will be set to this</p></td>
+    </tr>
+    <tr>
+      <th>enforceUniqueCells</th>
+      <td><p>If true, all inputs must have unique cellbarcodes.</p></td>
+    </tr>
+    <tr>
+      <th>errorOnBarcodeSuffix</th>
+      <td><p>In certain cases, software appends a digit (i.e. -1) to the end of cellbarcodes. These can be a problem when trying to make string comparisons. If true, the method will error if these are encountered.</p></td>
     </tr>
     <tr>
       <th>doGC</th>
