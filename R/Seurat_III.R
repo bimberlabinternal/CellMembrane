@@ -94,21 +94,33 @@ GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
 #' @param projectName The project name when creating the final seurat object
 #' @param merge.data Passed directly to Seurat::merge
 #' @param expectedDefaultAssay If not null, the DefaultAssay on the resulting seurat object will be set to this
+#' @param enforceUniqueCells If true, all inputs must have unique cellbarcodes.
+#' @param errorOnBarcodeSuffix In certain cases, software appends a digit (i.e. -1) to the end of cellbarcodes. These can be a problem when trying to make string comparisons. If true, the method will error if these are encountered.
 #' @param doGC If true, in an attempt to save memory gc() will be run after each seurat object is merged
 #' @return A modified Seurat object.
 #' @export
 #' @importFrom methods slot
-MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = 'RNA', doGC = FALSE){
+MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = 'RNA', enforceUniqueCells = TRUE, errorOnBarcodeSuffix = FALSE, doGC = FALSE){
   nameList <- names(seuratObjs)
   if (is.null(nameList)) {
     stop('Must provide a named list of seurat objects')
   }
 
   # Ensure barcodes unique
+  encounteredBarcodes <- c()
   for (datasetId in nameList) {
     print(paste0('Adding dataset: ', datasetId))
     seuratObj <- seuratObjs[[datasetId]]
-		seuratObjs[[datasetId]] <- .PossiblyAddBarcodePrefix(seuratObj, datasetId = datasetId, datasetName = NULL)
+    if (enforceUniqueCells && length(intersect(encounteredBarcodes, colnames(seuratObj))) > 0) {
+      stop(paste0('Duplicate cellbarcodes found for: ', datasetId))
+    }
+
+    if (errorOnBarcodeSuffix && sum(grepl(colnames(seuratObj), pattern = '-[0-9]+') > 0)) {
+      stop(paste0('Encountered barcodes with numeric suffixes (i.e. -1) for dataset: ', datasetId))
+    }
+
+    encounteredBarcodes <- c(encounteredBarcodes, colnames(seuratObj))
+    seuratObjs[[datasetId]] <- .PossiblyAddBarcodePrefix(seuratObj, datasetId = datasetId, datasetName = NULL)
   }
   
   seuratObj <- .DoMergeSimple(seuratObjs = seuratObjs, projectName = projectName, merge.data = merge.data, expectedDefaultAssay = expectedDefaultAssay, doGC = doGC)
