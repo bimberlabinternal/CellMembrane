@@ -9,6 +9,8 @@ MergeSeuratObjs(
   projectName,
   merge.data = FALSE,
   expectedDefaultAssay = "RNA",
+  enforceUniqueCells = TRUE,
+  errorOnBarcodeSuffix = FALSE,
   doGC = FALSE
 )
 }
@@ -20,6 +22,10 @@ MergeSeuratObjs(
 \item{merge.data}{Passed directly to Seurat::merge}
 
 \item{expectedDefaultAssay}{If not null, the DefaultAssay on the resulting seurat object will be set to this}
+
+\item{enforceUniqueCells}{If true, all inputs must have unique cellbarcodes.}
+
+\item{errorOnBarcodeSuffix}{In certain cases, software appends a digit (i.e. -1) to the end of cellbarcodes. These can be a problem when trying to make string comparisons. If true, the method will error if these are encountered.}
 
 \item{doGC}{If true, in an attempt to save memory gc() will be run after each seurat object is merged}
 }
