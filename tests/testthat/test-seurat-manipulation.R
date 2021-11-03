@@ -71,4 +71,5 @@ test_that("Seurat-saturation works as expected", {
   seuratObj3 <- AppendPerCellSaturationInBulk(seuratObj3, molInfoFileList)
   expect_equal(max(seuratObj3$Saturation.RNA), 0.9765625)
   expect_equal(length(unique((seuratObj3$Saturation.RNA))), 7126)
+  expect_equal(sum(is.na(seuratObj3$Saturation.RNA)), 0)
 })
