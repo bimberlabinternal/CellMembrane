@@ -419,21 +419,9 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	}
 }
 
-#' @title Append Per Cell Saturation
-#' @description Calculate and Append Per-cell Saturation to a Seurat Object
-#' @param seuratObj The seurat object
-#' @param molInfoFile The 10x molecule_info.h5 file
-#' @param cellbarcodePrefix An optional string appended to the barcodes parsed from the molecule_info.h5 file. This is necessary if the seurat object has a prefix applied to cell barcodes. This value is directly concatenated and must include any delimiter. Note: if this is absent, but the seuratObj has the columns DatasetId or BarcodePrefix, the latter will be used.
-#' @param assayName An optional string indicating the assay these data are associated with. If null, they will use the DefaultAssay
-#' @param doPlot If true, plots summarizing saturation will be generated.
-#' @export
-AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = NULL, assayName = NULL, doPlot = TRUE) {
+.CalcPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = NULL) {
 	df <- DropletUtils::get10xMolInfoStats(molInfoFile)
 	df$cellbarcode <- df$cell
-
-	if (is.null(assayName)) {
-		assayName <- Seurat::DefaultAssay(seuratObj)
-	}
 
 	barcodePrefix <- NULL
 	if (!is.null(cellbarcodePrefix)) {
@@ -475,21 +463,15 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 	df <- df[df$cellbarcode %in% colnames(seuratObj),]
 	df$Saturation <- 1 - (df$num.umis / df$CountsPerCell)
 
-	if (doPlot) {
-		overall <- 1 - round((sum(df$num.umis) / sum(df$CountsPerCell)), 2)
-		print(ggplot(df, aes(x = CountsPerCell, y = Saturation)) +
-				  labs(x = 'Counts/Cell', y = '% Saturation') +
-				  egg::theme_presentation(base_size = 18) +
-				  geom_point() +
-				  annotate("text", x = max(df$CountsPerCell), y = min(df$Saturation), hjust = 1, vjust = -1, label = paste0(
-					  'Total Counts: ', format(sum(df$CountsPerCell), big.mark=','), '\n',
-					  'UMI Counts: ', format(sum(df$num.umis), big.mark=','), '\n',
-					  'Saturation: ', overall
-				  )) + ggtitle('Library Saturation')
-		)
-	}
+	return(df)
+}
 
+.AppendSaturation <- function(seuratObj, df, assayName) {
 	print(paste0('Adding saturation for ', nrow(df), ' cells'))
+
+	if (is.null(assayName)) {
+		assayName <- Seurat::DefaultAssay(seuratObj)
+	}
 
 	targetField <- paste0('Saturation.', assayName)
 	targetFieldReads <- paste0('nReads_', assayName)
@@ -507,7 +489,7 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 	d <- seuratObj[[targetField]][[1]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
-	seuratObj[[targetField]] <- d
+	seuratObj <- Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetField)
 
 	toMerge <- df$CountsPerCell
 	names(toMerge) <- df$cellbarcode
@@ -515,8 +497,37 @@ AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = 
 	d <- seuratObj[[targetFieldReads]][[1]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
-	seuratObj[[targetFieldReads]] <- d
+	seuratObj <- Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetFieldReads)
 
+	return(seuratObj)
+}
+
+#' @title Append Per Cell Saturation
+#' @description Calculate and Append Per-cell Saturation to a Seurat Object
+#' @param seuratObj The seurat object
+#' @param molInfoFile The 10x molecule_info.h5 file
+#' @param cellbarcodePrefix An optional string appended to the barcodes parsed from the molecule_info.h5 file. This is necessary if the seurat object has a prefix applied to cell barcodes. This value is directly concatenated and must include any delimiter. Note: if this is absent, but the seuratObj has the columns DatasetId or BarcodePrefix, the latter will be used.
+#' @param assayName An optional string indicating the assay these data are associated with. If null, they will use the DefaultAssay
+#' @param doPlot If true, plots summarizing saturation will be generated.
+#' @export
+AppendPerCellSaturation <- function(seuratObj, molInfoFile, cellbarcodePrefix = NULL, assayName = NULL, doPlot = TRUE) {
+	df <- .CalcPerCellSaturation(seuratObj, molInfoFile = molInfoFile, cellbarcodePrefix = cellbarcodePrefix)
+
+	if (doPlot) {
+		overall <- 1 - round((sum(df$num.umis) / sum(df$CountsPerCell)), 2)
+		print(ggplot(df, aes(x = CountsPerCell, y = Saturation)) +
+				  labs(x = 'Counts/Cell', y = '% Saturation') +
+				  egg::theme_presentation(base_size = 18) +
+				  geom_point() +
+				  annotate("text", x = max(df$CountsPerCell), y = min(df$Saturation), hjust = 1, vjust = -1, label = paste0(
+					  'Total Counts: ', format(sum(df$CountsPerCell), big.mark=','), '\n',
+					  'UMI Counts: ', format(sum(df$num.umis), big.mark=','), '\n',
+					  'Saturation: ', overall
+				  )) + ggtitle('Library Saturation')
+		)
+	}
+
+	seuratObj <- .AppendSaturation(seuratObj, df, assayName = assayName)
 	return(seuratObj)
 }
 
@@ -533,6 +544,7 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 	}
 
 	uniqueAssays <- c()
+	df <- NULL
 	for (i in names(molInfoList)) {
 		datasetId <- unlist(strsplit(i, split = '-'))[1]
 		assayName <- unlist(strsplit(i, split = '-'))[2]
@@ -545,7 +557,18 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 			uniqueAssays <- c(uniqueAssays, assayName)
 		}
 
-		seuratObj <- AppendPerCellSaturation(seuratObj, molInfoList[[i]], cellbarcodePrefix = paste0(datasetId, '_'), assayName = assayName, doPlot = FALSE)
+		toAppend <- .CalcPerCellSaturation(seuratObj, molInfoList[[i]], cellbarcodePrefix = paste0(datasetId, '_'))
+		if (all(is.null(df))) {
+			df <- toAppend
+		} else {
+			df <- rbind(df, toAppend)
+		}
+	}
+
+	if (!is.null(df) && nrow(df) > 0) {
+		seuratObj <- .AppendSaturation(seuratObj, df, assayName = assayName)
+	} else {
+		print('No saturation values to add. This may indicate an error matching cell barcodes.')
 	}
 
 	if (length(uniqueAssays) == 0) {
@@ -567,6 +590,7 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 		} else {
 			df$Label <- seuratObj@meta.data$DatasetId
 		}
+		df$Label <- as.character(df$Label)
 
 		overall <- 1 - round((sum(df$num.umis) / sum(df$CountsPerCell)), 2)
 		print(ggplot(df, aes(x = CountsPerCell, y = Saturation, color = Label)) +

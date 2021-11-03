@@ -154,7 +154,6 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         print(SingleR::plotScoreHeatmap(pred.results, cells.use = cells.use))
       }
 
-      print(SingleR::plotScoreDistribution(pred.results))
       print(SingleR::plotDeltaDistribution(pred.results))
 
       toAdd <- pred.results$pruned.labels

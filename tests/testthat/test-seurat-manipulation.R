@@ -48,15 +48,28 @@ test_that("Seurat-saturation works as expected", {
 	seuratObj <- AppendPerCellSaturation(seuratObj, molInfoFile)
 	expect_equal(max(seuratObj$Saturation.RNA), 0.9765625)
 	expect_equal(length(unique((seuratObj$Saturation.RNA))), 7126)
+	expect_equal(sum(is.na(seuratObj$Saturation.RNA)), 0)
 
-	colnames(dat) <- paste0('1234_', colnames(dat))
-  seuratObj <- suppressWarnings(Seurat::CreateSeuratObject(dat))
+	dat1 <- dat
+	dat2 <- dat
+	colnames(dat1) <- paste0('1234_', colnames(dat1))
+  seuratObj <- suppressWarnings(Seurat::CreateSeuratObject(dat1))
   seuratObj$DatasetId <- 1234
+  seuratObj$BarcodePrefix <- 1234
+  
+  colnames(dat2) <- paste0('12345_', colnames(dat2))
+  seuratObj2 <- suppressWarnings(Seurat::CreateSeuratObject(dat2))
+  seuratObj2$DatasetId <- 12345
+  seuratObj2$BarcodePrefix <- 12345
+  
+  seuratObj3 <- CellMembrane::MergeSeuratObjs(seuratObjs = list('1234' = seuratObj, '12345' = seuratObj2), projectName = 'test')
   
   molInfoFileList <- list()
-  molInfoFileList[[paste0(unique(seuratObj$DatasetId), '-RNA')]] <- molInfoFile
+  molInfoFileList[['1234-RNA']] <- molInfoFile
+  molInfoFileList[['12345-RNA']] <- molInfoFile
 
-  seuratObj <- AppendPerCellSaturationInBulk(seuratObj, molInfoFileList)
-  expect_equal(max(seuratObj$Saturation.RNA), 0.9765625)
-  expect_equal(length(unique((seuratObj$Saturation.RNA))), 7126)
+  seuratObj3 <- AppendPerCellSaturationInBulk(seuratObj3, molInfoFileList)
+  expect_equal(max(seuratObj3$Saturation.RNA), 0.9765625)
+  expect_equal(length(unique((seuratObj3$Saturation.RNA))), 7126)
+  expect_equal(sum(is.na(seuratObj3$Saturation.RNA)), 0)
 })
