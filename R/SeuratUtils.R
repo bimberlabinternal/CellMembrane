@@ -489,7 +489,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	d <- seuratObj[[targetField]][[1]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
-	Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetField)
+	seuratObj <- Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetField)
 
 	toMerge <- df$CountsPerCell
 	names(toMerge) <- df$cellbarcode
@@ -497,7 +497,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	d <- seuratObj[[targetFieldReads]][[1]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
-	Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetFieldReads)
+	seuratObj <- Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetFieldReads)
 
 	return(seuratObj)
 }
@@ -544,7 +544,7 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 	}
 
 	uniqueAssays <- c()
-	toAppend <- NULL
+	df <- NULL
 	for (i in names(molInfoList)) {
 		datasetId <- unlist(strsplit(i, split = '-'))[1]
 		assayName <- unlist(strsplit(i, split = '-'))[2]
@@ -557,16 +557,18 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 			uniqueAssays <- c(uniqueAssays, assayName)
 		}
 
-		df <- .CalcPerCellSaturation(seuratObj, molInfoList[[i]], cellbarcodePrefix = paste0(datasetId, '_'), assayName = assayName, doPlot = FALSE)
-		if (all(is.null(toAppend))) {
-			toAppend <- df
+		toAppend <- .CalcPerCellSaturation(seuratObj, molInfoList[[i]], cellbarcodePrefix = paste0(datasetId, '_'))
+		if (all(is.null(df))) {
+			df <- toAppend
 		} else {
-			toAppend <- rbind(toAppend, df)
+			df <- rbind(df, toAppend)
 		}
 	}
 
 	if (!is.null(df) && nrow(df) > 0) {
 		seuratObj <- .AppendSaturation(seuratObj, df, assayName = assayName)
+	} else {
+		print('No saturation values to add. This may indicate an error matching cell barcodes.')
 	}
 
 	if (length(uniqueAssays) == 0) {
@@ -588,6 +590,7 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 		} else {
 			df$Label <- seuratObj@meta.data$DatasetId
 		}
+		df$Label <- as.character(df$Label)
 
 		overall <- 1 - round((sum(df$num.umis) / sum(df$CountsPerCell)), 2)
 		print(ggplot(df, aes(x = CountsPerCell, y = Saturation, color = Label)) +
