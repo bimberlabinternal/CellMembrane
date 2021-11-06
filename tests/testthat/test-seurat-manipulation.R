@@ -49,7 +49,7 @@ test_that("Seurat-saturation works as expected", {
 	expect_equal(max(seuratObj$Saturation.RNA), 0.9765625)
 	expect_equal(length(unique((seuratObj$Saturation.RNA))), 7126)
 	expect_equal(sum(is.na(seuratObj$Saturation.RNA)), 0)
-    expect_equal(sum(is.na(seuratObj$nReads_RNA)), 0)
+	expect_equal(sum(is.na(seuratObj$nReads_RNA)), 0)
 
 	dat1 <- dat
 	dat2 <- dat
