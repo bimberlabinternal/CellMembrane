@@ -584,6 +584,18 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 			next
 		}
 
+		if (!readField %in% names(seuratObj@meta.data)) {
+			stop(paste0('Missing field: ', readField))
+		}
+
+		if (!fieldName %in% names(seuratObj@meta.data)) {
+			stop(paste0('Missing field: ', fieldName))
+		}
+
+		if (!umiField %in% names(seuratObj@meta.data)) {
+			stop(paste0('Missing field: ', umiField))
+		}
+
 		df <- data.frame(CountsPerCell = seuratObj@meta.data[[readField]], Saturation = seuratObj@meta.data[[fieldName]], num.umis = seuratObj@meta.data[[umiField]])
 		if ('DatasetName' %in% names(seuratObj@meta.data)) {
 			df$Label <- seuratObj@meta.data$DatasetName
