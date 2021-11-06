@@ -467,7 +467,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 }
 
 .AppendSaturation <- function(seuratObj, df, assayName) {
-	print(paste0('Adding saturation for ', nrow(df), ' cells'))
+	print(paste0('Adding saturation to assay ', assayName, ' for ', nrow(df), ' cells'))
 
 	if (is.null(assayName)) {
 		assayName <- Seurat::DefaultAssay(seuratObj)
@@ -544,7 +544,7 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 	}
 
 	uniqueAssays <- c()
-	df <- NULL
+	dataframes <- list()
 	for (i in names(molInfoList)) {
 		datasetId <- unlist(strsplit(i, split = '-'))[1]
 		assayName <- unlist(strsplit(i, split = '-'))[2]
@@ -558,17 +558,15 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 		}
 
 		toAppend <- .CalcPerCellSaturation(seuratObj, molInfoList[[i]], cellbarcodePrefix = paste0(datasetId, '_'))
-		if (all(is.null(df))) {
-			df <- toAppend
+		if (!assayName %in% names(dataframes)) {
+			dataframes[[assayName]] <- toAppend
 		} else {
-			df <- rbind(df, toAppend)
+			if (all(is.null(dataframes[[assayName]]))) {
+				dataframes[[assayName]] <- toAppend
+			} else {
+				dataframes[[assayName]] <- rbind(dataframes[[assayName]], toAppend)
+			}
 		}
-	}
-
-	if (!is.null(df) && nrow(df) > 0) {
-		seuratObj <- .AppendSaturation(seuratObj, df, assayName = assayName)
-	} else {
-		print('No saturation values to add. This may indicate an error matching cell barcodes.')
 	}
 
 	if (length(uniqueAssays) == 0) {
@@ -576,6 +574,12 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 	}
 
 	for (assayName in unique(uniqueAssays)) {
+		if (!is.null(dataframes[[assayName]]) && nrow(dataframes[[assayName]]) > 0) {
+			seuratObj <- .AppendSaturation(seuratObj, dataframes[[assayName]], assayName = assayName)
+		} else {
+			print('No saturation values to add. This may indicate an error matching cell barcodes.')
+		}
+
 		fieldName <- paste0('Saturation.', assayName)
 		readField <- paste0('nReads_', assayName)
 		umiField <- paste0('nCount_', assayName)
