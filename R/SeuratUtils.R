@@ -459,8 +459,8 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 		stop(paste0('No overlapping barcodes found between seuratObj and molecule_info.h5 file, example: ', bc1, ' / ', bc2))
 	}
 
+	df <- df[df$cellbarcode %in% colnames(seuratObj),c('cellbarcode', 'num.umis', 'num.reads')]
 	df <- data.frame(cellbarcode = df$cellbarcode, num.umis = df$num.umis, CountsPerCell = df$num.reads)
-	df <- df[df$cellbarcode %in% colnames(seuratObj),]
 	df$Saturation <- 1 - (df$num.umis / df$CountsPerCell)
 
 	return(df)
@@ -552,10 +552,10 @@ AppendPerCellSaturationInBulk <- function(seuratObj, molInfoList) {
 		if (!(datasetId %in% unique(seuratObj$DatasetId))) {
 			print(paste0('Skipping dataset: ', i))
 			next
-		} else {
-			print(paste0('Add saturation: ', i))
-			uniqueAssays <- c(uniqueAssays, assayName)
 		}
+
+		print(paste0('Calculating saturation: ', i))
+		uniqueAssays <- c(uniqueAssays, assayName)
 
 		toAppend <- .CalcPerCellSaturation(seuratObj, molInfoList[[i]], cellbarcodePrefix = paste0(datasetId, '_'))
 		if (!assayName %in% names(dataframes)) {

@@ -6,7 +6,7 @@
 \usage{
 RunSingleR(
   seuratObj = NULL,
-  datasets = c("hpca", "blueprint", "dice", "monaco"),
+  datasets = c("hpca", "blueprint", "dice", "monaco", "immgen"),
   assay = NULL,
   resultTableFile = NULL,
   rawDataFile = NULL,
