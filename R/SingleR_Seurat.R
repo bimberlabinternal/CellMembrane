@@ -22,7 +22,7 @@ utils::globalVariables(
 #' @import SingleR
 #' @export
 #' @importFrom scuttle logNormCounts
-RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco'), assay = NULL, resultTableFile = NULL, rawDataFile = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000, nThreads = NULL){
+RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco', 'immgen'), assay = NULL, resultTableFile = NULL, rawDataFile = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000, nThreads = NULL){
   if (is.null(seuratObj)){
       stop("Seurat object is required")
   }
@@ -60,7 +60,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       stop(paste0('unknown reference dataset: ', dataset))
     }
 
-		#Subset genes:
+    #Subset genes:
     genesPresent <- intersect(rownames(seuratObj@assays[[assay]]), rownames(ref))
     print(paste0('Total genes shared with reference data: ', length(genesPresent), ' of ', nrow(seuratObj)))
 
