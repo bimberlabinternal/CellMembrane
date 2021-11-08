@@ -49,11 +49,12 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         ref <- celldex::HumanPrimaryCellAtlasData()
 		} else if (dataset == 'immgen') {
       ref <- celldex::ImmGenData()
+      rownames(ref) <- toupper(rownames(ref))
     } else if (dataset == 'blueprint') {
       ref <- celldex::BlueprintEncodeData()
-		} else if (dataset == 'dice') {
+    } else if (dataset == 'dice') {
       ref <- celldex::DatabaseImmuneCellExpressionData()
-		} else if (dataset == 'monaco') {
+    } else if (dataset == 'monaco') {
       ref <- celldex::MonacoImmuneData()
     } else {
       stop(paste0('unknown reference dataset: ', dataset))
@@ -153,8 +154,6 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
         print(SingleR::plotScoreHeatmap(pred.results, cells.use = cells.use))
       }
-
-      print(SingleR::plotDeltaDistribution(pred.results))
 
       toAdd <- pred.results$pruned.labels
       toAdd[is.na(toAdd)] <- 'Unknown'
