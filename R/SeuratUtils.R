@@ -460,7 +460,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	}
 
 	df <- df[df$cellbarcode %in% colnames(seuratObj),c('cellbarcode', 'num.umis', 'num.reads')]
-	names(df) <- c('cellbarcode', 'num.umis', 'CountsPerCell')
+	df <- data.frame(cellbarcode = df$cellbarcode, num.umis = df$num.umis, CountsPerCell = df$num.reads)
 	df$Saturation <- 1 - (df$num.umis / df$CountsPerCell)
 
 	return(df)
