@@ -97,10 +97,11 @@ GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
 #' @param enforceUniqueCells If true, all inputs must have unique cellbarcodes.
 #' @param errorOnBarcodeSuffix In certain cases, software appends a digit (i.e. -1) to the end of cellbarcodes. These can be a problem when trying to make string comparisons. If true, the method will error if these are encountered.
 #' @param doGC If true, in an attempt to save memory gc() will be run after each seurat object is merged
+#' @param duplicateBarcodeMode This dictates the behavior when duplicate cell barcodes are encountered between merged objects. This can be either: 'exclude-all' (all duplicated dropped from all objects), or 'error'.
 #' @return A modified Seurat object.
 #' @export
 #' @importFrom methods slot
-MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = 'RNA', enforceUniqueCells = TRUE, errorOnBarcodeSuffix = FALSE, doGC = FALSE){
+MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = 'RNA', enforceUniqueCells = TRUE, errorOnBarcodeSuffix = FALSE, doGC = FALSE, duplicateBarcodeMode = 'exclude-all'){
   nameList <- names(seuratObjs)
   if (is.null(nameList)) {
     stop('Must provide a named list of seurat objects')
@@ -108,11 +109,16 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
 
   # Ensure barcodes unique
   encounteredBarcodes <- c()
+  duplicates <- c()
   for (datasetId in nameList) {
     print(paste0('Adding dataset: ', datasetId))
     seuratObj <- seuratObjs[[datasetId]]
     if (enforceUniqueCells && length(intersect(encounteredBarcodes, colnames(seuratObj))) > 0) {
-      stop(paste0('Duplicate cellbarcodes found for: ', datasetId))
+      if (duplicateBarcodeMode == 'exclude-all') {
+        duplicates <- c(duplicates, intersect(encounteredBarcodes, colnames(seuratObj)))
+      } else {
+        stop(paste0('Duplicate cellbarcodes found for: ', datasetId))
+      }
     }
 
     if (errorOnBarcodeSuffix && sum(grepl(colnames(seuratObj), pattern = '-[0-9]+') > 0)) {
@@ -122,7 +128,17 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
     encounteredBarcodes <- c(encounteredBarcodes, colnames(seuratObj))
     seuratObjs[[datasetId]] <- .PossiblyAddBarcodePrefix(seuratObj, datasetId = datasetId, datasetName = NULL)
   }
-  
+
+  if (length(duplicates) > 0) {
+    print(paste0('Dropping duplicated barcodes, total: ', length(duplicates)))
+    for (datasetId in nameList) {
+      if (any(duplicates %in% colnames(seuratObjs[[datasetId]]))) {
+        toKeep <- seuratObjs[[datasetId]][!(colnames(seuratObjs[[datasetId]]) %in% duplicates)]
+        seuratObjs[[datasetId]] <- subset(seuratObjs[[datasetId]], cells = toKeep)
+      }
+    }
+  }
+
   seuratObj <- .DoMergeSimple(seuratObjs = seuratObjs, projectName = projectName, merge.data = merge.data, expectedDefaultAssay = expectedDefaultAssay, doGC = doGC)
 
   return(seuratObj)
@@ -599,7 +615,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 			tryCatch({
 				tMarkers <- FindAllMarkers(object = seuratObj, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = 0.25, verbose = F, test.use = test)
 				if (nrow(tMarkers) == 0) {
-					print('No genes returned, skipping')
+					print(paste0('No genes returned, skipping: ', test))
 				} else {
 					tMarkers$test <- c(test)
 					tMarkers$groupField <- fieldName
@@ -667,11 +683,12 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     if (nrow(toWrite) == 0) {
       print('No significant markers were found')
     } else {
+      print(paste0('Total DE genes: ', length(unique(toWrite$gene))))
       if (!is.null(outFile)) {
         write.table(toWrite, file = outFile, sep = '\t', row.names = F, quote = F)
       }
 
-      print(DimPlot(object = seuratObj, reduction = 'tsne'))
+      print(DimPlot(object = seuratObj))
 
       topGene <- toWrite %>% group_by(groupField, cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
       print(DoHeatmap(object = seuratObj, features = unique(as.character(topGene$gene)), slot = 'data'))
