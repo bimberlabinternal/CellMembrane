@@ -113,6 +113,7 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
   for (datasetId in nameList) {
     print(paste0('Adding dataset: ', datasetId))
     seuratObj <- seuratObjs[[datasetId]]
+    seuratObj <- .PossiblyAddBarcodePrefix(seuratObj, datasetId = datasetId, datasetName = NULL)
     if (enforceUniqueCells && length(intersect(encounteredBarcodes, colnames(seuratObj))) > 0) {
       if (duplicateBarcodeMode == 'exclude-all') {
         duplicates <- c(duplicates, intersect(encounteredBarcodes, colnames(seuratObj)))
@@ -126,15 +127,24 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
     }
 
     encounteredBarcodes <- c(encounteredBarcodes, colnames(seuratObj))
-    seuratObjs[[datasetId]] <- .PossiblyAddBarcodePrefix(seuratObj, datasetId = datasetId, datasetName = NULL)
+    seuratObjs[[datasetId]] <- seuratObj
   }
 
   if (length(duplicates) > 0) {
     print(paste0('Dropping duplicated barcodes, total: ', length(duplicates)))
     for (datasetId in nameList) {
       if (any(duplicates %in% colnames(seuratObjs[[datasetId]]))) {
-        toKeep <- seuratObjs[[datasetId]][!(colnames(seuratObjs[[datasetId]]) %in% duplicates)]
+        print(paste0('Dropping duplicates for: ', datasetId))
+        print(paste0('Original cells: ', length(colnames(seuratObjs[[datasetId]]))))
+        toKeep <- colnames(seuratObjs[[datasetId]])[!(colnames(seuratObjs[[datasetId]]) %in% duplicates)]
+        print(paste0('Retaining: ', length(toKeep)))
         seuratObjs[[datasetId]] <- subset(seuratObjs[[datasetId]], cells = toKeep)
+
+        if (length(toKeep) != length(colnames(seuratObjs[[datasetId]]))) {
+          stop('Cell number does not match expected after subset')
+        }
+      } else {
+        print(paste0('No duplicates found in: ', datasetId))
       }
     }
   }
