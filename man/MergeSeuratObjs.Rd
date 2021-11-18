@@ -11,7 +11,8 @@ MergeSeuratObjs(
   expectedDefaultAssay = "RNA",
   enforceUniqueCells = TRUE,
   errorOnBarcodeSuffix = FALSE,
-  doGC = FALSE
+  doGC = FALSE,
+  duplicateBarcodeMode = "exclude-all"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ MergeSeuratObjs(
 \item{errorOnBarcodeSuffix}{In certain cases, software appends a digit (i.e. -1) to the end of cellbarcodes. These can be a problem when trying to make string comparisons. If true, the method will error if these are encountered.}
 
 \item{doGC}{If true, in an attempt to save memory gc() will be run after each seurat object is merged}
+
+\item{duplicateBarcodeMode}{This dictates the behavior when duplicate cell barcodes are encountered between merged objects. This can be either: 'exclude-all' (all duplicated dropped from all objects), or 'error'.}
 }
 \value{
 A modified Seurat object.
