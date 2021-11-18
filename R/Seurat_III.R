@@ -598,16 +598,18 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 #' @export
 Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, datasetName = NULL) {
 	seuratObj.markers <- NULL
+    fieldsToUse <- c()
 	for (fieldName in identFields) {
 		# Allow resolution to be passed directly:
 		if (!(fieldName %in% names(seuratObj@meta.data))) {
   		toTest <- paste0('ClusterNames_', fieldName)
 			if (toTest %in% names(seuratObj@meta.data)) {
-  			fieldName <- toTest
+  			  fieldName <- toTest
 			}
 		}
 
-  	print(paste0('Grouping by field: ', fieldName))
+        fieldsToUse <- c(fieldsToUse, fieldName)
+        print(paste0('Grouping by field: ', fieldName))
 		Idents(seuratObj) <- fieldName
 
 		for (test in testsToUse) {
@@ -678,7 +680,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     print('No significant markers were found')
     return()
   } else {
-		seuratObj.markers$cluster <- as.factor(seuratObj.markers$cluster)
+    seuratObj.markers$cluster <- as.factor(seuratObj.markers$cluster)
     toWrite <- seuratObj.markers %>% filter(p_val_adj < pValThreshold) %>% filter(avg_logFC > foldChangeThreshold)
     if (nrow(toWrite) == 0) {
       print('No significant markers were found')
@@ -690,8 +692,32 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
       print(DimPlot(object = seuratObj))
 
-      topGene <- toWrite %>% group_by(groupField, cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
-      print(DoHeatmap(object = seuratObj, features = unique(as.character(topGene$gene)), slot = 'data'))
+      for (fieldName in fieldsToUse) {
+        toPlot <- toWrite[toWrite$groupField == fieldName,]
+        print(ggplot(toPlot, aes(x = pct.1, y = pct.2, size = avg_logFC, color = cluster)) +
+          geom_point(alpha = 0.5) +
+          ggtitle(paste0('DE Genes: ', fieldName)) +
+          egg::theme_presentation(base_size = 12)
+        )
+
+        topGene <- toPlot %>% group_by(cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
+        avgSeurat <- Seurat::AverageExpression(seuratObj, features = unique(topGene$gene), slot = 'counts', return.seurat = T)
+        forpheatmap <- as.matrix(GetAssayData(avgSeurat, slot = 'data'))
+        print(pheatmap::pheatmap(forpheatmap,
+          cluster_rows = T,
+          cluster_cols = T,
+          scale = 'row',
+          main = fieldName,
+          color = Seurat::BlueAndRed(10),
+          cellheight = 10,
+          show_colnames = T,
+          clustering_distance_rows = "euclidean",
+          clustering_distance_cols = "euclidean",
+          clustering_method = "ward.D2",
+          angle_col = 0,
+          fontsize = 13
+        ))
+      }
 
       #Note: return the datatable, so it will be printed correctly by Rmarkdown::render()
   		return(DT::datatable(topGene,

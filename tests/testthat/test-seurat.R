@@ -65,6 +65,9 @@ test_that("Serat processing works as expected", {
   rm(seuratObj0)
 
   mf <- paste0(outPrefix, '.markers.txt')
+  
+  #saveRDS(seuratObj, file = 'so.rds')
+  seuratObj <- readRDS('so.rds')
   dt <- Find_Markers(seuratObj, identFields = c(resolutionToUse), outFile = mf, testsToUse = c('wilcox', 't'), datasetName = 'Label')
   expect_equal(dt$x$caption, '<caption>Top DE Genes: Label</caption>')
   dt
