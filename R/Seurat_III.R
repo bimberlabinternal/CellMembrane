@@ -597,85 +597,85 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 #' @import MAST
 #' @export
 Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, datasetName = NULL) {
-	seuratObj.markers <- NULL
-    fieldsToUse <- c()
-	for (fieldName in identFields) {
-		# Allow resolution to be passed directly:
-		if (!(fieldName %in% names(seuratObj@meta.data))) {
-  		toTest <- paste0('ClusterNames_', fieldName)
-			if (toTest %in% names(seuratObj@meta.data)) {
-  			  fieldName <- toTest
-			}
-		}
+  seuratObj.markers <- NULL
+  fieldsToUse <- c()
+  for (fieldName in identFields) {
+    # Allow resolution to be passed directly:
+    if (!(fieldName %in% names(seuratObj@meta.data))) {
+      toTest <- paste0('ClusterNames_', fieldName)
+      if (toTest %in% names(seuratObj@meta.data)) {
+        fieldName <- toTest
+      }
+    }
 
-        fieldsToUse <- c(fieldsToUse, fieldName)
-        print(paste0('Grouping by field: ', fieldName))
-		Idents(seuratObj) <- fieldName
+    fieldsToUse <- c(fieldsToUse, fieldName)
+    print(paste0('Grouping by field: ', fieldName))
+    Idents(seuratObj) <- fieldName
 
-		for (test in testsToUse) {
-			print(paste0('Running using test: ', test))
-			tryCatch({
-				tMarkers <- FindAllMarkers(object = seuratObj, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = 0.25, verbose = F, test.use = test)
-				if (nrow(tMarkers) == 0) {
-					print(paste0('No genes returned, skipping: ', test))
-				} else {
-					tMarkers$test <- c(test)
-					tMarkers$groupField <- fieldName
-					tMarkers$cluster <- as.character(tMarkers$cluster)
+    for (test in testsToUse) {
+      print(paste0('Running using test: ', test))
+      tryCatch({
+        tMarkers <- FindAllMarkers(object = seuratObj, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = foldChangeThreshold, verbose = F, test.use = test)
+        if (nrow(tMarkers) == 0) {
+          print(paste0('No genes returned, skipping: ', test))
+        } else {
+          tMarkers$test <- c(test)
+          tMarkers$groupField <- fieldName
+          tMarkers$cluster <- as.character(tMarkers$cluster)
 
-					logFcField <- ifelse('avg_log2FC' %in% colnames(tMarkers), yes = 'avg_log2FC', no = 'avg_logFC')
-					if (test == 'roc') {
-						toBind <- data.frame(
-							groupField = tMarkers$groupField,
-							test = as.character(tMarkers$test),
-							cluster = as.character(tMarkers$cluster),
-							gene = as.character(tMarkers$gene),
-							pct.1 = tMarkers$pct.1,
-							pct.2 = tMarkers$pct.2,
-							avg_logFC = NA,
-							p_val_adj = NA,
-							myAUC = tMarkers$myAUC,
-							power = tMarkers$power,
-							avg_diff = tMarkers$avg_diff, stringsAsFactors=FALSE
-						)
-					} else {
-						toBind <- data.frame(
-							groupField = tMarkers$groupField,
-							test = as.character(tMarkers$test),
-							cluster = as.character(tMarkers$cluster),
-							gene = as.character(tMarkers$gene),
-							pct.1 = tMarkers$pct.1,
-							pct.2 = tMarkers$pct.2,
-							avg_logFC = tMarkers[[logFcField]],
-							p_val_adj = tMarkers$p_val_adj,
-							myAUC = NA,
-							power = NA,
-							avg_diff = NA, stringsAsFactors=FALSE
-						)
-					}
+          logFcField <- ifelse('avg_log2FC' %in% colnames(tMarkers), yes = 'avg_log2FC', no = 'avg_logFC')
+          if (test == 'roc') {
+            toBind <- data.frame(
+              groupField = tMarkers$groupField,
+              test = as.character(tMarkers$test),
+              cluster = as.character(tMarkers$cluster),
+              gene = as.character(tMarkers$gene),
+              pct.1 = tMarkers$pct.1,
+              pct.2 = tMarkers$pct.2,
+              avg_logFC = NA,
+              p_val_adj = NA,
+              myAUC = tMarkers$myAUC,
+              power = tMarkers$power,
+              avg_diff = tMarkers$avg_diff, stringsAsFactors=FALSE
+            )
+          } else {
+            toBind <- data.frame(
+              groupField = tMarkers$groupField,
+              test = as.character(tMarkers$test),
+              cluster = as.character(tMarkers$cluster),
+              gene = as.character(tMarkers$gene),
+              pct.1 = tMarkers$pct.1,
+              pct.2 = tMarkers$pct.2,
+              avg_logFC = tMarkers[[logFcField]],
+              p_val_adj = tMarkers$p_val_adj,
+              myAUC = NA,
+              power = NA,
+              avg_diff = NA, stringsAsFactors=FALSE
+            )
+          }
 
-					print(paste0('Total genes returned: ', nrow(toBind)))
+          print(paste0('Total genes returned: ', nrow(toBind)))
 
-					if (all(is.null(seuratObj.markers))) {
-						seuratObj.markers <- toBind
-					} else {
-						seuratObj.markers <- rbind(seuratObj.markers, toBind)
-					}
-				}
-			}, error = function(e){
-				print(paste0('Error running test: ', test))
-				print(conditionMessage(e))
-				traceback()
-				print(utils::str(tMarkers))
-				print(utils::str(seuratObj.markers))
-			})
-		}
-	}
+          if (all(is.null(seuratObj.markers))) {
+            seuratObj.markers <- toBind
+          } else {
+            seuratObj.markers <- rbind(seuratObj.markers, toBind)
+          }
+        }
+      }, error = function(e){
+        print(paste0('Error running test: ', test))
+        print(conditionMessage(e))
+        traceback()
+        print(utils::str(tMarkers))
+        print(utils::str(seuratObj.markers))
+      })
+    }
+  }
 
-	if (all(is.null(seuratObj.markers))) {
-		print('All tests failed, no markers returned')
-		return()
-	}
+  if (all(is.null(seuratObj.markers))) {
+    print('All tests failed, no markers returned')
+    return()
+  }
   else if (nrow(seuratObj.markers) == 0) {
     print('No significant markers were found')
     return()
@@ -695,42 +695,42 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
       for (fieldName in fieldsToUse) {
         toPlot <- toWrite[toWrite$groupField == fieldName,]
         print(ggplot(toPlot, aes(x = pct.1, y = pct.2, size = avg_logFC, color = cluster)) +
-          geom_point(alpha = 0.5) +
-          ggtitle(paste0('DE Genes: ', fieldName)) +
-          egg::theme_presentation(base_size = 12)
+                geom_point(alpha = 0.5) +
+                ggtitle(paste0('DE Genes: ', fieldName)) +
+                egg::theme_presentation(base_size = 12)
         )
 
         topGene <- toPlot %>% group_by(cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
-        avgSeurat <- Seurat::AverageExpression(seuratObj, features = unique(topGene$gene), slot = 'counts', return.seurat = T)
+        avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', return.seurat = T)
         forpheatmap <- as.matrix(GetAssayData(avgSeurat, slot = 'data'))
         print(pheatmap::pheatmap(forpheatmap,
-          cluster_rows = T,
-          cluster_cols = T,
-          scale = 'row',
-          main = fieldName,
-          color = Seurat::BlueAndRed(10),
-          cellheight = 10,
-          show_colnames = T,
-          clustering_distance_rows = "euclidean",
-          clustering_distance_cols = "euclidean",
-          clustering_method = "ward.D2",
-          angle_col = 0,
-          fontsize = 13
+                                 cluster_rows = T,
+                                 cluster_cols = T,
+                                 scale = 'row',
+                                 main = fieldName,
+                                 color = Seurat::BlueAndRed(10),
+                                 cellheight = 10,
+                                 show_colnames = T,
+                                 clustering_distance_rows = "euclidean",
+                                 clustering_distance_cols = "euclidean",
+                                 clustering_method = "ward.D2",
+                                 angle_col = 0,
+                                 fontsize = 13
         ))
       }
 
       #Note: return the datatable, so it will be printed correctly by Rmarkdown::render()
-  		return(DT::datatable(topGene,
-        caption = paste0('Top DE Genes', ifelse(is.null(datasetName), yes = '', no = paste0(': ', datasetName))),
-        filter = 'none',
-        escape = FALSE,
-        extensions = 'Buttons',
-        options = list(
-          dom = 'Bfrtip',
-        	pageLength = 25,
-        	scrollX = TRUE,
-        	buttons = c('excel', "csv")
-        )
+      return(DT::datatable(topGene,
+                           caption = paste0('Top DE Genes', ifelse(is.null(datasetName), yes = '', no = paste0(': ', datasetName))),
+                           filter = 'none',
+                           escape = FALSE,
+                           extensions = 'Buttons',
+                           options = list(
+                             dom = 'Bfrtip',
+                             pageLength = 25,
+                             scrollX = TRUE,
+                             buttons = c('excel', "csv")
+                           )
       ))
     }
   }
