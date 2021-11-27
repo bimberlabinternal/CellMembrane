@@ -704,6 +704,10 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
       for (fieldName in fieldsToUse) {
         toPlot <- toWrite[toWrite$groupField == fieldName,]
+        if (nrow(toPlot) == 0) {
+          next
+        }
+
         print(ggplot(toPlot, aes(x = pct.1, y = pct.2, size = avg_logFC, color = cluster)) +
                 geom_point(alpha = 0.5) +
                 ggtitle(paste0('DE Genes: ', fieldName)) +
@@ -712,7 +716,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
         topGene <- toPlot %>% group_by(cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
         avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', return.seurat = T)
-        forpheatmap <- as.matrix(GetAssayData(avgSeurat, slot = 'data'))
+        forpheatmap <- as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data'))
         print(pheatmap::pheatmap(forpheatmap,
                                  cluster_rows = T,
                                  cluster_cols = T,

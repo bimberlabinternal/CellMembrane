@@ -91,6 +91,15 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	PlotMarkerSeries(seuratObj, reductions, chemokines, 'Chemokines/Receptors')
 
 	PlotMarkerSeries(seuratObj, reductions, c('MKI67'), 'Cell Proliferation')
+
+	#PlotMarkerSeries(seuratObj, reductions, c('EPCAM'), 'Epithelial Cells')
+
+	# LOC710951 = TRAC
+	# LOC114677140 = TRBC1
+	# LOC711031 = TRDC
+	# LOC720538 = TRGC1
+	# LOC705095 = TRGC2
+	PlotMarkerSeries(seuratObj, reductions, c('LOC710951', 'LOC114677140', 'LOC711031', 'LOC720538', 'LOC705095'), 'TCR Constant Region')
 }
 
 PlotMarkerSeries <- function(seuratObj, reductions, features, title, setSize = 4) {
