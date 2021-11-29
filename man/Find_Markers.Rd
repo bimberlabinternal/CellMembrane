@@ -13,7 +13,8 @@ Find_Markers(
   onlyPos = F,
   pValThreshold = 0.001,
   foldChangeThreshold = 0.5,
-  datasetName = NULL
+  datasetName = NULL,
+  assayName = "RNA"
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ Find_Markers(
 \item{foldChangeThreshold}{Only genes with log2 fold-change above this will be reported}
 
 \item{datasetName}{An optional label for this dataset. If provided, this will be appended to the resulting table.}
+
+\item{assayName}{The assay to use.}
 }
 \value{
 A DT::datatable object with the top markers, suitable for printing
