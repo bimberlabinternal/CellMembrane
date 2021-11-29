@@ -601,12 +601,13 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 #' @param pValThreshold Only genes with adjusted p-values below this will be reported
 #' @param foldChangeThreshold Only genes with log2 fold-change above this will be reported
 #' @param datasetName An optional label for this dataset. If provided, this will be appended to the resulting table.
+#' @param assayName The assay to use.
 #' @return A DT::datatable object with the top markers, suitable for printing
 #' @importFrom dplyr %>% coalesce group_by summarise filter top_n select everything
 #' @import DESeq2
 #' @import MAST
 #' @export
-Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, datasetName = NULL) {
+Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, datasetName = NULL, assayName = 'RNA') {
   seuratObj.markers <- NULL
   fieldsToUse <- c()
   for (fieldName in identFields) {
@@ -625,7 +626,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     for (test in testsToUse) {
       print(paste0('Running using test: ', test))
       tryCatch({
-        tMarkers <- FindAllMarkers(object = seuratObj, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = foldChangeThreshold, verbose = F, test.use = test)
+        tMarkers <- FindAllMarkers(object = seuratObj, assay = assayName, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = foldChangeThreshold, verbose = F, test.use = test)
         if (nrow(tMarkers) == 0) {
           print(paste0('No genes returned, skipping: ', test))
         } else {
@@ -690,7 +691,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     print('No significant markers were found')
     return()
   } else {
-    seuratObj.markers$cluster <- as.factor(seuratObj.markers$cluster)
+    seuratObj.markers$cluster <- naturalsort::naturalfactor(seuratObj.markers$cluster)
     toWrite <- seuratObj.markers %>% filter(p_val_adj < pValThreshold) %>% filter(avg_logFC > foldChangeThreshold)
     if (nrow(toWrite) == 0) {
       print('No significant markers were found')
@@ -715,7 +716,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
         )
 
         topGene <- toPlot %>% group_by(cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
-        avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', return.seurat = T)
+        avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', assays = assayName, return.seurat = T)
         forpheatmap <- as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data'))
         print(pheatmap::pheatmap(forpheatmap,
                                  cluster_rows = T,
