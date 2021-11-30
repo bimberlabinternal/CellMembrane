@@ -660,3 +660,49 @@ PlotSeuratVariables <- function(seuratObj, xvar, yvar, labelDimplot = FALSE, red
 
 	return(P0 + P2 + P1 + P3)
 }
+
+
+#' @title Inspect Seurat
+#'
+#' @description Print various information about the size of a seurat object. Can be useful for debugging.
+#' @param seuratObj The seurat object
+#' @param slotReportSize The size in bytes, above which a slot's size will be logged.
+#' @param commandReportSize The size in bytes, above which a command's size will be logged.
+#' @export
+InspectSeurat <- function(seuratObj, slotReportSize = 500000, commandReportSize = 500000) {
+	print(paste0('Seurat object size: ', format(object.size(seuratObj), units = 'auto')))
+
+	for (assayName in names(seuratObj@assays)) {
+		print(paste0('Assay: ', assayName))
+		for (slotName in c('counts', 'data', 'scale.data')) {
+			dat <- Seurat::GetAssayData(seuratObj, assay = assayName, slot = slotName)
+			print(paste0(' slot: ', slotName, ', size: ', format(object.size(x = dat), units = 'auto')))
+
+			if (!is(dat, 'sparseMatrix')) {
+				print(paste0('Non-sparse! Assay: ', assayName, ', slot: ', slotName))
+			}
+		}
+	}
+
+	print('All slots:')
+	for (slotName in slotNames(seuratObj)) {
+		val <- object.size(slot(seuratObj, slotName))
+		if (val > slotReportSize) {
+			print(paste0(' ', slotName, ': ', format(val, units = 'auto')))
+		}
+	}
+
+	# Note: we have had historic issues with commands logging an enormous amount of data, so add extra reporting:
+	for (commandName in names(seuratObj@commands)) {
+		val <- object.size(x = seuratObj@commands[commandName])
+		if (val > commandReportSize) {
+			print(paste0('Command: ', commandName, ', size: ', format(val, units = 'auto')))
+			for (slotName in slotNames(seuratObj@commands[[commandName]])) {
+				val <- object.size(x = slot(seuratObj@commands[[commandName]], slotName))
+				if (val > commandReportSize) {
+					print(paste0(' ', slotName, ', size: ', format(val, units = 'auto')))
+				}
+			}
+		}
+	}
+}
