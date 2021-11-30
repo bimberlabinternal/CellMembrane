@@ -36,7 +36,8 @@ Imports:
     SingleCellExperiment,
     dsb,
     ggnewscale,
-    BiocParallel
+    BiocParallel,
+    rlang
 Suggests:
     devtools,
     testthat (>= 2.1.0),
