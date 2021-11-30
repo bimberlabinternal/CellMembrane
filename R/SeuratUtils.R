@@ -706,3 +706,15 @@ InspectSeurat <- function(seuratObj, slotReportSize = 500000, commandReportSize 
 		}
 	}
 }
+
+.ClearSeuratCommands <- function(seuratObj, maxSize = 500000) {
+	for (commandName in names(seuratObj@commands)) {
+		val <- object.size(x = slot(seuratObj@commands[[commandName]], 'call.string'))
+		if (val > maxSize) {
+			print(paste0('Clearing call.string for: ', commandName, '. size: ', format(val, units = 'auto')))
+			slot(seuratObj@commands[[commandName]], 'call.string') <- ''
+		}
+	}
+
+	return(seuratObj)
+}
