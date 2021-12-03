@@ -70,6 +70,65 @@ set.seed(pkg.env$RANDOM_SEED)
   return(seuratObj)
 }
 
+
+#' @title Update Gene Model
+#'
+#' @description Substitutes LOC genes to more common human Gene IDs
+#' @param prediction Whether or not to include lower quality/speculative updates to the gene model
+
+.UpdateGeneModel <- function(features, predictions = T){
+# TRAC = LOC710951 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041760.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJ95TNA1016&from=84561541&to=84565299)
+features <- gsub("LOC710951", "TRAC", features)
+
+# TRBC1 = LOC114677140 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041756.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJ9S5K0Z01R&from=169372796&to=169374268)
+# TRBC2 maps to LOC114677140 as well
+features <- gsub("LOC114677140", "TRBC1", features)
+#features <- gsub("LOC114677140", ,"TRBC2", features)
+
+#TRDC = LOC711031 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041760.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJA2XTBW01R&from=84480217&to=84482757)
+features <- gsub("LOC711031", "TRDC", features)
+
+
+# TRGC1 = LOC720538 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041756.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJAHHBHJ016&from=76878214&to=76881635)
+features <- gsub("LOC720538", "TRGC1", features)
+
+
+#TRGC2 = LOC705095 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041756.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJASX36T016&from=76909393&to=76914320)
+features <- gsub("LOC705095", "TRGC2", features)
+
+#TRDV1 = LOC720456 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041760.1?report=genbank&log$=nuclalign&blast_rank=2&RID=UJB64E6Z013&from=84055100&to=84055663)
+#TRDV1 also maps to TRDC (LOC710951) so use that if the variable region seems odd to include
+features <- gsub("LOC720456", "TRDV1", features)
+
+#IGKC = LOC701504 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041766.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJBE65YT013&from=18130540&to=18130862)
+features <- gsub("LOC701504", "IGKC", features)
+
+#IGHG3 = LOC114679691 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041760.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJBJKUU9016&from=168001652&to=168005818) 
+#These are gamma-2 like instead of gamma-3 like, but they map well. 
+features <- gsub("LOC114679691", "IGHG3", features)
+
+
+#IGHG1 = LOC708891 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041760.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJBVCMEA013&from=168070075&to=168071681)
+features <- gsub("LOC708891", "IGHG1", features)
+
+#IGHA1 = LOC720839 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041760.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJC2E4S8013&from=167910270&to=167911722)
+features <- gsub("LOC720839", "IGHA1", features)
+
+#HLA.DP1 = LOC114669810 (source: https://www.ncbi.nlm.nih.gov/nuccore/XM_028842593.1)
+features <- gsub("LOC114669810", "HLA.DPA1", features)
+
+#FCN1 = LOC712405 (source: https://www.ncbi.nlm.nih.gov/nuccore/XM_015116399.2)
+features <- gsub("LOC712405", "FCN1", features)
+
+#these are predicted proteins/isoforms that seem less annotated
+if(predictions){
+  #TYMP = LOC716161 (source: https://www.ncbi.nlm.nih.gov/protein/1622837354)
+  features <- gsub("LOC716161", "TYMP", features)
+}
+
+return(features)
+}
+
 #' @title Set random seed
 #'
 #' @description Sets the seed used for R‘s random number generator, which should be used in all internal functions
@@ -116,4 +175,16 @@ RenameUsingCD <- function(inputGenes) {
   toMerge <- arrange(toMerge, SortOrder)
 
   return(toMerge$Name)
+}
+
+#' @title Update Seurat Object Gene Model From Monkey LOCs to Human Gene IDs
+#'
+#' @description Uses UpdateGeneModel to change LOC genes to more common human gene IDs in the RNA assay
+#' @param seuratObj The Seurat Object to be updated
+#' @export
+
+seuratFeaturesMonkeyToHuman = function(seuratObj){
+  seuratObj@assays$RNA@counts@Dimnames[[1]] <- .UpdateGeneModel(seuratObj@assays$RNA@counts@Dimnames[[1]])
+  seuratObj@assays$RNA@data@Dimnames[[1]] <- .UpdateGeneModel(seuratObj@assays$RNA@data@Dimnames[[1]])
+  return(seuratObj)
 }
