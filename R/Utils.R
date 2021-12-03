@@ -73,8 +73,9 @@ set.seed(pkg.env$RANDOM_SEED)
 
 #' @title Update Gene Model
 #'
-#' @description Substitutes LOC genes to more common human Gene IDs
-#' @param prediction Whether or not to include lower quality/speculative updates to the gene model
+#' @description Substitutes LOC genes to more common gene IDs
+#' @param features a vector of features to be updated to more common gene IDS
+#' @param predictions Whether or not to include lower quality/speculative updates to the gene model
 
 .UpdateGeneModel <- function(features, predictions = T){
 # TRAC = LOC710951 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041760.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJ95TNA1016&from=84561541&to=84565299)

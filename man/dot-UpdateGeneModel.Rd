@@ -7,8 +7,10 @@
 .UpdateGeneModel(features, predictions = T)
 }
 \arguments{
-\item{prediction}{Whether or not to include lower quality/speculative updates to the gene model}
+\item{features}{a vector of features to be updated to more common gene IDS}
+
+\item{predictions}{Whether or not to include lower quality/speculative updates to the gene model}
 }
 \description{
-Substitutes LOC genes to more common human Gene IDs
+Substitutes LOC genes to more common gene IDs
 }
