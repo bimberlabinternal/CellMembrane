@@ -102,7 +102,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		if (is.null(replacementAssay)) {
 			args <- list()
 			args[[slot]] <- slotData
-			replacementAssay <- rlang:::exec(Seurat::CreateAssayObject, !!!args)
+			replacementAssay <- rlang::invoke(Seurat::CreateAssayObject, args)
 		} else {
 			replacementAssay <- SetAssayData(replacementAssay, slot = slot, slotData)
 		}
@@ -166,7 +166,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		if (is.null(replacementAssay)) {
 			args <- list()
 			args[[slot]] <- slotData
-			replacementAssay <- rlang:::exec(Seurat::CreateAssayObject, !!!args)
+			replacementAssay <- rlang::invoke(Seurat::CreateAssayObject, args)
 		} else {
 			replacementAssay <- SetAssayData(replacementAssay, slot = slot, slotData)
 		}
@@ -202,7 +202,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		if (is.null(replacementAssay)) {
 			args <- list()
 			args[[slot]] <- Seurat::as.sparse(existingData)
-			replacementAssay <- rlang:::exec(Seurat::CreateAssayObject, !!!args)
+			replacementAssay <- rlang::invoke(Seurat::CreateAssayObject, args)
 		} else {
 			replacementAssay <- SetAssayData(replacementAssay, slot = slot, Seurat::as.sparse(existingData))
 		}
