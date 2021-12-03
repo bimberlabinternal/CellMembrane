@@ -181,10 +181,47 @@ RenameUsingCD <- function(inputGenes) {
 #'
 #' @description Uses UpdateGeneModel to change LOC genes to more common human gene IDs in the RNA assay
 #' @param seuratObj The Seurat Object to be updated
+#' @param verbose This prints the slot and assay number, primarily for debugging once seurat updates.
 #' @export
 
-seuratFeaturesMonkeyToHuman = function(seuratObj){
-  seuratObj@assays$RNA@counts@Dimnames[[1]] <- .UpdateGeneModel(seuratObj@assays$RNA@counts@Dimnames[[1]])
-  seuratObj@assays$RNA@data@Dimnames[[1]] <- .UpdateGeneModel(seuratObj@assays$RNA@data@Dimnames[[1]])
+UpdateMacaqueMmul10NcbiGeneSymbols <- function(seuratObj, verbose = T){
+  if (class(seuratObj)[[1]] != "Seurat"){
+    stop(paste0('Please provide a Seurat Object'))
+  }
+  for (assay in names(seuratObj@assays)){
+    for (slot in names(attributes(seuratObj@assays[[assay]]))){
+      if(verbose){
+        print(paste("Updating Gene Names in Assay:", assay, "Slot:", slot))
+      }
+      #updating common gene expression slots
+      # @data could be either S4 or a matrix depending on normalization of @counts
+      if (any(grepl(slot, c("counts", "data", "scale.data")))){
+        if (typeof(attr(x = seuratObj@assays[[assay]], which = slot)) == "S4"){
+          attr(x = seuratObj@assays[[assay]], which = slot)@Dimnames[[1]] <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot)@Dimnames[[1]])
+        }
+        if (typeof(attr(x = seuratObj@assays[[assay]], which = slot)) == "double" | typeof(attr(x = seuratObj@assays[[assay]], which = slot)) == "integer"){
+          rownames(attr(x = seuratObj@assays[[assay]], which = slot)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = slot)))
+        }
+        
+      }
+      #updating variable features (expected to be a vector)
+      if (slot == "var.features"){
+        attr(x = seuratObj@assays[[assay]], which = slot) <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot))
+      }
+      #updating meta.features (expected to be a matrix)
+      if (slot == "meta.features"){
+        rownames(attr(x = seuratObj@assays[[assay]], which = slot)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = slot)))
+        #feature metadata is tracked by assay, so this matrix could be empty.
+        #This is an update that seems to be CellMembrane specific
+        if(dim(attr(x = seuratObj@assays[[assay]], which = slot))[[2]] != 0 & any(grepl("GeneId", names(attr(x = seuratObj@assays[[assay]], which = slot)))))
+          attr(x = seuratObj@assays[[assay]], which = slot)$GeneId <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot)$GeneId)
+      }
+    }
+  }
+  #this block attempts to update the features in PCA reductions. (expected to be two matrices)
+  if (any(grepl("pca", names(seuratObj@reductions)))){
+    rownames(seuratObj@reductions$pca@feature.loadings) <- .UpdateGeneModel(rownames(seuratObj@reductions$pca@feature.loadings))
+    rownames(seuratObj@reductions$pca@feature.loadings.projected) <- .UpdateGeneModel(rownames(seuratObj@reductions$pca@feature.loadings.projected))
+  }
   return(seuratObj)
 }
