@@ -88,10 +88,8 @@ features <- gsub("LOC114677140", "TRBC1", features)
 #TRDC = LOC711031 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041760.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJA2XTBW01R&from=84480217&to=84482757)
 features <- gsub("LOC711031", "TRDC", features)
 
-
 # TRGC1 = LOC720538 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041756.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJAHHBHJ016&from=76878214&to=76881635)
 features <- gsub("LOC720538", "TRGC1", features)
-
 
 #TRGC2 = LOC705095 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041756.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJASX36T016&from=76909393&to=76914320)
 features <- gsub("LOC705095", "TRGC2", features)
@@ -107,7 +105,6 @@ features <- gsub("LOC701504", "IGKC", features)
 #These are gamma-2 like instead of gamma-3 like, but they map well. 
 features <- gsub("LOC114679691", "IGHG3", features)
 
-
 #IGHG1 = LOC708891 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041760.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJBVCMEA013&from=168070075&to=168071681)
 features <- gsub("LOC708891", "IGHG1", features)
 
@@ -120,11 +117,22 @@ features <- gsub("LOC114669810", "HLA.DPA1", features)
 #FCN1 = LOC712405 (source: https://www.ncbi.nlm.nih.gov/nuccore/XM_015116399.2)
 features <- gsub("LOC712405", "FCN1", features)
 
-#these are predicted proteins/isoforms that seem less annotated
-if(predictions){
-  #TYMP = LOC716161 (source: https://www.ncbi.nlm.nih.gov/protein/1622837354)
-  features <- gsub("LOC716161", "TYMP", features)
-}
+#XCL1 = LOC100423131 (source: https://www.ncbi.nlm.nih.gov/gene/100423131)
+features <- gsub("LOC100423131", "XCL1", features)
+
+#CCL4 = LOC100430627 (source: https://www.ncbi.nlm.nih.gov/gene/100430627)
+#LOC100426632 also maps to CCL4
+features <- gsub("LOC100430627", "CCL4", features)
+
+#CCL3L1 = LOC100426537 (source: https://www.ncbi.nlm.nih.gov/gene/100426537)
+#alternative name: CCL3L3
+features <- gsub("LOC100426537", "CCL3L1", features)
+
+  #these are predicted proteins/isoforms that seem less annotated
+  if(predictions){
+    #TYMP = LOC716161 (source: https://www.ncbi.nlm.nih.gov/protein/1622837354)
+    features <- gsub("LOC716161", "TYMP", features)
+  }
 
 return(features)
 }
