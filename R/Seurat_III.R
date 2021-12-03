@@ -231,7 +231,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
     toBind[['object']] <- seuratObj
 
 	# To avoid 'reached iteration limit' warnings
-	seuratObj <- suppressWarnings(rlang:::exec(SCTransform, !!!toBind))
+	seuratObj <- suppressWarnings(rlang::invoke(SCTransform, toBind))
     seuratObj <- .ClearSeuratCommands(seuratObj)
 
 	return(seuratObj)
@@ -254,7 +254,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	toBind[['verbose']] <- FALSE
     toBind[['object']] <- seuratObj
 
-	seuratObj <- rlang:::exec(FindVariableFeatures, !!!toBind)
+	seuratObj <- rlang::invoke(FindVariableFeatures, toBind)
     seuratObj <- .ClearSeuratCommands(seuratObj)
 
 	if (!all(is.null(variableGenesWhitelist))) {
@@ -576,7 +576,7 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
     }
   }
 
-  seuratObj <- rlang:::exec(RunUMAP, !!!umapArgs)
+  seuratObj <- rlang::invoke(RunUMAP, umapArgs)
   seuratObj <- .ClearSeuratCommands(seuratObj)
 
   for (reduction in c('tsne', 'umap')){
