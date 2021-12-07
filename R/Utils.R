@@ -119,7 +119,7 @@ features <- gsub("LOC114669810", "HLA.DPA1", features)
 features <- gsub("LOC712405", "FCN1", features)
 
 #XCL1 = LOC100423131 (source: https://www.ncbi.nlm.nih.gov/gene/100423131)
-features <- gsub("LOC100423131", "XCL1", features)
+features <- gsub("LOC100423131", "XCL1.2", features)
 
 #CCL4 = LOC100430627 (source: https://www.ncbi.nlm.nih.gov/gene/100430627)
 #LOC100426632 also maps to CCL4
