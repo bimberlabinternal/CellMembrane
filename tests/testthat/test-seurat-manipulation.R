@@ -44,7 +44,7 @@ test_that("Seurat-saturation works as expected", {
 	colnames(dat) <- df$cellbarcode
 	rownames(dat) <- c('Feat')
 	
-	seuratObj <- suppressWarnings(Seurat::CreateSeuratObject(dat))
+	seuratObj <- Seurat::CreateSeuratObject(dat)
 	seuratObj <- AppendPerCellSaturation(seuratObj, molInfoFile)
 	expect_equal(max(seuratObj$Saturation.RNA), 0.9765625)
 	expect_equal(length(unique((seuratObj$Saturation.RNA))), 7126)
@@ -54,12 +54,12 @@ test_that("Seurat-saturation works as expected", {
 	dat1 <- dat
 	dat2 <- dat
 	colnames(dat1) <- paste0('1234_', colnames(dat1))
-  seuratObj <- suppressWarnings(Seurat::CreateSeuratObject(dat1))
+  seuratObj <- Seurat::CreateSeuratObject(dat1)
   seuratObj$DatasetId <- 1234
   seuratObj$BarcodePrefix <- 1234
   
   colnames(dat2) <- paste0('12345_', colnames(dat2))
-  seuratObj2 <- suppressWarnings(Seurat::CreateSeuratObject(dat2))
+  seuratObj2 <- Seurat::CreateSeuratObject(dat2)
   seuratObj2$DatasetId <- 12345
   seuratObj2$BarcodePrefix <- 12345
   
