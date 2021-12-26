@@ -743,3 +743,37 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 
 	print(P2)
 }
+
+
+#' @title Plot Average ADT counts
+#'
+#' @description Creates a heatmap with average counts of each ADT markers based on one or more grouping fields
+#' @param seuratObj The seurat object where data will be added.
+#' @param groupFields The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder
+#' @param assayName The name of the assay holding data
+#' @param slot The assay slot to use for average expression data
+#' @param outFile If provided, the heatmap will be written to this file
+#' @export
+PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', slot = 'data', outFile = NA) {
+	for (fn in groupFields) {
+		feats <- rownames(data)
+		avgSeurat <- Seurat::AverageExpression(seuratObj, features = feats, return.seurat = T, group.by = fn, assays = assayName, slot = slot)
+		forpHeatmap <- t(as.matrix(GetAssayData(avgSeurat, slot = 'data')))
+		forpHeatmap <- forpHeatmap[,colSums(forpHeatmap) > 0]
+		pheatmap_plot <- pheatmap::pheatmap(forpHeatmap,
+			cluster_rows = T,
+			cluster_cols = T,
+			main = paste0('Average ADT Counts By ', fn),
+			scale = 'column',
+			color = Seurat::PurpleAndYellow(20),
+			cellwidth = 8,
+			fontsize_col = 8,
+			show_colnames = TRUE,
+			clustering_distance_rows = "euclidean",
+			clustering_distance_cols = "euclidean",
+			filename = outFile,
+			clustering_method = "ward.D2",
+			angle_col = 90
+	 	)
+	}
+}
