@@ -40,7 +40,7 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 	if (!is.null(subsetFields)){
 		for (subsetField in subsetFields) {
 			if (!(subsetField %in% names(seuratObj@meta.data))) {
-				stop(paste0('Field not found in seuratObj: ', subsetField))
+				stop(paste0('Field not found in seuratObj: [', subsetField, ']'))
 			}
 		}
 	}

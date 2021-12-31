@@ -633,7 +633,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
         if (nrow(tMarkers) == 0) {
           print(paste0('No genes returned, skipping: ', test))
         } else {
-          tMarkers$test <- c(test)
+          tMarkers$test <- test
           tMarkers$groupField <- fieldName
           tMarkers$cluster <- as.character(tMarkers$cluster)
 
