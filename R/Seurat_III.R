@@ -511,7 +511,7 @@ RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.siz
 #' @param umap.n.neighbors Passed directly to Seurat::RunUMAP
 #' @param umap.min.dist Passed directly to Seurat::RunUMAP
 #' @param umap.spread Passed directly to Seurat::RunUMAP
-#' @param umap.seed Passed directly to Seurat::RunUMAP
+#' @param seed.use Passed directly to Seurat::RunUMAP, FindClusters, and RunTSNE
 #' @param umap.n.epochs Passed directly to Seurat::RunUMAP
 #' @param umap.densmap Passed directly to Seurat::RunUMAP
 #' @param max.tsne.iter The value of max_iter to provide to RunTSNE.  Increasing can help large datasets.
@@ -521,7 +521,7 @@ RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.siz
 #' @export
 FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = NULL,
                                    umap.method = 'uwot', umap.metric = NULL,
-                                   umap.n.neighbors = NULL, umap.min.dist = NULL, umap.spread = NULL, umap.seed = GetSeed(),
+                                   umap.n.neighbors = NULL, umap.min.dist = NULL, umap.spread = NULL, seed.use = GetSeed(),
                                    umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30, umap.densmap = FALSE,
   clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2) ){
   if (is.null(dimsToUse)) {
@@ -540,13 +540,14 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
   seuratObj <- FindNeighbors(object = seuratObj, dims = dimsToUse, verbose = FALSE)
 
   for (resolution in clusterResolutions){
-    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE)
+    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE, random.seed = seed.use)
     seuratObj[[paste0("ClusterNames_", resolution)]] <- Idents(object = seuratObj)
   }
 
   perplexity <- .InferPerplexityFromSeuratObj(seuratObj, perplexity = tsne.perplexity)
   seuratObj <- RunTSNE(object = seuratObj,
 									dims.use = dimsToUse,
+                                    seed.use = seed.use,
 									check_duplicates = FALSE,
 									perplexity = perplexity,
 									reduction.key = 'rnaTSNE_',
@@ -563,7 +564,7 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
     min.dist = umap.min.dist,
     metric = umap.metric,
     umap.method = umap.method,
-    seed.use = umap.seed,
+    seed.use = seed.use,
     spread = umap.spread,
     densmap = umap.densmap,
     n.epochs = umap.n.epochs
@@ -629,7 +630,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     for (test in testsToUse) {
       print(paste0('Running using test: ', test))
       tryCatch({
-        tMarkers <- FindAllMarkers(object = seuratObj, assay = assayName, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = foldChangeThreshold, verbose = F, test.use = test)
+        tMarkers <- FindAllMarkers(object = seuratObj, assay = assayName, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = foldChangeThreshold, verbose = F, test.use = test, random.seed = GetSeed())
         if (nrow(tMarkers) == 0) {
           print(paste0('No genes returned, skipping: ', test))
         } else {

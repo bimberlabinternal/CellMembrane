@@ -70,7 +70,7 @@ test_that("Serat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 543, tolerance = 0)
+  expect_equal(nrow(df), 532)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
