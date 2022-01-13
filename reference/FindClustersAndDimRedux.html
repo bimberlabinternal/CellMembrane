@@ -59,7 +59,7 @@
   umap.n.neighbors <span class="op">=</span> <span class="cn">NULL</span>,
   umap.min.dist <span class="op">=</span> <span class="cn">NULL</span>,
   umap.spread <span class="op">=</span> <span class="cn">NULL</span>,
-  umap.seed <span class="op">=</span> <span class="fu"><a href="GetSeed.html">GetSeed</a></span><span class="op">(</span><span class="op">)</span>,
+  seed.use <span class="op">=</span> <span class="fu"><a href="GetSeed.html">GetSeed</a></span><span class="op">(</span><span class="op">)</span>,
   umap.n.epochs <span class="op">=</span> <span class="cn">NULL</span>,
   max.tsne.iter <span class="op">=</span> <span class="fl">10000</span>,
   tsne.perplexity <span class="op">=</span> <span class="fl">30</span>,
@@ -86,8 +86,8 @@
 <dd><p>Passed directly to Seurat::RunUMAP</p></dd>
 <dt>umap.spread</dt>
 <dd><p>Passed directly to Seurat::RunUMAP</p></dd>
-<dt>umap.seed</dt>
-<dd><p>Passed directly to Seurat::RunUMAP</p></dd>
+<dt>seed.use</dt>
+<dd><p>Passed directly to Seurat::RunUMAP, FindClusters, and RunTSNE</p></dd>
 <dt>umap.n.epochs</dt>
 <dd><p>Passed directly to Seurat::RunUMAP</p></dd>
 <dt>max.tsne.iter</dt>
