@@ -13,7 +13,7 @@ FindClustersAndDimRedux(
   umap.n.neighbors = NULL,
   umap.min.dist = NULL,
   umap.spread = NULL,
-  umap.seed = GetSeed(),
+  seed.use = GetSeed(),
   umap.n.epochs = NULL,
   max.tsne.iter = 10000,
   tsne.perplexity = 30,
@@ -38,7 +38,7 @@ FindClustersAndDimRedux(
 
 \item{umap.spread}{Passed directly to Seurat::RunUMAP}
 
-\item{umap.seed}{Passed directly to Seurat::RunUMAP}
+\item{seed.use}{Passed directly to Seurat::RunUMAP, FindClusters, and RunTSNE}
 
 \item{umap.n.epochs}{Passed directly to Seurat::RunUMAP}
 

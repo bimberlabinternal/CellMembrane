@@ -630,7 +630,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     for (test in testsToUse) {
       print(paste0('Running using test: ', test))
       tryCatch({
-        tMarkers <- FindAllMarkers(object = seuratObj, assay = assayName, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = foldChangeThreshold, verbose = F, test.use = test)
+        tMarkers <- FindAllMarkers(object = seuratObj, assay = assayName, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = foldChangeThreshold, verbose = F, test.use = test, random.seed = GetSeed())
         if (nrow(tMarkers) == 0) {
           print(paste0('No genes returned, skipping: ', test))
         } else {
