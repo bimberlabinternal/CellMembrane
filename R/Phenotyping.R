@@ -79,8 +79,13 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	PlotMarkerSeries(seuratObj, reductions, cytokines, 'Cytokines/Receptors')
 
 	# KLRC2 = ENSMMUG00000050862
-	klrs <- c('KLRB1', 'KLRC1', 'KLRD1', 'KLRF1', 'KLRF2', 'KLRG1', 'KLRG2', 'KLRC2', 'KLRC3', 'ENSMMUG00000050862')
+	klrs <- c('KLRB1', 'KLRC1', 'KLRD1', 'KLRF1', 'KLRF2', 'KLRG1', 'KLRG2', 'KLRC2', 'KLRC3', 'KLRK1', 'ENSMMUG00000050862')
 	PlotMarkerSeries(seuratObj, reductions, klrs, 'KLRs')
+
+	# NCR1 = NKp46
+	# NCR2 = NKp44
+	# NCR3 = NKp30
+	PlotMarkerSeries(seuratObj, reductions, c('NCR1', 'NCR2', 'NCR3'), 'NCRs')
 
 	PlotMarkerSet(seuratObj, reductions, 'Resident Memory', c('ITGAE', 'ITGB7', 'CD69', 'CXCR6'))
 
