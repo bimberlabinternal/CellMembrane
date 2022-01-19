@@ -59,6 +59,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 
 	PlotMarkerSet(seuratObj, reductions, 'Treg17', c('RORA', 'RORB', 'RORC', 'IL4', 'STAT3'))
 
+	# ZBTB16 = PLZF
 	PlotMarkerSeries(seuratObj, reductions, c('ZBTB16', 'DPP4'), 'MAIT')
 
 	PlotMarkerSeries(seuratObj, reductions, c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX'), 'Transcription Factors')
@@ -71,7 +72,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	#LILR/KIR:
 	PlotMarkerSeries(seuratObj, reductions, c('LILRA5','LILRA6','LILRB4','LILRB5','KIR2DL4','KIR3DX1', 'MAMU-KIR', 'KIR2DL4', 'KIR3DL2'), 'LILR/KIR')
 
-	PlotMarkerSeries(seuratObj, reductions, c('FCGR1A','FCGR2A','FCGR2B','FCGR3'), 'FCGR')
+	PlotMarkerSeries(seuratObj, reductions, c('FCGR1A','FCGR2A','FCGR2B','FCGR3', 'FCGR3A'), 'FCGR')
 
 	#Cytokines
 	cytokines <- c('IL1A','IL1B','IL1R1','IL1R2','IL1RAP','IL1RAPL1','IL1RAPL2','IL1RL1','IL1RL2','IL1RN','IL2','IL2RA','IL2RB','IL2RG','IL3','IL3RA','IL4','IL4I1','IL4R','IL5','IL5RA','IL6','IL6R','IL6ST','IL7','IL7R','IL9','IL10','IL10RA','IL11','IL12A','IL12B','IL12RB1','IL12RB2','IL13','IL13RA2','IL15','IL15RA','IL16','IL17A','IL17B','IL17C','IL17D','IL17F','IL17RA','IL17RB','IL17RC','IL17RD','IL17RE','IL18BP','IL18R1','IL18RAP','IL19','IL20','IL20RA','IL20RB','IL21','IL21R','IL22','IL22RA2','IL23A','IL24','IL25','IL26','IL27','IL27RA','IL31','IL31RA','IL33','IL34','IL36A','IL36B','IL36G','IL37','ILDR1','ILDR2','ILF2','ILF3','ILK','ILKAP','ILVBL')
