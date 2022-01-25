@@ -4,12 +4,24 @@
 \alias{UpdateMacaqueMmul10NcbiGeneSymbols}
 \title{Update Seurat Object Gene Model From Monkey LOCs to Human Gene IDs}
 \usage{
-UpdateMacaqueMmul10NcbiGeneSymbols(seuratObj, verbose = T)
+UpdateMacaqueMmul10NcbiGeneSymbols(
+  seuratObj,
+  verbose = T,
+  predictions = T,
+  automatic = T,
+  ambiguity_suffix = ".PERHAPS"
+)
 }
 \arguments{
 \item{seuratObj}{The Seurat Object to be updated}
 
 \item{verbose}{This prints the slot and assay number, primarily for debugging once seurat updates.}
+
+\item{predictions}{Logical describing whether or not to include lower quality/speculative updates to the gene model}
+
+\item{automatic}{Logical describing whether or not to attempt to automatically replace LOC genes}
+
+\item{ambiguity_suffix}{String to be concatenated at the end of genes with non-conclusive 1:many LOC -> symbol mappings}
 }
 \description{
 Uses UpdateGeneModel to change LOC genes to more common human gene IDs in the RNA assay
