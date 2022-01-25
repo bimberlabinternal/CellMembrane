@@ -4,12 +4,21 @@
 \alias{.UpdateGeneModel}
 \title{Update Gene Model}
 \usage{
-.UpdateGeneModel(features, predictions = T)
+.UpdateGeneModel(
+  features,
+  predictions = T,
+  automatic = T,
+  ambiguity_suffix = ".PERHAPS"
+)
 }
 \arguments{
 \item{features}{a vector of features to be updated to more common gene IDS}
 
-\item{predictions}{Whether or not to include lower quality/speculative updates to the gene model}
+\item{predictions}{Logical describing whether or not to include lower quality/speculative updates to the gene model}
+
+\item{automatic}{Logical describing whether or not to attempt to automatically replace LOC genes}
+
+\item{ambiguity_suffix}{String to be concatenated at the end of genes with non-conclusive 1:many LOC -> symbol mappings}
 }
 \description{
 Substitutes LOC genes to more common gene IDs

@@ -75,9 +75,15 @@ set.seed(pkg.env$RANDOM_SEED)
 #'
 #' @description Substitutes LOC genes to more common gene IDs
 #' @param features a vector of features to be updated to more common gene IDS
-#' @param predictions Whether or not to include lower quality/speculative updates to the gene model
+#' @param predictions Logical describing whether or not to include lower quality/speculative updates to the gene model
+#' @param automatic Logical describing whether or not to attempt to automatically replace LOC genes
+#' @param ambiguity_suffix String to be concatenated at the end of genes with non-conclusive 1:many LOC -> symbol mappings
+#' @importFrom biomaRt useMart getLDS
+#' @importFrom Biobase lcPrefix
+#' @importFrom dplyr full_join
+#' @import org.Mmu.eg.db 
 
-.UpdateGeneModel <- function(features, predictions = T){
+.UpdateGeneModel <- function(features, predictions = T, automatic = T, ambiguity_suffix = ".PERHAPS"){
 # TRAC = LOC710951 (source: https://www.ncbi.nlm.nih.gov/nucleotide/NC_041760.1?report=genbank&log$=nuclalign&blast_rank=1&RID=UJ95TNA1016&from=84561541&to=84565299)
 features <- gsub("LOC710951", "TRAC", features)
 
@@ -133,8 +139,74 @@ features <- gsub("LOC100426537", "CCL3L1", features)
   if(predictions){
     #TYMP = LOC716161 (source: https://www.ncbi.nlm.nih.gov/protein/1622837354)
     features <- gsub("LOC716161", "TYMP", features)
+    
+    #Automatically pull in gene names from ensembl and entrez based annotations
+    if(automatic){
+      #Set up Ensembl translations
+      rhesus <- useMart('ensembl', dataset="mmulatta_gene_ensembl")
+      human <- useMart('ensembl', dataset="hsapiens_gene_ensembl")
+      
+      table_merged <- getLDS(
+        mart = rhesus,
+        attributes = c('ensembl_gene_id', 'vgnc', 'external_gene_name', 'chromosome_name'),
+        martL = human,
+        attributesL = c('ensembl_gene_id','hgnc_symbol','gene_biotype', 'chromosome_name'))
+      
+      #Set up Entrez translations
+      symbols <- mapIds(org.Mmu.eg.db, keys = features, keytype = "SYMBOL", column = "ENSEMBL")
+      entrez_mapping <- as.data.frame(symbols) 
+      entrez_mapping$gene_name <- rownames(entrez_mapping)
+      
+      #Join the tables based on common ensembl ID
+      entrez_and_ensembl <- full_join(table_merged, entrez_mapping, by = c("Gene.stable.ID" = "symbols"))
+      
+      #Gene.name is mapped by Ensembl and gene_name is mapped by Entrez
+      translation_table <- entrez_and_ensembl[rownames(seuratObj) %in% entrez_and_ensembl$Gene.name | rownames(seuratObj) %in% entrez_and_ensembl$gene_name, c("HGNC.symbol", "Gene.name", "Chromosome.scaffold.name", "Gene.type",  "gene_name")]
+      #remove genes that aren't mapped by symbol by either entrez or ensembl
+      translation_table<- translation_table[!is.na(translation_table$gene_name) & !is.na(translation_table$Gene.name),]
+      
+      
+      #Iterate through features and attempt to map LOCs
+      features_before_automatic_replacement <- features
+      for (gene in features){
+        if (gene %in% translation_table$gene_name){
+          #regex match LOC genes
+          if(grepl("^LOC", gene)){
+            #create (potentially a vector) of NCBI LOC -> HGNC + ENTREZ translations
+            vector_of_translations <- unique(translation_table[translation_table$gene_name == gene, c("HGNC.symbol", "Gene.name")])
+            vector_of_translations <- vector_of_translations[!is.na(vector_of_translations)]
+            vector_of_translations <- unique(vector_of_translations[!(vector_of_translations == "")])
+            if(!identical(vector_of_translations ,character(0))){
+            #Check if LOC genes have 1 -> many mapping
+            if (length(vector_of_translations) == 1){
+              #If the mapping is one to one, simply accept
+              features[features == gene] <- vector_of_translations
+            } else if (length(vector_of_translations) > 1){
+              #If there are still multiple gene names, then attempt to find the best common prefix/gene name
+              if (length(vector_of_translations) >1){
+                common_prefix <- Biobase::lcPrefix(vector_of_translations)
+                #if there's no common substring, abort and revert to using the LOC gene name
+                if (common_prefix == ""){
+                  common_prefix <- gene
+                  features[features == gene] <- common_prefix
+                } else{
+                  #suffix denoting confusion for manual analysis and to omit from automatic downstream analysis
+                  common_prefix <- paste0(common_prefix, ambiguity_suffix)
+                  #replace gene name with common_prefix
+                  features[features == gene] <- common_prefix
+                }
+              }
+            } 
+          }
+        }
+      }
+      }
+      #Print summary of replaced features and ensure suffixed features are unique
+      print(paste0(length(features_before_automatic_replacement[grepl("^LOC",features_before_automatic_replacement)]) - length(features[grepl("^LOC",features)]), " LOC genes replaced"))
+      print(paste0(length(features[grepl(paste0(ambiguity_suffix), features)]), " low confidence gene-names replaced"))
+      features <- make.unique(features)
   }
-
+}
 return(features)
 }
 
