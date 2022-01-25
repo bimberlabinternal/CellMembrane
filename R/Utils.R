@@ -263,9 +263,12 @@ RenameUsingCD <- function(inputGenes) {
 #' @description Uses UpdateGeneModel to change LOC genes to more common human gene IDs in the RNA assay
 #' @param seuratObj The Seurat Object to be updated
 #' @param verbose This prints the slot and assay number, primarily for debugging once seurat updates.
+#' @param predictions Logical describing whether or not to include lower quality/speculative updates to the gene model
+#' @param automatic Logical describing whether or not to attempt to automatically replace LOC genes
+#' @param ambiguity_suffix String to be concatenated at the end of genes with non-conclusive 1:many LOC -> symbol mappings
 #' @export
 
-UpdateMacaqueMmul10NcbiGeneSymbols <- function(seuratObj, verbose = T){
+UpdateMacaqueMmul10NcbiGeneSymbols <- function(seuratObj, verbose = T, predictions = T, automatic = T, ambiguity_suffix = ".PERHAPS"){
   if (class(seuratObj)[[1]] != "Seurat"){
     stop(paste0('Please provide a Seurat Object'))
   }
@@ -278,31 +281,31 @@ UpdateMacaqueMmul10NcbiGeneSymbols <- function(seuratObj, verbose = T){
       # @data could be either S4 or a matrix depending on normalization of @counts
       if (any(grepl(slot, c("counts", "data", "scale.data")))){
         if (typeof(attr(x = seuratObj@assays[[assay]], which = slot)) == "S4"){
-          attr(x = seuratObj@assays[[assay]], which = slot)@Dimnames[[1]] <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot)@Dimnames[[1]])
+          attr(x = seuratObj@assays[[assay]], which = slot)@Dimnames[[1]] <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot)@Dimnames[[1]], predictions = predictions, automatic = automatic, ambiguity_suffix = ambiguity_suffix)
         }
         if (typeof(attr(x = seuratObj@assays[[assay]], which = slot)) == "double" | typeof(attr(x = seuratObj@assays[[assay]], which = slot)) == "integer"){
-          rownames(attr(x = seuratObj@assays[[assay]], which = slot)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = slot)))
+          rownames(attr(x = seuratObj@assays[[assay]], which = slot)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = slot)), predictions = predictions, automatic = automatic, ambiguity_suffix = ambiguity_suffix)
         }
         
       }
       #updating variable features (expected to be a vector)
       if (slot == "var.features"){
-        attr(x = seuratObj@assays[[assay]], which = slot) <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot))
+        attr(x = seuratObj@assays[[assay]], which = slot) <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot), predictions = predictions, automatic = automatic, ambiguity_suffix = ambiguity_suffix)
       }
       #updating meta.features (expected to be a matrix)
       if (slot == "meta.features"){
-        rownames(attr(x = seuratObj@assays[[assay]], which = slot)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = slot)))
+        rownames(attr(x = seuratObj@assays[[assay]], which = slot)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = slot)), predictions = predictions, automatic = automatic, ambiguity_suffix = ambiguity_suffix)
         #feature metadata is tracked by assay, so this matrix could be empty.
         #This is an update that seems to be CellMembrane specific
         if(dim(attr(x = seuratObj@assays[[assay]], which = slot))[[2]] != 0 & any(grepl("GeneId", names(attr(x = seuratObj@assays[[assay]], which = slot)))))
-          attr(x = seuratObj@assays[[assay]], which = slot)$GeneId <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot)$GeneId)
+          attr(x = seuratObj@assays[[assay]], which = slot)$GeneId <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot)$GeneId, predictions = predictions, automatic = automatic, ambiguity_suffix = ambiguity_suffix)
       }
     }
   }
   #this block attempts to update the features in PCA reductions. (expected to be two matrices)
   if (any(grepl("pca", names(seuratObj@reductions)))){
-    rownames(seuratObj@reductions$pca@feature.loadings) <- .UpdateGeneModel(rownames(seuratObj@reductions$pca@feature.loadings))
-    rownames(seuratObj@reductions$pca@feature.loadings.projected) <- .UpdateGeneModel(rownames(seuratObj@reductions$pca@feature.loadings.projected))
+    rownames(seuratObj@reductions$pca@feature.loadings) <- .UpdateGeneModel(rownames(seuratObj@reductions$pca@feature.loadings), predictions = predictions, automatic = automatic, ambiguity_suffix = ambiguity_suffix)
+    rownames(seuratObj@reductions$pca@feature.loadings.projected) <- .UpdateGeneModel(rownames(seuratObj@reductions$pca@feature.loadings.projected), predictions = predictions, automatic = automatic, ambiguity_suffix = ambiguity_suffix)
   }
   return(seuratObj)
 }
