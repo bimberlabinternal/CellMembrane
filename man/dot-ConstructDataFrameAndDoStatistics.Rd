@@ -19,6 +19,8 @@
 )
 }
 \arguments{
+\item{seuratObj}{The seurat object that holds the data.}
+
 \item{colorField}{The column of metadata that is used for the colorField}
 
 \item{yField}{The y axis for the dotplots.}

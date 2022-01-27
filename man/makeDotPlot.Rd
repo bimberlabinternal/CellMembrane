@@ -19,6 +19,8 @@ makeDotPlot(
 )
 }
 \arguments{
+\item{seuratObj}{The seurat object that holds the data.}
+
 \item{colorValue}{The "value that should be ranked "High" on the color axis.}
 
 \item{colorField}{The column of metadata that is used for the colorField}
