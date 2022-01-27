@@ -1,8 +1,11 @@
-#' @import ggplot2
+#' @import ggplot2 Seurat dplyr
+#' @importFrom stats cor 
+
 
 #' @title .GenerateSizeFactor 
 #'
-#' @description An extremely overloaded function that calculates statistics and enrichment in Seurat Objects. Please see an example dot plot before using this function. 
+#' @description A helper function for .ConstructDataFrameAndDoStatistics that calculates size factors for differently sized scRNA-Seq datasets.
+#' @param seuratObj The seurat object that holds the data.
 #' @param normalizationField The metadata column that is used for size factor calculation (equivalently, normalization between different datasets.) Recommended to be cDNA_ID.
 #' @param sizeFactorField The column name of the seruat object metadata that size factors should be stored in.
 #' @param maxSizeFactor The maximum allowable SizeFactor before an error is automatically thrown. For instance, a size factor of 100 means you have a group of 8000 cells that you're comparing to 80 cells. 
@@ -26,6 +29,7 @@
 #' @title .ConstructDataFrameAndDoStatistics
 #'
 #' @description Helper function for makeDotPlot that does the dataframe construction and statistics. 
+#' @param seuratObj The seurat object that holds the data.
 #' @param colorValue The "value that should be ranked "High" on the color axis.
 #' @param colorField The column of metadata that is used for the colorField
 #' @param colorLabels Vector of length 3 that defines the extremes and midpoint of the colorField axis.
@@ -37,6 +41,7 @@
 #' @param independentVariableTestField This and dependentVariableTestField automatically define a small statistical test to see if your size factors are correlated. Ideally, they should not be if independentVariableTestField is not the same value as normalizationField. 
 #' @param dependentVariableTestField This value should be equal to sizeFactorField initially, but can be changed to interactively see other correlations in the metadata.
 #' @export
+
 .ConstructDataFrameAndDoStatistics <- function(seuratObj, colorField = 'Population', yField = 'ClusterNames_0.2', groupField = 'Timepoint', colorValue = "ld-LN-Right", colorLabels = c("Left", "Even", "Right"), normalizationField = 'cDNA_ID', sizeFactorField = 'SizeFactor', maxSizeFactor = 100, independentVariableTestField = "Tissue", dependentVariableTestField = "SizeFactor"){
   
   # Calculate Size Factor
@@ -96,6 +101,7 @@
 #' @title makeDotPlot
 #'
 #' @description An extremely overloaded function that calculates statistics and enrichment in Seurat Objects. Please see an example dot plot before using this function. 
+#' @param seuratObj The seurat object that holds the data.
 #' @param colorValue The "value that should be ranked "High" on the color axis.
 #' @param colorField The column of metadata that is used for the colorField
 #' @param colorLabels Vector of length 3 that defines the extremes and midpoint of the colorField axis.

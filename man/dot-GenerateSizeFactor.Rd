@@ -12,6 +12,8 @@
 )
 }
 \arguments{
+\item{seuratObj}{The seurat object that holds the data.}
+
 \item{normalizationField}{The metadata column that is used for size factor calculation (equivalently, normalization between different datasets.) Recommended to be cDNA_ID.}
 
 \item{sizeFactorField}{The column name of the seruat object metadata that size factors should be stored in.}
@@ -19,5 +21,5 @@
 \item{maxSizeFactor}{The maximum allowable SizeFactor before an error is automatically thrown. For instance, a size factor of 100 means you have a group of 8000 cells that you're comparing to 80 cells.}
 }
 \description{
-An extremely overloaded function that calculates statistics and enrichment in Seurat Objects. Please see an example dot plot before using this function.
+A helper function for .ConstructDataFrameAndDoStatistics that calculates size factors for differently sized scRNA-Seq datasets.
 }
