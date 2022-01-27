@@ -61,6 +61,7 @@ Remotes:
     bioc::SingleCellExperiment,
     niaid/dsb
 Collate: 
+    'Analysis.R'
     'Preprocessing.R'
     'Utils.R'
     'CiteSeq.R'
