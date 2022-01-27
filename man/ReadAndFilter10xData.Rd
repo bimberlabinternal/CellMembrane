@@ -28,6 +28,8 @@ ReadAndFilter10xData(
 \item{emptyDropsLower}{Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.}
 
 \item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito}
+
+\item{emptyDropsFdrThreshold}{The FDR threshold to call cells in emptyDrops()}
 }
 \value{
 A Seurat object.

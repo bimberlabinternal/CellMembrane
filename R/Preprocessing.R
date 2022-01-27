@@ -98,8 +98,8 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 		sum(nUMI >= x)
 	}))
 
-	print(ggplot(data.frame(x = log(countAbove), y = log(nUMI)), aes(x = x, y = y)) +
-		geom_point() + ylab("UMI/Cell") + xlab("# Cells") +
+	print(ggplot(data.frame(x = log10(countAbove), y = log(nUMI)), aes(x = x, y = y)) +
+		geom_point() + ylab("UMI/Cell") + xlab("log10(# Cells)") +
 		egg::theme_presentation()
 	)
 }
@@ -113,7 +113,7 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 #' @param emptyDropsLower Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.
 #' @return Plot
 #' @importFrom DropletUtils barcodeRanks
-PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.01, emptyDropNIters=10000, emptyDropsLower=100) {
+PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.001, emptyDropNIters=10000, emptyDropsLower=100) {
 	br.out <- DropletUtils::barcodeRanks(seuratRawData)
 
 	# Making a plot.
@@ -143,7 +143,7 @@ PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.01, empty
 	return(seuratRawData[,passingCells])
 }
 
-PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01, emptyDropsLower = 100, seed = GetSeed()){
+PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001, emptyDropsLower = 100, seed = GetSeed()){
 	print(paste0('Performing emptyDrops with ', emptyDropNIters, ' iterations'))
 
 	if (!is.null(seed)) {

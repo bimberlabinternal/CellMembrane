@@ -6,7 +6,7 @@
 \usage{
 PerformEmptyDropletFiltering(
   seuratRawData,
-  fdrThreshold = 0.01,
+  fdrThreshold = 0.001,
   emptyDropNIters = 10000,
   emptyDropsLower = 100
 )
