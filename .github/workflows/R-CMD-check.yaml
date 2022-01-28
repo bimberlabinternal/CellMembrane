@@ -20,7 +20,8 @@ jobs:
         config:
           - {os: ubuntu-20.04, r: 'devel', bioc: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
           - {os: ubuntu-20.04, r: 'release', bioc: '3.13', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest", pkgdown: "true"}
-          - {os: ubuntu-20.04, r: '4.0', bioc: '3.12', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          # Note: the latest DropletUtils is not compatible with 3.12, so skip this
+          #- {os: ubuntu-20.04, r: '4.0', bioc: '3.12', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -57,7 +58,6 @@ jobs:
 
       # TODO: remove this once Bioconductor version contains emptyDropsCellRanger
       - name: Install latest DropletUtils
-        if: matrix.config.bioc == 'devel'
         run: |
           remotes::install_github('MarioniLab/DropletUtils')
         shell: Rscript {0}
