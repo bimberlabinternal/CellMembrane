@@ -16,13 +16,14 @@ utils::globalVariables(
 #' @param datasetId This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.
 #' @param datasetName An optional print-friendly name that will be stored in metadata
 #' @param emptyDropNIters The number of iterations to use with PerformEmptyDrops()
+#' @param emptyDropsFdrThreshold The FDR threshold to call cells in emptyDrops()
 #' @param emptyDropsLower Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.
 #' @param storeGeneIds If true, a map to translate geneId and name (by default rownames will use gene name)
 #' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
 #' @return A Seurat object.
 #' @export
 #' @importFrom Seurat Read10X
-ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, storeGeneIds=TRUE, emptyDropsLower = 100, annotateMitoFromReference = TRUE) {
+ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, emptyDropsFdrThreshold = 0.001, storeGeneIds=TRUE, emptyDropsLower = 100, annotateMitoFromReference = TRUE) {
   if (!file.exists(dataDir)){
     stop(paste0("File does not exist: ", dataDir))
   }
@@ -39,7 +40,7 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
     rownames(seuratRawData) <- gsub(x = rownames(seuratRawData), pattern = '_', replacement = '-')
   }
 
-  seuratRawData <- PerformEmptyDropletFiltering(seuratRawData, emptyDropNIters=emptyDropNIters, emptyDropsLower=emptyDropsLower)
+  seuratRawData <- PerformEmptyDropletFiltering(seuratRawData, fdrThreshold = emptyDropsFdrThreshold, emptyDropNIters=emptyDropNIters, emptyDropsLower=emptyDropsLower)
 
   seuratObj <- CreateSeuratObj(seuratRawData, datasetId = datasetId, datasetName = datasetName, annotateMitoFromReference = TRUE)
   .PrintQcPlots(seuratObj)

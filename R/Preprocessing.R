@@ -98,8 +98,8 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 		sum(nUMI >= x)
 	}))
 
-	print(ggplot(data.frame(x = log(countAbove), y = log(nUMI)), aes(x = x, y = y)) +
-		geom_point() + ylab("UMI/Cell") + xlab("# Cells") +
+	print(ggplot(data.frame(x = log10(countAbove), y = log(nUMI)), aes(x = x, y = y)) +
+		geom_point() + ylab("UMI/Cell") + xlab("log10(# Cells)") +
 		egg::theme_presentation()
 	)
 }
@@ -113,23 +113,21 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 #' @param emptyDropsLower Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.
 #' @return Plot
 #' @importFrom DropletUtils barcodeRanks
-PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.01, emptyDropNIters=10000, emptyDropsLower=100) {
+PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.001, emptyDropNIters=10000, emptyDropsLower=100) {
 	br.out <- DropletUtils::barcodeRanks(seuratRawData)
-
-	# Making a plot.
 	plot(br.out$rank, br.out$total+1, log="xy", xlab="Rank", ylab="Total")
 
 	o <- order(br.out$rank)
 	lines(br.out$rank[o], br.out$fitted[o], col="red")
-	abline(h=br.out$knee, col="dodgerblue", lty=2)
-	abline(h=br.out$inflection, col="forestgreen", lty=2)
+	abline(h=br.out@metadata$knee, col="dodgerblue", lty=2)
+	abline(h=br.out@metadata$inflection, col="forestgreen", lty=2)
 	legend("bottomleft", lty=2, col=c("dodgerblue", "forestgreen"), legend=c("knee", "inflection"))
 
 	e.out <- PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower)
 
 	toPlot <- e.out[is.finite(e.out$LogProb),]
 	if (nrow(toPlot) > 0) {
-		plot(toPlot$Total, -toPlot$LogProb, col=ifelse(toPlot$is.cell, "red", "black"), xlab="Total UMI count", ylab="-Log Probability")
+		plot(toPlot$Total, -toPlot$LogProb, col=ifelse(toPlot$is.cell, "red", "black"), log = "x", xlab="log(Total UMI count)", ylab="-Log Probability")
 	} else {
 		print('Probabilities all -Inf, unable to plot')
 	}
@@ -138,12 +136,15 @@ PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.01, empty
 		print(paste0('Total rows with non-finite probabilities: ', (nrow(e.out) - nrow(toPlot))))
 	}
 
+	print(paste0('Min UMI count in a droplet called a cell: ', min(e.out$Total[e.out$is.cell])))
+  	print(paste0('Max UMI count in a droplet not called a cell: ', max(e.out$Total[!e.out$is.cell])))
+
 	passingCells <- rownames(e.out)[e.out$is.cell]
 
 	return(seuratRawData[,passingCells])
 }
 
-PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01, emptyDropsLower = 100, seed = GetSeed()){
+PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001, emptyDropsLower = 100, seed = GetSeed()){
 	print(paste0('Performing emptyDrops with ', emptyDropNIters, ' iterations'))
 
 	if (!is.null(seed)) {
@@ -160,10 +161,11 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.01,
 
 	#If there are any entries with FDR above the desired threshold and Limited==TRUE, it indicates that npts should be increased in the emptyDrops call.
 	print(table(Limited=e.out$Limited, Significant=e.out$is.cell))
-	totalLimited <- sum(e.out$Limited[e.out$Limited == T] & e.out$Significant == F)
+	totalLimited <- sum(e.out$Limited == T & e.out$Significant == F)
 	if (totalLimited == 0){
 		return(e.out)
 	} else {
+		print('Repeating emptyDrops with more iterations')
 		return(PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters * 2, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower, seed = seed))
 	}
 }

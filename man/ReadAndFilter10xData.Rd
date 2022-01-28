@@ -9,6 +9,7 @@ ReadAndFilter10xData(
   datasetId,
   datasetName = NULL,
   emptyDropNIters = 10000,
+  emptyDropsFdrThreshold = 0.001,
   storeGeneIds = TRUE,
   emptyDropsLower = 100,
   annotateMitoFromReference = TRUE
@@ -22,6 +23,8 @@ ReadAndFilter10xData(
 \item{datasetName}{An optional print-friendly name that will be stored in metadata}
 
 \item{emptyDropNIters}{The number of iterations to use with PerformEmptyDrops()}
+
+\item{emptyDropsFdrThreshold}{The FDR threshold to call cells in emptyDrops()}
 
 \item{storeGeneIds}{If true, a map to translate geneId and name (by default rownames will use gene name)}
 
