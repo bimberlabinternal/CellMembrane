@@ -34,6 +34,8 @@ ReadAndFilter10xData(
 
 \item{useEmptyDropsCellRanger}{If TRUE, will use DropletUtils emptyDropsCellRanger instead of emptyDrops}
 
+\item{nExpectedCells}{Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument}
+
 \item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito}
 }
 \value{
