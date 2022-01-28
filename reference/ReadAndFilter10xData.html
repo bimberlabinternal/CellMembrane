@@ -55,6 +55,7 @@
   <span class="va">datasetId</span>,
   datasetName <span class="op">=</span> <span class="cn">NULL</span>,
   emptyDropNIters <span class="op">=</span> <span class="fl">10000</span>,
+  emptyDropsFdrThreshold <span class="op">=</span> <span class="fl">0.001</span>,
   storeGeneIds <span class="op">=</span> <span class="cn">TRUE</span>,
   emptyDropsLower <span class="op">=</span> <span class="fl">100</span>,
   annotateMitoFromReference <span class="op">=</span> <span class="cn">TRUE</span>
@@ -71,6 +72,8 @@
 <dd><p>An optional print-friendly name that will be stored in metadata</p></dd>
 <dt>emptyDropNIters</dt>
 <dd><p>The number of iterations to use with PerformEmptyDrops()</p></dd>
+<dt>emptyDropsFdrThreshold</dt>
+<dd><p>The FDR threshold to call cells in emptyDrops()</p></dd>
 <dt>storeGeneIds</dt>
 <dd><p>If true, a map to translate geneId and name (by default rownames will use gene name)</p></dd>
 <dt>emptyDropsLower</dt>
