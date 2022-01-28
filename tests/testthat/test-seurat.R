@@ -30,7 +30,7 @@ test_that("Serat processing works as expected", {
   seuratObj <- seuratObj[,cellsToUse]
 
   seuratObj <- FilterRawCounts(seuratObj)
-  expect_equal(ncol(seuratObj), 485)
+  expect_equal(ncol(seuratObj), 488)
   
   seuratObj <- NormalizeAndScale(seuratObj)
   tbl <- table(seuratObj$Phase)
@@ -51,7 +51,7 @@ test_that("Serat processing works as expected", {
 
   seuratObj <- FindClustersAndDimRedux(seuratObj)
   expect_equal(ncol(seuratObj), 488)
-  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 7)
+  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 6)
 
   # NOTE: we no longer expect this to be true:
   #expect_equal(length(rownames(seuratObj@assays$RNA@scale.data)), length(rownames(seuratObj@assays$RNA@counts)))
