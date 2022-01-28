@@ -14,7 +14,7 @@ test_that("Seurat-merge using emptyDropsCellRanger works", {
 
   expect_true('BarcodePrefix' %in% colnames(seuratObj@meta.data))
   expect_true('DatasetId' %in% colnames(seuratObj@meta.data))
-  expect_false('DatasetName' %in% colnames(seuratObj@meta.data))
+  expect_true('DatasetName' %in% colnames(seuratObj@meta.data))
 
   expect_equal(ncol(seuratObj), 3244, tolerance = 5)
 })
