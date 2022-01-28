@@ -111,8 +111,8 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 #' @param fdrThreshold FDR threshold, passed directly to PerformEmptyDrops()
 #' @param emptyDropNIters Number of iterations, passed directly to PerformEmptyDrops()
 #' @param emptyDropsLower Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.
+#' @param useEmptyDropsCellRanger If TRUE, will use DropletUtils emptyDropsCellRanger instead of emptyDrops
 #' @param nExpectedCells Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument
-#' @param useEmptyDropsCellRanger If TRUE, will use DropletUtils::emptyDropsCellRanger instead of emptyDrops
 #' @return Plot
 #' @importFrom DropletUtils barcodeRanks
 PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.001, emptyDropNIters=10000, emptyDropsLower=200, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000) {
@@ -160,14 +160,18 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 	}
 
 	print(paste0('Input cells: ', nrow(e.out)))
+	badRows <- !is.finite(e.out$FDR)
+	if (sum(badRows) > 0) {
+		print(paste0('Cells with non-finite FDR: ', sum(badRows)))
+		e.out <- e.out[!badRows,]
+	}
+
 	e.out$is.cell <- e.out$FDR <= fdrThreshold
 	print(paste0('Cells passing FDR: ', sum(e.out$is.cell, na.rm=TRUE)))
 	print(paste0('Cells failing FDR: ', sum(!e.out$is.cell, na.rm=TRUE)))
 
 	totalLimited <- 0
 	if (!useEmptyDropsCellRanger) {
-		e.out <- e.out[!is.na(e.out$LogProb),]
-
 		#If there are any entries with FDR above the desired threshold and Limited==TRUE, it indicates that npts should be increased in the emptyDrops call.
 		print(table(Limited=e.out$Limited, Significant=e.out$is.cell))
 		totalLimited <- sum(e.out$Limited == T & e.out$Significant == F)

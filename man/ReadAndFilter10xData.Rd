@@ -32,7 +32,7 @@ ReadAndFilter10xData(
 
 \item{emptyDropsLower}{Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.}
 
-\item{useEmptyDropsCellRanger}{If TRUE, will use DropletUtils::emptyDropsCellRanger instead of emptyDrops}
+\item{useEmptyDropsCellRanger}{If TRUE, will use DropletUtils emptyDropsCellRanger instead of emptyDrops}
 
 \item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito}
 }

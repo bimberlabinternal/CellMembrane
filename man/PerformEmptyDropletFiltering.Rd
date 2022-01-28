@@ -8,7 +8,7 @@ PerformEmptyDropletFiltering(
   seuratRawData,
   fdrThreshold = 0.001,
   emptyDropNIters = 10000,
-  emptyDropsLower = 100,
+  emptyDropsLower = 200,
   useEmptyDropsCellRanger = FALSE,
   nExpectedCells = 8000
 )
@@ -22,7 +22,7 @@ PerformEmptyDropletFiltering(
 
 \item{emptyDropsLower}{Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.}
 
-\item{useEmptyDropsCellRanger}{If TRUE, will use DropletUtils::emptyDropsCellRanger instead of emptyDrops}
+\item{useEmptyDropsCellRanger}{If TRUE, will use DropletUtils emptyDropsCellRanger instead of emptyDrops}
 
 \item{nExpectedCells}{Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument}
 }
