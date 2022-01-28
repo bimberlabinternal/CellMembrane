@@ -34,23 +34,23 @@ test_that("Serat processing works as expected", {
   
   seuratObj <- NormalizeAndScale(seuratObj)
   tbl <- table(seuratObj$Phase)
-  expect_equal(tbl[['G1']], 250)
-  expect_equal(tbl[['G2M']], 92)
-  expect_equal(tbl[['S']], 143)
-  expect_equal(ncol(seuratObj), 485)
+  expect_equal(tbl[['G1']], 183)
+  expect_equal(tbl[['G2M']], 95)
+  expect_equal(tbl[['S']], 210)
+  expect_equal(ncol(seuratObj), 488)
 
   seuratObj <- RegressCellCycle(seuratObj)
 
   vgFile <- 'variableGenes.txt'
   seuratObj <- RunPcaSteps(seuratObj, variableGeneTable = vgFile)
-  expect_equal(ncol(seuratObj), 485)
+  expect_equal(ncol(seuratObj), 488)
 
   expect_equal(file.exists(vgFile), T)
   expect_equal(nrow(utils::read.table(vgFile, sep = '\t', header = F)), 2000)
   unlink(vgFile)
 
   seuratObj <- FindClustersAndDimRedux(seuratObj)
-  expect_equal(ncol(seuratObj), 485)
+  expect_equal(ncol(seuratObj), 488)
   expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 7)
 
   # NOTE: we no longer expect this to be true:
@@ -61,7 +61,7 @@ test_that("Serat processing works as expected", {
   expect_true(max(seuratObj$p.mito) > 0)
 
   seuratObj0 <- FindClustersAndDimRedux(seuratObj, minDimsToUse = 12)
-  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 7)
+  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 6)
   rm(seuratObj0)
 
   mf <- paste0(outPrefix, '.markers.txt')
@@ -70,7 +70,7 @@ test_that("Serat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 532)
+  expect_equal(nrow(df), 538)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
