@@ -20,7 +20,8 @@ jobs:
         config:
           - {os: ubuntu-20.04, r: 'devel', bioc: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
           - {os: ubuntu-20.04, r: 'release', bioc: '3.13', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest", pkgdown: "true"}
-          - {os: ubuntu-20.04, r: '4.0', bioc: '3.12', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          # Note: the latest DropletUtils is not compatible with 3.12, so skip this
+          #- {os: ubuntu-20.04, r: '4.0', bioc: '3.12', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -53,6 +54,12 @@ jobs:
           BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE);
           cat(append = TRUE, file = "~/.Rprofile", "options(repos = BiocManager::repositories());")
           cat(append = TRUE, file = "~/.Rprofile", "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));");
+        shell: Rscript {0}
+
+      # TODO: remove this once Bioconductor version contains emptyDropsCellRanger
+      - name: Install latest DropletUtils
+        run: |
+          remotes::install_github('MarioniLab/DropletUtils')
         shell: Rscript {0}
 
       - name: Query dependencies

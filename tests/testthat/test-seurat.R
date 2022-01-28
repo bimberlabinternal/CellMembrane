@@ -1,4 +1,23 @@
+library(DropletUtils);
+
 context("scRNAseq")
+
+test_that("Seurat-merge using emptyDropsCellRanger works", {
+  if (!'emptyDropsCellRanger' %in% ls("package:DropletUtils")) {
+    print('The installed DropletUtils lacks emptyDropsCellRanger, skipping test')
+    return()
+  }
+	
+  set.seed(CellMembrane::GetSeed())
+
+  seuratObj <- ReadAndFilter10xData('../testdata/CellRanger2/raw_gene_bc_matrices/cellRanger-3204293', datasetId = 'Set1', datasetName = 'datasetName', emptyDropNIters=5000, useEmptyDropsCellRanger = T)
+
+  expect_true('BarcodePrefix' %in% colnames(seuratObj@meta.data))
+  expect_true('DatasetId' %in% colnames(seuratObj@meta.data))
+  expect_true('DatasetName' %in% colnames(seuratObj@meta.data))
+
+  expect_equal(ncol(seuratObj), 3244, tolerance = 5)
+})
 
 test_that("Serat processing works as expected", {
   set.seed(CellMembrane::GetSeed())
