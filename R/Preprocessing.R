@@ -111,9 +111,11 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 #' @param fdrThreshold FDR threshold, passed directly to PerformEmptyDrops()
 #' @param emptyDropNIters Number of iterations, passed directly to PerformEmptyDrops()
 #' @param emptyDropsLower Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.
+#' @param nExpectedCells Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument
+#' @param useEmptyDropsCellRanger If TRUE, will use DropletUtils::emptyDropsCellRanger instead of emptyDrops
 #' @return Plot
 #' @importFrom DropletUtils barcodeRanks
-PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.001, emptyDropNIters=10000, emptyDropsLower=100) {
+PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.001, emptyDropNIters=10000, emptyDropsLower=200, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000) {
 	br.out <- DropletUtils::barcodeRanks(seuratRawData)
 	plot(br.out$rank, br.out$total+1, log="xy", xlab="Rank", ylab="Total")
 
@@ -123,7 +125,7 @@ PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.001, empt
 	abline(h=br.out@metadata$inflection, col="forestgreen", lty=2)
 	legend("bottomleft", lty=2, col=c("dodgerblue", "forestgreen"), legend=c("knee", "inflection"))
 
-	e.out <- PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower)
+	e.out <- PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower, useEmptyDropsCellRanger = useEmptyDropsCellRanger, nExpectedCells = nExpectedCells)
 
 	toPlot <- e.out[is.finite(e.out$LogProb),]
 	if (nrow(toPlot) > 0) {
@@ -144,29 +146,38 @@ PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.001, empt
 	return(seuratRawData[,passingCells])
 }
 
-PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001, emptyDropsLower = 100, seed = GetSeed()){
+PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001, emptyDropsLower = 100, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000, seed = GetSeed()){
 	print(paste0('Performing emptyDrops with ', emptyDropNIters, ' iterations'))
 
 	if (!is.null(seed)) {
 		set.seed(seed)
 	}
 
-	e.out <- DropletUtils::emptyDrops(seuratRawData, niters = emptyDropNIters, lower = emptyDropsLower)
+	if (useEmptyDropsCellRanger) {
+		e.out <- DropletUtils::emptyDropsCellRanger(seuratRawData, niters = emptyDropNIters, n.expected.cells = nExpectedCells)
+	} else {
+		e.out <- DropletUtils::emptyDrops(seuratRawData, niters = emptyDropNIters, lower = emptyDropsLower)
+	}
 
 	print(paste0('Input cells: ', nrow(e.out)))
-	e.out <- e.out[!is.na(e.out$LogProb),]
 	e.out$is.cell <- e.out$FDR <= fdrThreshold
 	print(paste0('Cells passing FDR: ', sum(e.out$is.cell, na.rm=TRUE)))
 	print(paste0('Cells failing FDR: ', sum(!e.out$is.cell, na.rm=TRUE)))
 
-	#If there are any entries with FDR above the desired threshold and Limited==TRUE, it indicates that npts should be increased in the emptyDrops call.
-	print(table(Limited=e.out$Limited, Significant=e.out$is.cell))
-	totalLimited <- sum(e.out$Limited == T & e.out$Significant == F)
+	totalLimited <- 0
+	if (!useEmptyDropsCellRanger) {
+		e.out <- e.out[!is.na(e.out$LogProb),]
+
+		#If there are any entries with FDR above the desired threshold and Limited==TRUE, it indicates that npts should be increased in the emptyDrops call.
+		print(table(Limited=e.out$Limited, Significant=e.out$is.cell))
+		totalLimited <- sum(e.out$Limited == T & e.out$Significant == F)
+	}
+
 	if (totalLimited == 0){
 		return(e.out)
 	} else {
 		print('Repeating emptyDrops with more iterations')
-		return(PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters * 2, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower, seed = seed))
+		return(PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters * 2, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower, seed = seed, useEmptyDropsCellRanger = useEmptyDropsCellRanger, nExpectedCells = nExpectedCells))
 	}
 }
 
