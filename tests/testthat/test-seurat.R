@@ -1,5 +1,17 @@
 context("scRNAseq")
 
+test_that("Seurat-merge using emptyDropsCellRanger works", {
+  set.seed(CellMembrane::GetSeed())
+
+  seuratObj <- ReadAndFilter10xData('../testdata/CellRanger2/raw_gene_bc_matrices/cellRanger-3204293', datasetId = 'Set1', datasetName = 'datasetName', emptyDropNIters=5000, useEmptyDropsCellRanger = T)
+
+  expect_true('BarcodePrefix' %in% colnames(seuratObj@meta.data))
+  expect_true('DatasetId' %in% colnames(seuratObj@meta.data))
+  expect_false('DatasetName' %in% colnames(seuratObj@meta.data))
+
+  expect_equal(ncol(seuratObj), 3353, tolerance = 5)
+})
+
 test_that("Serat processing works as expected", {
   set.seed(CellMembrane::GetSeed())
 
