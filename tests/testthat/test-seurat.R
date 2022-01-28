@@ -9,7 +9,7 @@ test_that("Seurat-merge using emptyDropsCellRanger works", {
   expect_true('DatasetId' %in% colnames(seuratObj@meta.data))
   expect_false('DatasetName' %in% colnames(seuratObj@meta.data))
 
-  expect_equal(ncol(seuratObj), 3353, tolerance = 5)
+  expect_equal(ncol(seuratObj), 3244, tolerance = 5)
 })
 
 test_that("Serat processing works as expected", {
