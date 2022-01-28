@@ -50,7 +50,7 @@ RoxygenNote: 7.1.2
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
-    bioc::DropletUtils,
+    MarioniLab/DropletUtils,
     bioc::DESeq2,
     bioc::MAST,
     bioc::celldex,
