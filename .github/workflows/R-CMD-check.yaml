@@ -57,6 +57,7 @@ jobs:
 
       # TODO: remove this once Bioconductor version contains emptyDropsCellRanger
       - name: Install latest DropletUtils
+        if: matrix.config.bioc == 'devel'
         run: |
           remotes::install_github('MarioniLab/DropletUtils')
         shell: Rscript {0}
