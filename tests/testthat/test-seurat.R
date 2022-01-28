@@ -5,6 +5,7 @@ context("scRNAseq")
 test_that("Seurat-merge using emptyDropsCellRanger works", {
   if (!'emptyDropsCellRanger' %in% ls("package:DropletUtils")) {
     print('The installed DropletUtils lacks emptyDropsCellRanger, skipping test')
+    return()
   }
 	
   set.seed(CellMembrane::GetSeed())
