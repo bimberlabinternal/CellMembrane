@@ -58,6 +58,8 @@
   emptyDropsFdrThreshold <span class="op">=</span> <span class="fl">0.001</span>,
   storeGeneIds <span class="op">=</span> <span class="cn">TRUE</span>,
   emptyDropsLower <span class="op">=</span> <span class="fl">100</span>,
+  useEmptyDropsCellRanger <span class="op">=</span> <span class="cn">FALSE</span>,
+  nExpectedCells <span class="op">=</span> <span class="fl">8000</span>,
   annotateMitoFromReference <span class="op">=</span> <span class="cn">TRUE</span>
 <span class="op">)</span></code></pre></div>
     </div>
@@ -78,6 +80,10 @@
 <dd><p>If true, a map to translate geneId and name (by default rownames will use gene name)</p></dd>
 <dt>emptyDropsLower</dt>
 <dd><p>Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.</p></dd>
+<dt>useEmptyDropsCellRanger</dt>
+<dd><p>If TRUE, will use DropletUtils emptyDropsCellRanger instead of emptyDrops</p></dd>
+<dt>nExpectedCells</dt>
+<dd><p>Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument</p></dd>
 <dt>annotateMitoFromReference</dt>
 <dd><p>If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito</p></dd>
 </dl></div>

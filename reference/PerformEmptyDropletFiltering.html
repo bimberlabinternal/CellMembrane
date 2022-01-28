@@ -54,7 +54,9 @@
   <span class="va">seuratRawData</span>,
   fdrThreshold <span class="op">=</span> <span class="fl">0.001</span>,
   emptyDropNIters <span class="op">=</span> <span class="fl">10000</span>,
-  emptyDropsLower <span class="op">=</span> <span class="fl">100</span>
+  emptyDropsLower <span class="op">=</span> <span class="fl">200</span>,
+  useEmptyDropsCellRanger <span class="op">=</span> <span class="cn">FALSE</span>,
+  nExpectedCells <span class="op">=</span> <span class="fl">8000</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
@@ -68,6 +70,10 @@
 <dd><p>Number of iterations, passed directly to PerformEmptyDrops()</p></dd>
 <dt>emptyDropsLower</dt>
 <dd><p>Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.</p></dd>
+<dt>useEmptyDropsCellRanger</dt>
+<dd><p>If TRUE, will use DropletUtils emptyDropsCellRanger instead of emptyDrops</p></dd>
+<dt>nExpectedCells</dt>
+<dd><p>Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
