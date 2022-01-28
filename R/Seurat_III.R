@@ -23,7 +23,7 @@ utils::globalVariables(
 #' @return A Seurat object.
 #' @export
 #' @importFrom Seurat Read10X
-ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, storeGeneIds=TRUE, emptyDropsLower = 100, annotateMitoFromReference = TRUE) {
+ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, emptyDropsFdrThreshold = 0.001, storeGeneIds=TRUE, emptyDropsLower = 100, annotateMitoFromReference = TRUE) {
   if (!file.exists(dataDir)){
     stop(paste0("File does not exist: ", dataDir))
   }
