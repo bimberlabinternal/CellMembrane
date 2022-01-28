@@ -186,7 +186,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 }
 
 
-.DoMergeSimple <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = null, doGC = FALSE){
+.DoMergeSimple <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = NULL, doGC = FALSE){
 	seuratObj <- NULL
 
 	for (datasetId in names(seuratObjs)) {
