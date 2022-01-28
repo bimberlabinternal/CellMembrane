@@ -55,6 +55,12 @@ jobs:
           cat(append = TRUE, file = "~/.Rprofile", "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));");
         shell: Rscript {0}
 
+      # TODO: remove this once Bioconductor version contains emptyDropsCellRanger
+      - name: Install latest DropletUtils
+        run: |
+          remotes::install_github('MarioniLab/DropletUtils')
+        shell: Rscript {0}
+
       - name: Query dependencies
         run: |
           install.packages('remotes')
