@@ -147,7 +147,7 @@ PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.001, empt
 }
 
 PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001, emptyDropsLower = 100, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000, seed = GetSeed()){
-	print(paste0('Performing emptyDrops with ', emptyDropNIters, ' iterations'))
+	print(paste0('Performing ', ifelse(useEmptyDropsCellRanger, yes = 'emptyDropsCellRanger', no = 'emptyDrops'), ' with ', emptyDropNIters, ' iterations'))
 
 	if (!is.null(seed)) {
 		set.seed(seed)
@@ -167,7 +167,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 	}
 
 	e.out$is.cell <- e.out$FDR <= fdrThreshold
-	print(paste0('Cells passing FDR: ', sum(e.out$is.cell, na.rm=TRUE)))
+	print(paste0('Cells passing FDR (', fdrThreshold, '): ', sum(e.out$is.cell, na.rm=TRUE)))
 	print(paste0('Cells failing FDR: ', sum(!e.out$is.cell, na.rm=TRUE)))
 
 	totalLimited <- 0
