@@ -125,6 +125,8 @@ PerformEmptyDropletFiltering <- function(seuratRawData, fdrThreshold=0.001, empt
 	abline(h=br.out@metadata$inflection, col="forestgreen", lty=2)
 	legend("bottomleft", lty=2, col=c("dodgerblue", "forestgreen"), legend=c("knee", "inflection"))
 
+	print(paste0('Knee: ', br.out@metadata$knee))
+	print(paste0('Inflection: ', br.out@metadata$inflection))
 	e.out <- PerformEmptyDrops(seuratRawData, emptyDropNIters = emptyDropNIters, fdrThreshold = fdrThreshold, emptyDropsLower = emptyDropsLower, useEmptyDropsCellRanger = useEmptyDropsCellRanger, nExpectedCells = nExpectedCells)
 
 	toPlot <- e.out[is.finite(e.out$LogProb),]

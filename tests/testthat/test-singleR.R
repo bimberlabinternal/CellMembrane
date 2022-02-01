@@ -1,3 +1,5 @@
+setwd("C:/Projects/CellMembrane/tests/testthat")
+library(CellMembrane)
 context("scRNAseq")
 
 test_that("SingleR works as expected", {
@@ -21,6 +23,9 @@ test_that("SingleR works as expected", {
 
     print(table(seuratObj$hpca.label))
     print(table(seuratObj$hpca.label.fine))
+
+    print(table(seuratObj$SingleRConsensus))
+    expect_equal(1467, sum(seuratObj$SingleRConsensus == 'NK/T_cell'))
 
     allData <- read.table(rawDataFile, header = T, sep = '\t')
     print(nrow(allData))

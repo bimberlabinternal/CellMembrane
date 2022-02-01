@@ -16,13 +16,14 @@ utils::globalVariables(
 #' @param showHeatmap If true, heatmaps will be generated showing the SingleR calls
 #' @param maxCellsForHeatmap The heatmap will only be plotted if the total cells is below this number
 #' @param nThreads If provided, this integer value is passed to SingleR's BPPARAM argument. On windows ths is passed to BiocParallel::SnowParam(). On other OS it is passed to BiocParallel::MulticoreParam()
+#' @param createConsensus If true, a pseudo-consensus field will be created from the course labels from all datasets. Labels will be simplified in an attempt to normalize into the categories of Bcells, NK/T_cells and Myeloid.
 #' @return The modified seurat object
 #' @importFrom pheatmap pheatmap
 #' @import Seurat
 #' @import SingleR
 #' @export
 #' @importFrom scuttle logNormCounts
-RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco', 'immgen'), assay = NULL, resultTableFile = NULL, rawDataFile = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000, nThreads = NULL){
+RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco', 'immgen'), assay = NULL, resultTableFile = NULL, rawDataFile = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000, nThreads = NULL, createConsensus = TRUE){
   if (is.null(seuratObj)){
       stop("Seurat object is required")
   }
@@ -221,6 +222,35 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     }
 
     Tabulate_SingleR(seuratObj, plotIndividually = TRUE, datasets = datasets)
+
+    # Create a pseudo consensus:
+    if (createConsensus) {
+      allFields <- names(seuratObj@meta.data)
+      allFields <- allFields[grepl(allFields, pattern = 'label')]
+
+      fieldsToUse <- allFields[!grepl(allFields, pattern = 'fine')]
+      dat <- seuratObj@meta.data[fieldsToUse]
+
+      for (colName in names(dat)) {
+        dat[[colName]][grepl(dat[[colName]], pattern = "Myeloid|Monocyte|Macrophage", ignore.case = T)] <- "Myeloid"
+        dat[[colName]][grepl(dat[[colName]], pattern = "Tcell|T_cell|T cell|T-cell|TCell|T_Cell|T Cell|T-Cell|CD8|CD4|Treg", ignore.case = T)] <- "NK/T_cell"
+        dat[[colName]][grepl(dat[[colName]], pattern = "NKcell|NK_cell|NK cell|NK-cell|NKCell|NK_Cell|NK Cell|NK-Cell", ignore.case = T)] <- "NK/T_cell"
+        dat[[colName]][grepl(dat[[colName]], pattern = "Bcell|B_cell|B cell|B-cell|BCell|B_Cell|B Cell|B-Cell", ignore.case = T)] <- "B_cell"
+        dat[[colName]][grepl(dat[[colName]], pattern = "DC|Dendritic")] <- "DCs"
+      }
+
+      dat$SingleRConsensus <- sapply(1:nrow(dat), function(idx) {
+        vals <- unlist(dat[idx, fieldsToUse, drop = T])
+        vals <- unique(vals[!is.na(vals) & vals != 'Unknown'])
+        if (length(vals) == 0) {
+          return(NA)
+        }
+
+        return(paste0(sort(unique(vals)), collapse = ','))
+      })
+
+      seuratObj$SingleRConsensus <- dat$SingleRConsensus
+    }
   }
 
   return(seuratObj)
