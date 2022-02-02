@@ -404,7 +404,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 
 			plots <- NULL
 			for (reduction in toPlot) {
-				P1 <- Seurat::FeaturePlot(seuratObj, reduction = reduction, features = feature)
+				P1 <- Seurat::FeaturePlot(seuratObj, reduction = reduction, features = feature, min.cutoff = 'q05', max.cutoff = 'q95')
 				if (is.null(plots)) {
 					plots <- P1
 				} else {
