@@ -1,5 +1,3 @@
-setwd("C:/Projects/CellMembrane/tests/testthat")
-library(CellMembrane)
 context("scRNAseq")
 
 test_that("SingleR works as expected", {
