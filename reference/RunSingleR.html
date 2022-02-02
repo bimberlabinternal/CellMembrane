@@ -59,7 +59,8 @@
   minFraction <span class="op">=</span> <span class="fl">0.01</span>,
   showHeatmap <span class="op">=</span> <span class="cn">TRUE</span>,
   maxCellsForHeatmap <span class="op">=</span> <span class="fl">20000</span>,
-  nThreads <span class="op">=</span> <span class="cn">NULL</span>
+  nThreads <span class="op">=</span> <span class="cn">NULL</span>,
+  createConsensus <span class="op">=</span> <span class="cn">TRUE</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
@@ -83,6 +84,8 @@
 <dd><p>The heatmap will only be plotted if the total cells is below this number</p></dd>
 <dt>nThreads</dt>
 <dd><p>If provided, this integer value is passed to SingleR's BPPARAM argument. On windows ths is passed to BiocParallel::SnowParam(). On other OS it is passed to BiocParallel::MulticoreParam()</p></dd>
+<dt>createConsensus</dt>
+<dd><p>If true, a pseudo-consensus field will be created from the course labels from all datasets. Labels will be simplified in an attempt to normalize into the categories of Bcells, NK/T_cells and Myeloid.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
