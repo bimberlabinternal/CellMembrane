@@ -164,7 +164,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       seuratObj[[fn2]] <- toAdd
 
       tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn2]][[fn2]]))
-      pheatmap::pheatmap(log10(tab+10), main = paste0(dataset, ': Fine Labels') # using a larger pseudo-count for smoothing.
+      pheatmap::pheatmap(log10(tab+10), main = paste0(dataset, ': Fine Labels')) # using a larger pseudo-count for smoothing.
 
       if (!is.null(minFraction)){
         for (label in c(fn, fn2)) {
