@@ -253,7 +253,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
       print(DimPlot(seuratObj, group.by = 'SingleRConsensus') + theme_bw() + ggtitle('SingleR Consensus') + theme(legend.position="bottom"))
 
-      print(ggplot(reshape2::melt(table(seuratObject@meta.data$SingleRConsensus)), aes(x=Var1, y = value, fill=Var1))  +
+      print(ggplot(reshape2::melt(table(seuratObj@meta.data$SingleRConsensus)), aes(x=Var1, y = value, fill=Var1))  +
         geom_bar(stat="identity", position="dodge", width = 0.7) +
         theme_bw() +
         theme(legend.position="bottom",
