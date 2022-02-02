@@ -250,6 +250,20 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       })
 
       seuratObj$SingleRConsensus <- dat$SingleRConsensus
+
+      print(DimPlot(seuratObj, group.by = 'SingleRConsensus') + theme_bw() + ggtitle('SingleR Consensus') + theme(legend.position="bottom"))
+
+      print(ggplot(reshape2::melt(table(seuratObject@meta.data$SingleRConsensus)), aes(x=Var1, y = value, fill=Var1))  +
+        geom_bar(stat="identity", position="dodge", width = 0.7) +
+        theme_bw() +
+        theme(legend.position="bottom",
+              legend.direction="horizontal",
+              legend.title = element_blank(),
+              axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+        ggtitle("SingleR Consensus") +
+        ylab("Number of cells") +
+        xlab("")
+      )
     }
   }
 
@@ -298,7 +312,7 @@ Tabulate_SingleR <- function(seuratObject, plotIndividually = F, datasets = c('h
               legend.title = element_blank(),
               axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
         ggtitle(paste0("SingleR Classification: ", dataset)) +
-        ylab("Number of cells") + xlab(""),
+        ylab("Number of cells") + xlab("")
 
       ggplot(reshape2::melt(table(seuratObject@meta.data[[paste0(dataset, '.label.fine')]])), aes(x=Var1, y = value, fill=Var1)) +
         geom_bar(stat="identity", position="dodge", width = 0.7) +
