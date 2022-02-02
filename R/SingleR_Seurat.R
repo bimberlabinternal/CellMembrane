@@ -236,7 +236,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         dat[[colName]][grepl(dat[[colName]], pattern = "Tcell|T_cell|T cell|T-cell|TCell|T_Cell|T Cell|T-Cell|CD8|CD4|Treg", ignore.case = T)] <- "NK/T_cell"
         dat[[colName]][grepl(dat[[colName]], pattern = "NKcell|NK_cell|NK cell|NK-cell|NKCell|NK_Cell|NK Cell|NK-Cell", ignore.case = T)] <- "NK/T_cell"
         dat[[colName]][grepl(dat[[colName]], pattern = "Bcell|B_cell|B cell|B-cell|BCell|B_Cell|B Cell|B-Cell", ignore.case = T)] <- "B_cell"
-        dat[[colName]][grepl(dat[[colName]], pattern = "DC|Dendritic")] <- "DCs"
+        dat[[colName]][grepl(dat[[colName]], pattern = "DC|Dendritic", ignore.case = T)] <- "DCs"
       }
 
       dat$SingleRConsensus <- sapply(1:nrow(dat), function(idx) {
