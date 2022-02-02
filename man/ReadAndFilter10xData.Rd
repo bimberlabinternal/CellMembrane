@@ -9,8 +9,11 @@ ReadAndFilter10xData(
   datasetId,
   datasetName = NULL,
   emptyDropNIters = 10000,
+  emptyDropsFdrThreshold = 0.001,
   storeGeneIds = TRUE,
   emptyDropsLower = 100,
+  useEmptyDropsCellRanger = FALSE,
+  nExpectedCells = 8000,
   annotateMitoFromReference = TRUE
 )
 }
@@ -23,9 +26,15 @@ ReadAndFilter10xData(
 
 \item{emptyDropNIters}{The number of iterations to use with PerformEmptyDrops()}
 
+\item{emptyDropsFdrThreshold}{The FDR threshold to call cells in emptyDrops()}
+
 \item{storeGeneIds}{If true, a map to translate geneId and name (by default rownames will use gene name)}
 
 \item{emptyDropsLower}{Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.}
+
+\item{useEmptyDropsCellRanger}{If TRUE, will use DropletUtils emptyDropsCellRanger instead of emptyDrops}
+
+\item{nExpectedCells}{Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument}
 
 \item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito}
 }

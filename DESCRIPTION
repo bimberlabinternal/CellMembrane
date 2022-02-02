@@ -9,7 +9,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-    R (>= 4.0.0)
+    R (>= 4.1.0)
 Imports:
     Seurat,
     tidyr,
@@ -50,7 +50,7 @@ RoxygenNote: 7.1.2
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
-    bioc::DropletUtils,
+    MarioniLab/DropletUtils,
     bioc::DESeq2,
     bioc::MAST,
     bioc::celldex,

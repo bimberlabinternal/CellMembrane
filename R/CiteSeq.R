@@ -756,8 +756,7 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 #' @export
 PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', slot = 'data', outFile = NA) {
 	for (fn in groupFields) {
-		feats <- rownames(data)
-		avgSeurat <- Seurat::AverageExpression(seuratObj, features = feats, return.seurat = T, group.by = fn, assays = assayName, slot = slot)
+		avgSeurat <- Seurat::AverageExpression(seuratObj, return.seurat = T, group.by = fn, assays = assayName, slot = slot)
 		forpHeatmap <- t(as.matrix(GetAssayData(avgSeurat, slot = 'data')))
 		forpHeatmap <- forpHeatmap[,colSums(forpHeatmap) > 0]
 		pheatmap_plot <- pheatmap::pheatmap(forpHeatmap,
