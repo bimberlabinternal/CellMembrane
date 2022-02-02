@@ -13,7 +13,8 @@ RunSingleR(
   minFraction = 0.01,
   showHeatmap = TRUE,
   maxCellsForHeatmap = 20000,
-  nThreads = NULL
+  nThreads = NULL,
+  createConsensus = TRUE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ RunSingleR(
 \item{maxCellsForHeatmap}{The heatmap will only be plotted if the total cells is below this number}
 
 \item{nThreads}{If provided, this integer value is passed to SingleR's BPPARAM argument. On windows ths is passed to BiocParallel::SnowParam(). On other OS it is passed to BiocParallel::MulticoreParam()}
+
+\item{createConsensus}{If true, a pseudo-consensus field will be created from the course labels from all datasets. Labels will be simplified in an attempt to normalize into the categories of Bcells, NK/T_cells and Myeloid.}
 }
 \value{
 The modified seurat object
