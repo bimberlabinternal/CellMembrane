@@ -131,7 +131,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       seuratObj[[fn]] <- toAdd
 
       tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn]][[fn]]))
-      pheatmap::pheatmap(log10(tab+10)) # using a larger pseudo-count for smoothing.
+      pheatmap::pheatmap(log10(tab+10), main = dataset) # using a larger pseudo-count for smoothing.
 
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
       if (length(colnames(seuratObj)) != nrow(pred.results)) {
@@ -164,7 +164,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       seuratObj[[fn2]] <- toAdd
 
       tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn2]][[fn2]]))
-      pheatmap::pheatmap(log10(tab+10)) # using a larger pseudo-count for smoothing.
+      pheatmap::pheatmap(log10(tab+10), main = paste0(dataset, ': Fine Labels') # using a larger pseudo-count for smoothing.
 
       if (!is.null(minFraction)){
         for (label in c(fn, fn2)) {
