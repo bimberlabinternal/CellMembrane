@@ -225,6 +225,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
     # Create a pseudo consensus:
     if (createConsensus) {
+      print('Creating SingleR consensus call')
       allFields <- names(seuratObj@meta.data)
       allFields <- allFields[grepl(allFields, pattern = 'label')]
 
@@ -264,6 +265,8 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         ylab("Number of cells") +
         xlab("")
       )
+    } else {
+      print('SingleR consensus call will not be created')
     }
   }
 
