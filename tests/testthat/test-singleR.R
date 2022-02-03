@@ -23,7 +23,7 @@ test_that("SingleR works as expected", {
     print(table(seuratObj$hpca.label.fine))
 
     print(table(seuratObj$SingleRConsensus))
-    expect_equal(1537, sum(seuratObj$SingleRConsensus == 'NK/T_cell', na.rm = T))
+    expect_equal(1540, sum(seuratObj$SingleRConsensus == 'NK/T_cell', na.rm = T))
 
     allData <- read.table(rawDataFile, header = T, sep = '\t')
     print(nrow(allData))
