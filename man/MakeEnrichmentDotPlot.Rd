@@ -42,5 +42,5 @@ MakeEnrichmentDotPlot(
 \item{dependentVariableTestField}{This value should be equal to sizeFactorField initially, but can be changed to interactively see other correlations in the metadata.}
 }
 \description{
-An extremely overloaded function that calculates statistics and enrichment in Seurat Objects. Please see an example dot plot before using this function.
+An extremely overloaded function that calculates statistics and enrichment in Seurat Objects. Please see an example dot plot before using this function. Note the aggregated data can be obtained from the ggplot object (i.e. P1$data)
 }

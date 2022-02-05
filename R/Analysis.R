@@ -90,40 +90,33 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   rawData <- rawData %>% tidyr::unite("XY_Key", all_of(c('xField', 'yField', extraGroupingFields)), remove = FALSE)
   rawData <- rawData %>% tidyr::unite("Y_Key", all_of(c('yField', extraGroupingFields)), remove = FALSE)
   
-  print(paste0('0: ', nrow(rawData)))
-  
-  #initial cluster enrichment tibble
-  metacounts <- rawData %>% dplyr::count(XY_Key, Y_Key, wt = SizeFactor)
-print(paste0('1: ', nrow(metacounts)))
-
-	
-  # Calculate the proportion of cells in this X/Y group in color value 1 vs 2
+  # Calculate the weighted total of cells in each X/Y group
   xyTotals <- rawData %>% dplyr::count(XY_Key, wt = SizeFactor, name = 'TotalPerXY')
   
-  
+  # Now calculate the weighted total, including the color field
   colorProportions <- rawData %>% dplyr::count(XY_Key, colorField, wt = SizeFactor, name = 'TotalPerGroup')
+
+  # Merge and calculate proportion of cells:
   colorProportions <- merge(colorProportions, xyTotals, all.x = T, by = 'XY_Key')
-  rm(xyTotals)
   colorProportions$Proportion <- colorProportions$TotalPerGroup / colorProportions$TotalPerXY
-  colorProportions <- colorProportions[colorProportions$colorField == baseValue,]
+  colorProportions <- colorProportions[colorProportions$colorField == baseValue,] # Note: this could leave zeros for certain X/Y pairs where there is data for one colorValue but not another
   if (nrow(colorProportions) == 0) {
   	stop(paste0('baseValue not found: ', baseValue))
   }
   
   colorProportions <- colorProportions[c('XY_Key', 'Proportion')]
 
-  #calculate cluster enrichment
-  clusterProportions <- metacounts %>% group_by(Y_Key) %>% mutate(ClusterProportion = prop.table(n))
-  
+  #initial cluster enrichment tibble
+  clusterProportions <- rawData %>% dplyr::count(XY_Key, Y_Key, wt = SizeFactor)
+  clusterProportions <- clusterProportions %>% group_by(Y_Key) %>% mutate(ClusterProportion = prop.table(n))
 
-  #merge cluster enrichment and category enrichment tibbles.
-  metacounts <- merge(colorProportions, clusterProportions, by = "XY_Key")
+  # Merge cluster enrichment and category enrichment tibbles.
+  finalData <- merge(colorProportions, clusterProportions, by = "XY_Key")
   metadata <- unique(rawData[all_of(c('XY_Key', 'xField', 'yField', 'colorField', extraGroupingFields))])
-  metacounts <- merge(metacounts, metadata, by = "XY_Key")
-  
-  metacounts$xField <- naturalsort::naturalfactor(metacounts$xField)
-  metacounts$yField <- naturalsort::naturalfactor(metacounts$yField)
-print(paste0('5: ', nrow(metacounts)))
+  finalData <- merge(finalData, metadata, by = "XY_Key")
+  finalData$xField <- naturalsort::naturalfactor(finalData$xField)
+  finalData$yField <- naturalsort::naturalfactor(finalData$yField)
+
   #Do statistics
   
   #Initial Visualization
@@ -147,15 +140,15 @@ print(paste0('5: ', nrow(metacounts)))
     xlab(paste0("Fitted ", dependentVariableTestField))
   
   print(pCorr)
+
+  finalData <- finalData[c('xField', 'yField', 'colorField', extraGroupingFields, 'Proportion', 'ClusterProportion')]
   
-  metacounts <- metacounts[c('xField', 'yField', 'colorField', extraGroupingFields, 'Proportion', 'ClusterProportion')]
-  
-  return(metacounts)
+  return(finalData)
 }
 
 #' @title MakeEnrichmentDotPlot
 #'
-#' @description An extremely overloaded function that calculates statistics and enrichment in Seurat Objects. Please see an example dot plot before using this function. 
+#' @description An extremely overloaded function that calculates statistics and enrichment in Seurat Objects. Please see an example dot plot before using this function. Note the aggregated data can be obtained from the ggplot object (i.e. P1$data)
 #' @param seuratObj The seurat object that holds the data.
 #' @param xField The x axis for the dotplots.
 #' @param yField The y axis for the dotplots.
@@ -172,7 +165,7 @@ MakeEnrichmentDotPlot <- function(seuratObj,
                                   yField = 'ClusterNames_0.2',
                                   xField = 'Timepoint',
                                   colorField = 'Tissue',
-                                  colorLabels = NULL, #c("Left", "Even", "Right"),
+                                  colorLabels = NULL,
                                   extraGroupingFields = NULL,
                                   normalizationField = 'cDNA_ID',
                                   sizeFactorField = 'SizeFactor',
@@ -225,9 +218,6 @@ MakeEnrichmentDotPlot <- function(seuratObj,
     xlab(xField) +
     ylab(yField) +
     guides(fill = guide_colorbar(order = 1))
-    #+
-    #facet_grid(. ~ Vaccine)
-  
   
   return(P1)
 }

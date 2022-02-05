@@ -16,6 +16,7 @@ test_that("CD genes translation works", {
 	expect_equal(RenameUsingCD(c('ITGB1', 'EGLN3', 'Other', 'CD52')), c('ITGB1 (CD29)', 'EGLN3', 'Other', 'CD52 (CDW52)'))
 })
 
+# This primarily serves to demonstrate the code runs without overt errors
 test_that("DotPlot works", {
 	set.seed(CellMembrane::GetSeed())
 	seuratObj <- readRDS('../testdata/seuratOutput.rds')
