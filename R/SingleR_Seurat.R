@@ -252,7 +252,11 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
       seuratObj$SingleRConsensus <- dat$SingleRConsensus
 
-      print(DimPlot(seuratObj, group.by = 'SingleRConsensus') + theme_bw() + ggtitle('SingleR Consensus') + theme(legend.position="bottom"))
+      if (length(names(seuratObj@reductions)) == 0) {
+        print('No reductions present, skipping DimPlot')
+      } else {
+        print(DimPlot(seuratObj, group.by = 'SingleRConsensus') + theme_bw() + ggtitle('SingleR Consensus') + theme(legend.position="bottom"))
+      }
 
       print(ggplot(reshape2::melt(table(seuratObj@meta.data$SingleRConsensus)), aes(x=Var1, y = value, fill=Var1))  +
         geom_bar(stat="identity", position="dodge", width = 0.7) +
@@ -275,6 +279,11 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
 
 DimPlot_SingleR <- function(seuratObject, plotIndividually = F, datasets = c('hpca')){
+  if (length(names(seuratObject@reductions)) == 0) {
+    print('No reductions present, skipping DimPlots')
+    return()
+  }
+
   for (dataset in datasets) {
     fn <- paste0(dataset, '.label')
     if (!(fn %in% colnames(seuratObject@meta.data))) {
