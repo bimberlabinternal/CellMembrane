@@ -10,6 +10,7 @@ MakeEnrichmentDotPlot(
   xField = "Timepoint",
   colorField = "Tissue",
   colorLabels = NULL,
+  extraGroupingFields = NULL,
   normalizationField = "cDNA_ID",
   sizeFactorField = "SizeFactor",
   maxSizeFactor = 100,
@@ -27,6 +28,8 @@ MakeEnrichmentDotPlot(
 \item{colorField}{The column of metadata that is used for the colorField. This should be a factor with two levels. The highest level, reported by levels(), will be treated as the 'highest' value.}
 
 \item{colorLabels}{Vector of length 2-3 that defines the extremes and midpoint of the colorField axis. If null, the values of colorField will be used.}
+
+\item{extraGroupingFields}{An optional vector of additional fields to use in grouping}
 
 \item{normalizationField}{The metadata column that is used for size factor calculation (equivalently, normalization between different datasets.) Recommended to be cDNA_ID.}
 

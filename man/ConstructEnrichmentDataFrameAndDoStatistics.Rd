@@ -24,6 +24,8 @@ ConstructEnrichmentDataFrameAndDoStatistics(
 
 \item{xField}{The x axis for the dotplots.}
 
+\item{extraGroupingFields}{An optional vector of additional fields to use in grouping}
+
 \item{colorField}{The column of metadata that is used for the colorField}
 
 \item{normalizationField}{The metadata column that is used for size factor calculation (equivalently, normalization between different datasets.) Recommended to be cDNA_ID.}
@@ -35,8 +37,6 @@ ConstructEnrichmentDataFrameAndDoStatistics(
 \item{independentVariableTestField}{This and dependentVariableTestField automatically define a small statistical test to see if your size factors are correlated. Ideally, they should not be if independentVariableTestField is not the same value as normalizationField.}
 
 \item{dependentVariableTestField}{This value should be equal to sizeFactorField initially, but can be changed to interactively see other correlations in the metadata.}
-
-\item{colorValue}{The "value that should be ranked "High" on the color axis.}
 }
 \description{
 Helper function for makeDotPlot that does the dataframe construction and statistics.
