@@ -279,7 +279,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
 
 DimPlot_SingleR <- function(seuratObject, plotIndividually = F, datasets = c('hpca')){
-  if (length(names(seuratObj@reductions)) == 0) {
+  if (length(names(seuratObject@reductions)) == 0) {
     print('No reductions present, skipping DimPlots')
     return()
   }
