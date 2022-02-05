@@ -21,5 +21,5 @@
 \item{maxSizeFactor}{The maximum allowable SizeFactor before an error is automatically thrown. For instance, a size factor of 100 means you have a group of 8000 cells that you're comparing to 80 cells.}
 }
 \description{
-A helper function for .ConstructDataFrameAndDoStatistics that calculates size factors for differently sized scRNA-Seq datasets.
+A helper function for ConstructEnrichmentDataFrameAndDoStatistics that calculates size factors for differently sized scRNA-Seq datasets.
 }

@@ -4,20 +4,24 @@
 
 #' @title .GenerateSizeFactor 
 #'
-#' @description A helper function for .ConstructDataFrameAndDoStatistics that calculates size factors for differently sized scRNA-Seq datasets.
+#' @description A helper function for ConstructEnrichmentDataFrameAndDoStatistics that calculates size factors for differently sized scRNA-Seq datasets.
 #' @param seuratObj The seurat object that holds the data.
 #' @param normalizationField The metadata column that is used for size factor calculation (equivalently, normalization between different datasets.) Recommended to be cDNA_ID.
 #' @param sizeFactorField The column name of the seruat object metadata that size factors should be stored in.
 #' @param maxSizeFactor The maximum allowable SizeFactor before an error is automatically thrown. For instance, a size factor of 100 means you have a group of 8000 cells that you're comparing to 80 cells. 
 
 .GenerateSizeFactor <- function(seuratObj, normalizationField = 'cDNA_ID', sizeFactorField = 'SizeFactor', maxSizeFactor = 100){
+  if (!normalizationField %in% names(seuratObj@meta.data)) {
+    stop(paste0('Field missing: ', normalizationField))
+  }
+
   #check max size factor for data
   dataMaxSizeFactor <- max(table(seuratObj@meta.data[,normalizationField]))/min(table(seuratObj@meta.data[,normalizationField]))
-  if(!maxSizeFactor >= dataMaxSizeFactor){
-    print(paste0("Max size factor: ", round(dataMaxSizeFactor,2)))
-    stop()
+  if (!maxSizeFactor >= dataMaxSizeFactor){
+    stop(paste0("Greater than max allowable size factor: ", round(dataMaxSizeFactor,2)))
   }
-  #Calculate the ratio between maximum size 
+
+  #Calculate the ratio between maximum size
   print("Calculating size factors")
   for (dataset in unique(seuratObj@meta.data[,normalizationField])){
     datasetSizeFactor <- max(table(seuratObj@meta.data[,normalizationField]))/ table(seuratObj@meta.data[seuratObj@meta.data[,normalizationField] == dataset ,normalizationField])
@@ -26,15 +30,14 @@
   return(seuratObj)
 }
 
-#' @title .ConstructDataFrameAndDoStatistics
+#' @title ConstructEnrichmentDataFrameAndDoStatistics
 #'
 #' @description Helper function for makeDotPlot that does the dataframe construction and statistics. 
 #' @param seuratObj The seurat object that holds the data.
-#' @param colorValue The "value that should be ranked "High" on the color axis.
-#' @param colorField The column of metadata that is used for the colorField
-#' @param colorLabels Vector of length 3 that defines the extremes and midpoint of the colorField axis.
+#' @param xField The x axis for the dotplots.
 #' @param yField The y axis for the dotplots.
-#' @param groupField The x axis for the dotplots.
+#' @param extraGroupingFields An optional vector of additional fields to use in grouping
+#' @param colorField The column of metadata that is used for the colorField
 #' @param normalizationField The metadata column that is used for size factor calculation (equivalently, normalization between different datasets.) Recommended to be cDNA_ID.
 #' @param sizeFactorField The column name of the seruat object metadata that size factors should be stored in.
 #' @param maxSizeFactor The maximum allowable SizeFactor before an error is automatically thrown. For instance, a size factor of 100 means you have a group of 8000 cells that you're comparing to 80 cells. 
@@ -42,35 +45,85 @@
 #' @param dependentVariableTestField This value should be equal to sizeFactorField initially, but can be changed to interactively see other correlations in the metadata.
 #' @export
 
-.ConstructDataFrameAndDoStatistics <- function(seuratObj, colorField = 'Population', yField = 'ClusterNames_0.2', groupField = 'Timepoint', colorValue = "ld-LN-Right", colorLabels = c("Left", "Even", "Right"), normalizationField = 'cDNA_ID', sizeFactorField = 'SizeFactor', maxSizeFactor = 100, independentVariableTestField = "Tissue", dependentVariableTestField = "SizeFactor"){
+ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
+                                                        yField = 'ClusterNames_0.2',
+                                                        xField = 'Timepoint',
+                                                        extraGroupingFields = NULL,
+                                                        colorField = 'Population',
+
+                                                        normalizationField = 'cDNA_ID',
+                                                        sizeFactorField = 'SizeFactor',
+                                                        maxSizeFactor = 100,
+                                                        independentVariableTestField = colorField,
+                                                        dependentVariableTestField = sizeFactorField
+){
   
   # Calculate Size Factor
   seuratObj <- .GenerateSizeFactor(seuratObj, normalizationField = normalizationField, sizeFactorField = sizeFactorField, maxSizeFactor = maxSizeFactor)
+
+  if (!colorField %in% names(seuratObj@meta.data)) {
+    stop(paste0('colorField not found: ', colorField))
+  }
+
+  colorData <- seuratObj@meta.data[[colorField]]
+  if (!is.factor(colorData)) {
+    stop('Expected colorField to be a factor')
+  }
+
+  if (length(unique(colorData)) != 2) {
+    stop('Expected colorField to be a factor with two levels only')
+  }
+
+  baseValue <- levels(colorData)[2]
+
+  if (is.null(extraGroupingFields)) {
+  	extraGroupingFields <- c()
+  }
   
-  # Construct Data Frame
-  metatibble <- as_tibble(seuratObj@meta.data[c(colorField, yField, groupField, 'Vaccine', normalizationField, sizeFactorField)])
-  names(metatibble) <- c('colorField', 'yField', 'groupField', 'Vaccine', normalizationField, sizeFactorField)
+  # Construct DataFrame:
+  rawData <- as_tibble(seuratObj@meta.data[,c(colorField, yField, xField, normalizationField, sizeFactorField, extraGroupingFields)])
+  names(rawData) <- c('colorField', 'yField', 'xField', normalizationField, sizeFactorField, extraGroupingFields)
+  rawData$xField <- as.character(rawData$xField)
+  rawData$yField <- as.character(rawData$yField)
+
+  # Make concatenated columns for grouping:
+  rawData <- rawData %>% tidyr::unite("XY_Key", all_of(c('xField', 'yField', extraGroupingFields)), remove = FALSE)
+  rawData <- rawData %>% tidyr::unite("Y_Key", all_of(c('yField', extraGroupingFields)), remove = FALSE)
   
-  metatibble$groupField <- as.character(metatibble$groupField)
+  print(paste0('0: ', nrow(rawData)))
   
   #initial cluster enrichment tibble
-  metacounts <- metatibble %>% dplyr::count(yField, groupField, Vaccine, wt = SizeFactor)
-  print(metacounts)
-  #parallel count tibble to track lung/tissue enrichment
-  metacounts.tissue <- metatibble %>% dplyr::count(colorField, groupField, yField, Vaccine, wt = SizeFactor) %>% group_by(colorField, groupField, yField,Vaccine,n) %>% group_by(groupField, yField, Vaccine) %>% mutate(TissueProportion = (n/sum(n)))
+  metacounts <- rawData %>% dplyr::count(XY_Key, Y_Key, wt = SizeFactor)
+print(paste0('1: ', nrow(metacounts)))
+
+	
+  # Calculate the proportion of cells in this X/Y group in color value 1 vs 2
+  xyTotals <- rawData %>% dplyr::count(XY_Key, wt = SizeFactor, name = 'TotalPerXY')
   
-  #bisect tissue tibble to report only one tissue
-  metacounts.tissue <- metacounts.tissue[metacounts.tissue$colorField == colorValue,]
   
-  #calulate cluster enrichment
-  metacounts <- metacounts %>% group_by(yField, Vaccine) %>% mutate(ClusterProportion = prop.table(n))
+  colorProportions <- rawData %>% dplyr::count(XY_Key, colorField, wt = SizeFactor, name = 'TotalPerGroup')
+  colorProportions <- merge(colorProportions, xyTotals, all.x = T, by = 'XY_Key')
+  rm(xyTotals)
+  colorProportions$Proportion <- colorProportions$TotalPerGroup / colorProportions$TotalPerXY
+  colorProportions <- colorProportions[colorProportions$colorField == baseValue,]
+  if (nrow(colorProportions) == 0) {
+  	stop(paste0('baseValue not found: ', baseValue))
+  }
   
-  #merge cluster enrichment and lung enrichment tibbles
-  metacounts <- merge(metacounts, metacounts.tissue[ , c("groupField", "yField", "Vaccine", "TissueProportion")], by = c("groupField", "Vaccine", "yField"), )
-  metacounts$groupField <- naturalsort::naturalfactor(metacounts$groupField)
+  colorProportions <- colorProportions[c('XY_Key', 'Proportion')]
+
+  #calculate cluster enrichment
+  clusterProportions <- metacounts %>% group_by(Y_Key) %>% mutate(ClusterProportion = prop.table(n))
+  
+
+  #merge cluster enrichment and category enrichment tibbles.
+  metacounts <- merge(colorProportions, clusterProportions, by = "XY_Key")
+  metadata <- unique(rawData[all_of(c('XY_Key', 'xField', 'yField', 'colorField', extraGroupingFields))])
+  metacounts <- merge(metacounts, metadata, by = "XY_Key")
+  
+  metacounts$xField <- naturalsort::naturalfactor(metacounts$xField)
   metacounts$yField <- naturalsort::naturalfactor(metacounts$yField)
-  
-  
+print(paste0('5: ', nrow(metacounts)))
   #Do statistics
   
   #Initial Visualization
@@ -86,7 +139,7 @@
   summary(model.lm)
   
   #Create correlation plot
-  pCorr <- ggplot(data.frame(x = model.lm$fitted.values, y = seuratObj@meta.data[,dependentVariableTestField]), aes(x = x, y = y))+
+  pCorr <- ggplot(data.frame(x = model.lm$fitted.values, y = seuratObj@meta.data[,dependentVariableTestField]), aes(x = x, y = y)) +
     geom_point() + 
     geom_smooth(method='lm', formula= y~x) + 
     ggtitle(paste(paste0("Correlation between Fitted ", independentVariableTestField, " and ", dependentVariableTestField,":") , round(cor(seuratObj@meta.data[,dependentVariableTestField], model.lm$fitted.values),2))) + 
@@ -95,33 +148,72 @@
   
   print(pCorr)
   
+  metacounts <- metacounts[c('xField', 'yField', 'colorField', extraGroupingFields, 'Proportion', 'ClusterProportion')]
+  
   return(metacounts)
 }
 
-#' @title makeDotPlot
+#' @title MakeEnrichmentDotPlot
 #'
 #' @description An extremely overloaded function that calculates statistics and enrichment in Seurat Objects. Please see an example dot plot before using this function. 
 #' @param seuratObj The seurat object that holds the data.
-#' @param colorValue The "value that should be ranked "High" on the color axis.
-#' @param colorField The column of metadata that is used for the colorField
-#' @param colorLabels Vector of length 3 that defines the extremes and midpoint of the colorField axis.
+#' @param xField The x axis for the dotplots.
 #' @param yField The y axis for the dotplots.
-#' @param groupField The x axis for the dotplots.
+#' @param colorField The column of metadata that is used for the colorField. This should be a factor with two levels. The highest level, reported by levels(), will be treated as the 'highest' value.
+#' @param colorLabels Vector of length 2-3 that defines the extremes and midpoint of the colorField axis. If null, the values of colorField will be used.
+#' @param extraGroupingFields An optional vector of additional fields to use in grouping
 #' @param normalizationField The metadata column that is used for size factor calculation (equivalently, normalization between different datasets.) Recommended to be cDNA_ID.
 #' @param sizeFactorField The column name of the seruat object metadata that size factors should be stored in.
 #' @param maxSizeFactor The maximum allowable SizeFactor before an error is automatically thrown. For instance, a size factor of 100 means you have a group of 8000 cells that you're comparing to 80 cells. 
 #' @param independentVariableTestField This and dependentVariableTestField automatically define a small statistical test to see if your size factors are correlated. Ideally, they should not be if independentVariableTestField is not the same value as normalizationField. 
 #' @param dependentVariableTestField This value should be equal to sizeFactorField initially, but can be changed to interactively see other correlations in the metadata.
 #' @export
+MakeEnrichmentDotPlot <- function(seuratObj,
+                                  yField = 'ClusterNames_0.2',
+                                  xField = 'Timepoint',
+                                  colorField = 'Tissue',
+                                  colorLabels = NULL, #c("Left", "Even", "Right"),
+                                  extraGroupingFields = NULL,
+                                  normalizationField = 'cDNA_ID',
+                                  sizeFactorField = 'SizeFactor',
+                                  maxSizeFactor = 100,
+                                  independentVariableTestField = colorField,
+                                  dependentVariableTestField = sizeFactorField
 
-makeDotPlot <- function(seuratObj, colorValue = "Lung-Right", colorField = 'Tissue', colorLabels = c("Left", "Even", "Right"), yField = 'ClusterNames_0.2', groupField = 'Timepoint', normalizationField = 'cDNA_ID', sizeFactorField = 'SizeFactor', maxSizeFactor = 100, independentVariableTestField = "Tissue", dependentVariableTestField = "SizeFactor"){
+){
   
-  metacounts <- .ConstructDataFrameAndDoStatistics(seuratObj = seuratObj, colorValue = colorValue, colorField = colorField, yField = yField, groupField = groupField, normalizationField = normalizationField, sizeFactorField = sizeFactorField, maxSizeFactor = maxSizeFactor, independentVariableTestField = independentVariableTestField , dependentVariableTestField = dependentVariableTestField)
-  
-  p1 <- ggplot(metacounts, aes(y = yField, x = groupField)) +
-    geom_point(aes(size = ClusterProportion, fill = TissueProportion), alpha = 1, shape = 21) +
-    scale_size_continuous(limits = c(0, max(metacounts$ClusterProportion)), range = c(0,8), breaks = c(0.01,max(metacounts$ClusterProportion)/2,max(metacounts$ClusterProportion)) ,labels = c("1%", paste0(round(max(metacounts$ClusterProportion)/2 *100),"%"), paste0(round(max(metacounts$ClusterProportion) *100),"%"))) +
-    scale_fill_gradient2(low = "cadetblue2", high = "red", limits = c(0,1), midpoint = .5, breaks = seq(0,1,.5), labels = colorLabels) +
+  metacounts <- ConstructEnrichmentDataFrameAndDoStatistics(seuratObj = seuratObj,
+                                                            xField = xField,
+                                                            yField = yField,
+                                                            colorField = colorField,
+                                                            extraGroupingFields = extraGroupingFields,
+                                                            normalizationField = normalizationField,
+                                                            sizeFactorField = sizeFactorField,
+                                                            maxSizeFactor = maxSizeFactor,
+                                                            independentVariableTestField = independentVariableTestField ,
+                                                            dependentVariableTestField = dependentVariableTestField
+  )
+
+  if (is.null(colorLabels)) {
+    colorLabels <- levels(seuratObj@meta.data[[colorField]])
+    fillBreaks <- c(0,1)
+  } else {
+    if (length(colorLabels) > 3) {
+      stop('Expected colorLabels to be either 2 or 3 values')
+    }
+
+    fillBreaks <- seq(0,1, 1/(length(colorLabels) - 1))
+  }
+
+  P1 <- ggplot(metacounts, aes(y = yField, x = xField)) +
+    geom_point(aes(size = ClusterProportion, fill = Proportion), alpha = 1, shape = 21) +
+    scale_size_continuous(
+      limits = c(0, max(metacounts$ClusterProportion)),
+      range = c(0,8),
+      breaks = c(0.01,max(metacounts$ClusterProportion)/2,max(metacounts$ClusterProportion)),
+      labels = c("1%", paste0(round(max(metacounts$ClusterProportion)/2 *100),"%"), paste0(round(max(metacounts$ClusterProportion) *100),"%"))
+    ) +
+    scale_fill_gradient2(low = "cadetblue2", high = "red", limits = c(0,1), midpoint = .5, breaks = fillBreaks, labels = colorLabels) +
     scale_y_discrete(limits = rev(levels(metacounts$yField))) +
     theme(
       axis.text.x = element_text(color = "grey20", size = 16, angle = 45, hjust = 1, vjust = 1, face = "plain"),
@@ -130,12 +222,12 @@ makeDotPlot <- function(seuratObj, colorValue = "Lung-Right", colorField = 'Tiss
       axis.title.y = element_text(color = "grey20", size = 20, angle = 90, face = "plain"),
       panel.background = element_rect(fill = NA)
     ) +
-    ylab("Cluster") +
-    xlab("")+
-    labs(fill = "Tissue Bias", size = "Cluster Bias") +
-    guides(fill = guide_colorbar(order = 1)) +
-    facet_grid(. ~ Vaccine)
+    xlab(xField) +
+    ylab(yField) +
+    guides(fill = guide_colorbar(order = 1))
+    #+
+    #facet_grid(. ~ Vaccine)
   
   
-  return(p1)
+  return(P1)
 }
