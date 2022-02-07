@@ -108,6 +108,19 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	# LOC720538 = TRGC1
 	# LOC705095 = TRGC2
 	PlotMarkerSeries(seuratObj, reductions, c('LOC710951', 'LOC114677140', 'LOC711031', 'LOC720538', 'LOC705095'), 'TCR Constant Region')
+
+	PlotMarkerSeries(seuratObj, reductions, c('MMP2','COL1A1','COL1A2','COL5A1','LUM','PDGFRA'), 'Stromal')
+
+	PlotMarkerSeries(seuratObj, reductions, c('CCR9','LILRA4'), 'pDC')
+
+	PlotMarkerSeries(seuratObj, reductions, c('CDH1','FLT1'), 'Epithelial')
+
+	PlotMarkerSeries(seuratObj, reductions, c('LYZ','CSF1R','MSR1','MAFB','CD300E'), 'MoMacDC')
+
+	PlotMarkerSeries(seuratObj, reductions, c('CSF3R','FCGR3B'), 'Neutrophils')
+
+	PlotMarkerSeries(seuratObj, reductions, c('HBB','HBA2','HBA1'), 'Erythrocyte')
+
 }
 
 PlotMarkerSeries <- function(seuratObj, reductions, features, title, setSize = 4) {
