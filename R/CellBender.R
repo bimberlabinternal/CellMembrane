@@ -32,16 +32,20 @@ RunCellBender <- function(rawFeatureMatrix, expectedCells = 5000, totalDropletsI
     "--input", inputh5File
   ))
 
-  if (!file.exists(outH5File)) {
-    stop(paste0('Missing file: ', outH5File))
+  outputFiltered <- gsub(outH5File, pattern = '.h5$', replacement = '_filtered.h5')
+  if (!file.exists(outputFiltered)) {
+    stop(paste0('Missing file: ', outputFiltered))
   }
+  seuatRawData <- Seurat::Read10X_h5(filename = outputFiltered, use.names = TRUE)
 
-  seuatRawData <- Seurat::Read10X_h5(filename = outH5File, use.names = TRUE)
-
-  #TODO: PDF
+  outputPdf <- gsub(outH5File, pattern = '.h5$', replacement = '.pdf')
+  plot(magick::image_read_pdf(outputPdf))
 
   unlink(inputh5File)
   unlink(outH5File)
+  unlink(outputFiltered)
+  unlink(gsub(outH5File, pattern = '.h5$', replacement = '.log'))
+  unlink(gsub(outH5File, pattern = '.h5$', replacement = '_cell_barcodes.csv'))
 
   return(seuatRawData)
 }

@@ -1,5 +1,6 @@
 #' @include Utils.R
 #' @include Preprocessing.R
+#' @include CellBender.R
 #' @import Seurat
 
 utils::globalVariables(
@@ -21,9 +22,10 @@ utils::globalVariables(
 #' @param adtWhitelist An optional whitelist of ADT names (matching the raw names from the matrix). If provided, the matrix will be subset to just these features
 #' @param minRowSum If provided, any ADTs (rows) with rowSum below this value will be dropped.
 #' @param failIfAdtsInWhitelistNotFound If an adtWhitelist is provided and this is TRUE, an error will be thrown if any of these features are missing in the input matrix
+#' @param runCellBender If true, cellbender will be run on the raw count matrix to remove background/ambient RNA signal
 #' @export
 #' @importFrom dplyr arrange
-AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb', datasetId = NULL, assayName = 'ADT', featureMetadata = NULL, adtWhitelist = NULL, minRowSum = NULL, failIfAdtsInWhitelistNotFound = TRUE) {
+AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb', datasetId = NULL, assayName = 'ADT', featureMetadata = NULL, adtWhitelist = NULL, minRowSum = NULL, failIfAdtsInWhitelistNotFound = TRUE, runCellBender = FALSE) {
 	print(paste0('Initial cell barcodes in GEX data: ', ncol(seuratObj)))
 	if (!is.null(datasetId)) {
 		gexCells <- colnames(seuratObj)[seuratObj$DatasetId == datasetId]
@@ -32,6 +34,12 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		gexCells <- colnames(seuratObj)
 	}
 	assayData <- .LoadCiteSeqData(unfilteredMatrixDir, datasetId = datasetId, featureMetadata = featureMetadata, adtWhitelist = adtWhitelist, minRowSum = minRowSum, failIfAdtsInWhitelistNotFound = failIfAdtsInWhitelistNotFound)
+
+	# TODO: we might want to return the unfiltered results and keep all cell matching GEX?
+	if (runCellBender) {
+		updatedCounts <- RunCellBender(rawFeatureMatrix = assayData@counts)
+		assayData <- Seurat::CreateAssayObject(counts = updatedCounts)
+	}
 
 	sharedCells <- colnames(assayData)[which(colnames(assayData) %in% gexCells)]
 	print(paste0('Intersect with GEX data: ', length(sharedCells)))
@@ -42,7 +50,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		stop('No cells are shared')
 	}
 
-	if (is.null(normalizeMethod )){
+	if (is.null(normalizeMethod)){
 		print('Normalization will not be performed')
 		assayData <- subset(assayData, cells = sharedCells)
 	} else if (normalizeMethod == 'dsb') {
