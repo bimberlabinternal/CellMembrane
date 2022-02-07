@@ -31,6 +31,9 @@
     <loc>/reference/CiteSeqDimRedux.PCA.html</loc>
   </url>
   <url>
+    <loc>/reference/ConstructEnrichmentDataFrameAndDoStatistics.html</loc>
+  </url>
+  <url>
     <loc>/reference/CreateSeuratObj.html</loc>
   </url>
   <url>
@@ -68,6 +71,9 @@
   </url>
   <url>
     <loc>/reference/InspectSeurat.html</loc>
+  </url>
+  <url>
+    <loc>/reference/MakeEnrichmentDotPlot.html</loc>
   </url>
   <url>
     <loc>/reference/MergeSeuratObjs.html</loc>
@@ -128,6 +134,9 @@
   </url>
   <url>
     <loc>/reference/cdGenes.html</loc>
+  </url>
+  <url>
+    <loc>/reference/dot-GenerateSizeFactor.html</loc>
   </url>
   <url>
     <loc>/reference/dot-UpdateGeneModel.html</loc>
