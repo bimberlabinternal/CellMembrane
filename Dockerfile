@@ -12,6 +12,13 @@ RUN apt-get update -y \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 
+# NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
+# See: https://github.com/broadinstitute/CellBender/issues/93
+RUN cd / \
+    && git clone https://github.com/broadinstitute/CellBender.git CellBender \
+    && chmod -R 777 /CellBender \
+    && pip3 install -e CellBender \
+
 # Let this run for the purpose of installing/caching dependencies
 RUN Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
 	&& echo "local({\noptions(repos = BiocManager::repositories())\n})\n" >> ~/.Rprofile \

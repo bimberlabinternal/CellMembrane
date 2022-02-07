@@ -37,7 +37,8 @@ Imports:
     dsb,
     ggnewscale,
     BiocParallel,
-    rlang
+    rlang,
+    reticulate
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -60,10 +61,17 @@ Remotes:
     bioc::scuttle,
     bioc::SingleCellExperiment,
     niaid/dsb
+Config/reticulate:
+  list(
+    packages = list(
+      list(package = "cellbender")
+    )
+  )
 Collate: 
     'Analysis.R'
-    'Preprocessing.R'
+    'CellBender.R'
     'Utils.R'
+    'Preprocessing.R'
     'CiteSeq.R'
     'Doublets.R'
     'Phenotyping.R'
