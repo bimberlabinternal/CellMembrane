@@ -1,10 +1,11 @@
 #' @title Run CellBender
 #'
 #' @description Runs CellBender using the 10x h5 file as input
-#' @param rawFeatureH5File The path to 10x's raw_feature_bc_matrix.h5
+#' @param rawFeatureMatrix The path to 10x's raw_feature_bc_matrix.h5
 #' @param expectedCells Passed to CellBender --expected-cells
 #' @param totalDropletsIncluded Passed to CellBender --total-droplets-included
 #' @param fpr Passed to CellBender --fpr
+#' @param epochs Passed to CellBender --epochs
 #'
 #' @export
 RunCellBender <- function(rawFeatureMatrix, expectedCells = 5000, totalDropletsIncluded = 20000, fpr = 0.01, epochs = 150) {
