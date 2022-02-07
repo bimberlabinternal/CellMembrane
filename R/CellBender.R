@@ -49,7 +49,7 @@ RunCellBender <- function(rawFeatureMatrix, expectedCells = 5000, totalDropletsI
     stop(paste0('Missing file: ', outputFiltered))
   }
   seuatRawData <- Seurat::Read10X_h5(filename = outputFiltered, use.names = TRUE)
-  print(paste0('Cells in cellbender filtered matrix: ', ncol(seuatRawData))
+  print(paste0('Cells in cellbender filtered matrix: ', ncol(seuatRawData)))
 
   outputPdf <- gsub(outH5File, pattern = '.h5$', replacement = '.pdf')
   plot(magick::image_read_pdf(outputPdf))
