@@ -1,6 +1,11 @@
 #' @import ggplot2 Seurat dplyr
 #' @importFrom stats cor 
 
+utils::globalVariables(
+  names = c('ClusterProportion', 'Proportion', 'SizeFactor', 'XY_Key', 'Y_Key'),
+  package = 'CellMembrane',
+  add = TRUE
+)
 
 #' @title .GenerateSizeFactor 
 #'
