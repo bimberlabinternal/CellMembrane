@@ -35,7 +35,7 @@ test_that("DotPlot works", {
 															  extraGroupingFields = c('Group1'),
 															  normalizationField = 'NormField')
 
-	expect_equal(nrow(metacounts), 60)
+	expect_equal(nrow(metacounts), 30)
 	
 	P1 <- MakeEnrichmentDotPlot(seuratObj = seuratObj,
 															xField = 'XField',
