@@ -112,7 +112,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
 
   # Merge cluster enrichment and category enrichment tibbles.
   finalData <- merge(colorProportions, clusterProportions, by = "XY_Key")
-  metadata <- unique(rawData[all_of(c('XY_Key', 'xField', 'yField', 'colorField', extraGroupingFields))])
+  metadata <- unique(rawData[all_of(c('XY_Key', 'xField', 'yField', extraGroupingFields))])
   finalData <- merge(finalData, metadata, by = "XY_Key")
   finalData$xField <- naturalsort::naturalfactor(finalData$xField)
   finalData$yField <- naturalsort::naturalfactor(finalData$yField)
@@ -141,7 +141,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   
   print(pCorr)
 
-  finalData <- finalData[c('xField', 'yField', 'colorField', extraGroupingFields, 'Proportion', 'ClusterProportion')]
+  finalData <- finalData[c('xField', 'yField', extraGroupingFields, 'Proportion', 'ClusterProportion')]
   
   return(finalData)
 }
