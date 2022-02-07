@@ -22,7 +22,7 @@ RunCellBender <- function(rawFeatureMatrix, expectedCells = 5000, totalDropletsI
   outH5File <- tempfile(fileext = '.h5')
 
   # consider: --low-count-threshold
-  system2("cellbender", c(
+  args <- c(
     "remove-background",
     "--expected-cells", expectedCells,
     "--total-droplets-included", totalDropletsIncluded,
@@ -30,13 +30,26 @@ RunCellBender <- function(rawFeatureMatrix, expectedCells = 5000, totalDropletsI
     "--epochs", epochs,
     "--output", outH5File,
     "--input", inputh5File
-  ))
+  )
+
+  isEnabled <- system2(command = reticulate::py_exe(), c("-c", "import torch;print(torch.cuda.is_available())"), stdout = TRUE, stderr = TRUE)
+  print(paste0('python torch.cuda.is_available(): ', isEnabled))
+
+  if ("True" == isEnabled) {
+    print('CUDA support detected, adding --cuda')
+    args <- c(args, "--cuda")
+  } else {
+    print('CUDA support not detected, will not add --cuda')
+  }
+
+  system2("cellbender", args)
 
   outputFiltered <- gsub(outH5File, pattern = '.h5$', replacement = '_filtered.h5')
   if (!file.exists(outputFiltered)) {
     stop(paste0('Missing file: ', outputFiltered))
   }
   seuatRawData <- Seurat::Read10X_h5(filename = outputFiltered, use.names = TRUE)
+  print(paste0('Cells in cellbender filtered matrix: ', ncol(seuatRawData))
 
   outputPdf <- gsub(outH5File, pattern = '.h5$', replacement = '.pdf')
   plot(magick::image_read_pdf(outputPdf))
