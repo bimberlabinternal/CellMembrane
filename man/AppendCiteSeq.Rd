@@ -13,7 +13,8 @@ AppendCiteSeq(
   featureMetadata = NULL,
   adtWhitelist = NULL,
   minRowSum = NULL,
-  failIfAdtsInWhitelistNotFound = TRUE
+  failIfAdtsInWhitelistNotFound = TRUE,
+  runCellBender = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ AppendCiteSeq(
 \item{minRowSum}{If provided, any ADTs (rows) with rowSum below this value will be dropped.}
 
 \item{failIfAdtsInWhitelistNotFound}{If an adtWhitelist is provided and this is TRUE, an error will be thrown if any of these features are missing in the input matrix}
+
+\item{runCellBender}{If true, cellbender will be run on the raw count matrix to remove background/ambient RNA signal}
 }
 \description{
 Read/Append CITE-seq/ADT data to a Seurat Object
