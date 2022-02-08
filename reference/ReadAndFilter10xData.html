@@ -61,14 +61,15 @@
   useEmptyDropsCellRanger <span class="op">=</span> <span class="cn">FALSE</span>,
   nExpectedCells <span class="op">=</span> <span class="fl">8000</span>,
   annotateMitoFromReference <span class="op">=</span> <span class="cn">TRUE</span>,
-  useCellBender <span class="op">=</span> <span class="cn">FALSE</span>
+  useCellBender <span class="op">=</span> <span class="cn">FALSE</span>,
+  useSoupX <span class="op">=</span> <span class="cn">FALSE</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>dataDir</dt>
-<dd><p>The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder</p></dd>
+<dd><p>Either the directory holding raw count data (generally the raw_feature_bc_matrix), or the parent 'outs' dir from cellranger</p></dd>
 <dt>datasetId</dt>
 <dd><p>This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.</p></dd>
 <dt>datasetName</dt>
@@ -89,6 +90,8 @@
 <dd><p>If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito</p></dd>
 <dt>useCellBender</dt>
 <dd><p>It true, CellBender will be run against the raw counts, instead of emptyDrops.</p></dd>
+<dt>useSoupX</dt>
+<dd><p>If true, SoupX will be run against the run input data, instead of emptyDrops</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
