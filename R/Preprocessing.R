@@ -242,3 +242,12 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 	return(seuratObj)
 }
 
+.RunSoupX <- function(outsDir) {
+	sc <- SoupX::load10X(outsDir)
+	sc <- SoupX::autoEstCont(sc, doPlot = T)
+	seuratRawData <- SoupX::adjustCounts(sc)
+	print(paste0('Passing cells: ', ncol(seuratRawData)))
+	print(SoupX::plotMarkerDistribution(sc))
+
+	return(seuratRawData)
+}

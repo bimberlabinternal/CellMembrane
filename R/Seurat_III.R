@@ -39,22 +39,29 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
   if (!endsWith(dataDir, '/')) {
     dataDir <- paste0(dataDir, '/');
   }
-  matrixSubDir <- paste0(dataDir, 'raw_feature_bc_matrix')
+
+  matrixFile <- paste0(dataDir, 'matrix.mtx.gz')
+  if (file.exists(matrixFile)) {
+    dirWithFeatureMatrix <- dataDir
+  } else {
+    dirWithFeatureMatrix <- paste0(dataDir, 'raw_feature_bc_matrix')
+    matrixFile <- paste0(dataDir, '/matrix.mtx.gz')
+    if (!file.exists(matrixFile)) {
+      stop(paste0('Unable to find matrix file in: ', dirWithFeatureMatrix))
+    }
+  }
 
   if (useSoupX) {
     print('Running SoupX')
 
     # This expects the outs dir:
-    if (!dir.exists(matrixSubDir)) {
-      stop(paste0('When using SoupX, provide the top-level outs dir, which contains: ', matrixSubDir))
+    if (dirWithFeatureMatrix == dataDir) {
+      stop(paste0('When using SoupX, provide the top-level cellranger outs dir, which contains: raw_feature_bc_matrix'))
     }
 
     seuratRawData <- .RunSoupX(dataDir)
   } else {
-    if (dir.exists(matrixSubDir)) {
-      dataDir <- matrixSubDir
-    }
-    seuratRawData <- Read10X(data.dir = dataDir, strip.suffix = TRUE)
+    seuratRawData <- Read10X(data.dir = dirWithFeatureMatrix, strip.suffix = TRUE)
 
     if (useCellBender) {
       seuratRawData <- RunCellBender(seuratRawData)
@@ -74,7 +81,7 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
 
   if (storeGeneIds) {
     #store IDs in assay metadata
-    geneIds <- rownames(Read10X(data.dir = dataDir, gene.column = 1, strip.suffix = TRUE))
+    geneIds <- rownames(Read10X(data.dir = dirWithFeatureMatrix, gene.column = 1, strip.suffix = TRUE))
     names(geneIds) <- rownames(seuratObj)
     assayName <- DefaultAssay(seuratObj)
     seuratObj[[assayName]] <- AddMetaData(seuratObj[[assayName]], metadata = geneIds, col.name = 'GeneId')
@@ -1001,14 +1008,4 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
           scale_y_continuous(trans = 'log10') +
           ggtitle('Top Variable Features')
   )
-}
-
-.RunSoupX <- function(outsDir) {
-  sc <- SoupX::load10X(outsDir)
-  sc <- SoupX::autoEstCont(sc, doPlot = T)
-  seuratRawData <- SoupX::adjustCounts(sc)
-  print(paste0('Passing cells: ', ncol(seuratRawData)))
-  print(SoupX::plotMarkerDistribution(sc))
-
-  return(seuratRawData)
 }
