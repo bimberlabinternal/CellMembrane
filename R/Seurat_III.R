@@ -12,7 +12,7 @@ utils::globalVariables(
 #' @title Read and Filter 10X files.
 #'
 #' @description Reads in 10X files using Read10X and filters abberent cells using PerformEmptyDropletFiltering and returns a Seurat object.
-#' @param dataDir The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder
+#' @param dataDir Either the directory holding raw count data (generally the raw_feature_bc_matrix), or the parent 'outs' dir from cellranger
 #' @param datasetId This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.
 #' @param datasetName An optional print-friendly name that will be stored in metadata
 #' @param emptyDropNIters The number of iterations to use with PerformEmptyDrops()
@@ -23,10 +23,11 @@ utils::globalVariables(
 #' @param nExpectedCells Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument
 #' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
 #' @param useCellBender It true, CellBender will be run against the raw counts, instead of emptyDrops.
+#' @param useSoupX If true, SoupX will be run against the run input data, instead of emptyDrops
 #' @return A Seurat object.
 #' @export
 #' @importFrom Seurat Read10X
-ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, emptyDropsFdrThreshold = 0.001, storeGeneIds=TRUE, emptyDropsLower = 100, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000, annotateMitoFromReference = TRUE, useCellBender = FALSE) {
+ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, emptyDropsFdrThreshold = 0.001, storeGeneIds=TRUE, emptyDropsLower = 100, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000, annotateMitoFromReference = TRUE, useCellBender = FALSE, useSoupX = FALSE) {
   if (!file.exists(dataDir)){
     stop(paste0("File does not exist: ", dataDir))
   }
@@ -35,18 +36,37 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
     stop(paste0("File is not a directory: ", dataDir))
   }
 
-  seuratRawData <- Read10X(data.dir = dataDir, strip.suffix = TRUE)
+  if (!endsWith(dataDir, '/')) {
+    dataDir <- paste0(dataDir, '/');
+  }
+  matrixSubDir <- paste0(dataDir, 'raw_feature_bc_matrix')
+
+  if (useSoupX) {
+    print('Running SoupX')
+
+    # This expects the outs dir:
+    if (!dir.exists(matrixSubDir)) {
+      stop(paste0('When using SoupX, provide the top-level outs dir, which contains: ', matrixSubDir))
+    }
+
+    seuratRawDataFiltered <- .RunSoupX(dataDir)
+  } else {
+    if (dir.exists(matrixSubDir)) {
+      dataDir <- matrixSubDir
+    }
+    seuratRawData <- Read10X(data.dir = dataDir, strip.suffix = TRUE)
+
+    if (useCellBender) {
+      seuratRawDataFiltered <- RunCellBender(seuratRawData)
+    } else {
+      seuratRawDataFiltered <- PerformEmptyDropletFiltering(seuratRawData, fdrThreshold = emptyDropsFdrThreshold, emptyDropNIters=emptyDropNIters, emptyDropsLower=emptyDropsLower, useEmptyDropsCellRanger = useEmptyDropsCellRanger, nExpectedCells = nExpectedCells)
+    }
+  }
 
   #Cannot have underscores in feature names, Seurat will replace with hyphen anyway.  Perform upfront to avoid warning
   if (sum(grepl(x = rownames(seuratRawData), pattern = '_')) > 0) {
     print('Replacing underscores with hyphens in feature names')
     rownames(seuratRawData) <- gsub(x = rownames(seuratRawData), pattern = '_', replacement = '-')
-  }
-
-  if (useCellBender) {
-    seuratRawDataFiltered <- RunCellBender(seuratRawData)
-  } else {
-    seuratRawDataFiltered <- PerformEmptyDropletFiltering(seuratRawData, fdrThreshold = emptyDropsFdrThreshold, emptyDropNIters=emptyDropNIters, emptyDropsLower=emptyDropsLower, useEmptyDropsCellRanger = useEmptyDropsCellRanger, nExpectedCells = nExpectedCells)
   }
 
   seuratObj <- CreateSeuratObj(seuratRawDataFiltered, datasetId = datasetId, datasetName = datasetName, annotateMitoFromReference = TRUE)
@@ -981,4 +1001,14 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
           scale_y_continuous(trans = 'log10') +
           ggtitle('Top Variable Features')
   )
+}
+
+.RunSoupX <- function(outsDir) {
+  sc <- SoupX::load10X(outsDir)
+  sc <- SoupX::autoEstCont(sc, doPlot = T)
+  seuratRawData <- SoupX::adjustCounts(sc)
+  print(paste0('Passing cells: ', ncol(seuratRawData)))
+  print(SoupX::plotMarkerDistribution(sc))
+
+  return(seuratRawData)
 }
