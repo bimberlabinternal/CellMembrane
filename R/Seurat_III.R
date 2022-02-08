@@ -40,17 +40,7 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
     dataDir <- paste0(dataDir, '/');
   }
 
-  matrixFile <- paste0(dataDir, 'matrix.mtx.gz')
-  if (file.exists(matrixFile)) {
-    dirWithFeatureMatrix <- dataDir
-  } else {
-    dirWithFeatureMatrix <- paste0(dataDir, 'raw_feature_bc_matrix')
-    matrixFile <- paste0(dataDir, '/matrix.mtx.gz')
-    if (!file.exists(matrixFile)) {
-      stop(paste0('Unable to find matrix file in: ', dirWithFeatureMatrix))
-    }
-  }
-
+  dirWithFeatureMatrix <- .InferMatrixDir(dataDir)
   if (useSoupX) {
     print('Running SoupX')
 

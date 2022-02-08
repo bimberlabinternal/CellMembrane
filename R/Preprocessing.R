@@ -251,3 +251,20 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 	return(seuratRawData)
 }
+
+.InferMatrixDir <- function(dataDir) {
+	matrixFile <- paste0(dataDir, 'matrix.mtx')
+	matrixFileGz <- paste0(dataDir, 'matrix.mtx.gz')
+	if (file.exists(matrixFile) || file.exists(matrixFileGz)) {
+		return(dataDir)
+	}
+
+	dirWithFeatureMatrix <- paste0(dataDir, 'raw_feature_bc_matrix')
+	matrixFile <- paste0(dirWithFeatureMatrix, '/matrix.mtx')
+	matrixFileGz <- paste0(dirWithFeatureMatrix, '/matrix.mtx.gz')
+	if (file.exists(matrixFile) || file.exists(matrixFileGz)) {
+		return(dirWithFeatureMatrix)
+	}
+
+	stop(paste0('Unable to find matrix file in: ', dataDir, ' or ', dirWithFeatureMatrix))
+}
