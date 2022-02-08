@@ -59,7 +59,9 @@
   featureMetadata <span class="op">=</span> <span class="cn">NULL</span>,
   adtWhitelist <span class="op">=</span> <span class="cn">NULL</span>,
   minRowSum <span class="op">=</span> <span class="cn">NULL</span>,
-  failIfAdtsInWhitelistNotFound <span class="op">=</span> <span class="cn">TRUE</span>
+  failIfAdtsInWhitelistNotFound <span class="op">=</span> <span class="cn">TRUE</span>,
+  runCellBender <span class="op">=</span> <span class="cn">FALSE</span>,
+  aggregateBarcodeFile <span class="op">=</span> <span class="cn">NULL</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
@@ -83,6 +85,10 @@
 <dd><p>If provided, any ADTs (rows) with rowSum below this value will be dropped.</p></dd>
 <dt>failIfAdtsInWhitelistNotFound</dt>
 <dd><p>If an adtWhitelist is provided and this is TRUE, an error will be thrown if any of these features are missing in the input matrix</p></dd>
+<dt>runCellBender</dt>
+<dd><p>If true, cellbender will be run on the raw count matrix to remove background/ambient RNA signal</p></dd>
+<dt>aggregateBarcodeFile</dt>
+<dd><p>Optional. This is the cellranger output, in antibody_analysis/aggregate_barcodes.csv, which contains barcodes marked as aggregates. These are dropped.</p></dd>
 </dl></div>
 
   </div>

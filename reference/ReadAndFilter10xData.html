@@ -60,7 +60,8 @@
   emptyDropsLower <span class="op">=</span> <span class="fl">100</span>,
   useEmptyDropsCellRanger <span class="op">=</span> <span class="cn">FALSE</span>,
   nExpectedCells <span class="op">=</span> <span class="fl">8000</span>,
-  annotateMitoFromReference <span class="op">=</span> <span class="cn">TRUE</span>
+  annotateMitoFromReference <span class="op">=</span> <span class="cn">TRUE</span>,
+  useCellBender <span class="op">=</span> <span class="cn">FALSE</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
@@ -86,6 +87,8 @@
 <dd><p>Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument</p></dd>
 <dt>annotateMitoFromReference</dt>
 <dd><p>If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito</p></dd>
+<dt>useCellBender</dt>
+<dd><p>It true, CellBender will be run against the raw counts, instead of emptyDrops.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
