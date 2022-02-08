@@ -14,7 +14,8 @@ ReadAndFilter10xData(
   emptyDropsLower = 100,
   useEmptyDropsCellRanger = FALSE,
   nExpectedCells = 8000,
-  annotateMitoFromReference = TRUE
+  annotateMitoFromReference = TRUE,
+  useCellBender = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ ReadAndFilter10xData(
 \item{nExpectedCells}{Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument}
 
 \item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito}
+
+\item{useCellBender}{It true, CellBender will be run against the raw counts, instead of emptyDrops.}
 }
 \value{
 A Seurat object.
