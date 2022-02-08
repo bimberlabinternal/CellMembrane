@@ -49,7 +49,7 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
       stop(paste0('When using SoupX, provide the top-level outs dir, which contains: ', matrixSubDir))
     }
 
-    seuratRawDataFiltered <- .RunSoupX(dataDir)
+    seuratRawData <- .RunSoupX(dataDir)
   } else {
     if (dir.exists(matrixSubDir)) {
       dataDir <- matrixSubDir
@@ -57,9 +57,9 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
     seuratRawData <- Read10X(data.dir = dataDir, strip.suffix = TRUE)
 
     if (useCellBender) {
-      seuratRawDataFiltered <- RunCellBender(seuratRawData)
+      seuratRawData <- RunCellBender(seuratRawData)
     } else {
-      seuratRawDataFiltered <- PerformEmptyDropletFiltering(seuratRawData, fdrThreshold = emptyDropsFdrThreshold, emptyDropNIters=emptyDropNIters, emptyDropsLower=emptyDropsLower, useEmptyDropsCellRanger = useEmptyDropsCellRanger, nExpectedCells = nExpectedCells)
+      seuratRawData <- PerformEmptyDropletFiltering(seuratRawData, fdrThreshold = emptyDropsFdrThreshold, emptyDropNIters=emptyDropNIters, emptyDropsLower=emptyDropsLower, useEmptyDropsCellRanger = useEmptyDropsCellRanger, nExpectedCells = nExpectedCells)
     }
   }
 
@@ -69,7 +69,7 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
     rownames(seuratRawData) <- gsub(x = rownames(seuratRawData), pattern = '_', replacement = '-')
   }
 
-  seuratObj <- CreateSeuratObj(seuratRawDataFiltered, datasetId = datasetId, datasetName = datasetName, annotateMitoFromReference = TRUE)
+  seuratObj <- CreateSeuratObj(seuratRawData, datasetId = datasetId, datasetName = datasetName, annotateMitoFromReference = TRUE)
   .PrintQcPlots(seuratObj)
 
   if (storeGeneIds) {
