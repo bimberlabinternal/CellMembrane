@@ -14,7 +14,8 @@ AppendCiteSeq(
   adtWhitelist = NULL,
   minRowSum = NULL,
   failIfAdtsInWhitelistNotFound = TRUE,
-  runCellBender = FALSE
+  runCellBender = FALSE,
+  aggregateBarcodeFile = NULL
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ AppendCiteSeq(
 \item{failIfAdtsInWhitelistNotFound}{If an adtWhitelist is provided and this is TRUE, an error will be thrown if any of these features are missing in the input matrix}
 
 \item{runCellBender}{If true, cellbender will be run on the raw count matrix to remove background/ambient RNA signal}
+
+\item{aggregateBarcodeFile}{Optional. This is the cellranger output, in antibody_analysis/aggregate_barcodes.csv, which contains barcodes marked as aggregates. These are dropped.}
 }
 \description{
 Read/Append CITE-seq/ADT data to a Seurat Object

@@ -23,9 +23,10 @@ utils::globalVariables(
 #' @param minRowSum If provided, any ADTs (rows) with rowSum below this value will be dropped.
 #' @param failIfAdtsInWhitelistNotFound If an adtWhitelist is provided and this is TRUE, an error will be thrown if any of these features are missing in the input matrix
 #' @param runCellBender If true, cellbender will be run on the raw count matrix to remove background/ambient RNA signal
+#' @param aggregateBarcodeFile Optional. This is the cellranger output, in antibody_analysis/aggregate_barcodes.csv, which contains barcodes marked as aggregates. These are dropped.
 #' @export
 #' @importFrom dplyr arrange
-AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb', datasetId = NULL, assayName = 'ADT', featureMetadata = NULL, adtWhitelist = NULL, minRowSum = NULL, failIfAdtsInWhitelistNotFound = TRUE, runCellBender = FALSE) {
+AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb', datasetId = NULL, assayName = 'ADT', featureMetadata = NULL, adtWhitelist = NULL, minRowSum = NULL, failIfAdtsInWhitelistNotFound = TRUE, runCellBender = FALSE, aggregateBarcodeFile = NULL) {
 	print(paste0('Initial cell barcodes in GEX data: ', ncol(seuratObj)))
 	if (!is.null(datasetId)) {
 		gexCells <- colnames(seuratObj)[seuratObj$DatasetId == datasetId]
@@ -34,6 +35,17 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		gexCells <- colnames(seuratObj)
 	}
 	assayData <- .LoadCiteSeqData(unfilteredMatrixDir, datasetId = datasetId, featureMetadata = featureMetadata, adtWhitelist = adtWhitelist, minRowSum = minRowSum, failIfAdtsInWhitelistNotFound = failIfAdtsInWhitelistNotFound)
+
+	if (!is.null(aggregateBarcodeFile)) {
+		barcodes <- read.table(aggregateBarcodeFile, header = T, sep = ',')$barcode
+		barcodes <- sapply(barcodes, function(x){
+			return(unlist(strsplit(x, split = '-'))[1])
+		})
+		print(paste0('Total barcodes marked as aggregates: ', length(barcodes)))
+
+		assayData <- subset(assayData, cells = colnames(assayData)[!colnames(assayData) %in% barcodes])
+		print(paste0('After removing: ', ncol(assayData)))
+	}
 
 	# TODO: we might want to return the unfiltered results and keep all cell matching GEX?
 	if (runCellBender) {
