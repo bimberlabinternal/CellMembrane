@@ -8,6 +8,7 @@ RUN apt-get update -y \
 		libhdf5-dev \
 		libpython3-dev \
 		python3-pip \
+    && python3 -m pip install --upgrade pip \
 	&& pip3 install umap-learn \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
@@ -17,7 +18,7 @@ RUN apt-get update -y \
 RUN cd / \
     && git clone https://github.com/broadinstitute/CellBender.git CellBender \
     && chmod -R 777 /CellBender \
-    && pip3 install -e CellBender \
+    && pip3 install -e CellBender
 
 # Let this run for the purpose of installing/caching dependencies
 RUN Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
@@ -39,8 +40,8 @@ ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
 RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
 RUN cd /CellMembrane \
-	&& R CMD build . \
 	&& Rscript -e "BiocManager::install(ask = F);" \
 	&& Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE);" \
+	&& R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds
