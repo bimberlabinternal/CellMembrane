@@ -15,11 +15,12 @@ ReadAndFilter10xData(
   useEmptyDropsCellRanger = FALSE,
   nExpectedCells = 8000,
   annotateMitoFromReference = TRUE,
-  useCellBender = FALSE
+  useCellBender = FALSE,
+  useSoupX = FALSE
 )
 }
 \arguments{
-\item{dataDir}{The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder}
+\item{dataDir}{Either the directory holding raw count data (generally the raw_feature_bc_matrix), or the parent 'outs' dir from cellranger}
 
 \item{datasetId}{This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.}
 
@@ -40,6 +41,8 @@ ReadAndFilter10xData(
 \item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito}
 
 \item{useCellBender}{It true, CellBender will be run against the raw counts, instead of emptyDrops.}
+
+\item{useSoupX}{If true, SoupX will be run against the run input data, instead of emptyDrops}
 }
 \value{
 A Seurat object.

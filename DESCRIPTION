@@ -40,7 +40,8 @@ Imports:
     rlang,
     magick,
     pdftools,
-    reticulate
+    reticulate,
+    SoupX
 Suggests:
     devtools,
     testthat (>= 2.1.0),
