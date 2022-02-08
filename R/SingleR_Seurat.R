@@ -166,33 +166,8 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn2]][[fn2]]))
       pheatmap::pheatmap(log10(tab+10), main = paste0(dataset, ': Fine Labels')) # using a larger pseudo-count for smoothing.
 
-      if (!is.null(minFraction)){
-        for (label in c(fn, fn2)) {
-          print(paste0('Filtering ', label, ' below: ', minFraction))
-          d <- data.frame(table(Label = unlist(seuratObj[[label]])))
-          names(d) <- c('Label', 'Count')
-          d$Fraction <- d$Count / sum(d$Count)
-
-          d <- d %>% dplyr::arrange(dplyr::desc(Fraction))
-          print(d)
-          toRemove <- d$Label[d$Fraction < minFraction]
-          if (length(toRemove) > 0) {
-            print(paste0('Will remove: ', paste0(toRemove, collapse = ', ')))
-          }
-
-          if (length(toRemove) > 0) {
-            l <- unlist(seuratObj[[label]])
-            names(l) <- colnames(seuratObj)
-            l[l %in% toRemove] <- 'Unknown'
-            seuratObj[[label]] <- l
-          }
-
-          print('After filter:')
-          d <- data.frame(table(Label = unlist(seuratObj[[label]])))
-          names(d) <- c('Label', 'Count')
-          print(d)
-        }
-      }
+      seuratObj <- .FilterLowCalls(seuratObj, fn, minFraction)
+      seuratObj <- .FilterLowCalls(seuratObj, fn2, minFraction)
     }, error = function(e){
       print(paste0('Error running singleR for dataset: ', dataset))
       print(conditionMessage(e))
@@ -251,6 +226,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       })
 
       seuratObj$SingleRConsensus <- dat$SingleRConsensus
+      seuratObj <- .FilterLowCalls(seuratObj, 'SingleRConsensus', minFraction)
 
       if (length(names(seuratObj@reductions)) == 0) {
         print('No reductions present, skipping DimPlot')
@@ -277,6 +253,35 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
   return(seuratObj)
 }
 
+.FilterLowCalls <- function(seuratObj, label, minFraction) {
+  if (!is.null(minFraction)){
+    print(paste0('Filtering ', label, ' below: ', minFraction))
+    d <- data.frame(table(Label = unlist(seuratObj[[label]])))
+    names(d) <- c('Label', 'Count')
+    d$Fraction <- d$Count / sum(d$Count)
+
+    d <- d %>% dplyr::arrange(dplyr::desc(Fraction))
+    print(d)
+    toRemove <- d$Label[d$Fraction < minFraction]
+    if (length(toRemove) > 0) {
+      print(paste0('Will remove: ', paste0(toRemove, collapse = ', ')))
+    }
+
+    if (length(toRemove) > 0) {
+      l <- unlist(seuratObj[[label]])
+      names(l) <- colnames(seuratObj)
+      l[l %in% toRemove] <- 'Unknown'
+      seuratObj[[label]] <- l
+    }
+
+    print('After filter:')
+    d <- data.frame(table(Label = unlist(seuratObj[[label]])))
+    names(d) <- c('Label', 'Count')
+    print(d)
+  }
+
+  return(seuratObj)
+}
 
 DimPlot_SingleR <- function(seuratObject, plotIndividually = F, datasets = c('hpca')){
   if (length(names(seuratObject@reductions)) == 0) {
