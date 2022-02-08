@@ -249,6 +249,11 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 	print(paste0('Passing cells: ', ncol(seuratRawData)))
 	print(SoupX::plotMarkerDistribution(sc))
 
+	# Drop suffixes:
+	colnames(seuratRawData) <- sapply(colnames(seuratRawData), function(x){
+		return(unlist(strsplit(x, split = '-'))[1])
+	})
+
 	return(seuratRawData)
 }
 
