@@ -33,7 +33,7 @@ RunCellBender <- function(rawFeatureMatrix, expectedCells = 5000, totalDropletsI
     "--input", inputh5File
   )
 
-  isEnabled <- system2(command = reticulate::py_exe(), c("-c", "import torch;print(torch.cuda.is_available())"), stdout = TRUE, stderr = TRUE)
+  isEnabled <- system2(command = reticulate::py_exe(), shQuote(c("-c", 'import torch; print(torch.cuda.is_available())')), stdout = TRUE, stderr = TRUE)
   print(paste0('python torch.cuda.is_available(): ', isEnabled))
 
   if ("True" == isEnabled) {
