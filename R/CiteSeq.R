@@ -42,6 +42,9 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 			return(unlist(strsplit(x, split = '-'))[1])
 		})
 		print(paste0('Total barcodes marked as aggregates: ', length(barcodes)))
+		if (sum(!barcodes %in% colnames(assayData)) > 0) {
+			print(paste0('The following barcodes were not in the count matrix: ', paste0(barcodes[!barcodes %in% colnames(assayData)], collapse = ','), ', first was: ', colnames(assayData)[1]))
+		}
 
 		assayData <- subset(assayData, cells = colnames(assayData)[!colnames(assayData) %in% barcodes])
 		print(paste0('After removing: ', ncol(assayData)))
