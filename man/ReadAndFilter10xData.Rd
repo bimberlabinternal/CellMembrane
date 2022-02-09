@@ -15,8 +15,8 @@ ReadAndFilter10xData(
   useEmptyDropsCellRanger = FALSE,
   nExpectedCells = 8000,
   annotateMitoFromReference = TRUE,
-  useCellBender = FALSE,
-  useSoupX = FALSE
+  useSoupX = FALSE,
+  previouslyFilteredMatrix = NULL
 )
 }
 \arguments{
@@ -40,9 +40,9 @@ ReadAndFilter10xData(
 
 \item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito}
 
-\item{useCellBender}{It true, CellBender will be run against the raw counts, instead of emptyDrops.}
-
 \item{useSoupX}{If true, SoupX will be run against the run input data, instead of emptyDrops}
+
+\item{previouslyFilteredMatrix}{An optional filepath to a pre-filtered count matrix in h5 format. If non-null, this file will be read instead of dataDir. Empty drops and/or soupX will be skipped.}
 }
 \value{
 A Seurat object.

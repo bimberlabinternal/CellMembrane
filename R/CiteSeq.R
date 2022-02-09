@@ -425,6 +425,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 #' @import patchwork
 .NormalizeDsbWithEmptyDrops <- function(seuratObj, unfilteredAdtAssay, rnaAssayName = 'RNA', fdrThreshold=0.01, emptyDropNIters=10000, emptyDropsLower=100) {
+	print('Running DSB to normalize data')
 	gexCountMatrix <- GetAssayData(object = seuratObj, slot = 'counts', assay = rnaAssayName)
 	unfilteredAdtCountMatrix <- GetAssayData(object = unfilteredAdtAssay, slot = 'counts')
 
