@@ -41,7 +41,8 @@ Imports:
     magick,
     pdftools,
     reticulate,
-    SoupX
+    SoupX,
+    hdf5r
 Suggests:
     devtools,
     testthat (>= 2.1.0),
