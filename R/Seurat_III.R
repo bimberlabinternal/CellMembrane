@@ -22,12 +22,12 @@ utils::globalVariables(
 #' @param useEmptyDropsCellRanger If TRUE, will use DropletUtils emptyDropsCellRanger instead of emptyDrops
 #' @param nExpectedCells Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument
 #' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
-#' @param useCellBender It true, CellBender will be run against the raw counts, instead of emptyDrops.
+#' @param previouslyFilteredMatrix An optional filepath to a pre-filtered count matrix in h5 format. If non-null, this file will be read instead of dataDir. Empty drops and/or soupX will be skipped.
 #' @param useSoupX If true, SoupX will be run against the run input data, instead of emptyDrops
 #' @return A Seurat object.
 #' @export
 #' @importFrom Seurat Read10X
-ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, emptyDropsFdrThreshold = 0.001, storeGeneIds=TRUE, emptyDropsLower = 100, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000, annotateMitoFromReference = TRUE, useCellBender = FALSE, useSoupX = FALSE) {
+ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, emptyDropsFdrThreshold = 0.001, storeGeneIds=TRUE, emptyDropsLower = 100, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000, annotateMitoFromReference = TRUE, useSoupX = FALSE, previouslyFilteredMatrix = NULL) {
   if (!file.exists(dataDir)){
     stop(paste0("File does not exist: ", dataDir))
   }
@@ -41,7 +41,16 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
   }
 
   dirWithFeatureMatrix <- .InferMatrixDir(dataDir)
-  if (useSoupX) {
+  if (!is.null(previouslyFilteredMatrix)) {
+    print('Using previously filtered count matrix')
+
+    seuratRawData <- Seurat::Read10X_h5(filename = previouslyFilteredMatrix, use.names = TRUE)
+    # Drop suffixes:
+    colnames(seuratRawData) <- sapply(colnames(seuratRawData), function(x){
+      return(unlist(strsplit(x, split = '-'))[1])
+    })
+
+  } else if (useSoupX) {
     print('Running SoupX')
 
     # This expects the outs dir:
@@ -51,13 +60,10 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
 
     seuratRawData <- .RunSoupX(dataDir)
   } else {
-    seuratRawData <- Read10X(data.dir = dirWithFeatureMatrix, strip.suffix = TRUE)
+    print('Loading counts and running emptyDrops')
 
-    if (useCellBender) {
-      seuratRawData <- RunCellBender(seuratRawData)
-    } else {
-      seuratRawData <- PerformEmptyDropletFiltering(seuratRawData, fdrThreshold = emptyDropsFdrThreshold, emptyDropNIters=emptyDropNIters, emptyDropsLower=emptyDropsLower, useEmptyDropsCellRanger = useEmptyDropsCellRanger, nExpectedCells = nExpectedCells)
-    }
+    seuratRawData <- Read10X(data.dir = dirWithFeatureMatrix, strip.suffix = TRUE)
+    seuratRawData <- PerformEmptyDropletFiltering(seuratRawData, fdrThreshold = emptyDropsFdrThreshold, emptyDropNIters=emptyDropNIters, emptyDropsLower=emptyDropsLower, useEmptyDropsCellRanger = useEmptyDropsCellRanger, nExpectedCells = nExpectedCells)
   }
 
   #Cannot have underscores in feature names, Seurat will replace with hyphen anyway.  Perform upfront to avoid warning
