@@ -52,7 +52,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 	# TODO: we might want to return the unfiltered results and keep all cell matching GEX?
 	if (runCellBender) {
-		updatedCounts <- RunCellBender(rawFeatureMatrix = assayData@counts)
+		updatedCounts <- RunCellBender(rawFeatureMatrix = assayData@counts, fpr = 0.05)
 		assayData <- Seurat::CreateAssayObject(counts = updatedCounts)
 	}
 
