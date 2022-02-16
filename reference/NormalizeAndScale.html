@@ -60,7 +60,8 @@
   scaleVariableFeaturesOnly <span class="op">=</span> <span class="cn">TRUE</span>,
   includeCellCycleGenesInScaleData <span class="op">=</span> <span class="cn">TRUE</span>,
   useSCTransform <span class="op">=</span> <span class="cn">FALSE</span>,
-  additionalFindVariableFeatureArgList <span class="op">=</span> <span class="cn">NULL</span>
+  additionalFindVariableFeatureArgList <span class="op">=</span> <span class="cn">NULL</span>,
+  scoreCellCycle <span class="op">=</span> <span class="cn">TRUE</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
@@ -86,6 +87,8 @@
 <dd><p>If true, SCTransform will be used in place of the standard Seurat workflow (NormalizeData, ScaleData, FindVariableFeatures)</p></dd>
 <dt>additionalFindVariableFeatureArgList</dt>
 <dd><p>A list of arguments passed directly to FindVariableFeatures</p></dd>
+<dt>scoreCellCycle</dt>
+<dd><p>If true, ScoreCellCycle will be run to compute Phase, which is stored in meta.data. If a field named Phase already exists, this will be skipped.</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
