@@ -123,9 +123,13 @@ SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0, naOtherLabel 
 	}
 
 	if (length(cellsForOther) > 0) {
-		print(paste0('Adding category for other (', length(cellsForOther), ' cells):'))
-		s <- subset(seuratObj, cells = cellsForOther)
-		ret[[as.character(naOtherLabel)]] <- s
+		if (length(cellsForOther) < minCellsToKeep) {
+			print(paste0('A total of ', length(cellsForOther), ' cells are in low-frequency groups, which is below minCellsToKeep and will be dropped'))
+		} else {
+			print(paste0('Adding category for other (', length(cellsForOther), ' cells):'))
+			s <- subset(seuratObj, cells = cellsForOther)
+			ret[[as.character(naOtherLabel)]] <- s
+		}
 	}
 
 	return (ret)
