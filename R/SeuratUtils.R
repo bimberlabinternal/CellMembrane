@@ -699,7 +699,7 @@ InspectSeurat <- function(seuratObj, slotReportSize = 500000, commandReportSize 
 			dat <- Seurat::GetAssayData(seuratObj, assay = assayName, slot = slotName)
 			print(paste0(' slot: ', slotName, ', size: ', format(utils::object.size(x = dat), units = 'auto')))
 
-			if (!is(dat, 'sparseMatrix')) {
+			if (slotName != 'scale.data' && !is(dat, 'sparseMatrix')) {
 				print(paste0('Non-sparse! Assay: ', assayName, ', slot: ', slotName))
 			}
 		}
