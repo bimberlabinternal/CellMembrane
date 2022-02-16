@@ -90,22 +90,42 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 #' @param seuratObj The seurat object
 #' @param splitField The name of the field on which to split the object
 #' @param minCellsToKeep If any of the resulting seurat objects have less than this many cells, they will be discarded.
+#' @param naOtherLabel This string will be used to label any cells marked NA.
+#' @param appendLowFreqToOther If true, any cells with NAs for the splitField, or terms with fewer than minCellsToKeep, will be merged into a single seurat object
 #' @export
-SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0) {
+SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0, naOtherLabel = 'Other', appendLowFreqToOther = TRUE) {
 	if (!(splitField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not present in seurat object: ', splitField))
 	}
 
-	values <- unique(seuratObj@meta.data[[splitField]])
+	data <- as.character(seuratObj@meta.data[[splitField]])
+	data[is.na(data)] <- naOtherLabel
+	values <- unique(data)
+	cellsForOther <- colnames(seuratObj)[data == naOtherLabel]
 
 	ret <- list()
 	for (value in values) {
-		s <- seuratObj[, colnames(seuratObj)[seuratObj@meta.data[[splitField]] == value]]
-		if (ncol(s) < minCellsToKeep) {
-			print(paste0('Too few cells (', ncol(s), '), discarding subset: ', value))
+		# Handle this below:
+		if (value == naOtherLabel) {
+			next
+		}
+
+		toKeep <- colnames(seuratObj)[data == value]
+		if (length(toKeep) == 0 || length(toKeep) < minCellsToKeep) {
+			print(paste0('Too few cells (', length(toKeep), '), discarding subset: ', value))
+			if (appendLowFreqToOther) {
+				cellsForOther <- c(cellsForOther, toKeep)
+			}
 		} else {
+			s <- subset(seuratObj, cells = toKeep)
 			ret[[as.character(value)]] <- s
 		}
+	}
+
+	if (length(cellsForOther) > 0) {
+		print(paste0('Adding category for other (', length(cellsForOther), ' cells):'))
+		s <- subset(seuratObj, cells = cellsForOther)
+		ret[[as.character(naOtherLabel)]] <- s
 	}
 
 	return (ret)

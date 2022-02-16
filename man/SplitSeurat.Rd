@@ -4,7 +4,13 @@
 \alias{SplitSeurat}
 \title{Split Seurat}
 \usage{
-SplitSeurat(seuratObj, splitField, minCellsToKeep = 0)
+SplitSeurat(
+  seuratObj,
+  splitField,
+  minCellsToKeep = 0,
+  naOtherLabel = "Other",
+  appendLowFreqToOther = TRUE
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
@@ -12,6 +18,10 @@ SplitSeurat(seuratObj, splitField, minCellsToKeep = 0)
 \item{splitField}{The name of the field on which to split the object}
 
 \item{minCellsToKeep}{If any of the resulting seurat objects have less than this many cells, they will be discarded.}
+
+\item{naOtherLabel}{This string will be used to label any cells marked NA.}
+
+\item{appendLowFreqToOther}{If true, any cells with NAs for the splitField, or terms with fewer than minCellsToKeep, will be merged into a single seurat object}
 }
 \description{
 Split a seurat object, dividing into new objects based on the value of a field

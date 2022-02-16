@@ -20,7 +20,7 @@ test_that("Seurat-manipulation works as expected", {
   seuratList <- SplitSeurat(seuratObj, splitField = 'ClusterNames_0.2')
   expect_equal(5, length(seuratList))
 
-  seuratList <- SplitSeurat(seuratObj, splitField = 'ClusterNames_0.2', minCellsToKeep = 200)
+  seuratList <- SplitSeurat(seuratObj, splitField = 'ClusterNames_0.2', minCellsToKeep = 200, appendLowFreqToOther = FALSE)
   expect_equal(3, length(seuratList))
 
   df <- AvgExpression(seuratObj, groupField = 'ClusterNames_0.4')
@@ -28,9 +28,14 @@ test_that("Seurat-manipulation works as expected", {
   expect_equal(nrow(df), nrow(seuratObj) + 2)
   expect_equal(max(df[df$feature == 'LibrarySize', colnames(df) %in% 0:5]), 939113)
 
-  #seuratObj2 <- SubsetSeurat(seuratObj, expressionStrings = c('ClusterNames_0.2 == 0'))
-  #e <- expression(ClusterNames_0.2 == 0)
-  #seuratObj2 <- subset(seuratObj, subset = e)
+  seuratList <- SplitSeurat(seuratObj, splitField = 'ClusterNames_0.2', minCellsToKeep = 200)
+  expect_equal(4, length(seuratList))
+
+  seuratObj$Phase2 <- seuratObj$Phase
+  seuratObj$Phase2[seuratObj$Phase == 'G1'] <- NA
+  seuratList <- SplitSeurat(seuratObj, splitField = 'Phase2', minCellsToKeep = 200)
+  expect_equal(3, length(seuratList))
+  expect_equal(629, ncol(seuratList[['Other']]))
 })
 
 context("scRNAseq")
