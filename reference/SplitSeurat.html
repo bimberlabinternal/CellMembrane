@@ -50,7 +50,13 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">SplitSeurat</span><span class="op">(</span><span class="va">seuratObj</span>, <span class="va">splitField</span>, minCellsToKeep <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">SplitSeurat</span><span class="op">(</span>
+  <span class="va">seuratObj</span>,
+  <span class="va">splitField</span>,
+  minCellsToKeep <span class="op">=</span> <span class="fl">0</span>,
+  naOtherLabel <span class="op">=</span> <span class="st">"Other"</span>,
+  appendLowFreqToOther <span class="op">=</span> <span class="cn">TRUE</span>
+<span class="op">)</span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -61,6 +67,10 @@
 <dd><p>The name of the field on which to split the object</p></dd>
 <dt>minCellsToKeep</dt>
 <dd><p>If any of the resulting seurat objects have less than this many cells, they will be discarded.</p></dd>
+<dt>naOtherLabel</dt>
+<dd><p>This string will be used to label any cells marked NA.</p></dd>
+<dt>appendLowFreqToOther</dt>
+<dd><p>If true, any cells with NAs for the splitField, or terms with fewer than minCellsToKeep, will be merged into a single seurat object</p></dd>
 </dl></div>
 
   </div>
