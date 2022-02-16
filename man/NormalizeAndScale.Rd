@@ -14,7 +14,8 @@ NormalizeAndScale(
   scaleVariableFeaturesOnly = TRUE,
   includeCellCycleGenesInScaleData = TRUE,
   useSCTransform = FALSE,
-  additionalFindVariableFeatureArgList = NULL
+  additionalFindVariableFeatureArgList = NULL,
+  scoreCellCycle = TRUE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ NormalizeAndScale(
 \item{useSCTransform}{If true, SCTransform will be used in place of the standard Seurat workflow (NormalizeData, ScaleData, FindVariableFeatures)}
 
 \item{additionalFindVariableFeatureArgList}{A list of arguments passed directly to FindVariableFeatures}
+
+\item{scoreCellCycle}{If true, ScoreCellCycle will be run to compute Phase, which is stored in meta.data. If a field named Phase already exists, this will be skipped.}
 }
 \value{
 A modified Seurat object.

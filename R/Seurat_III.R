@@ -199,51 +199,61 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
 #' @param includeCellCycleGenesInScaleData If true, cell cycle genes will always be included in the features passed to ScaleData().
 #' @param useSCTransform If true, SCTransform will be used in place of the standard Seurat workflow (NormalizeData, ScaleData, FindVariableFeatures)
 #' @param additionalFindVariableFeatureArgList A list of arguments passed directly to FindVariableFeatures
+#' @param scoreCellCycle If true, ScoreCellCycle will be run to compute Phase, which is stored in meta.data. If a field named Phase already exists, this will be skipped.
 #' @return A modified Seurat object.
 #' @export
-NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE, useSCTransform = FALSE, additionalFindVariableFeatureArgList = NULL){
-	if (!is.null(featuresToRegress)) {
-		if ('p.mito' %in% featuresToRegress) {
-			if ('p.mito' %in% names(seuratObj@meta.data)) {
-				uniquePMito <- length(unique(seuratObj$p.mito))
-			} else {
-				uniquePMito <- -1
-			}
+NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE, useSCTransform = FALSE, additionalFindVariableFeatureArgList = NULL, scoreCellCycle = TRUE){
+  if (!is.null(featuresToRegress)) {
+    if ('p.mito' %in% featuresToRegress) {
+      if ('p.mito' %in% names(seuratObj@meta.data)) {
+        uniquePMito <- length(unique(seuratObj$p.mito))
+      } else {
+        uniquePMito <- -1
+      }
 
-			if (uniquePMito <= 1) {
-				print('Either p.mito not present in the seurat object, or all cells have the same value, skipping from regression')
-				featuresToRegress <- featuresToRegress[featuresToRegress != 'p.mito']
-			}
-		}
+      if (uniquePMito <= 1) {
+        print('Either p.mito not present in the seurat object, or all cells have the same value, skipping from regression')
+        featuresToRegress <- featuresToRegress[featuresToRegress != 'p.mito']
+      }
+    }
 
-		if (length(featuresToRegress) == 0) {
-			featuresToRegress <- NULL
-		}
-	}
+    if (length(featuresToRegress) == 0) {
+      featuresToRegress <- NULL
+    }
+  }
 
-	if (useSCTransform) {
-		additionalArgs <- list()
-		if (!is.null(nVariableFeatures)) {
-			print(paste0('SCTransform will use the top ', nVariableFeatures, ' variableFeatures'))
-			additionalArgs[['variable.features.n']] <- nVariableFeatures
-		}
+  if (useSCTransform) {
+    additionalArgs <- list()
+    if (!is.null(nVariableFeatures)) {
+      print(paste0('SCTransform will use the top ', nVariableFeatures, ' variableFeatures'))
+      additionalArgs[['variable.features.n']] <- nVariableFeatures
+    }
 
-		seuratObj <- .NormalizeAndScaleSCTransform(seuratObj, featuresToRegress = featuresToRegress, additionalArgs = additionalArgs)
-	} else {
-		if (is.null(additionalFindVariableFeatureArgList)) {
-			additionalFindVariableFeatureArgList <- list()
-		}
+    seuratObj <- .NormalizeAndScaleSCTransform(seuratObj, featuresToRegress = featuresToRegress, additionalArgs = additionalArgs)
+  } else {
+    if (is.null(additionalFindVariableFeatureArgList)) {
+      additionalFindVariableFeatureArgList <- list()
+    }
 
-		if (!is.null(nVariableFeatures)) {
-			additionalFindVariableFeatureArgList[['nfeatures']] <- nVariableFeatures
-		}
+    if (!is.null(nVariableFeatures)) {
+      additionalFindVariableFeatureArgList[['nfeatures']] <- nVariableFeatures
+    }
 
-		seuratObj <- .NormalizeAndScaleDefault(seuratObj, featuresToRegress = featuresToRegress, scaleVariableFeaturesOnly = scaleVariableFeaturesOnly, includeCellCycleGenesInScaleData = includeCellCycleGenesInScaleData, block.size = block.size, variableGenesWhitelist = variableGenesWhitelist, variableGenesBlacklist = variableGenesBlacklist, additionalFindVariableFeatureArgList = additionalFindVariableFeatureArgList)
-	}
+    seuratObj <- .NormalizeAndScaleDefault(seuratObj, featuresToRegress = featuresToRegress, scaleVariableFeaturesOnly = scaleVariableFeaturesOnly, includeCellCycleGenesInScaleData = includeCellCycleGenesInScaleData, block.size = block.size, variableGenesWhitelist = variableGenesWhitelist, variableGenesBlacklist = variableGenesBlacklist, additionalFindVariableFeatureArgList = additionalFindVariableFeatureArgList)
+  }
 
-	seuratObj <- ScoreCellCycle(seuratObj)
+  if (scoreCellCycle) {
+    if ('Phase' %in% names(seuratObj@meta.data)) {
+      print('Phase column already present, will not re-score cell cycle')
+    } else {
+      seuratObj <- ScoreCellCycle(seuratObj)
+    }
 
-	return(seuratObj)
+  } else {
+    print('Cell cycle scoring will be skipped')
+  }
+
+  return(seuratObj)
 }
 
 .NormalizeAndScaleSCTransform <- function(seuratObj, featuresToRegress, additionalArgs = NULL, verbose = FALSE) {
