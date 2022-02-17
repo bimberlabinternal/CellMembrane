@@ -419,6 +419,11 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	}
 
 	for (feature in features) {
+		dat <- Seurat::FetchData(seuratObj, vars = feature, slot = 'data')
+		if (all(is.na(dat)) || max(dat, na.rm = T) == 0) {
+			print(paste0('Skipping feature with zero/NA counts: ', feature))
+		}
+
 		steps <- ceiling(length(reductionToPlot) / plotsPerRow) - 1
 
 		for (i in 0:steps) {

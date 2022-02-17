@@ -371,7 +371,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	toSkip <- character()
 	dat <- Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')
 	for (feature in featuresToPlot) {
-		if (max(dat[feature,]) == 0) {
+		if (all(is.na(dat[feature,])) || max(dat[feature,], na.rm = T) == 0) {
 			print(paste0('Skipping feature with zero counts: ', feature))
 			toSkip <- c(toSkip, feature)
 		}
@@ -394,7 +394,14 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		end <- min((start + setSize - 1), length(featuresToPlot))
 		features <- featuresToPlot[start:end]
 
-		print(RidgePlot(seuratObj, assay = assayName, features = features, ncol = 1))
+		tryCatch({
+			print(RidgePlot(seuratObj, assay = assayName, features = features, ncol = 1))
+		}, error = function(e){
+			print(paste0('Error generating CITE-seq RidgePlot for: ', paste0(features, collapse = ',')))
+			print(conditionMessage(e))
+			traceback()
+		})
+
 	}
 
 	# Also total per ADT
