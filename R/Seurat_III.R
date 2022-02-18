@@ -75,6 +75,14 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
   seuratObj <- CreateSeuratObj(seuratRawData, datasetId = datasetId, datasetName = datasetName, annotateMitoFromReference = TRUE)
   .PrintQcPlots(seuratObj)
 
+  if (useSoupX || !is.null(previouslyFilteredMatrix)) {
+    print('Storing unaltered raw counts in assay RNA.orig')
+    rawData <- Seurat::Read10X(data.dir = dirWithFeatureMatrix, strip.suffix = TRUE)
+    colnames(rawData) <- paste0(datasetId, '_', colnames(rawData))
+    rawData <- rawData[,colnames(seuratObj)]
+    seuratObj[['RNA.orig']] <- Seurat::CreateAssayObject(rawData)
+  }
+
   if (storeGeneIds) {
     #store IDs in assay metadata
     geneIds <- rownames(Read10X(data.dir = dirWithFeatureMatrix, gene.column = 1, strip.suffix = TRUE))

@@ -98,7 +98,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 
 	PlotMarkerSeries(seuratObj, reductions, chemokines, 'Chemokines/Receptors')
 
-	PlotMarkerSeries(seuratObj, reductions, c('MKI67'), 'Cell Proliferation')
+	PlotMarkerSeries(seuratObj, reductions, c('MKI67', 'TOP2A'), 'Cell Proliferation')
 
 	#PlotMarkerSeries(seuratObj, reductions, c('EPCAM'), 'Epithelial Cells')
 
