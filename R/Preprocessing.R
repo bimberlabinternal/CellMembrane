@@ -247,7 +247,8 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 	sc <- SoupX::autoEstCont(sc, doPlot = T)
 	seuratRawData <- SoupX::adjustCounts(sc)
 	print(paste0('Passing cells: ', ncol(seuratRawData)))
-	print(SoupX::plotMarkerDistribution(sc))
+	print(SoupX::plotMarkerMap(sc, geneSet = sc$fit$markersUsed$gene))
+	print(SoupX::plotChangeMap(sc, cleanedMatrix = seuratRawData, geneSet = sc$fit$markersUsed$gene))
 
 	# Drop suffixes:
 	colnames(seuratRawData) <- sapply(colnames(seuratRawData), function(x){
