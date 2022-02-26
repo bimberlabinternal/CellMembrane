@@ -245,6 +245,9 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         ylab("Number of cells") +
         xlab("")
       )
+
+      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[['SingleRConsensus']][['SingleRConsensus']]))
+      pheatmap::pheatmap(log10(tab+10), main = paste0('SingleR Consensus'), cluster_rows = nrow(tab)>1, cluster_cols = ncol(tab)>1) # using a larger pseudo-count for smoothing.
     } else {
       print('SingleR consensus call will not be created')
     }
