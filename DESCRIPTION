@@ -66,8 +66,8 @@ Remotes:
     bioc::scuttle,
     bioc::SingleCellExperiment,
     niaid/dsb,
-    YosefLab/VISION,
-    phytools
+    phytools,
+    YosefLab/VISION
 Config/reticulate:
   list(
     packages = list(

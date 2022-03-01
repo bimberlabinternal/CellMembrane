@@ -3,6 +3,7 @@
 #' @description Run VISION using MSigDB Gene Sets. Returns an object that can be inspected using: VISION::viewResults(vision.obj)
 #' @param seuratObj The seurat object
 #' @param metadataCols A list of column names to include in VISION analysis.
+#' @import Seurat
 #' @export
 RunVisionForMSigDB <- function(seuratObj, metadataCols = c('nCount_RNA', 'ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6', 'ClusterNames_0.8')) {
   print('Downloading msigdb.v7.5.1')
