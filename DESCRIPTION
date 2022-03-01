@@ -85,4 +85,5 @@ Collate:
     'SeuratUtils.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'
+    'Vision.R'
     'data.R'
