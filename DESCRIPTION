@@ -67,7 +67,7 @@ Remotes:
     bioc::SingleCellExperiment,
     niaid/dsb,
     YosefLab/VISION,
-    GSEABase
+    phytools
 Config/reticulate:
   list(
     packages = list(
