@@ -51,6 +51,7 @@ Suggests:
     rmarkdown,
     shiny,
     pkgdown,
+    phytools,
     VISION
 RoxygenNote: 7.1.2
 URL: https://github.com/BimberLabInternal/CellMembrane
@@ -66,7 +67,6 @@ Remotes:
     bioc::scuttle,
     bioc::SingleCellExperiment,
     niaid/dsb,
-    phytools,
     YosefLab/VISION
 Config/reticulate:
   list(
