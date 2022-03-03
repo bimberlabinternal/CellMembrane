@@ -8,6 +8,9 @@ RUN apt-get update -y \
 		libhdf5-dev \
 		libpython3-dev \
 		python3-pip \
+        # NOTE: these were added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb
+        locales \
+        locales-all \
     && python3 -m pip install --upgrade pip \
 	&& pip3 install umap-learn \
 	&& apt-get clean \
