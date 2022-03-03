@@ -50,7 +50,9 @@ Suggests:
     rmdformats,
     rmarkdown,
     shiny,
-    pkgdown
+    pkgdown,
+    phytools,
+    VISION
 RoxygenNote: 7.1.2
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
@@ -64,7 +66,8 @@ Remotes:
     bioc::scDblFinder,
     bioc::scuttle,
     bioc::SingleCellExperiment,
-    niaid/dsb
+    niaid/dsb,
+    YosefLab/VISION
 Config/reticulate:
   list(
     packages = list(
@@ -82,4 +85,5 @@ Collate:
     'SeuratUtils.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'
+    'Vision.R'
     'data.R'
