@@ -19,7 +19,7 @@ This package was created to run the Bimber Lab's single-cell RNA-seq pipelines. 
 local({options(repos = BiocManager::repositories())})
 
 #Latest version:
-devtools::install_github(repo = 'bimberlabinternal/cellmembrane', ref = 'master', dependencies = TRUE, upgrade = 'always')
+devtools::install_github(repo = 'bimberlabinternal/cellmembrane', dependencies = TRUE, upgrade = 'always')
 ```
     
 Pre-packaged Docker images with all needed dependencies installed can be found on our [GitHub Packages page](https://github.com/orgs/BimberLabInternal/packages/container/package/CellMembrane). We recommend using a specific release, which you can do using tags: 

@@ -653,14 +653,17 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 #' @param onlyPos If true, only positive markers will be saved
 #' @param pValThreshold Only genes with adjusted p-values below this will be reported
 #' @param foldChangeThreshold Only genes with log2 fold-change above this will be reported
+#' @param minPct Only test genes that are detected in a minimum fraction of min.pct cells in either of the two populations. Meant to speed up the function by not testing genes that are very infrequently expressed.
+#' @param minDiffPct Only test genes that show a minimum difference in the fraction of detection between the two groups.
 #' @param datasetName An optional label for this dataset. If provided, this will be appended to the resulting table.
 #' @param assayName The assay to use.
+#' @param verbose Passed to Seurat::FindMarkers
 #' @return A DT::datatable object with the top markers, suitable for printing
 #' @importFrom dplyr %>% coalesce group_by summarise filter top_n select everything
 #' @import DESeq2
 #' @import MAST
 #' @export
-Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, datasetName = NULL, assayName = 'RNA') {
+Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, minPct = 0.1, minDiffPct = -Inf, datasetName = NULL, assayName = 'RNA', verbose = FALSE) {
   seuratObj.markers <- NULL
   fieldsToUse <- c()
   for (fieldName in identFields) {
@@ -679,7 +682,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     for (test in testsToUse) {
       print(paste0('Running using test: ', test))
       tryCatch({
-        tMarkers <- FindAllMarkers(object = seuratObj, assay = assayName, only.pos = onlyPos, min.pct = 0.25, logfc.threshold = foldChangeThreshold, verbose = F, test.use = test, random.seed = GetSeed())
+        tMarkers <- FindAllMarkers(object = seuratObj, assay = assayName, only.pos = onlyPos, logfc.threshold = foldChangeThreshold, min.pct = minPct, min.diff.pct = minDiffPct, verbose = verbose, test.use = test, random.seed = GetSeed())
         if (nrow(tMarkers) == 0) {
           print(paste0('No genes returned, skipping: ', test))
         } else {

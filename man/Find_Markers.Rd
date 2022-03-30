@@ -13,8 +13,11 @@ Find_Markers(
   onlyPos = F,
   pValThreshold = 0.001,
   foldChangeThreshold = 0.5,
+  minPct = 0.1,
+  minDiffPct = -Inf,
   datasetName = NULL,
-  assayName = "RNA"
+  assayName = "RNA",
+  verbose = FALSE
 )
 }
 \arguments{
@@ -34,9 +37,15 @@ Find_Markers(
 
 \item{foldChangeThreshold}{Only genes with log2 fold-change above this will be reported}
 
+\item{minPct}{Only test genes that are detected in a minimum fraction of min.pct cells in either of the two populations. Meant to speed up the function by not testing genes that are very infrequently expressed.}
+
+\item{minDiffPct}{Only test genes that show a minimum difference in the fraction of detection between the two groups.}
+
 \item{datasetName}{An optional label for this dataset. If provided, this will be appended to the resulting table.}
 
 \item{assayName}{The assay to use.}
+
+\item{verbose}{Passed to Seurat::FindMarkers}
 }
 \value{
 A DT::datatable object with the top markers, suitable for printing
