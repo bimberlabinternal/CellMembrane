@@ -59,8 +59,11 @@
   onlyPos <span class="op">=</span> <span class="cn">F</span>,
   pValThreshold <span class="op">=</span> <span class="fl">0.001</span>,
   foldChangeThreshold <span class="op">=</span> <span class="fl">0.5</span>,
+  minPct <span class="op">=</span> <span class="fl">0.1</span>,
+  minDiffPct <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,
   datasetName <span class="op">=</span> <span class="cn">NULL</span>,
-  assayName <span class="op">=</span> <span class="st">"RNA"</span>
+  assayName <span class="op">=</span> <span class="st">"RNA"</span>,
+  verbose <span class="op">=</span> <span class="cn">FALSE</span>
 <span class="op">)</span></code></pre></div>
     </div>
 
@@ -82,10 +85,16 @@
 <dd><p>Only genes with adjusted p-values below this will be reported</p></dd>
 <dt>foldChangeThreshold</dt>
 <dd><p>Only genes with log2 fold-change above this will be reported</p></dd>
+<dt>minPct</dt>
+<dd><p>Only test genes that are detected in a minimum fraction of min.pct cells in either of the two populations. Meant to speed up the function by not testing genes that are very infrequently expressed.</p></dd>
+<dt>minDiffPct</dt>
+<dd><p>Only test genes that show a minimum difference in the fraction of detection between the two groups.</p></dd>
 <dt>datasetName</dt>
 <dd><p>An optional label for this dataset. If provided, this will be appended to the resulting table.</p></dd>
 <dt>assayName</dt>
 <dd><p>The assay to use.</p></dd>
+<dt>verbose</dt>
+<dd><p>Passed to Seurat::FindMarkers</p></dd>
 </dl></div>
     <div id="value">
     <h2>Value</h2>
