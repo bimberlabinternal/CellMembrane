@@ -666,8 +666,8 @@ PlotSeuratVariables <- function(seuratObj, xvar, yvar, labelDimplot = FALSE, red
 	data <- seuratObj@meta.data[c(xvar, yvar)]
 	names(data) <- c('x', 'y')
 
-	P0 <- DimPlot(seuratObj, group.by = xvar, label = labelDimplot, reduction = reduction)
-	P2 <- DimPlot(seuratObj, group.by = yvar, label = labelDimplot, reduction = reduction)
+	P0 <- DimPlot(seuratObj, group.by = xvar, label = labelDimplot, reduction = reduction, shuffle = TRUE)
+	P2 <- DimPlot(seuratObj, group.by = yvar, label = labelDimplot, reduction = reduction, shuffle = TRUE)
 
 	P1 <- ggplot(data, aes(x = x, fill = y)) +
 		geom_bar(position = 'fill', color = 'black') +
