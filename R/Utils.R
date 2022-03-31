@@ -63,8 +63,6 @@ set.seed(pkg.env$RANDOM_SEED)
     if (!is.null(datasetName)) {
       seuratObj[['DatasetName']] <- datasetName
     }
-  } else {
-    print('Barcode prefix already added')
   }
 
   return(seuratObj)
