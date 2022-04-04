@@ -165,6 +165,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
 #' @param maxSizeFactor The maximum allowable SizeFactor before an error is automatically thrown. For instance, a size factor of 100 means you have a group of 8000 cells that you're comparing to 80 cells. 
 #' @param independentVariableTestField This and dependentVariableTestField automatically define a small statistical test to see if your size factors are correlated. Ideally, they should not be if independentVariableTestField is not the same value as normalizationField. 
 #' @param dependentVariableTestField This value should be equal to sizeFactorField initially, but can be changed to interactively see other correlations in the metadata.
+#' @param facetingField The column name of the seruat object metadata that the end DotPlot should be facet_wrap'd by.
 #' @export
 MakeEnrichmentDotPlot <- function(seuratObj,
                                   yField = 'ClusterNames_0.2',
@@ -176,7 +177,8 @@ MakeEnrichmentDotPlot <- function(seuratObj,
                                   sizeFactorField = 'SizeFactor',
                                   maxSizeFactor = 100,
                                   independentVariableTestField = colorField,
-                                  dependentVariableTestField = sizeFactorField
+                                  dependentVariableTestField = sizeFactorField, 
+                                  facetingField = NULL
 
 ){
   
@@ -224,5 +226,13 @@ MakeEnrichmentDotPlot <- function(seuratObj,
     ylab(yField) +
     guides(fill = guide_colorbar(order = 1))
   
+  if(!is.null(facetingField)){
+    if(!(facetingField %in% extraGroupingFields)){
+      stop("Please add your desired facetingField to the extraGroupingFields variable.")
+    }
+    P1 <- P1 + 
+      facet_wrap(as.formula(paste("~", facetingField)), scales = "free_x")
+  }
+    
   return(P1)
 }

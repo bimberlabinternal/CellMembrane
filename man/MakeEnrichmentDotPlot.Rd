@@ -15,7 +15,8 @@ MakeEnrichmentDotPlot(
   sizeFactorField = "SizeFactor",
   maxSizeFactor = 100,
   independentVariableTestField = colorField,
-  dependentVariableTestField = sizeFactorField
+  dependentVariableTestField = sizeFactorField,
+  facetingField = NULL
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ MakeEnrichmentDotPlot(
 \item{independentVariableTestField}{This and dependentVariableTestField automatically define a small statistical test to see if your size factors are correlated. Ideally, they should not be if independentVariableTestField is not the same value as normalizationField.}
 
 \item{dependentVariableTestField}{This value should be equal to sizeFactorField initially, but can be changed to interactively see other correlations in the metadata.}
+
+\item{facetingField}{The column name of the seruat object metadata that the end DotPlot should be facet_wrap'd by.}
 }
 \description{
 An extremely overloaded function that calculates statistics and enrichment in Seurat Objects. Please see an example dot plot before using this function. Note the aggregated data can be obtained from the ggplot object (i.e. P1$data)
