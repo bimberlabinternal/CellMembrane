@@ -309,13 +309,13 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	if (!all(is.null(variableGenesWhitelist))) {
 		print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list'))
 		VariableFeatures(seuratObj) <- unique(c(VariableFeatures(seuratObj), variableGenesWhitelist))
-		print(paste0('Total after', length(VariableFeatures(seuratObj))))
+		print(paste0('Total after: ', length(VariableFeatures(seuratObj))))
 	}
 
 	if (!all(is.null(variableGenesBlacklist))){
 		print(paste0('Removing ', length(variableGenesBlacklist), ' from variable gene list'))
 		VariableFeatures(seuratObj) <- unique(VariableFeatures(seuratObj)[!(VariableFeatures(seuratObj) %in% variableGenesBlacklist)])
-		print(paste0('Total after', length(VariableFeatures(seuratObj))))
+		print(paste0('Total after: ', length(VariableFeatures(seuratObj))))
 	}
 
   .PlotVariableFeatures(seuratObj)
