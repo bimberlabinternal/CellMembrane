@@ -213,7 +213,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 				# This can occur if the first object lacks GeneId but the second has it.
 				if (!'GeneId' %in% names(GetAssay(seuratObj, assay = assayName)@meta.features)) {
 					message('GeneId was present in the second merged object, but not the first. Adding NAs')
-					GetAssay(seuratObj, assay = assayName)@meta.features$GeneId <- NA
+					seuratObj@assays[[assayName]]@meta.features$GeneId <- NA
 				}
 
 				geneIds1 <- GetAssay(seuratObj, assay = assayName)@meta.features$GeneId
