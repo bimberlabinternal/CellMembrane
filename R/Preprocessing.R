@@ -206,7 +206,17 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 			if (any(rownames(seuratObj[[assayName]]) != rownames(seuratObjs[[datasetId]][[assayName]]))) {
 				missing <- rownames(seuratObj[[assayName]])[!(rownames(seuratObj[[assayName]]) %in% rownames(seuratObjs[[datasetId]][[assayName]]))]
 				missing <- c(missing, rownames(seuratObjs[[datasetId]][[assayName]])[!(rownames(seuratObjs[[datasetId]][[assayName]]) %in% rownames(seuratObj[[assayName]]))])
-				stop(paste0('Gene names are not equal! Missing: ', paste0(missing, collapse = ',')))
+				if (length(missing) > 0) {
+					stop(paste0('Gene names are not equal! Missing: ', paste0(missing, collapse = ',')))
+				} else {
+					sel <- rownames(seuratObj[[assayName]]) != rownames(seuratObjs[[datasetId]][[assayName]])
+					genes1 <- rownames(seuratObj[[assayName]])[sel]
+					genes2 <- rownames(seuratObjs[[datasetId]][[assayName]])[sel]
+
+					message(paste0('Gene names not identical between objects using assay: ', assayName, '. Problem genes:'))
+					message(paste0(genes1, sep =', ', collapse = ','))
+					message(paste0(genes2, sep =', ', collapse = ','))
+				}
 			}
 
 			if (hasGeneId) {
