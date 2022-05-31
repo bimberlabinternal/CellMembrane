@@ -6,6 +6,9 @@
 \usage{
 GetGeneSet(name)
 }
+\arguments{
+\item{name}{The name of the gene set}
+}
 \description{
 Returns a vector with the set of genes registered under the provided name.
 }

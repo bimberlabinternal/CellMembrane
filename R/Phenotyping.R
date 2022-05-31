@@ -203,6 +203,7 @@ pkg.env$GENE_SETS <- list()
 #' @title GetGeneSet
 #'
 #' @description Returns a vector with the set of genes registered under the provided name.
+#' @param name The name of the gene set
 #' @export
 #' @import Seurat
 GetGeneSet <- function(name) {
@@ -242,6 +243,6 @@ GetMMul10IgGenes <- function(){
 		'LOC107000555', # IGL6-like
 		'LOC106996055', #IGLC 1-like
 		'LOC708771', #IGL6-like
-		'LOC106992418', #IGL6-like
+		'LOC106992418' #IGL6-like
 	))
 }
