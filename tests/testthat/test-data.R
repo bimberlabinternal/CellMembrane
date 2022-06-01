@@ -47,3 +47,8 @@ test_that("DotPlot works", {
 	P1 + facet_grid(. ~ Group1)
 
 })
+
+test_that("Gene sets work", {
+	expect_equal(length(GetGeneSet('MMul10TcrGenes')), 107)
+	expect_equal(length(GetGeneSet('CD8_Activation.1')), 8)
+})
