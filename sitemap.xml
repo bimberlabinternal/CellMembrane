@@ -61,6 +61,12 @@
     <loc>/reference/GetGeneIds.html</loc>
   </url>
   <url>
+    <loc>/reference/GetGeneSet.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GetMMul10IgGenes.html</loc>
+  </url>
+  <url>
     <loc>/reference/GetMMul10TcrGenes.html</loc>
   </url>
   <url>
