@@ -70,32 +70,57 @@
     <h2>Arguments</h2>
     <dl><dt>dataDir</dt>
 <dd><p>Either the directory holding raw count data (generally the raw_feature_bc_matrix), or the parent 'outs' dir from cellranger</p></dd>
+
+
 <dt>datasetId</dt>
 <dd><p>This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.</p></dd>
+
+
 <dt>datasetName</dt>
 <dd><p>An optional print-friendly name that will be stored in metadata</p></dd>
+
+
 <dt>emptyDropNIters</dt>
 <dd><p>The number of iterations to use with PerformEmptyDrops()</p></dd>
+
+
 <dt>emptyDropsFdrThreshold</dt>
 <dd><p>The FDR threshold to call cells in emptyDrops()</p></dd>
+
+
 <dt>storeGeneIds</dt>
 <dd><p>If true, a map to translate geneId and name (by default rownames will use gene name)</p></dd>
+
+
 <dt>emptyDropsLower</dt>
 <dd><p>Passed directly to emptyDrops(). The lower bound on the total UMI count, at or below which all barcodes are assumed to correspond to empty droplets.</p></dd>
+
+
 <dt>useEmptyDropsCellRanger</dt>
 <dd><p>If TRUE, will use DropletUtils emptyDropsCellRanger instead of emptyDrops</p></dd>
+
+
 <dt>nExpectedCells</dt>
 <dd><p>Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument</p></dd>
+
+
 <dt>annotateMitoFromReference</dt>
 <dd><p>If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito</p></dd>
+
+
 <dt>useSoupX</dt>
 <dd><p>If true, SoupX will be run against the run input data, instead of emptyDrops</p></dd>
+
+
 <dt>previouslyFilteredMatrix</dt>
 <dd><p>An optional filepath to a pre-filtered count matrix in h5 format. If non-null, this file will be read instead of dataDir. Empty drops and/or soupX will be skipped.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A Seurat object.</p>
+    
+
+<p>A Seurat object.</p>
     </div>
 
   </div>
@@ -110,7 +135,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

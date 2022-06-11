@@ -71,34 +71,61 @@
     <h2>Arguments</h2>
     <dl><dt>seuratObj</dt>
 <dd><p>A seurat object</p></dd>
+
+
 <dt>identFields</dt>
 <dd><p>A vector of grouping fields for DE. Often these are the resolution, computed during FindClustersAndDimRedux()</p></dd>
+
+
 <dt>outFile</dt>
 <dd><p>A file where a table of markers will be saved</p></dd>
+
+
 <dt>testsToUse</dt>
 <dd><p>A vector of tests to be used.  Each will be used to run FindAllMarkers() and the results merged. Available are: wilcox, bimod, roc, t, negbinom, poisson, LR, MAST, DESeq2</p></dd>
+
+
 <dt>numGenesToPrint</dt>
 <dd><p>The number of top markers per cluster to print in a table</p></dd>
+
+
 <dt>onlyPos</dt>
 <dd><p>If true, only positive markers will be saved</p></dd>
+
+
 <dt>pValThreshold</dt>
 <dd><p>Only genes with adjusted p-values below this will be reported</p></dd>
+
+
 <dt>foldChangeThreshold</dt>
 <dd><p>Only genes with log2 fold-change above this will be reported</p></dd>
+
+
 <dt>minPct</dt>
 <dd><p>Only test genes that are detected in a minimum fraction of min.pct cells in either of the two populations. Meant to speed up the function by not testing genes that are very infrequently expressed.</p></dd>
+
+
 <dt>minDiffPct</dt>
 <dd><p>Only test genes that show a minimum difference in the fraction of detection between the two groups.</p></dd>
+
+
 <dt>datasetName</dt>
 <dd><p>An optional label for this dataset. If provided, this will be appended to the resulting table.</p></dd>
+
+
 <dt>assayName</dt>
 <dd><p>The assay to use.</p></dd>
+
+
 <dt>verbose</dt>
 <dd><p>Passed to Seurat::FindMarkers</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A DT::datatable object with the top markers, suitable for printing</p>
+    
+
+<p>A DT::datatable object with the top markers, suitable for printing</p>
     </div>
 
   </div>
@@ -113,7 +140,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

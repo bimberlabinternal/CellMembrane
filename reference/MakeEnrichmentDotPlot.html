@@ -69,26 +69,47 @@
     <h2>Arguments</h2>
     <dl><dt>seuratObj</dt>
 <dd><p>The seurat object that holds the data.</p></dd>
+
+
 <dt>yField</dt>
 <dd><p>The y axis for the dotplots.</p></dd>
+
+
 <dt>xField</dt>
 <dd><p>The x axis for the dotplots.</p></dd>
+
+
 <dt>colorField</dt>
 <dd><p>The column of metadata that is used for the colorField. This should be a factor with two levels. The highest level, reported by levels(), will be treated as the 'highest' value.</p></dd>
+
+
 <dt>colorLabels</dt>
 <dd><p>Vector of length 2-3 that defines the extremes and midpoint of the colorField axis. If null, the values of colorField will be used.</p></dd>
+
+
 <dt>extraGroupingFields</dt>
 <dd><p>An optional vector of additional fields to use in grouping</p></dd>
+
+
 <dt>normalizationField</dt>
 <dd><p>The metadata column that is used for size factor calculation (equivalently, normalization between different datasets.) Recommended to be cDNA_ID.</p></dd>
+
+
 <dt>sizeFactorField</dt>
 <dd><p>The column name of the seruat object metadata that size factors should be stored in.</p></dd>
+
+
 <dt>maxSizeFactor</dt>
 <dd><p>The maximum allowable SizeFactor before an error is automatically thrown. For instance, a size factor of 100 means you have a group of 8000 cells that you're comparing to 80 cells.</p></dd>
+
+
 <dt>independentVariableTestField</dt>
 <dd><p>This and dependentVariableTestField automatically define a small statistical test to see if your size factors are correlated. Ideally, they should not be if independentVariableTestField is not the same value as normalizationField.</p></dd>
+
+
 <dt>dependentVariableTestField</dt>
 <dd><p>This value should be equal to sizeFactorField initially, but can be changed to interactively see other correlations in the metadata.</p></dd>
+
 </dl></div>
 
   </div>
@@ -103,7 +124,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

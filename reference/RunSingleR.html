@@ -68,28 +68,49 @@
     <h2>Arguments</h2>
     <dl><dt>seuratObj</dt>
 <dd><p>A Seurat object</p></dd>
+
+
 <dt>datasets</dt>
 <dd><p>One or more datasets to use as a reference. Allowable values are: hpca, blueprint, dice, monaco, and immgen. See cellDex package for available datasets.</p></dd>
+
+
 <dt>assay</dt>
 <dd><p>The assay in the seurat object to use</p></dd>
+
+
 <dt>resultTableFile</dt>
 <dd><p>If provided, a table of results will be saved here</p></dd>
+
+
 <dt>rawDataFile</dt>
 <dd><p>If provided, the complete SingleR results will be saved to this file</p></dd>
+
+
 <dt>minFraction</dt>
 <dd><p>If provided, any labels present with fraction of this or fewer across cells will be converted to Unknown</p></dd>
+
+
 <dt>showHeatmap</dt>
 <dd><p>If true, heatmaps will be generated showing the SingleR calls</p></dd>
+
+
 <dt>maxCellsForHeatmap</dt>
 <dd><p>The heatmap will only be plotted if the total cells is below this number</p></dd>
+
+
 <dt>nThreads</dt>
 <dd><p>If provided, this integer value is passed to SingleR's BPPARAM argument. On windows ths is passed to BiocParallel::SnowParam(). On other OS it is passed to BiocParallel::MulticoreParam()</p></dd>
+
+
 <dt>createConsensus</dt>
 <dd><p>If true, a pseudo-consensus field will be created from the course labels from all datasets. Labels will be simplified in an attempt to normalize into the categories of Bcells, NK/T_cells and Myeloid.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>The modified seurat object</p>
+    
+
+<p>The modified seurat object</p>
     </div>
 
   </div>
@@ -104,7 +125,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

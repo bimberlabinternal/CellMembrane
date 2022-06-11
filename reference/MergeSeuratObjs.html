@@ -66,24 +66,41 @@
     <h2>Arguments</h2>
     <dl><dt>seuratObjs</dt>
 <dd><p>A named list of seurat objects, optionally named (in which case these will be used as dataset names).</p></dd>
+
+
 <dt>projectName</dt>
 <dd><p>The project name when creating the final seurat object</p></dd>
+
+
 <dt>merge.data</dt>
 <dd><p>Passed directly to Seurat::merge</p></dd>
+
+
 <dt>expectedDefaultAssay</dt>
 <dd><p>If not null, the DefaultAssay on the resulting seurat object will be set to this</p></dd>
+
+
 <dt>enforceUniqueCells</dt>
 <dd><p>If true, all inputs must have unique cellbarcodes.</p></dd>
+
+
 <dt>errorOnBarcodeSuffix</dt>
 <dd><p>In certain cases, software appends a digit (i.e. -1) to the end of cellbarcodes. These can be a problem when trying to make string comparisons. If true, the method will error if these are encountered.</p></dd>
+
+
 <dt>doGC</dt>
 <dd><p>If true, in an attempt to save memory gc() will be run after each seurat object is merged</p></dd>
+
+
 <dt>duplicateBarcodeMode</dt>
 <dd><p>This dictates the behavior when duplicate cell barcodes are encountered between merged objects. This can be either: 'exclude-all' (all duplicated dropped from all objects), or 'error'.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A modified Seurat object.</p>
+    
+
+<p>A modified Seurat object.</p>
     </div>
 
   </div>
@@ -98,7 +115,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

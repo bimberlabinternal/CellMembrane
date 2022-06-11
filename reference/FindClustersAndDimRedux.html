@@ -72,36 +72,65 @@
     <h2>Arguments</h2>
     <dl><dt>seuratObj</dt>
 <dd><p>A Seurat object.</p></dd>
+
+
 <dt>dimsToUse</dt>
 <dd><p>The number of dims to use.  If null, this will be inferred using FindSeuratElbow()</p></dd>
+
+
 <dt>minDimsToUse</dt>
 <dd><p>The minimum numbers of dims to use.  If dimsToUse is provided, this will override.</p></dd>
+
+
 <dt>umap.method</dt>
 <dd><p>The UMAP method, either uwot or umap-learn, passed directly to Seurat::RunUMAP</p></dd>
+
+
 <dt>umap.metric</dt>
 <dd><p>Passed directly to Seurat::RunUMAP</p></dd>
+
+
 <dt>umap.n.neighbors</dt>
 <dd><p>Passed directly to Seurat::RunUMAP</p></dd>
+
+
 <dt>umap.min.dist</dt>
 <dd><p>Passed directly to Seurat::RunUMAP</p></dd>
+
+
 <dt>umap.spread</dt>
 <dd><p>Passed directly to Seurat::RunUMAP</p></dd>
+
+
 <dt>seed.use</dt>
 <dd><p>Passed directly to Seurat::RunUMAP, FindClusters, and RunTSNE</p></dd>
+
+
 <dt>umap.n.epochs</dt>
 <dd><p>Passed directly to Seurat::RunUMAP</p></dd>
+
+
 <dt>max.tsne.iter</dt>
 <dd><p>The value of max_iter to provide to RunTSNE.  Increasing can help large datasets.</p></dd>
+
+
 <dt>tsne.perplexity</dt>
 <dd><p>tSNE perplexity. Passed directly to Seurat::RunTSNE(), but CellMembrane:::.InferPerplexityFromSeuratObj() corrects it if need be based dataset dims.</p></dd>
+
+
 <dt>umap.densmap</dt>
 <dd><p>Passed directly to Seurat::RunUMAP</p></dd>
+
+
 <dt>clusterResolutions</dt>
 <dd><p>A vector of clustering resolutions, default is (0.2, 0.4, 0.6, 0.8, 1.2).</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A modified Seurat object.</p>
+    
+
+<p>A modified Seurat object.</p>
     </div>
 
   </div>
@@ -116,7 +145,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

@@ -69,26 +69,47 @@
     <h2>Arguments</h2>
     <dl><dt>seuratObj</dt>
 <dd><p>The seurat object where data will be added.</p></dd>
+
+
 <dt>unfilteredMatrixDir</dt>
 <dd><p>The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder</p></dd>
+
+
 <dt>normalizeMethod</dt>
 <dd><p>The method for normalization. If NULL, normalization will be skipped.</p></dd>
+
+
 <dt>datasetId</dt>
 <dd><p>If the seurat object includes cells from multiple datasets, and/or if the barcodes were prefixed with a dataset id, This will be used as a prefix for barcodes, and stored in metadata. Also used as the project name for the Seurat object.</p></dd>
+
+
 <dt>assayName</dt>
 <dd><p>The name of the assay to store ADT data.</p></dd>
+
+
 <dt>featureMetadata</dt>
 <dd><p>If is common for the raw barcode to use non-human friendly names (like TotalSeq-C-XXXX). This is an optional dataframe that can be used to override that, and also provide other feature metadata. This dataframe must have rownames that match the rownames of the saved matrix. If this dataframe has the column 'name', this will be used to replace the original rownames on the ADT assay.</p></dd>
+
+
 <dt>adtWhitelist</dt>
 <dd><p>An optional whitelist of ADT names (matching the raw names from the matrix). If provided, the matrix will be subset to just these features</p></dd>
+
+
 <dt>minRowSum</dt>
 <dd><p>If provided, any ADTs (rows) with rowSum below this value will be dropped.</p></dd>
+
+
 <dt>failIfAdtsInWhitelistNotFound</dt>
 <dd><p>If an adtWhitelist is provided and this is TRUE, an error will be thrown if any of these features are missing in the input matrix</p></dd>
+
+
 <dt>runCellBender</dt>
 <dd><p>If true, cellbender will be run on the raw count matrix to remove background/ambient RNA signal</p></dd>
+
+
 <dt>aggregateBarcodeFile</dt>
 <dd><p>Optional. This is the cellranger output, in antibody_analysis/aggregate_barcodes.csv, which contains barcodes marked as aggregates. These are dropped.</p></dd>
+
 </dl></div>
 
   </div>
@@ -103,7 +124,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

@@ -69,30 +69,53 @@
     <h2>Arguments</h2>
     <dl><dt>seuratObj</dt>
 <dd><p>A Seurat object.</p></dd>
+
+
 <dt>nVariableFeatures</dt>
 <dd><p>The number of variable features, passed to either FindVariableFeatures or SCTransform</p></dd>
+
+
 <dt>block.size</dt>
 <dd><p>Passed directly to ScaleData</p></dd>
+
+
 <dt>variableGenesWhitelist</dt>
 <dd><p>An optional vector of genes that will be included in PCA, beyond the default VariableFeatures()</p></dd>
+
+
 <dt>variableGenesBlacklist</dt>
 <dd><p>An optional vector of genes that will be excluded from PCA, beyond the default VariableFeatures()</p></dd>
+
+
 <dt>featuresToRegress</dt>
 <dd><p>The set of features which will be passed to Seurat::ScaleData vars.to.regress</p></dd>
+
+
 <dt>scaleVariableFeaturesOnly</dt>
 <dd><p>If true, ScaleData will only be performed on VariableFeatures(), which is governed by FindVariableFeatures, variableGenesWhitelist, and variableGenesBlacklist</p></dd>
+
+
 <dt>includeCellCycleGenesInScaleData</dt>
 <dd><p>If true, cell cycle genes will always be included in the features passed to ScaleData().</p></dd>
+
+
 <dt>useSCTransform</dt>
 <dd><p>If true, SCTransform will be used in place of the standard Seurat workflow (NormalizeData, ScaleData, FindVariableFeatures)</p></dd>
+
+
 <dt>additionalFindVariableFeatureArgList</dt>
 <dd><p>A list of arguments passed directly to FindVariableFeatures</p></dd>
+
+
 <dt>scoreCellCycle</dt>
 <dd><p>If true, ScoreCellCycle will be run to compute Phase, which is stored in meta.data. If a field named Phase already exists, this will be skipped.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>A modified Seurat object.</p>
+    
+
+<p>A modified Seurat object.</p>
     </div>
 
   </div>
@@ -107,7 +130,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>

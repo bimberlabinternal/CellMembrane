@@ -70,28 +70,51 @@
     <h2>Arguments</h2>
     <dl><dt>seuratObj</dt>
 <dd><p>The seurat object</p></dd>
+
+
 <dt>seuratPlot</dt>
 <dd><p>The plot object, such as the result from DimPlot()</p></dd>
+
+
 <dt>cellSelectField</dt>
 <dd><p>The name of the field to select which cells to plot</p></dd>
+
+
 <dt>colorLegendLabel</dt>
 <dd><p>This is passed to labs(color = XXX) to label the legend</p></dd>
+
+
 <dt>colorField</dt>
 <dd><p>The name of the field to assign colors to the cells. This provides the option to use a different value from cellSelectField. If colorField and dotColor are NA, cellSelectField will be used.</p></dd>
+
+
 <dt>dotColor</dt>
 <dd><p>An optional string passed to geom_point(color = XX). This will assign all cells the same color. Ignored if colorField is provided.</p></dd>
+
+
 <dt>pt.size</dt>
 <dd><p>The size, passed to geom_point().</p></dd>
+
+
 <dt>shapeField</dt>
 <dd><p>If true, provided, these values will be used for shape. Note: if there are more than 6 unique values this will be ignored.</p></dd>
+
+
 <dt>dotShapes</dt>
 <dd><p>An optional vector of shape values passed to scale_shape_manual(values = XX). If dotShapes is provided, but shapeField is not, all cells will receive the same shape.</p></dd>
+
+
 <dt>horizontalLegend</dt>
 <dd><p>If true, theme(legend.box = "horizontal") is added to the plot. This can be useful if the original plot also has a legend (such as cluster names)</p></dd>
+
+
 <dt>resetLegendSize</dt>
 <dd><p>Using ggnewscale::new_scale_color seems to reset the dot size of the legend. If resetLegendSize=TRUE, the function will call "guides(colour_new = guide_legend(override.aes = list(size=3)))" to restore dot size to 3.</p></dd>
+
+
 <dt>maxAllowableShapeValues</dt>
 <dd><p>If shapes are used and there are more than this many values, all cells will receive the same shape.</p></dd>
+
 </dl></div>
 
   </div>
@@ -106,7 +129,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.4.</p>
 </div>
 
       </footer></div>
