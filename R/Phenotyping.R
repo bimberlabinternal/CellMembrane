@@ -19,7 +19,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	#IL2RA = CD25
 	#PTPRC = CD45
 	#SELL = CD62-L / CD-197
-	PlotMarkerSeries(seuratObj, reductions, c('CCR7', 'SELL', 'GZMB', 'CCR5', 'IL2RA', 'PTPRC', 'IL7R', 'CTLA4', 'FAS', 'CD28', 'CD27'), 'Effector vs. Memory')
+	PlotMarkerSeries(seuratObj, reductions, c('CCR7', 'SELL', 'GZMB', 'CCR5', 'IL2RA', 'PTPRC', 'IL7R', 'CTLA4', 'FAS', 'CD28', 'CD27', 'ITGA4', 'ITGB7'), 'Effector vs. Memory')
 
 	#CD8 Activation
 	# XCL1 = ENSMMUG00000060218
@@ -30,7 +30,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	# LOC100426537 = C-C motif chemokine 3-like
 	# CD154 = CD40L
 	# LAMP1 = CD107a, cytotoxic capacity
-	PlotMarkerSeries(seuratObj, reductions, c('IFNG', 'CD69', 'TNF', 'NFKBID', 'LTB', 'TNFRSF9', 'CCL4L1', 'NR4A3', 'TNFSF14', 'CD82', 'PIGT', 'IRF8', 'IRF4', 'RGCC', 'PD1', 'PDCD1', 'TNFAIP3', 'LOC100423131', 'LOC100430627', 'ENSMMUG00000013779', 'XCL1', 'ENSMMUG00000060218', 'CCL4', 'ENSMMUG00000008111', 'CCL3', 'PLEK', 'NR4A2', 'LOC100426537', 'LOC114673087', 'KLF10', 'GADD45B', 'CD154', 'LAMP1'), 'CD8 Activation Markers')
+	PlotMarkerSeries(seuratObj, reductions, c('IFNG', 'CD69', 'TNF', 'NFKBID', 'LTB', 'TNFRSF9', 'CCL4L1', 'NR4A3', 'TNFSF14', 'CD82', 'PIGT', 'IRF8', 'IRF4', 'IRF2', 'RGCC', 'PD1', 'PDCD1', 'TNFAIP3', 'LOC100423131', 'LOC100430627', 'ENSMMUG00000013779', 'XCL1', 'ENSMMUG00000060218', 'CCL4', 'ENSMMUG00000008111', 'CCL3', 'PLEK', 'NR4A2', 'LOC100426537', 'LOC114673087', 'KLF10', 'GADD45B', 'CD154', 'LAMP1'), 'CD8 Activation Markers')
 
 	PlotMarkerSeries(seuratObj, reductions, c('PRF1', 'GNLY', 'NKG7', 'GZMA','GZMB','GZMH','GZMK','GZMM'), 'Cytotoxicity')
 
@@ -64,12 +64,19 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	# ZBTB16 = PLZF
 	PlotMarkerSeries(seuratObj, reductions, c('ZBTB16', 'DPP4'), 'MAIT')
 
-	PlotMarkerSeries(seuratObj, reductions, c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX'), 'Transcription Factors')
+	PlotMarkerSeries(seuratObj, reductions, c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX', 'GATA2'), 'Transcription Factors')
 
 	PlotMarkerSeries(seuratObj, reductions, c('TIGIT', 'CTLA4', 'BTLA', 'PDCD1', 'CD274'), 'Inhibitory Markers')
 
+	# https://www.frontiersin.org/articles/10.3389/fimmu.2016.00076/full#:~:text=The%20three%20main%20pathways%20activated,activation%20(1%2C%202).
+
+	PlotMarkerSet(seuratObj, reductions, 'NFATs', c('STAT1', 'STAT2', 'STAT3', 'STAT4'))
+
+	PlotMarkerSet(seuratObj, reductions, 'NFATs', c('NFATC1', 'NFATC2', 'NFAT3', 'NFATC4', 'NFAT5'))
+
 	#DAP10/12
-	PlotMarkerSet(seuratObj, reductions, 'Signaling', c('HCST', 'TYROBP', 'SYK', 'ZAP70'))
+	# LOC707555 = ZAP70
+	PlotMarkerSet(seuratObj, reductions, 'Signaling', c('HCST', 'TYROBP', 'SYK', 'ZAP70', 'LOC707555', 'ITK'))
 
 	#LILR/KIR:
 	PlotMarkerSeries(seuratObj, reductions, c('LILRA5','LILRA6','LILRB4','LILRB5','KIR2DL4','KIR3DX1', 'MAMU-KIR', 'KIR2DL4', 'KIR3DL2'), 'LILR/KIR')
