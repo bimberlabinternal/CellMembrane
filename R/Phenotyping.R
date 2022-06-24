@@ -67,7 +67,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	# ZBTB16 = PLZF
 	PlotMarkerSeries(seuratObj, reductions, c('ZBTB16', 'DPP4'), 'MAIT')
 
-	PlotMarkerSeries(seuratObj, reductions, c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX', 'GATA2', 'TCF7'), 'Transcription Factors')
+	PlotMarkerSeries(seuratObj, reductions, c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX', 'GATA2', 'TCF7', 'KLF2'), 'Transcription Factors')
 
 	PlotMarkerSeries(seuratObj, reductions, c('TIGIT', 'CTLA4', 'BTLA', 'PDCD1', 'CD274'), 'Inhibitory Markers')
 
@@ -229,6 +229,13 @@ GetGeneSet <- function(name) {
 .RegisterGeneSet('Cytotoxicity', c('PRF1', 'GNLY', 'NKG7', 'GZMA','GZMB','GZMH','GZMK','GZMM'))
 .RegisterGeneSet('Myelocytes', c("OLFM4", "LTF", "CAMP", "LCN2"))
 .RegisterGeneSet('Pro_Myelocytes', c("BPI", "MPO", "ELANE", "RTD1A", "RTD1B", "DEFA1B", "AZU1"))
+.RegisterGeneSet("MMul10_MHC", c("MAMU-A", "MAMU-A3", "MAMU-AG"))
+.RegisterGeneSet("MMul10_KIR", c("KIR3DL0", "KIR3DL2", "KIR2DS4", "KIR2DL4", "KIR3DS05", "KIR3DL12", "KIR3DL1", "KIR3DH", "KIR3DH5", "KIR3DL21", "KIR3DL11", "MAMU-KIR"))
+
+# Generated using: sort(rownames(seuratObj@assays$RNA)[grepl(rownames(seuratObj@assays$RNA), pattern = '^RP[SL]')])
+.RegisterGeneSet("MMul10_Ribosomal", c("RPL10", "RPL10A", "RPL10L", "RPL11", "RPL12", "RPL13", "RPL13A", "RPL14", "RPL15", "RPL17", "RPL18", "RPL18A", "RPL19", "RPL21", "RPL22", "RPL22L1", "RPL23", "RPL23A", "RPL24", "RPL26", "RPL26L1", "RPL27", "RPL27A", "RPL28", "RPL29", "RPL3", "RPL30", "RPL31", "RPL32", "RPL34", "RPL35", "RPL35A", "RPL36", "RPL36AL", "RPL37", "RPL37A", "RPL37A-1", "RPL38", "RPL39", "RPL39L", "RPL3L", "RPL4", "RPL41", "RPL5", "RPL6", "RPL7", "RPL7A", "RPL7L1", "RPL8", "RPL9", "RPLP0", "RPLP1", "RPLP2", "RPS10", "RPS11", "RPS12", "RPS13", "RPS14", "RPS15", "RPS15A", "RPS16", "RPS17", "RPS18", "RPS19", "RPS19BP1", "RPS2", "RPS20", "RPS21", "RPS23", "RPS24", "RPS25", "RPS26", "RPS27", "RPS27A", "RPS27A-1", "RPS27L", "RPS28", "RPS29", "RPS3", "RPS4X", "RPS4Y1", "RPS4Y2", "RPS5", "RPS6KA1", "RPS6KA2", "RPS6KA3", "RPS6KA4", "RPS6KA5", "RPS6KA6", "RPS6KB1", "RPS6KB2", "RPS6KC1", "RPS6KL1", "RPS7", "RPS8", "RPS9", "RPSA"))
+
+.RegisterGeneSet('PCA_Exclusion', unique(c(GetGeneSet('MMul10TcrGenes'), GetGeneSet('MMul10_MHC'), GetGeneSet('MMul10_KIR'), GetGeneSet('MMul10_Ribosomal'))))
 
 #' @title GetMMul10TcrGenes
 #'
