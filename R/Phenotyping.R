@@ -62,9 +62,12 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	PlotMarkerSet(seuratObj, reductions, 'Treg17', c('RORA', 'RORB', 'RORC', 'IL4', 'STAT3'))
 
 	# ZBTB16 = PLZF
+	PlotMarkerSeries(seuratObj, reductions, c('HAVCR2'), 'Th1')
+
+	# ZBTB16 = PLZF
 	PlotMarkerSeries(seuratObj, reductions, c('ZBTB16', 'DPP4'), 'MAIT')
 
-	PlotMarkerSeries(seuratObj, reductions, c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX', 'GATA2'), 'Transcription Factors')
+	PlotMarkerSeries(seuratObj, reductions, c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX', 'GATA2', 'TCF7'), 'Transcription Factors')
 
 	PlotMarkerSeries(seuratObj, reductions, c('TIGIT', 'CTLA4', 'BTLA', 'PDCD1', 'CD274'), 'Inhibitory Markers')
 
