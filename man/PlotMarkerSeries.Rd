@@ -13,6 +13,8 @@ PlotMarkerSeries(
 )
 }
 \arguments{
+\item{seuratObj}{The seurat object}
+
 \item{features}{A vector of feature names}
 
 \item{reductions}{The reductions to plot}

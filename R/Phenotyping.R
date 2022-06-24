@@ -138,7 +138,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 #' @title PlotMarkerSeries
 #'
 #' @description Iteratively plots a set of markers
-#' @param seuratObj
+#' @param seuratObj The seurat object
 #' @param features A vector of feature names
 #' @param reductions The reductions to plot
 #' @param title An optional title of this plot series
