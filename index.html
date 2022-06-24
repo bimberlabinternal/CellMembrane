@@ -88,11 +88,11 @@
 <h3 id="installation">
 <a name="installation">Installation</a><a class="anchor" aria-label="anchor" href="#installation"></a>
 </h3>
-<pre class="{r}"><code><span class="co"># Make sure to update your Rprofile to include Bioconductor repos, such as adding this line to ~/.Rprofile:</span>
-<span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">local</a></span><span class="op">(</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repos <span class="op">=</span> <span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocManager/man/repositories.html" class="external-link">repositories</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">}</span><span class="op">)</span>
-
-<span class="co">#Latest version:</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/remote-reexports.html" class="external-link">install_github</a></span><span class="op">(</span>repo <span class="op">=</span> <span class="st">'bimberlabinternal/cellmembrane'</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span>, upgrade <span class="op">=</span> <span class="st">'always'</span><span class="op">)</span></code></pre>
+<pre class="{r}"><code><span><span class="co"># Make sure to update your Rprofile to include Bioconductor repos, such as adding this line to ~/.Rprofile:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">local</a></span><span class="op">(</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repos <span class="op">=</span> <span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/BiocManager/man/repositories.html" class="external-link">repositories</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#Latest version:</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span>repo <span class="op">=</span> <span class="st">'bimberlabinternal/cellmembrane'</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span>, upgrade <span class="op">=</span> <span class="st">'always'</span><span class="op">)</span></span></code></pre>
 <p>Pre-packaged Docker images with all needed dependencies installed can be found on our <a href="https://github.com/orgs/BimberLabInternal/packages/container/package/CellMembrane" class="external-link">GitHub Packages page</a>. We recommend using a specific release, which you can do using tags:</p>
 <pre><code>docker pull ghcr.io/bimberlabinternal/cellmembrane:latest</code></pre>
 </div>
