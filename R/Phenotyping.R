@@ -279,3 +279,23 @@ GetMMul10IgGenes <- function(){
 		'LOC106992418' #IGL6-like
 	))
 }
+
+#' @title ExpandGeneList
+#'
+#' @description Takes an input gene list and identifies any entries matching registered gene sets. Those will be expanded to the full gene list.
+#' @param genes A vector of genes or gene set names
+#' @param verbose Whether to log information about matches
+#' @export
+ExpandGeneList <- function(genes, verbose = TRUE) {
+	genesMatchingSets <- genes[genes %in% names(pkg.env$GENE_SETS)]
+	if (verbose && length(genesMatchingSets) > 0) {
+		print(paste0('The following symbols match gene sets and will be expanded: ', paste0(genesMatchingSets, collapse = ',')))
+	}
+
+	ret <- genes[!genes %in% names(pkg.env$GENE_SETS)]
+	for (geneSet in genesMatchingSets) {
+		ret <- unique(c(ret, pkg.env$GENE_SETS[[geneSet]]))
+	}
+
+	return(ret)
+}
