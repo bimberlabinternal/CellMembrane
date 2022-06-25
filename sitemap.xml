@@ -40,6 +40,9 @@
     <loc>/reference/DownsampleSeurat.html</loc>
   </url>
   <url>
+    <loc>/reference/ExpandGeneList.html</loc>
+  </url>
+  <url>
     <loc>/reference/FeaturePlotAcrossReductions.html</loc>
   </url>
   <url>
@@ -98,6 +101,9 @@
   </url>
   <url>
     <loc>/reference/PlotImmuneMarkers.html</loc>
+  </url>
+  <url>
+    <loc>/reference/PlotMarkerSeries.html</loc>
   </url>
   <url>
     <loc>/reference/PlotSeuratVariables.html</loc>
