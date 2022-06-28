@@ -57,7 +57,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	# CD80, CD86 = co-stimulatory. low expression = tolerogenic
 	PlotMarkerSeries(seuratObj, reductions = reductions, features =  c('CD14', 'FCGR3A', 'IL3RA', 'CLEC4C', 'CD1c', 'THBD', 'CD80', 'CD86', 'TGFB1'), 'DCs')
 
-	PlotMarkerSet(seuratObj, reductions = reductions, features =  'Regulatory Markers', c('CD4', 'FOXP3', 'IL2RA'))
+	PlotMarkerSet(seuratObj, reductions = reductions, features =  'Regulatory Markers', c('CD4', 'FOXP3', 'IL2RA', 'NR4A1'))
 
 	PlotMarkerSet(seuratObj, reductions = reductions, features =  'Treg17', c('RORA', 'RORB', 'RORC', 'IL4', 'STAT3'))
 
@@ -67,7 +67,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	# ZBTB16 = PLZF
 	PlotMarkerSeries(seuratObj, reductions = reductions, features =  c('ZBTB16', 'DPP4'), 'MAIT')
 
-	PlotMarkerSeries(seuratObj, reductions = reductions, features =  c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX', 'GATA2', 'TCF7', 'KLF2'), 'Transcription Factors')
+	PlotMarkerSeries(seuratObj, reductions = reductions, features =  c('TBX21', 'GATA3', 'RORC', 'FOXP3', 'BCL6', 'EOMES', 'TOX', 'GATA2', 'TCF7', 'KLF2', 'NR4A1', 'LEF1', 'PRDM1', 'ID2', 'ID3'), 'Transcription Factors')
 
 	PlotMarkerSeries(seuratObj, reductions = reductions, features =  c('TIGIT', 'CTLA4', 'BTLA', 'PDCD1', 'CD274'), 'Inhibitory Markers')
 
@@ -85,6 +85,10 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	PlotMarkerSeries(seuratObj, reductions = reductions, features =  c('LILRA5','LILRA6','LILRB4','LILRB5','KIR2DL4','KIR3DX1', 'MAMU-KIR', 'KIR2DL4', 'KIR3DL2'), 'LILR/KIR')
 
 	PlotMarkerSeries(seuratObj, reductions = reductions, features =  c('FCGR1A','FCGR2A','FCGR2B','FCGR3', 'FCGR3A'), 'FCGR')
+
+	PlotMarkerSeries(seuratObj, reductions = reductions, features =  GetGeneSet('EffectorCytokines'), 'Effector Cytokines')
+
+	PlotMarkerSeries(seuratObj, reductions = reductions, features =  GetGeneSet('ExhaustionOrInhibitory'), 'Exhaustion Or Inhibitory')
 
 	#Cytokines
 	cytokines <- c('IL1A','IL1B','IL1R1','IL1R2','IL1RAP','IL1RAPL1','IL1RAPL2','IL1RL1','IL1RL2','IL1RN','IL2','IL2RA','IL2RB','IL2RG','IL3','IL3RA','IL4','IL4I1','IL4R','IL5','IL5RA','IL6','IL6R','IL6ST','IL7','IL7R','IL9','IL10','IL10RA','IL11','IL12A','IL12B','IL12RB1','IL12RB2','IL13','IL13RA2','IL15','IL15RA','IL16','IL17A','IL17B','IL17C','IL17D','IL17F','IL17RA','IL17RB','IL17RC','IL17RD','IL17RE','IL18BP','IL18R1','IL18RAP','IL19','IL20','IL20RA','IL20RB','IL21','IL21R','IL22','IL22RA2','IL23A','IL24','IL25','IL26','IL27','IL27RA','IL31','IL31RA','IL33','IL34','IL36A','IL36B','IL36G','IL37','ILDR1','ILDR2','ILF2','ILF3','ILK','ILKAP','ILVBL')
@@ -241,6 +245,9 @@ GetGeneSet <- function(name) {
 .RegisterGeneSet('MMul10TcrGenes', c('LOC705095','LOC703029','LOC696306','LOC710951','LOC106999340','LOC106996262','LOC106999345','LOC106997707','LOC106997706','LOC710149','LOC700771','LOC699427','LOC711871','LOC709081','LOC698785','LOC114677052','LOC114676933','LOC106999353','LOC106999351','LOC106999350','LOC106999349','LOC106999348','LOC106999347','LOC106999346','LOC106999343','LOC106999341','LOC106999339','LOC106999337','LOC106999336','LOC106999335','LOC106999312','LOC106997705','LOC106997704','LOC106997703','LOC106997702','LOC106997697','LOC106997453','LOC106997452','LOC106997451','LOC106995765','LOC106992460','LOC106992446','LOC106992434','LOC106992433','LOC720538','LOC720456','LOC716949','LOC716866','LOC711537','LOC711386','LOC711194','LOC711141','LOC711066','LOC711031','LOC710821','LOC710627','LOC710455','LOC710361','LOC710183','LOC710093','LOC709531','LOC708581','LOC708328','LOC704883','LOC703153','LOC702904','LOC702550','LOC702113','LOC701992','LOC701875','LOC701745','LOC701395','LOC701262','LOC701152','LOC700224','LOC700154','LOC700105','LOC699912','LOC699790','LOC699543','LOC699298','LOC699162','LOC698913','LOC698543','LOC698289','LOC698161','LOC697792','LOC697466','LOC697234','LOC697054','LOC696752','LOC696684','LOC696557','LOC696075','LOC695943','LOC114679533','LOC114679531','LOC114677140','LOC114677139','LOC114677137','LOC114677136','LOC114677055','LOC114677054','LOC114677050','LOC114677049','LOC114677047','LOC114675766'))
 .RegisterGeneSet('CD8_Activation.1', c('CCL4L1','MIR155HG','RGCC','NFKBIA','IFNG','NR4A3','TNFSF14','CCL3'))
 .RegisterGeneSet('Cytotoxicity', c('PRF1', 'GNLY', 'NKG7', 'GZMA','GZMB','GZMH','GZMK','GZMM'))
+.RegisterGeneSet('EffectorCytokines', c('GZMA','GZMB','GZMH','GZMK', 'GZMM', 'PRF1', 'NKG7', 'GNLY', 'IFNG', 'FASLG', 'TNF', 'IL17A', 'IL2'))
+.RegisterGeneSet('ExhaustionOrInhibitory', c('PDCD1', 'TIGIT', 'HAVCR2', 'LAG3', 'CTLA4', 'VTCN1', 'CD244', 'KLRG1', 'TNFRSF14', 'BTLA', 'CD160'))
+
 .RegisterGeneSet('Myelocytes', c("OLFM4", "LTF", "CAMP", "LCN2"))
 .RegisterGeneSet('Pro_Myelocytes', c("BPI", "MPO", "ELANE", "RTD1A", "RTD1B", "DEFA1B", "AZU1"))
 .RegisterGeneSet("MMul10_MHC", c("MAMU-A", "MAMU-A3", "MAMU-AG"))

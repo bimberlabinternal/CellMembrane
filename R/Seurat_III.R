@@ -1031,7 +1031,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
   # This allows a summary of the source of the top variable features, for situations like merging nimble with cellranger:
   if ('FeatureSource' %in% names(df)) {
-    x <- df[rownames(df) %in% Seurat::VariableFeatures(seuratObj),]
+    x <- df$FeatureSource[rownames(df) %in% Seurat::VariableFeatures(seuratObj)]
     x <- sort(table(x), decreasing = T)
     print(x)
   }
