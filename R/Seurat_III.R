@@ -309,14 +309,16 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 
 	if (!all(is.null(variableGenesWhitelist))) {
       variableGenesWhitelist <- ExpandGeneList(variableGenesWhitelist)
-      print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list'))
+      preExisting <- intersect(VariableFeatures(seuratObj), variableGenesWhitelist)
+      print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list, of which ', length(preExisting), ' are present in VariableFeatures'))
       VariableFeatures(seuratObj) <- unique(c(VariableFeatures(seuratObj), variableGenesWhitelist))
       print(paste0('Total after: ', length(VariableFeatures(seuratObj))))
 	}
 
 	if (!all(is.null(variableGenesBlacklist))){
       variableGenesBlacklist <- ExpandGeneList(variableGenesBlacklist)
-      print(paste0('Removing ', length(variableGenesBlacklist), ' from variable gene list'))
+      preExisting <- intersect(VariableFeatures(seuratObj), variableGenesBlacklist)
+      print(paste0('Removing ', length(variableGenesBlacklist), ' from variable gene list, of which ', length(preExisting), ' are present in VariableFeatures'))
       VariableFeatures(seuratObj) <- unique(VariableFeatures(seuratObj)[!(VariableFeatures(seuratObj) %in% variableGenesBlacklist)])
       print(paste0('Total after: ', length(VariableFeatures(seuratObj))))
 	}
