@@ -55,5 +55,12 @@ test_that("Gene sets work", {
 
 test_that("ExpandGeneList works", {
 	expect_equal(length(ExpandGeneList(c('MMul10TcrGenes', 'TBX21', 'CD8A'))), 109)
-	expect_equal(length(ExpandGeneList(c('MMul10TcrGenes', 'TBX21', 'CD8A', 'MMul10_MHC'))), 112)
+	expect_equal(length(ExpandGeneList(c('MMul10TcrGenes', 'TBX21', 'CD8A', 'MMul10_MHC'))), 144)
+})
+
+test_that("ResolveLocGenes works", {
+	ret <- ResolveLocGenes(c('LOC106992311', 'LOC694255'))
+	expect_equal(rownames(ret), c('LOC106992311', 'LOC694255'))
+	expect_equal(ret$Description, c('zinc finger protein 43', 'phosphatidylinositol 3,4,5-trisphosphate 3-phosphatase TPTE2-like'))
+	expect_equal(ret$Aliases, c('ZNF43', ''))
 })
