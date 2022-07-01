@@ -19,7 +19,7 @@ PlotImmuneMarkers <- function(seuratObj, reductions = c('tsne', 'umap')) {
 	#IL2RA = CD25
 	#PTPRC = CD45
 	#SELL = CD62-L / CD-197
-	PlotMarkerSeries(seuratObj, reductions = reductions, features =  c('CCR7', 'SELL', 'GZMB', 'CCR5', 'IL2RA', 'PTPRC', 'IL7R', 'CTLA4', 'FAS', 'CD28', 'CD27', 'ITGA4', 'ITGB7'), 'Effector vs. Memory')
+	PlotMarkerSeries(seuratObj, reductions = reductions, features =  c('CCR7', 'SELL', 'GZMB', 'CCR5', 'IL2RA', 'PTPRC', 'IL7R', 'CTLA4', 'FAS', 'CD28', 'CD27', 'ITGA4', 'ITGB7', 'ITGB1'), 'Effector vs. Memory')
 
 	#CD8 Activation
 	# XCL1 = ENSMMUG00000060218

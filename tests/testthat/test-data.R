@@ -55,7 +55,7 @@ test_that("Gene sets work", {
 
 test_that("ExpandGeneList works", {
 	expect_equal(length(ExpandGeneList(c('MMul10TcrGenes', 'TBX21', 'CD8A'))), 109)
-	expect_equal(length(ExpandGeneList(c('MMul10TcrGenes', 'TBX21', 'CD8A', 'MMul10_MHC'))), 112)
+	expect_equal(length(ExpandGeneList(c('MMul10TcrGenes', 'TBX21', 'CD8A', 'MMul10_MHC'))), 144)
 })
 
 test_that("ResolveLocGenes works", {
