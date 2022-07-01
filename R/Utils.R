@@ -275,6 +275,7 @@ ResolveLocGenes <- function(geneIds, maxBatchSize = 100) {
     }))
 
     rownames(df) <- paste0('LOC', rownames(df))
+    df$GeneId <- rownames(df)
 
     if (all(is.null(ret))) {
       ret <- df
