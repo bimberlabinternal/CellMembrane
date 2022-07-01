@@ -232,3 +232,59 @@ UpdateMacaqueMmul10NcbiGeneSymbols <- function(seuratObj, verbose = T){
   }
   return(seuratObj)
 }
+
+.SplitIntoBatches <- function(vect, batchSize) {
+  numBatches <- ceiling(length(vect) / batchSize)
+
+  ret <- list()
+
+  for (batchNum in 1:numBatches) {
+    start0 <- (batchNum-1)*batchSize
+    end <- min(length(vect), start0 + batchSize)
+
+    ret[[batchNum]] <- vect[(start0+1):end]
+  }
+
+  return(ret)
+}
+
+#' @title Resolve NCBI Loc Genes
+#'
+#' @description The accepts a vector of NCBI LOC gene IDs and returns a data frame with their description and aliases, queries from rentrez
+#' @param geneIds A vector of gene IDs, all of which must start with LOC
+#' @param maxBatchSize The max number of IDs for each query against NCBI
+#' @export
+ResolveLocGenes <- function(geneIds, maxBatchSize = 100) {
+  invalidIds <- geneIds[!grepl(geneIds, pattern = '^LOC')]
+  if (length(invalidIds) > 0) {
+    stop('All genes must start with LOC: ', paste0(invalidIds, collapse = ';'))
+  }
+
+  genesBatched <- .SplitIntoBatches(geneIds, batchSize = maxBatchSize)
+  print(paste0('Total batches: ', length(genesBatched)))
+
+  ret <- NULL
+  batchNum <- 0
+  for (geneBatch in genesBatched) {
+    batchNum <- batchNum + 1
+    print(paste0('Querying batch ', batchNum, ' of ', length(genesBatched)))
+
+    results <- rentrez::entrez_summary(db="gene", id = gsub(geneBatch, pattern = '^LOC', replacement = ''))
+    df <- do.call(rbind, lapply(results, FUN = function(x){
+      return(data.frame(Name = x$name, Description = x$description, Aliases = x$otheraliases))
+    }))
+
+    rownames(df) <- paste0('LOC', rownames(df))
+
+    if (all(is.null(ret))) {
+      ret <- df
+    } else {
+      ret <- rbind(ret, df)
+    }
+  }
+
+  # Ensure return order matches input:
+  ret <- ret[geneIds,]
+
+  return(ret)
+}
