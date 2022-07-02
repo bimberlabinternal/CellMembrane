@@ -1018,12 +1018,11 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   countAbove <-unlist(lapply(dat, function(x){
     sum(dat >= x)
   }))
-  df$IsVariable <- rownames(df) %in% length(Seurat::VariableFeatures(seuratObj))
 
   print(paste0('Total variable features: ', length(Seurat::VariableFeatures(seuratObj))))
   minVal <- min(df$vst.variance.standardized[df$vst.variable])
 
-  print(ggplot(data.frame(x = countAbove, y = dat), aes(x = x, y = y, color = IsVariable)) +
+  print(ggplot(data.frame(x = countAbove, y = dat), aes(x = x, y = y)) +
           geom_point() +
           ylab("vst.variance.standardized") +
           xlab("# Features") +
