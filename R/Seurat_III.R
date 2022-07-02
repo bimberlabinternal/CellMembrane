@@ -310,7 +310,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	if (!all(is.null(variableGenesWhitelist))) {
       variableGenesWhitelist <- ExpandGeneList(variableGenesWhitelist)
       preExisting <- intersect(VariableFeatures(seuratObj), variableGenesWhitelist)
-      print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list, of which ', length(preExisting), ' are present in VariableFeatures'))
+      print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list, of which ', length(preExisting), ' are already present in VariableFeatures'))
       VariableFeatures(seuratObj) <- unique(c(VariableFeatures(seuratObj), variableGenesWhitelist))
       print(paste0('Total after: ', length(VariableFeatures(seuratObj))))
 	}
@@ -318,7 +318,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	if (!all(is.null(variableGenesBlacklist))){
       variableGenesBlacklist <- ExpandGeneList(variableGenesBlacklist)
       preExisting <- intersect(VariableFeatures(seuratObj), variableGenesBlacklist)
-      print(paste0('Removing ', length(variableGenesBlacklist), ' from variable gene list, of which ', length(preExisting), ' are present in VariableFeatures'))
+      print(paste0('Excluding ', length(variableGenesBlacklist), ' gene(s) from the variable gene list, of which ', length(preExisting), ' are present in VariableFeatures'))
       VariableFeatures(seuratObj) <- unique(VariableFeatures(seuratObj)[!(VariableFeatures(seuratObj) %in% variableGenesBlacklist)])
       print(paste0('Total after: ', length(VariableFeatures(seuratObj))))
 	}
@@ -1018,12 +1018,15 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   countAbove <-unlist(lapply(dat, function(x){
     sum(dat >= x)
   }))
+  df$IsVariable <- rownames(df) %in% length(Seurat::VariableFeatures(seuratObj))
 
-  print(paste0('Total variable features: ', sum(df$vst.variable)))
+  print(paste0('Total variable features: ', length(Seurat::VariableFeatures(seuratObj))))
   minVal <- min(df$vst.variance.standardized[df$vst.variable])
 
-  print(ggplot(data.frame(x = countAbove, y = dat), aes(x = x, y = y)) +
-          geom_point() + ylab("vst.variance.standardized") + xlab("# Features") +
+  print(ggplot(data.frame(x = countAbove, y = dat), aes(x = x, y = y, color = IsVariable)) +
+          geom_point() +
+          ylab("vst.variance.standardized") +
+          xlab("# Features") +
           geom_hline(yintercept = minVal, color = 'red') +
           egg::theme_presentation(base_size = 12) +
           scale_x_continuous(trans = 'log10') +
