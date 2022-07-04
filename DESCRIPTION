@@ -53,7 +53,8 @@ Suggests:
     pkgdown,
     phytools,
     VISION,
-    rentrez
+    rentrez,
+    RIRA
 RoxygenNote: 7.1.2
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
@@ -68,7 +69,8 @@ Remotes:
     bioc::scuttle,
     bioc::SingleCellExperiment,
     niaid/dsb,
-    YosefLab/VISION
+    YosefLab/VISION,
+    bimberlabinternal/RIRA,
 Config/reticulate:
   list(
     packages = list(
@@ -82,8 +84,8 @@ Collate:
     'Utils.R'
     'CiteSeq.R'
     'Doublets.R'
-    'Phenotyping.R'
     'SeuratUtils.R'
+    'Phenotyping.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'Vision.R'
