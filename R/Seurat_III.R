@@ -1,6 +1,5 @@
 #' @include Utils.R
 #' @include Preprocessing.R
-#' @include Phenotyping.R
 #' @import Seurat
 
 utils::globalVariables(

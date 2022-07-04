@@ -85,7 +85,6 @@ Collate:
     'CiteSeq.R'
     'Doublets.R'
     'SeuratUtils.R'
-    'Phenotyping.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'Vision.R'
