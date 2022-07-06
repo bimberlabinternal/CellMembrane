@@ -40,9 +40,6 @@
     <loc>/reference/DownsampleSeurat.html</loc>
   </url>
   <url>
-    <loc>/reference/ExpandGeneList.html</loc>
-  </url>
-  <url>
     <loc>/reference/FeaturePlotAcrossReductions.html</loc>
   </url>
   <url>
@@ -62,15 +59,6 @@
   </url>
   <url>
     <loc>/reference/GetGeneIds.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetGeneSet.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetMMul10IgGenes.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetMMul10TcrGenes.html</loc>
   </url>
   <url>
     <loc>/reference/GetSeed.html</loc>
@@ -98,12 +86,6 @@
   </url>
   <url>
     <loc>/reference/PlotAverageAdtCounts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PlotImmuneMarkers.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PlotMarkerSeries.html</loc>
   </url>
   <url>
     <loc>/reference/PlotSeuratVariables.html</loc>
