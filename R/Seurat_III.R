@@ -1,6 +1,5 @@
 #' @include Utils.R
 #' @include Preprocessing.R
-#' @include Phenotyping.R
 #' @import Seurat
 
 utils::globalVariables(
@@ -308,7 +307,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
     seuratObj <- .ClearSeuratCommands(seuratObj)
 
 	if (!all(is.null(variableGenesWhitelist))) {
-      variableGenesWhitelist <- ExpandGeneList(variableGenesWhitelist)
+      variableGenesWhitelist <- RIRA::ExpandGeneList(variableGenesWhitelist)
       preExisting <- intersect(VariableFeatures(seuratObj), variableGenesWhitelist)
       print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list, of which ', length(preExisting), ' are already present in VariableFeatures'))
       VariableFeatures(seuratObj) <- unique(c(VariableFeatures(seuratObj), variableGenesWhitelist))
@@ -316,7 +315,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	}
 
 	if (!all(is.null(variableGenesBlacklist))){
-      variableGenesBlacklist <- ExpandGeneList(variableGenesBlacklist)
+      variableGenesBlacklist <- RIRA::ExpandGeneList(variableGenesBlacklist)
       preExisting <- intersect(VariableFeatures(seuratObj), variableGenesBlacklist)
       print(paste0('Excluding ', length(variableGenesBlacklist), ' gene(s) from the variable gene list, of which ', length(preExisting), ' are present in VariableFeatures'))
       VariableFeatures(seuratObj) <- unique(VariableFeatures(seuratObj)[!(VariableFeatures(seuratObj) %in% variableGenesBlacklist)])

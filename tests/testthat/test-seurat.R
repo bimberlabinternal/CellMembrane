@@ -101,9 +101,6 @@ test_that("Serat processing works as expected", {
 
   unlink(sf)
 
-  #At least execute this code, so over errors are caught
-  PlotImmuneMarkers(seuratObj)
-
   P1 <- Seurat::DimPlot(seuratObj)
   seuratObj$CloneName <- NA
 
