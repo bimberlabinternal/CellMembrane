@@ -667,7 +667,12 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 #' @import DESeq2
 #' @import MAST
 #' @export
-Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, minPct = 0.1, minDiffPct = -Inf, datasetName = NULL, assayName = 'RNA', verbose = FALSE) {
+Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, minPct = 0.1, minDiffPct = -Inf, datasetName = NULL, assayName = NULL, verbose = FALSE) {
+  if (is.null(assayName)) {
+    assayName <- Seurat::DefaultAssay(seuratObj)
+    print(paste0('Using default assay: ', assayName))
+  }
+
   seuratObj.markers <- NULL
   fieldsToUse <- c()
   for (fieldName in identFields) {
@@ -1038,4 +1043,66 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     x <- sort(table(x), decreasing = T)
     print(x)
   }
+}
+
+#' @title PerformIntegration
+#'
+#' @description This perform's Seurat's integration on a dataset
+#' @param seuratObj A Seurat object.
+#' @param nVariableFeatures The number of variable features used for Seurat::FindVariableFeatures
+#' @param nIntegrationFeatures The number of features for Seurat::SelectIntegrationFeatures
+#' @param k.weight Passed to Seurat::IntegrateData()
+#' @param dimsToUse Passed to Seurat::IntegrateData(), as dims = 1:dimsToUse
+#' @param integrationFeaturesInclusionList An optional vector of genes that will be included in the integration genes
+#' @param integrationFeaturesExclusionList An optional vector of genes that will be excluded in the integration genes
+#' @return A modified Seurat object.
+#' @export
+PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFeatures = 4000, nIntegrationFeatures = 3500, k.weight = 20, dimsToUse = 20, integrationFeaturesInclusionList = NULL, integrationFeaturesExclusionList = NULL) {
+  if (!splitField %in% names(seuratObj@meta.data)) {
+    stop(paste0('splitField not found: ', splitField))
+  }
+
+  Combo_LS <- Seurat::SplitObject(seuratObj, split.by = splitField)
+
+  # normalize and identify variable features for each dataset independently
+  Combo_LS <- lapply(X = Combo_LS, FUN = function(x) {
+    x <- Seurat::NormalizeData(x)
+    x <- Seurat::FindVariableFeatures(x, selection.method = "vst", nfeatures = nVariableFeatures)
+  })
+
+  # select features that are repeatedly variable across datasets for integration run PCA on each
+  features <- Seurat::SelectIntegrationFeatures(object.list = Combo_LS, nfeatures = nIntegrationFeatures)
+
+  if (!all(is.null(integrationFeaturesInclusionList))) {
+    integrationFeaturesInclusionList <- RIRA::ExpandGeneList(integrationFeaturesInclusionList)
+    preExisting <- intersect(features, integrationFeaturesInclusionList)
+    print(paste0('Adding ', length(integrationFeaturesInclusionList), ' features to the integration list, of which ', length(preExisting), ' are already present'))
+    features <- unique(c(features, integrationFeaturesInclusionList))
+    print(paste0('Total after: ', length(features)))
+  }
+
+  if (!all(is.null(integrationFeaturesExclusionList))){
+    integrationFeaturesExclusionList <- RIRA::ExpandGeneList(integrationFeaturesExclusionList)
+    preExisting <- intersect(features, integrationFeaturesExclusionList)
+    print(paste0('Excluding ', length(integrationFeaturesExclusionList), ' features(s) from the integration list, of which ', length(preExisting), ' are present'))
+    features <- unique(features[!(features %in% integrationFeaturesExclusionList)])
+    print(paste0('Total after: ', length(features)))
+  }
+
+  print(paste0('Total features for integration: ', length(features)))
+
+  # scale and run the PCA
+  Combo_LS <- lapply(X = Combo_LS, FUN = function(x) {
+    x <- Seurat::ScaleData(x, features = features, verbose = F)
+    x <- Seurat::RunPCA(x, features = features, verbose = F,  npcs = 35)
+  })
+
+  seuratAnchors <- Seurat::FindIntegrationAnchors(object.list = Combo_LS, anchor.features = features, reduction = "rpca")
+
+  # this command creates an 'integrated' data assay, dims 1:20 is pretty default but it does make a difference on how many PCA dims to anchor on...
+  seuratObj <- Seurat::IntegrateData(anchorset = seuratAnchors, dims = 1:dimsToUse, k.weight = k.weight)
+  Seurat::DefaultAssay(seuratObj) <- "Integrated"
+  seuratObj <- Seurat::ScaleData(seuratObj, verbose = F)
+
+  return(seuratObj)
 }
