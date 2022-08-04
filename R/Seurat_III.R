@@ -1049,6 +1049,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 #'
 #' @description This perform's Seurat's integration on a dataset
 #' @param seuratObj A Seurat object.
+#' @param splitField The metadata field on which to split the seurat object for integration
 #' @param nVariableFeatures The number of variable features used for Seurat::FindVariableFeatures
 #' @param nIntegrationFeatures The number of features for Seurat::SelectIntegrationFeatures
 #' @param k.weight Passed to Seurat::IntegrateData()

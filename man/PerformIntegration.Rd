@@ -19,6 +19,8 @@ PerformIntegration(
 \arguments{
 \item{seuratObj}{A Seurat object.}
 
+\item{splitField}{The metadata field on which to split the seurat object for integration}
+
 \item{nVariableFeatures}{The number of variable features used for Seurat::FindVariableFeatures}
 
 \item{nIntegrationFeatures}{The number of features for Seurat::SelectIntegrationFeatures}
