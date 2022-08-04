@@ -12,7 +12,8 @@ PerformIntegration(
   k.weight = 20,
   dimsToUse = 20,
   integrationFeaturesInclusionList = NULL,
-  integrationFeaturesExclusionList = NULL
+  integrationFeaturesExclusionList = NULL,
+  minCellsPerSubsetObject = 50
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ PerformIntegration(
 \item{integrationFeaturesInclusionList}{An optional vector of genes that will be included in the integration genes}
 
 \item{integrationFeaturesExclusionList}{An optional vector of genes that will be excluded in the integration genes}
+
+\item{minCellsPerSubsetObject}{If any of the seurat objects after splitting on splitField have fewer than this many cells, they are discarded}
 }
 \value{
 A modified Seurat object.

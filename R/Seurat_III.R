@@ -1055,11 +1055,16 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 #' @param dimsToUse Passed to Seurat::IntegrateData(), as dims = 1:dimsToUse
 #' @param integrationFeaturesInclusionList An optional vector of genes that will be included in the integration genes
 #' @param integrationFeaturesExclusionList An optional vector of genes that will be excluded in the integration genes
+#' @param minCellsPerSubsetObject If any of the seurat objects after splitting on splitField have fewer than this many cells, they are discarded
 #' @return A modified Seurat object.
 #' @export
-PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFeatures = 4000, nIntegrationFeatures = 3500, k.weight = 20, dimsToUse = 20, integrationFeaturesInclusionList = NULL, integrationFeaturesExclusionList = NULL) {
+PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFeatures = 4000, nIntegrationFeatures = 3500, k.weight = 20, dimsToUse = 20, integrationFeaturesInclusionList = NULL, integrationFeaturesExclusionList = NULL, minCellsPerSubsetObject = 50) {
   if (!splitField %in% names(seuratObj@meta.data)) {
     stop(paste0('splitField not found: ', splitField))
+  }
+
+  if (min(table(seuratObj@meta.data[[splitField]])) < minCellsPerSubsetObject) {
+    stop(paste0('One or more values of ', splitField, ' has fewer cells than allowed by minCellsPerSubsetObject'))
   }
 
   Combo_LS <- Seurat::SplitObject(seuratObj, split.by = splitField)
