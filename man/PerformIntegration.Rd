@@ -13,7 +13,7 @@ PerformIntegration(
   dimsToUse = 20,
   integrationFeaturesInclusionList = NULL,
   integrationFeaturesExclusionList = NULL,
-  minCellsPerSubsetObject = 50
+  minCellsPerSubsetObject = 75
 )
 }
 \arguments{

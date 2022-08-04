@@ -1058,10 +1058,13 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 #' @param minCellsPerSubsetObject If any of the seurat objects after splitting on splitField have fewer than this many cells, they are discarded
 #' @return A modified Seurat object.
 #' @export
-PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFeatures = 4000, nIntegrationFeatures = 3500, k.weight = 20, dimsToUse = 20, integrationFeaturesInclusionList = NULL, integrationFeaturesExclusionList = NULL, minCellsPerSubsetObject = 50) {
+PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFeatures = 4000, nIntegrationFeatures = 3500, k.weight = 20, dimsToUse = 20, integrationFeaturesInclusionList = NULL, integrationFeaturesExclusionList = NULL, minCellsPerSubsetObject = 75) {
   if (!splitField %in% names(seuratObj@meta.data)) {
     stop(paste0('splitField not found: ', splitField))
   }
+
+  print(paste0('Splitting on: ', splitField))
+  print(sort(table(seuratObj@meta.data[[splitField]])))
 
   if (min(table(seuratObj@meta.data[[splitField]])) < minCellsPerSubsetObject) {
     stop(paste0('One or more values of ', splitField, ' has fewer cells than allowed by minCellsPerSubsetObject'))
