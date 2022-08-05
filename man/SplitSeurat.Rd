@@ -7,7 +7,7 @@
 SplitSeurat(
   seuratObj,
   splitField,
-  minCellsToKeep = 0,
+  minCellsToKeep = 0.02,
   naOtherLabel = "Other",
   appendLowFreqToOther = TRUE
 )

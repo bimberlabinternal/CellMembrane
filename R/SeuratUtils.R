@@ -93,7 +93,7 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 #' @param naOtherLabel This string will be used to label any cells marked NA.
 #' @param appendLowFreqToOther If true, any cells with NAs for the splitField, or terms with fewer than minCellsToKeep, will be merged into a single seurat object
 #' @export
-SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0, naOtherLabel = 'Other', appendLowFreqToOther = TRUE) {
+SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLabel = 'Other', appendLowFreqToOther = TRUE) {
 	if (!(splitField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not present in seurat object: ', splitField))
 	}
