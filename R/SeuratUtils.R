@@ -89,13 +89,19 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 #' @description Split a seurat object, dividing into new objects based on the value of a field
 #' @param seuratObj The seurat object
 #' @param splitField The name of the field on which to split the object
-#' @param minCellsToKeep If any of the resulting seurat objects have less than this many cells, they will be discarded.
+#' @param minCellsToKeep If any of the resulting seurat objects have less than this many cells, they will be discarded. If this value is less than 1, it will be interpreted as a fraction of the total input cells.
 #' @param naOtherLabel This string will be used to label any cells marked NA.
 #' @param appendLowFreqToOther If true, any cells with NAs for the splitField, or terms with fewer than minCellsToKeep, will be merged into a single seurat object
 #' @export
 SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0, naOtherLabel = 'Other', appendLowFreqToOther = TRUE) {
 	if (!(splitField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not present in seurat object: ', splitField))
+	}
+
+	if (minCellsToKeep > 0 && minCellsToKeep < 1) {
+		minCellsToKeepOrig <- minCellsToKeep
+		minCellsToKeep <- ncol(seuratObj) * minCellsToKeep
+		print('Interpreting minCellsToKeep as a fraction of input cells. Converting from ', minCellsToKeepOrig, ' to: ', minCellsToKeep)
 	}
 
 	data <- as.character(seuratObj@meta.data[[splitField]])

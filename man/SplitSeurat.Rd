@@ -17,7 +17,7 @@ SplitSeurat(
 
 \item{splitField}{The name of the field on which to split the object}
 
-\item{minCellsToKeep}{If any of the resulting seurat objects have less than this many cells, they will be discarded.}
+\item{minCellsToKeep}{If any of the resulting seurat objects have less than this many cells, they will be discarded. If this value is less than 1, it will be interpreted as a fraction of the total input cells.}
 
 \item{naOtherLabel}{This string will be used to label any cells marked NA.}
 
