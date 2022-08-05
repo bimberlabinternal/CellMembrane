@@ -101,7 +101,7 @@ SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLab
 	if (minCellsToKeep > 0 && minCellsToKeep < 1) {
 		minCellsToKeepOrig <- minCellsToKeep
 		minCellsToKeep <- ncol(seuratObj) * minCellsToKeep
-		print('Interpreting minCellsToKeep as a fraction of input cells. Converting from ', minCellsToKeepOrig, ' to: ', minCellsToKeep)
+		print(paste0('Interpreting minCellsToKeep as a fraction of input cells. Converting from ', minCellsToKeepOrig, ' to: ', minCellsToKeep))
 	}
 
 	data <- as.character(seuratObj@meta.data[[splitField]])
