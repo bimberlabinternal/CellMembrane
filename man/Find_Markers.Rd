@@ -16,7 +16,7 @@ Find_Markers(
   minPct = 0.1,
   minDiffPct = -Inf,
   datasetName = NULL,
-  assayName = NULL,
+  assayName = "RNA",
   verbose = FALSE
 )
 }

@@ -667,7 +667,7 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 #' @import DESeq2
 #' @import MAST
 #' @export
-Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, minPct = 0.1, minDiffPct = -Inf, datasetName = NULL, assayName = NULL, verbose = FALSE) {
+Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, minPct = 0.1, minDiffPct = -Inf, datasetName = NULL, assayName = 'RNA', verbose = FALSE) {
   if (is.null(assayName)) {
     assayName <- Seurat::DefaultAssay(seuratObj)
     print(paste0('Using default assay: ', assayName))
@@ -1112,6 +1112,9 @@ PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFea
   seuratObj <- Seurat::IntegrateData(anchorset = seuratAnchors, dims = 1:dimsToUse, k.weight = k.weight)
   Seurat::DefaultAssay(seuratObj) <- "Integrated"
   seuratObj <- Seurat::ScaleData(seuratObj, verbose = F)
+
+  # Set this, since the PCA steps use VariableFeatures() to choose the input features
+  VariableFeatures(seuratObj) <- features
 
   return(seuratObj)
 }
