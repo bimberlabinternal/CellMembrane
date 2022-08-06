@@ -59,7 +59,8 @@
 <span>  dimsToUse <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  integrationFeaturesInclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  integrationFeaturesExclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  minCellsPerSubsetObject <span class="op">=</span> <span class="fl">75</span></span>
+<span>  minCellsPerSubsetObject <span class="op">=</span> <span class="fl">75</span>,</span>
+<span>  dropGroupsBelowThreshold <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -98,7 +99,11 @@
 
 
 <dt>minCellsPerSubsetObject</dt>
-<dd><p>If any of the seurat objects after splitting on splitField have fewer than this many cells, they are discarded</p></dd>
+<dd><p>If any of the seurat objects after splitting on splitField have fewer than this many cells, they are either discarded or the function will throw an error, depending on dropGroupsBelowThreshold</p></dd>
+
+
+<dt>dropGroupsBelowThreshold</dt>
+<dd><p>If any of the seurat objects after splitting are below minCellsPerSubsetObject and if this param is true, they will be discarded.</p></dd>
 
 </dl></div>
     <div id="value">
