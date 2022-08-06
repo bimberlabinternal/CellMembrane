@@ -1056,10 +1056,11 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 #' @param dimsToUse Passed to Seurat::IntegrateData(), as dims = 1:dimsToUse
 #' @param integrationFeaturesInclusionList An optional vector of genes that will be included in the integration genes
 #' @param integrationFeaturesExclusionList An optional vector of genes that will be excluded in the integration genes
-#' @param minCellsPerSubsetObject If any of the seurat objects after splitting on splitField have fewer than this many cells, they are discarded
+#' @param minCellsPerSubsetObject If any of the seurat objects after splitting on splitField have fewer than this many cells, they are either discarded or the function will throw an error, depending on dropGroupsBelowThreshold
+#' @param dropGroupsBelowThreshold If any of the seurat objects after splitting are below minCellsPerSubsetObject and if this param is true, they will be discarded.
 #' @return A modified Seurat object.
 #' @export
-PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFeatures = 4000, nIntegrationFeatures = 3500, k.weight = 20, dimsToUse = 20, integrationFeaturesInclusionList = NULL, integrationFeaturesExclusionList = NULL, minCellsPerSubsetObject = 75) {
+PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFeatures = 4000, nIntegrationFeatures = 3500, k.weight = 20, dimsToUse = 20, integrationFeaturesInclusionList = NULL, integrationFeaturesExclusionList = NULL, minCellsPerSubsetObject = 75, dropGroupsBelowThreshold = TRUE) {
   if (!splitField %in% names(seuratObj@meta.data)) {
     stop(paste0('splitField not found: ', splitField))
   }
@@ -1067,8 +1068,19 @@ PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFea
   print(paste0('Splitting on: ', splitField))
   print(sort(table(seuratObj@meta.data[[splitField]])))
 
-  if (min(table(seuratObj@meta.data[[splitField]])) < minCellsPerSubsetObject) {
-    stop(paste0('One or more values of ', splitField, ' has fewer cells than allowed by minCellsPerSubsetObject'))
+  minGroupSize <- min(table(seuratObj@meta.data[[splitField]]))
+  if (minGroupSize < minCellsPerSubsetObject) {
+    if (dropGroupsBelowThreshold) {
+      for (groupVal in unique(seuratObj@meta.data[[splitField]])) {
+        cells <- seuratObj@meta.data[[splitField]] == groupVal
+        if (sum(cells) < minGroupSize) {
+          print(paste0('Dropping low count group: ', groupVal, ', with # cells: ', sum(cells)))
+          seuratObj <- subset(seuratObj, cells = colnames(seuratObj)[!cells])
+        }
+      }
+    } else {
+      stop(paste0('One or more values of ', splitField, ' has fewer cells than allowed by minCellsPerSubsetObject'))
+    }
   }
 
   Combo_LS <- Seurat::SplitObject(seuratObj, split.by = splitField)

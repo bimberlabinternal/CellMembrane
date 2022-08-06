@@ -13,7 +13,8 @@ PerformIntegration(
   dimsToUse = 20,
   integrationFeaturesInclusionList = NULL,
   integrationFeaturesExclusionList = NULL,
-  minCellsPerSubsetObject = 75
+  minCellsPerSubsetObject = 75,
+  dropGroupsBelowThreshold = TRUE
 )
 }
 \arguments{
@@ -33,7 +34,9 @@ PerformIntegration(
 
 \item{integrationFeaturesExclusionList}{An optional vector of genes that will be excluded in the integration genes}
 
-\item{minCellsPerSubsetObject}{If any of the seurat objects after splitting on splitField have fewer than this many cells, they are discarded}
+\item{minCellsPerSubsetObject}{If any of the seurat objects after splitting on splitField have fewer than this many cells, they are either discarded or the function will throw an error, depending on dropGroupsBelowThreshold}
+
+\item{dropGroupsBelowThreshold}{If any of the seurat objects after splitting are below minCellsPerSubsetObject and if this param is true, they will be discarded.}
 }
 \value{
 A modified Seurat object.
