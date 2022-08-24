@@ -19,7 +19,9 @@ utils::globalVariables(
   if (!normalizationField %in% names(seuratObj@meta.data)) {
     stop(paste0('Field missing: ', normalizationField))
   }
-
+ if (any(is.na(seuratObj@meta.data[,normalizationField]))){
+   stop(paste0("Detected NAs in ", normalizationField,". Please remove them."))
+ }
   dat <- as.character(seuratObj@meta.data[,normalizationField])
 
   #check max size factor for data
