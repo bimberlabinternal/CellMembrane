@@ -19,19 +19,24 @@ utils::globalVariables(
   if (!normalizationField %in% names(seuratObj@meta.data)) {
     stop(paste0('Field missing: ', normalizationField))
   }
+ if (any(is.na(seuratObj@meta.data[,normalizationField]))){
+   stop(paste0("Detected NAs in ", normalizationField,". Please remove them."))
+ }
+  dat <- as.character(seuratObj@meta.data[,normalizationField])
 
   #check max size factor for data
-  dataMaxSizeFactor <- max(table(seuratObj@meta.data[,normalizationField]))/min(table(seuratObj@meta.data[,normalizationField]))
+  dataMaxSizeFactor <- max(table(dat))/min(table(dat))
   if (!maxSizeFactor >= dataMaxSizeFactor){
     stop(paste0("Greater than max allowable size factor: ", round(dataMaxSizeFactor,2)))
   }
 
   #Calculate the ratio between maximum size
   print("Calculating size factors")
-  for (dataset in unique(seuratObj@meta.data[,normalizationField])){
-    datasetSizeFactor <- max(table(seuratObj@meta.data[,normalizationField]))/ table(seuratObj@meta.data[seuratObj@meta.data[,normalizationField] == dataset ,normalizationField])
-    seuratObj@meta.data[seuratObj@meta.data[,normalizationField] == dataset , sizeFactorField] <- round(datasetSizeFactor, 4)
+  for (dataset in unique(dat)){
+    datasetSizeFactor <- max(table(dat)) / length(dat[dat == dataset])
+    seuratObj@meta.data[[sizeFactorField]][dat == dataset] <- round(datasetSizeFactor, 4)
   }
+
   return(seuratObj)
 }
 
