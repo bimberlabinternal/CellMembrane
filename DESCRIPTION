@@ -28,6 +28,7 @@ Imports:
     SummarizedExperiment,
     scDblFinder,
     pheatmap,
+    ComplexHeatmap,
     celldex,
     methods,
     egg,

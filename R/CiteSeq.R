@@ -786,25 +786,24 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 #' @param slot The assay slot to use for average expression data
 #' @param outFile If provided, the heatmap will be written to this file
 #' @export
-PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', slot = 'data', outFile = NA) {
+PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', slot = 'counts', outFile = NA) {
 	for (fn in groupFields) {
 		avgSeurat <- Seurat::AverageExpression(seuratObj, return.seurat = T, group.by = fn, assays = assayName, slot = slot)
-		forpHeatmap <- t(as.matrix(GetAssayData(avgSeurat, slot = 'data')))
-		forpHeatmap <- forpHeatmap[,colSums(forpHeatmap) > 0]
-		pheatmap_plot <- pheatmap::pheatmap(forpHeatmap,
-			cluster_rows = T,
-			cluster_cols = T,
-			main = paste0('Average ADT Counts By ', fn),
-			scale = 'column',
-			color = Seurat::PurpleAndYellow(20),
-			cellwidth = 8,
-			fontsize_col = 8,
-			show_colnames = TRUE,
-			clustering_distance_rows = "euclidean",
-			clustering_distance_cols = "euclidean",
-			filename = outFile,
-			clustering_method = "ward.D2",
-			angle_col = 90
-	 	)
+		mat <- t(as.matrix(GetAssayData(avgSeurat, slot = 'data')))
+		mat <- mat[,colSums(mat) > 0]
+
+		plot(ComplexHeatmap::Heatmap(mat %>% pheatmap:::scale_mat(scale = 'column'),
+			column_title = paste0('Average ADT Counts By ', fn),
+			row_names_side = "left",
+			row_dend_side = "right",
+			col = Seurat::PurpleAndYellow(20),
+			column_names_side = "top",
+			column_dend_side = "bottom",
+			column_title_rot = 90
+		))
+
+		if (!is.na(outFile)) {
+			ggsave(filename = outFile)
+		}
 	}
 }
