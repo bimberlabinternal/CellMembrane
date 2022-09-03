@@ -134,7 +134,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
                               column_title = dataset,
                               col = Seurat::BlueAndRed(10),
                               cluster_rows = nrow(tab)>1,
-                              cluster_cols = ncol(tab)>1
+                              cluster_columns = ncol(tab)>1
       ) # using a larger pseudo-count for smoothing.
 
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
@@ -172,7 +172,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
                               column_title = paste0(dataset, ': Fine Labels'),
                               col = Seurat::BlueAndRed(10),
                               cluster_rows = nrow(tab)>1,
-                              cluster_cols = ncol(tab)>1
+                              cluster_columns = ncol(tab)>1
       ) # using a larger pseudo-count for smoothing.
 
       seuratObj <- .FilterLowCalls(seuratObj, fn, minFraction)
@@ -260,7 +260,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
                               column_title = 'SingleR Consensus',
                               col = Seurat::BlueAndRed(10),
                               cluster_rows = nrow(tab)>1,
-                              cluster_cols = ncol(tab)>1
+                              cluster_columns = ncol(tab)>1
       ) # using a larger pseudo-count for smoothing.
     } else {
       print('SingleR consensus call will not be created')
