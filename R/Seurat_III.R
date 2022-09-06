@@ -782,34 +782,31 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
         topGene <- toPlot %>% group_by(cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
         avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', assays = assayName, return.seurat = T)
-        forpheatmap <- as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data'))
-        print(pheatmap::pheatmap(forpheatmap,
-                                 cluster_rows = T,
-                                 cluster_cols = T,
-                                 scale = 'row',
-                                 main = fieldName,
-                                 color = Seurat::BlueAndRed(10),
-                                 cellheight = 10,
-                                 show_colnames = T,
-                                 clustering_distance_rows = "euclidean",
-                                 clustering_distance_cols = "euclidean",
-                                 clustering_method = "ward.D2",
-                                 angle_col = 0,
-                                 fontsize = 13
+        avgSeurat <- NormalizeData(avgSeurat)
+
+        mat <- as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data'))
+        plot(ComplexHeatmap::Heatmap(mat %>% pheatmap:::scale_mat(scale = 'row'),
+          column_title = fieldName,
+          row_names_side = "left",
+          row_dend_side = "right",
+          col = Seurat::BlueAndRed(10),
+          column_names_side = "top",
+          column_dend_side = "bottom",
+          column_title_rot = 90
         ))
       }
 
       #Note: return the datatable, so it will be printed correctly by Rmarkdown::render()
       return(DT::datatable(topGene,
-                           caption = paste0('Top DE Genes', ifelse(is.null(datasetName), yes = '', no = paste0(': ', datasetName))),
-                           filter = 'none',
-                           escape = FALSE,
-                           extensions = 'Buttons',
-                           options = list(
-                             dom = 'Bfrtip',
-                             pageLength = 25,
-                             scrollX = TRUE,
-                             buttons = c('excel', "csv")
+        caption = paste0('Top DE Genes', ifelse(is.null(datasetName), yes = '', no = paste0(': ', datasetName))),
+        filter = 'none',
+        escape = FALSE,
+        extensions = 'Buttons',
+        options = list(
+        dom = 'Bfrtip',
+        pageLength = 25,
+        scrollX = TRUE,
+        buttons = c('excel', "csv")
                            )
       ))
     }

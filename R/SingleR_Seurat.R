@@ -18,7 +18,6 @@ utils::globalVariables(
 #' @param nThreads If provided, this integer value is passed to SingleR's BPPARAM argument. On windows ths is passed to BiocParallel::SnowParam(). On other OS it is passed to BiocParallel::MulticoreParam()
 #' @param createConsensus If true, a pseudo-consensus field will be created from the course labels from all datasets. Labels will be simplified in an attempt to normalize into the categories of Bcells, NK/T_cells and Myeloid.
 #' @return The modified seurat object
-#' @importFrom pheatmap pheatmap
 #' @import Seurat
 #' @import SingleR
 #' @export
@@ -131,7 +130,12 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       seuratObj[[fn]] <- toAdd
 
       tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn]][[fn]]))
-      pheatmap::pheatmap(log10(tab+10), main = dataset, cluster_rows = nrow(tab)>1, cluster_cols = ncol(tab)>1) # using a larger pseudo-count for smoothing.
+      ComplexHeatmap::Heatmap(log10(tab+10),
+                              column_title = dataset,
+                              col = Seurat::BlueAndRed(10),
+                              cluster_rows = nrow(tab)>1,
+                              cluster_columns = ncol(tab)>1
+      ) # using a larger pseudo-count for smoothing.
 
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
       if (length(colnames(seuratObj)) != nrow(pred.results)) {
@@ -164,7 +168,12 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       seuratObj[[fn2]] <- toAdd
 
       tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn2]][[fn2]]))
-      pheatmap::pheatmap(log10(tab+10), main = paste0(dataset, ': Fine Labels'), cluster_rows = nrow(tab)>1, cluster_cols = ncol(tab)>1) # using a larger pseudo-count for smoothing.
+      ComplexHeatmap::Heatmap(log10(tab+10),
+                              column_title = paste0(dataset, ': Fine Labels'),
+                              col = Seurat::BlueAndRed(10),
+                              cluster_rows = nrow(tab)>1,
+                              cluster_columns = ncol(tab)>1
+      ) # using a larger pseudo-count for smoothing.
 
       seuratObj <- .FilterLowCalls(seuratObj, fn, minFraction)
       seuratObj <- .FilterLowCalls(seuratObj, fn2, minFraction)
@@ -247,7 +256,12 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       )
 
       tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[['SingleRConsensus']][['SingleRConsensus']]))
-      pheatmap::pheatmap(log10(tab+10), main = paste0('SingleR Consensus'), cluster_rows = nrow(tab)>1, cluster_cols = ncol(tab)>1) # using a larger pseudo-count for smoothing.
+      ComplexHeatmap::Heatmap(log10(tab+10),
+                              column_title = 'SingleR Consensus',
+                              col = Seurat::BlueAndRed(10),
+                              cluster_rows = nrow(tab)>1,
+                              cluster_columns = ncol(tab)>1
+      ) # using a larger pseudo-count for smoothing.
     } else {
       print('SingleR consensus call will not be created')
     }
