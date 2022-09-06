@@ -784,15 +784,15 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
         avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', assays = assayName, return.seurat = T)
         avgSeurat <- NormalizeData(avgSeurat)
 
-        mat <- as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data'))
-        plot(ComplexHeatmap::Heatmap(mat %>% pheatmap:::scale_mat(scale = 'row'),
+        # Genes as columns:
+        mat <- t(as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data')))
+        plot(ComplexHeatmap::Heatmap(mat %>% pheatmap:::scale_mat(scale = 'column'),
           column_title = fieldName,
           row_names_side = "left",
           row_dend_side = "right",
           col = Seurat::BlueAndRed(10),
           column_names_side = "top",
-          column_dend_side = "bottom",
-          column_title_rot = 90
+          column_dend_side = "bottom"
         ))
       }
 

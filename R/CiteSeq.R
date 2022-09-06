@@ -798,8 +798,7 @@ PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 
 			row_dend_side = "right",
 			col = Seurat::PurpleAndYellow(20),
 			column_names_side = "top",
-			column_dend_side = "bottom",
-			column_title_rot = 90
+			column_dend_side = "bottom"
 		))
 
 		if (!is.na(outFile)) {
