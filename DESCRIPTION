@@ -47,7 +47,9 @@ Imports:
     phytools,
     VISION,
     rentrez,
-    RIRA
+    RIRA,
+    grid,
+    ggplotify
 Suggests:
     devtools,
     testthat (>= 2.1.0),
