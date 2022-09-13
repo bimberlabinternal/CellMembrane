@@ -89,6 +89,7 @@ Collate:
     'Utils.R'
     'CiteSeq.R'
     'Doublets.R'
+    'Phate.R'
     'SeuratUtils.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'
