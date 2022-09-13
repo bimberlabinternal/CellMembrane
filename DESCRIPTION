@@ -18,6 +18,7 @@ Imports:
     Matrix,
     ggplot2,
     patchwork,
+    R.utils,
     utils,
     stats,
     reshape2,
@@ -49,7 +50,8 @@ Imports:
     rentrez,
     RIRA,
     grid,
-    ggplotify
+    ggplotify,
+    phateR
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -77,7 +79,8 @@ Remotes:
 Config/reticulate:
   list(
     packages = list(
-      list(package = "cellbender")
+      list(package = "cellbender"),
+      list(package = "phate")
     )
   )
 Collate: 
@@ -87,6 +90,7 @@ Collate:
     'Utils.R'
     'CiteSeq.R'
     'Doublets.R'
+    'Phate.R'
     'SeuratUtils.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'
