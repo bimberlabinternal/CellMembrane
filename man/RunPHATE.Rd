@@ -126,6 +126,8 @@ the number for the dimension names. PHATE_ by default}
 \item{k}{Deprecated. Use `knn`.}
 
 \item{alpha}{Deprecated. Use `decay`.}
+
+\item{...}{Extra parameters passed to phateR::phate}
 }
 \value{
 Returns a Seurat object containing a PHATE representation

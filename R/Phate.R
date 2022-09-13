@@ -143,6 +143,7 @@
 #' the number for the dimension names. PHATE_ by default
 #' @param k Deprecated. Use `knn`.
 #' @param alpha Deprecated. Use `decay`.
+#' @param ... Extra parameters passed to phateR::phate
 #'
 #' @return Returns a Seurat object containing a PHATE representation
 #'
