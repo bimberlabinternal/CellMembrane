@@ -187,8 +187,8 @@ RunPHATE <- function(
     stop(paste0('Python/reticulate not configured. Run "reticulate::py_config()" to initialize python'))
   }
 
-  if (!reticulate::py_module_available('GMM_Demux')) {
-    stop('GMM_Demux has not been installed!')
+  if (!reticulate::py_module_available('phate')) {
+    stop('PHATE has not been installed! Use pip install phate to install it.')
   }
 
   assay <- assay %||% DefaultAssay(object = object)
