@@ -7,7 +7,7 @@
 RunPHATE(
   object,
   dims = NULL,
-  reduction = "pca",
+  source = "pca",
   features = NULL,
   assay = "RNA",
   n.components = 2L,
@@ -34,8 +34,12 @@ RunPHATE(
 )
 }
 \arguments{
+\item{object}{The seurat object}
+
 \item{dims}{Which dimensions to use as input features, used only if
 \code{features} is NULL}
+
+\item{source}{This can either be PCA or counts (meaning it will be run on the raw counts)}
 
 \item{features}{If set, run PHATE on this subset of features (instead of running on a
 set of reduced dimensions). Not set (NULL) by default; \code{dims} must be NULL to run
@@ -122,8 +126,6 @@ the number for the dimension names. PHATE_ by default}
 \item{k}{Deprecated. Use `knn`.}
 
 \item{alpha}{Deprecated. Use `decay`.}
-
-\item{source}{This can either be PCA or counts (meaning it will be run on the raw counts)}
 }
 \value{
 Returns a Seurat object containing a PHATE representation

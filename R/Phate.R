@@ -75,6 +75,7 @@
 #' discussion of the mathematics underlying PHATE, see the bioRxiv paper here:
 #' \url{https://www.biorxiv.org/content/early/2017/12/01/120378}.
 #'
+#' @param object The seurat object
 #' @param dims Which dimensions to use as input features, used only if
 #' \code{features} is NULL
 #' @param source This can either be PCA or counts (meaning it will be run on the raw counts)
@@ -158,7 +159,7 @@
 RunPHATE <- function(
   object,
   dims = NULL,
-  reduction = 'pca',
+  source = 'pca',
   features = NULL,
   assay = 'RNA',
   n.components = 2L,
@@ -199,11 +200,11 @@ RunPHATE <- function(
   if (!is.null(x = features)) {
     data.use <- t(x = GetAssayData(object = object, slot = 'data', assay = assay)[features, ])
   } else if (!is.null(x = dims)) {
-    data.use <- Embeddings(object[[reduction]])[, dims]
-    assay <- assay %||% DefaultAssay(object = object[[reduction]])
+    data.use <- Embeddings(object[[source]])[, dims]
+    assay <- assay %||% DefaultAssay(object = object[[source]])
   } else {
-    data.use <- Embeddings(object[[reduction]])
-    assay <- assay %||% DefaultAssay(object = object[[reduction]])
+    data.use <- Embeddings(object[[source]])
+    assay <- assay %||% DefaultAssay(object = object[[source]])
   }
   object[[reduction.name]] <- .RunPHATE(
     object = data.use,

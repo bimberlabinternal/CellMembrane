@@ -18,6 +18,7 @@ Imports:
     Matrix,
     ggplot2,
     patchwork,
+    R.utils,
     utils,
     stats,
     reshape2,
