@@ -1016,9 +1016,9 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 .PlotVariableFeatures <- function(seuratObj) {
   df <- seuratObj@assays[[DefaultAssay(seuratObj)]]@meta.features
   dat <- sort(df$vst.variance.standardized)
-  countAbove <-unlist(lapply(dat, function(x){
+  countAbove <-sapply(dat, function(x){
     sum(dat >= x)
-  }))
+  })
 
   print(paste0('Total variable features: ', length(Seurat::VariableFeatures(seuratObj))))
   minVal <- min(df$vst.variance.standardized[df$vst.variable])

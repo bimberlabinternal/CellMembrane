@@ -94,9 +94,9 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 	nUMI <- Matrix::colSums(GetAssayData(object = seuratObj, slot = "counts"))
 	nUMI <- sort(nUMI)
 
-	countAbove <-unlist(lapply(nUMI, function(x){
+	countAbove <-sapply(nUMI, function(x){
 		sum(nUMI >= x)
-	}))
+	})
 
 	print(ggplot(data.frame(x = log10(countAbove), y = log(nUMI)), aes(x = x, y = y)) +
 		geom_point() + ylab("UMI/Cell") + xlab("log10(# Cells)") +
