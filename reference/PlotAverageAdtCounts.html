@@ -55,7 +55,9 @@
 <span>  groupFields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ClusterNames_0.2"</span>, <span class="st">"ClusterNames_0.4"</span>, <span class="st">"ClusterNames_0.6"</span><span class="op">)</span>,</span>
 <span>  assayName <span class="op">=</span> <span class="st">"ADT"</span>,</span>
 <span>  slot <span class="op">=</span> <span class="st">"counts"</span>,</span>
-<span>  outFile <span class="op">=</span> <span class="cn">NA</span></span>
+<span>  outFile <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  normalization.method <span class="op">=</span> <span class="st">"CLR"</span>,</span>
+<span>  margin <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -79,6 +81,14 @@
 
 <dt>outFile</dt>
 <dd><p>If provided, the heatmap will be written to this file</p></dd>
+
+
+<dt>normalization.method</dt>
+<dd><p>The normalization method to apply after AverageExpression(). If null, this will be skipped.</p></dd>
+
+
+<dt>margin</dt>
+<dd><p>This is provided to Seurat::NormalizeData()</p></dd>
 
 </dl></div>
 
