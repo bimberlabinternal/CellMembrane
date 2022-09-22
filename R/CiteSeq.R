@@ -9,7 +9,6 @@ utils::globalVariables(
 	add = TRUE
 )
 
-
 #' @title Read/Append CITE-seq/ADT data to a Seurat Object
 #'
 #' @description Read/Append CITE-seq/ADT data to a Seurat Object
@@ -784,11 +783,17 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 #' @param groupFields The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder
 #' @param assayName The name of the assay holding data
 #' @param slot The assay slot to use for average expression data
+#' @param normalization.method The normalization method to apply after AverageExpression(). If null, this will be skipped.
+#' @param margin This is provided to Seurat::NormalizeData()
 #' @param outFile If provided, the heatmap will be written to this file
 #' @export
-PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', slot = 'counts', outFile = NA) {
+PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', slot = 'counts', outFile = NA, normalization.method = 'CLR', margin = 2) {
 	for (fn in groupFields) {
 		avgSeurat <- Seurat::AverageExpression(seuratObj, return.seurat = T, group.by = fn, assays = assayName, slot = slot)
+		if (!is.null(normalization.method)) {
+			avgSeurat <- NormalizeData(avgSeurat, normalization.method = normalization.method, margin = margin)
+		}
+
 		mat <- t(as.matrix(GetAssayData(avgSeurat, slot = 'data')))
 		mat <- mat[,colSums(mat) > 0]
 

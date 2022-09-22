@@ -9,7 +9,9 @@ PlotAverageAdtCounts(
   groupFields = c("ClusterNames_0.2", "ClusterNames_0.4", "ClusterNames_0.6"),
   assayName = "ADT",
   slot = "counts",
-  outFile = NA
+  outFile = NA,
+  normalization.method = "CLR",
+  margin = 2
 )
 }
 \arguments{
@@ -22,6 +24,10 @@ PlotAverageAdtCounts(
 \item{slot}{The assay slot to use for average expression data}
 
 \item{outFile}{If provided, the heatmap will be written to this file}
+
+\item{normalization.method}{The normalization method to apply after AverageExpression(). If null, this will be skipped.}
+
+\item{margin}{This is provided to Seurat::NormalizeData()}
 }
 \description{
 Creates a heatmap with average counts of each ADT markers based on one or more grouping fields
