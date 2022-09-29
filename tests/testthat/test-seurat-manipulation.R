@@ -80,3 +80,17 @@ test_that("Seurat-saturation works as expected", {
   expect_equal(sum(is.na(seuratObj3$Saturation.RNA)), 0)
   expect_equal(sum(is.na(seuratObj3$nReads_RNA)), 0)
 })
+
+test_that("Seurat-manipulation works as expected", {
+  set.seed(CellMembrane::GetSeed())
+  
+  seuratObj <- readRDS('../testdata/seuratOutput.rds')
+  
+  seuratObj <- NormalizeAndScale(seuratObj, nVariableFeatures = 100)
+
+  toAdd <- rownames(seuratObj@assays$RNA)[!rownames(seuratObj@assays$RNA) %in% rownames(seuratObj@assays$RNA@scale.data)][1:10]
+  toAdd <- c(toAdd, rownames(seuratObj@assays$RNA@scale.data)[1:10])
+  
+  seuratObj2 <- ScaleFeaturesIfNeeded(seuratObj, toScale = toAdd)
+  expect_equal(200, nrow(seuratObj2@assays$RNA@scale.data))
+})
