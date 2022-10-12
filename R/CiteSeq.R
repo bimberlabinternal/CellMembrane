@@ -72,7 +72,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		assayData <- .NormalizeDsbWithEmptyDrops(seuratObj, assayData)
 	} else if (normalizeMethod == 'clr') {
 		assayData <- subset(assayData, cells = sharedCells)
-		assayData <- Seurat::NormalizeData(assayData, normalization.method = 'CLR', margin = 2)
+		assayData <- Seurat::NormalizeData(assayData, normalization.method = 'CLR', margin = 2, verbose = FALSE)
 	} else {
 		stop('Unknown normalizationMethod. Pass NULL to skip normalization')
 	}
@@ -791,7 +791,7 @@ PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 
 	for (fn in groupFields) {
 		avgSeurat <- Seurat::AverageExpression(seuratObj, return.seurat = T, group.by = fn, assays = assayName, slot = slot)
 		if (!is.null(normalization.method)) {
-			avgSeurat <- NormalizeData(avgSeurat, normalization.method = normalization.method, margin = margin)
+			avgSeurat <- NormalizeData(avgSeurat, normalization.method = normalization.method, margin = margin, verbose = FALSE)
 		}
 
 		mat <- t(as.matrix(GetAssayData(avgSeurat, slot = 'data')))

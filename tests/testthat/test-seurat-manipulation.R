@@ -81,7 +81,7 @@ test_that("Seurat-saturation works as expected", {
   expect_equal(sum(is.na(seuratObj3$nReads_RNA)), 0)
 })
 
-test_that("Seurat-manipulation works as expected", {
+test_that("ScaleFeaturesIfNeeded works as expected", {
   set.seed(CellMembrane::GetSeed())
   
   seuratObj <- readRDS('../testdata/seuratOutput.rds')

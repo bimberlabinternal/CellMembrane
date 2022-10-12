@@ -782,7 +782,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
         topGene <- toPlot %>% group_by(cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
         avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', assays = assayName, return.seurat = T)
-        avgSeurat <- NormalizeData(avgSeurat)
+        avgSeurat <- NormalizeData(avgSeurat, verbose = FALSE)
 
         # Genes as columns:
         mat <- t(as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data')))
@@ -1085,7 +1085,7 @@ PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFea
 
   # normalize and identify variable features for each dataset independently
   Combo_LS <- lapply(X = Combo_LS, FUN = function(x) {
-    x <- Seurat::NormalizeData(x)
+    x <- Seurat::NormalizeData(x, verbose = FALSE)
     x <- Seurat::FindVariableFeatures(x, selection.method = "vst", nfeatures = nVariableFeatures)
   })
 
