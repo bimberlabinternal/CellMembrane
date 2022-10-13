@@ -49,6 +49,7 @@ Imports:
     VISION,
     rentrez,
     RIRA,
+    UCell,
     grid,
     ggplotify,
     phateR

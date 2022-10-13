@@ -1128,3 +1128,57 @@ PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFea
 
   return(seuratObj)
 }
+
+#' @title CellCycleScoring_UCell
+#' @description Similar to Seurat's CellCycleScoring, except using UCell AddModuleScore_UCell instead of Seurat's AddModuleScore
+#' @param seuratObj The seurat object
+#' @param s.features A vector of features associated with S phase
+#' @param g2m.features A vector of features associated with G2M phase
+#' @param set.ident If true, sets identity to phase assignments
+#' @param assayName The name of the assay
+#' @param facetField If not NA, a plot will be produced summarizing S.Core and G2M.Score, faceted by this value.
+#' @param ncores Passed directly to AddModuleScore_UCell
+#' @export
+#' @return A modified Seurat object.
+CellCycleScoring_UCell <- function(seuratObj, s.features, g2m.features, set.ident = FALSE, assayName = 'RNA', facetField = 'ClusterNames_0.2', ncores = 1) {
+  seuratObj <- UCell::AddModuleScore_UCell(seuratObj, features = list(
+    S.Score = s.features,
+    G2M.Score = g2m.features
+  ), assay = assayName, ncores = ncores)
+
+  seuratObj$Phase <- apply(
+    X = seuratObj@meta.data,
+    MARGIN = 1,
+    FUN = function(scores, first = 'S', second = 'G2M', nullLabel = 'G1', min.score.threshold = 0) {
+      scores <- scores[c('S.Score_UCell', 'G2M.Score_UCell')]
+      names(scores) <- c('S', 'G2M')
+      if (all(scores < min.score.threshold)) {
+        return(nullLabel)
+      } else {
+        if (length(which(x = scores == max(scores))) > 1) {
+          return('Undecided')
+        } else {
+          return(c(first, second)[which(x = scores == max(scores))])
+        }
+      }
+    }
+  )
+
+  if (!is.null(facetField)) {
+    facets <- as.formula(paste0('. ~ ', facetField))
+    P1 <- ggplot(seuratObj@meta.data, aes(x = S.Score_UCell, y = G2M.Score_UCell, color = Phase)) +
+      geom_point() +
+      geom_hline(yintercept = min.score.threshold, color = 'red', linetype = 'dashed') +
+      geom_vline(xintercept = min.score.threshold, color = 'red', linetype = 'dashed') +
+      facet_wrap(facets, ncol = 4)
+
+    print(P1)
+  }
+
+  if (set.ident) {
+    seuratObj[['old.ident']] <- Idents(object = seuratObj)
+    Idents(object = seuratObj) <- 'Phase'
+  }
+
+  return(seuratObj)
+}
