@@ -814,3 +814,28 @@ PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 
 		}
 	}
 }
+
+#' @title CalculateUcellPerFeature
+#' @description This will iterate all features of the given assay and calculate a per-feature Ucell score
+#' @param seuratObj The seurat object
+#' @param columnPrefix An optional prefix to be applied to the resulting column (which is otherwise the feature name)
+#' @param assayName The name of the assay
+#' @param ncores Passed directly to AddModuleScore_UCell
+#' @export
+#' @return A modified Seurat object.
+CalculateUcellPerFeature <- function(seuratObj, columnPrefix = NULL, assayName = 'ADT', ncores = 1) {
+	feats <- rownames(seuratObj@assays[[assayName]])
+	toCalculate <- list()
+	for (feat in feats) {
+		cn <- make.names(feat)
+		if (!is.null(columnPrefix)) {
+			cn <- paste0(columnPrefix, cn)
+		}
+
+		toCalculate[[cn]] <- feat
+	}
+
+	seuratObj <- UCell::AddModuleScore_UCell(seuratObj, assay = assayName, features = toCalculate, ncores = ncores)
+
+	return(seuratObj)
+}

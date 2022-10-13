@@ -289,3 +289,33 @@ ResolveLocGenes <- function(geneIds, maxBatchSize = 100) {
 
   return(ret)
 }
+
+#' @title ClrNormalizeByGroup
+#'
+#' @description This subsets the input object based on a variable (like dataset), and performs CLR normalization per-group, then combines them
+#' @param seuratObj The seurat object
+#' @param groupingVar The variable to use to partition the data
+#' @param assayName The name of the assay
+#' @param margin Passed directly to
+#' @export
+ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', margin = 2) {
+  groups <- unique(seuratObj[[groupingVar, drop = TRUE]])
+  normalizedMat <- NULL
+
+  for (groupName in groups) {
+    cells <- colnames(seuratObj)[seuratObj@meta.data[[groupingVar]] == groupName]
+    ad <- subset(seuratObj@assays[[assayName]], cells = cells)
+    ad <- Seurat::NormalizeData(ad, normalization.method = 'CLR', margin = margin, verbose = FALSE)
+    if (all(is.null(normalizedMat))) {
+      normalizedMat <- ad@data
+    } else {
+      normalizedMat <- cbind(normalizedMat, ad@data)
+    }
+  }
+
+  normalizedMat <- normalizedMat[,colnames(seuratObj)]
+  seuratObj@assays[[assayName]]@data <- as.sparse(normalizedMat)
+  seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = assayName)
+
+  return(seuratObj)
+}
