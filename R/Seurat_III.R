@@ -1141,10 +1141,12 @@ PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFea
 #' @export
 #' @return A modified Seurat object.
 CellCycleScoring_UCell <- function(seuratObj, s.features, g2m.features, set.ident = FALSE, assayName = 'RNA', facetField = 'ClusterNames_0.2', ncores = 1) {
+  BPPARAM <- .InferBpParam(ncores, defaultValue = NULL)
+
   seuratObj <- UCell::AddModuleScore_UCell(seuratObj, features = list(
     S.Score = s.features,
     G2M.Score = g2m.features
-  ), assay = assayName, ncores = ncores)
+  ), assay = assayName, BPPARAM = BPPARAM)
 
   seuratObj$Phase <- apply(
     X = seuratObj@meta.data,

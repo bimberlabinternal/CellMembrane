@@ -319,3 +319,15 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', margi
 
   return(seuratObj)
 }
+
+.InferBpParam <- function(nThreads, defaultValue = NULL) {
+  if (!is.null(nThreads) && nThreads > 1) {
+    if (.Platform$OS.type == 'windows') {
+      return(BiocParallel::SnowParam(nThreads))
+    } else {
+      return(BiocParallel::MulticoreParam(nThreads))
+    }
+  } else {
+    return(defaultValue)
+  }
+}

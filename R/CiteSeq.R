@@ -835,7 +835,8 @@ CalculateUcellPerFeature <- function(seuratObj, columnPrefix = NULL, assayName =
 		toCalculate[[cn]] <- feat
 	}
 
-	seuratObj <- UCell::AddModuleScore_UCell(seuratObj, assay = assayName, features = toCalculate, ncores = ncores)
+	BPPARAM <- .InferBpParam(ncores, defaultValue = NULL)
+	seuratObj <- UCell::AddModuleScore_UCell(seuratObj, assay = assayName, features = toCalculate, BPPARAM = BPPARAM)
 
 	return(seuratObj)
 }
