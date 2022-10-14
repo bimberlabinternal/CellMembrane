@@ -86,15 +86,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       refAssay <- 'normcounts'
     }
 
-    if (!is.null(nThreads)) {
-      if (.Platform$OS.type == 'windows') {
-        BPPARAM <- BiocParallel::SnowParam(nThreads)
-      } else {
-        BPPARAM <- BiocParallel::MulticoreParam(nThreads)
-      }
-    } else {
-      BPPARAM <- BiocParallel::SerialParam()
-    }
+    BPPARAM <- .InferBpParam(nThreads, defaultValue = BiocParallel::SerialParam())
 
     tryCatch({
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE, BPPARAM = BPPARAM))
