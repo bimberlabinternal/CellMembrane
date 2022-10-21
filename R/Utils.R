@@ -299,9 +299,9 @@ ResolveLocGenes <- function(geneIds, maxBatchSize = 100) {
 #' @param targetAssayName If provided, data will be saved to this assay, rather than modifying the source assay
 #' @param margin Passed directly to NormalizeData()
 #' @param minCellsPerGroup If provided, any group with newer than this many cells will be dropped
-#' @param calculatePerCellUCell If TRUE,
+#' @param calculatePerFeatureUCell If TRUE,
 #' @export
-ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targetAssayName = NA, margin = 1, minCellsPerGroup = 20, calculatePerCellUCell = FALSE) {
+ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targetAssayName = NA, margin = 1, minCellsPerGroup = 20, calculatePerFeatureUCell = FALSE) {
   if (!groupingVar %in% names(seuratObj@meta.data)) {
     stop(paste0('Field not found: ', groupingVar))
   }
@@ -344,7 +344,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
   seuratObj@assays[[sourceAssay]]@data <- as.sparse(normalizedMat)
   seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = sourceAssay)
 
-  if (calculatePerCellUCell) {
+  if (calculatePerFeatureUCell) {
     seuratObj <- CalculateUcellPerFeature(seuratObj, assayName = targetAssayName, columnPrefix = paste0(targetAssayName, '.'))
   }
 

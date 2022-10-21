@@ -11,7 +11,7 @@ ClrNormalizeByGroup(
   targetAssayName = NA,
   margin = 1,
   minCellsPerGroup = 20,
-  calculatePerCellUCell = FALSE
+  calculatePerFeatureUCell = FALSE
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ ClrNormalizeByGroup(
 
 \item{minCellsPerGroup}{If provided, any group with newer than this many cells will be dropped}
 
-\item{calculatePerCellUCell}{If TRUE,}
+\item{calculatePerFeatureUCell}{If TRUE,}
 }
 \description{
 This subsets the input object based on a variable (like dataset), and performs CLR normalization per-group, then combines them
