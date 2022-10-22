@@ -296,15 +296,42 @@ ResolveLocGenes <- function(geneIds, maxBatchSize = 100) {
 #' @param seuratObj The seurat object
 #' @param groupingVar The variable to use to partition the data
 #' @param assayName The name of the assay
-#' @param margin Passed directly to
+#' @param targetAssayName If provided, data will be saved to this assay, rather than modifying the source assay
+#' @param margin Passed directly to NormalizeData()
+#' @param minCellsPerGroup If provided, any group with newer than this many cells will be dropped
+#' @param calculatePerFeatureUCell If TRUE,
 #' @export
-ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', margin = 2) {
+ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targetAssayName = NA, margin = 1, minCellsPerGroup = 20, calculatePerFeatureUCell = FALSE) {
+  if (!groupingVar %in% names(seuratObj@meta.data)) {
+    stop(paste0('Field not found: ', groupingVar))
+  }
+
+  if (!is.null(minCellsPerGroup) && !is.na(minCellsPerGroup)) {
+    groupValues <- seuratObj[[groupingVar, drop = TRUE]]
+    totals <- table(groupValues)
+    totals <- totals[totals < minCellsPerGroup]
+    if (length(totals) > 0) {
+      for (groupName in names(totals)) {
+        toDrop <- colnames(seuratObj@meta.data)[groupValues == groupName]
+        print(paste0('Dropping group: ', groupName, ' with total cells: ', length(toDrop)))
+        toKeep <- colnames(seuratObj@meta.data)[groupValues != groupName]
+        seuratObj <- subset(seuratObj, cells = toKeep)
+      }
+    }
+  }
+
+  sourceAssay <- assayName
+  if (!is.na(targetAssayName)) {
+    seuratObj@assays[[targetAssayName]] <- seuratObj@assays[[sourceAssay]]
+    sourceAssay <- targetAssayName
+  }
+
   groups <- unique(seuratObj[[groupingVar, drop = TRUE]])
   normalizedMat <- NULL
 
   for (groupName in groups) {
     cells <- colnames(seuratObj)[seuratObj@meta.data[[groupingVar]] == groupName]
-    ad <- subset(seuratObj@assays[[assayName]], cells = cells)
+    ad <- subset(seuratObj@assays[[sourceAssay]], cells = cells)
     ad <- Seurat::NormalizeData(ad, normalization.method = 'CLR', margin = margin, verbose = FALSE)
     if (all(is.null(normalizedMat))) {
       normalizedMat <- ad@data
@@ -314,8 +341,12 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', margi
   }
 
   normalizedMat <- normalizedMat[,colnames(seuratObj)]
-  seuratObj@assays[[assayName]]@data <- as.sparse(normalizedMat)
-  seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = assayName)
+  seuratObj@assays[[sourceAssay]]@data <- as.sparse(normalizedMat)
+  seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = sourceAssay)
+
+  if (calculatePerFeatureUCell) {
+    seuratObj <- CalculateUcellPerFeature(seuratObj, assayName = targetAssayName, columnPrefix = paste0(targetAssayName, '.'))
+  }
 
   return(seuratObj)
 }

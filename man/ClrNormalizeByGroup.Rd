@@ -4,7 +4,15 @@
 \alias{ClrNormalizeByGroup}
 \title{ClrNormalizeByGroup}
 \usage{
-ClrNormalizeByGroup(seuratObj, groupingVar, assayName = "ADT", margin = 2)
+ClrNormalizeByGroup(
+  seuratObj,
+  groupingVar,
+  assayName = "ADT",
+  targetAssayName = NA,
+  margin = 1,
+  minCellsPerGroup = 20,
+  calculatePerFeatureUCell = FALSE
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
@@ -13,7 +21,13 @@ ClrNormalizeByGroup(seuratObj, groupingVar, assayName = "ADT", margin = 2)
 
 \item{assayName}{The name of the assay}
 
-\item{margin}{Passed directly to}
+\item{targetAssayName}{If provided, data will be saved to this assay, rather than modifying the source assay}
+
+\item{margin}{Passed directly to NormalizeData()}
+
+\item{minCellsPerGroup}{If provided, any group with newer than this many cells will be dropped}
+
+\item{calculatePerFeatureUCell}{If TRUE,}
 }
 \description{
 This subsets the input object based on a variable (like dataset), and performs CLR normalization per-group, then combines them
