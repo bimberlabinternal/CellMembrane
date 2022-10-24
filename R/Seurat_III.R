@@ -310,7 +310,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
       variableGenesWhitelist <- RIRA::ExpandGeneList(variableGenesWhitelist)
       preExisting <- intersect(VariableFeatures(seuratObj), variableGenesWhitelist)
       print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list, of which ', length(preExisting), ' are already present in VariableFeatures'))
-      VariableFeatures(seuratObj) <- unique(c(VariableFeatures(seuratObj), variableGenesWhitelist))
+      VariableFeatures(seuratObj) <- unique(c(VariableFeatures(seuratObj), preExisting))
       print(paste0('Total after: ', length(VariableFeatures(seuratObj))))
 	}
 
