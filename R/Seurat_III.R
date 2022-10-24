@@ -3,7 +3,7 @@
 #' @import Seurat
 
 utils::globalVariables(
-  names = c('nCount_RNA', 'nFeature_RNA', 'p.mito', 'x', 'y', 'p_val_adj', 'avg_logFC', 'groupField', 'cluster', 'pct.1', 'pct.2'),
+  names = c('nCount_RNA', 'nFeature_RNA', 'p.mito', 'x', 'y', 'p_val_adj', 'avg_logFC', 'groupField', 'cluster', 'pct.1', 'pct.2', 'S.Score_UCell', 'G2M.Score_UCell', 'Phase', 'min.score.threshold'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -310,7 +310,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
       variableGenesWhitelist <- RIRA::ExpandGeneList(variableGenesWhitelist)
       preExisting <- intersect(VariableFeatures(seuratObj), variableGenesWhitelist)
       print(paste0('Adding ', length(variableGenesWhitelist), ' genes to variable gene list, of which ', length(preExisting), ' are already present in VariableFeatures'))
-      VariableFeatures(seuratObj) <- unique(c(VariableFeatures(seuratObj), variableGenesWhitelist))
+      VariableFeatures(seuratObj) <- unique(c(VariableFeatures(seuratObj), preExisting))
       print(paste0('Total after: ', length(VariableFeatures(seuratObj))))
 	}
 
@@ -1167,7 +1167,7 @@ CellCycleScoring_UCell <- function(seuratObj, s.features, g2m.features, set.iden
   )
 
   if (!is.null(facetField)) {
-    facets <- as.formula(paste0('. ~ ', facetField))
+    facets <- stats::as.formula(paste0('. ~ ', facetField))
     P1 <- ggplot(seuratObj@meta.data, aes(x = S.Score_UCell, y = G2M.Score_UCell, color = Phase)) +
       geom_point() +
       geom_hline(yintercept = min.score.threshold, color = 'red', linetype = 'dashed') +
