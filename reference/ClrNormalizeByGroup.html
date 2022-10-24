@@ -57,7 +57,9 @@
 <span>  targetAssayName <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  margin <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  minCellsPerGroup <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  calculatePerFeatureUCell <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  calculatePerFeatureUCell <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  featureWhitelist <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  featureExclusionList <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -88,7 +90,15 @@
 
 
 <dt>calculatePerFeatureUCell</dt>
-<dd><p>If TRUE,</p></dd>
+<dd><p>If TRUE, UCell will be run once per feature in the assay</p></dd>
+
+
+<dt>featureWhitelist</dt>
+<dd><p>If provided, the input assay will be subset to just these features.</p></dd>
+
+
+<dt>featureExclusionList</dt>
+<dd><p>If provided, the input assay will be subset to exclude these features.</p></dd>
 
 </dl></div>
 
