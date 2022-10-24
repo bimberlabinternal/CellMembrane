@@ -12,7 +12,7 @@ ClrNormalizeByGroup(
   margin = 1,
   minCellsPerGroup = 20,
   calculatePerFeatureUCell = FALSE,
-  featureWhitelist = NULL,
+  featureInclusionList = NULL,
   featureExclusionList = NULL
 )
 }
@@ -31,7 +31,7 @@ ClrNormalizeByGroup(
 
 \item{calculatePerFeatureUCell}{If TRUE, UCell will be run once per feature in the assay}
 
-\item{featureWhitelist}{If provided, the input assay will be subset to just these features.}
+\item{featureInclusionList}{If provided, the input assay will be subset to just these features.}
 
 \item{featureExclusionList}{If provided, the input assay will be subset to exclude these features.}
 }

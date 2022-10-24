@@ -300,10 +300,10 @@ ResolveLocGenes <- function(geneIds, maxBatchSize = 100) {
 #' @param margin Passed directly to NormalizeData()
 #' @param minCellsPerGroup If provided, any group with newer than this many cells will be dropped
 #' @param calculatePerFeatureUCell If TRUE, UCell will be run once per feature in the assay
-#' @param featureWhitelist If provided, the input assay will be subset to just these features.
+#' @param featureInclusionList If provided, the input assay will be subset to just these features.
 #' @param featureExclusionList If provided, the input assay will be subset to exclude these features.
 #' @export
-ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targetAssayName = NA, margin = 1, minCellsPerGroup = 20, calculatePerFeatureUCell = FALSE, featureWhitelist = NULL, featureExclusionList = NULL) {
+ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targetAssayName = NA, margin = 1, minCellsPerGroup = 20, calculatePerFeatureUCell = FALSE, featureInclusionList = NULL, featureExclusionList = NULL) {
   if (!groupingVar %in% names(seuratObj@meta.data)) {
     stop(paste0('Field not found: ', groupingVar))
   }
@@ -335,11 +335,11 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
     cells <- colnames(seuratObj)[seuratObj@meta.data[[groupingVar]] == groupName]
     ad <- subset(seuratObj@assays[[sourceAssay]], cells = cells)
 
-    if (!all(is.null(featureWhitelist))) {
-      featureWhitelist <- RIRA::ExpandGeneList(featureWhitelist)
-      preExisting <- intersect(rownames(ad), featureWhitelist)
-      print(paste0('Limiting to ', length(featureWhitelist), ' features, of which ', length(preExisting), ' exist in this assay'))
-      ad <- subset(ad, features = featureWhitelist)
+    if (!all(is.null(featureInclusionList))) {
+      featureInclusionList <- RIRA::ExpandGeneList(featureInclusionList)
+      preExisting <- intersect(rownames(ad), featureInclusionList)
+      print(paste0('Limiting to ', length(featureInclusionList), ' features, of which ', length(preExisting), ' exist in this assay'))
+      ad <- subset(ad, features = preExisting)
       print(paste0('Total features after: ', nrow(ad)))
     }
 
