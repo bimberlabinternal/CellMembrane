@@ -11,7 +11,9 @@ ClrNormalizeByGroup(
   targetAssayName = NA,
   margin = 1,
   minCellsPerGroup = 20,
-  calculatePerFeatureUCell = FALSE
+  calculatePerFeatureUCell = FALSE,
+  featureWhitelist = NULL,
+  featureExclusionList = NULL
 )
 }
 \arguments{
@@ -27,7 +29,11 @@ ClrNormalizeByGroup(
 
 \item{minCellsPerGroup}{If provided, any group with newer than this many cells will be dropped}
 
-\item{calculatePerFeatureUCell}{If TRUE,}
+\item{calculatePerFeatureUCell}{If TRUE, UCell will be run once per feature in the assay}
+
+\item{featureWhitelist}{If provided, the input assay will be subset to just these features.}
+
+\item{featureExclusionList}{If provided, the input assay will be subset to exclude these features.}
 }
 \description{
 This subsets the input object based on a variable (like dataset), and performs CLR normalization per-group, then combines them
