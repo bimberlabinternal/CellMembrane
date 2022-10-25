@@ -314,9 +314,9 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
     totals <- totals[totals < minCellsPerGroup]
     if (length(totals) > 0) {
       for (groupName in names(totals)) {
-        toDrop <- colnames(seuratObj@meta.data)[groupValues == groupName]
-        print(paste0('Dropping group: ', groupName, ' with total cells: ', length(toDrop)))
-        toKeep <- colnames(seuratObj@meta.data)[groupValues != groupName]
+        toDrop <- colnames(seuratObj)[groupValues == groupName]
+        toKeep <- colnames(seuratObj)[groupValues != groupName]
+        print(paste0('Dropping group: ', groupName, ' with total cells: ', length(toDrop), ', remaining: ', length(toKeep)))
         seuratObj <- subset(seuratObj, cells = toKeep)
       }
     }
