@@ -309,21 +309,26 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
   }
 
   if (!is.null(minCellsPerGroup) && !is.na(minCellsPerGroup)) {
-    groupValues <- seuratObj[[groupingVar, drop = TRUE]]
+    groupValues <- as.character(seuratObj[[groupingVar, drop = TRUE]])
     totals <- table(groupValues)
     totals <- totals[totals < minCellsPerGroup]
+    toDrop <- character()
     if (length(totals) > 0) {
       for (groupName in names(totals)) {
-        toDrop <- colnames(seuratObj)[groupValues == groupName]
-        toKeep <- colnames(seuratObj)[groupValues != groupName]
-        print(paste0('Dropping group: ', groupName, ' with total cells: ', length(toDrop), ', remaining: ', length(toKeep)))
-        seuratObj <- subset(seuratObj, cells = toKeep)
+        d <- colnames(seuratObj)[groupValues == groupName]
+        print(paste0('Dropping group: ', groupName, ' with total cells: ', length(d)))
+        toDrop <- c(toDrop, d)
+      }
+
+      if (length(toDrop) > 0) {
+        print(paste0('Dropping total of ', length(toDrop), ' cells'))
+        seuratObj <- subset(seuratObj, cells = toDrop, invert = TRUE)
       }
     }
   }
 
   sourceAssay <- assayName
-  if (!is.na(targetAssayName)) {
+  if (!is.na(targetAssayName) && !is.null(targetAssayName)) {
     seuratObj@assays[[targetAssayName]] <- seuratObj@assays[[sourceAssay]]
     sourceAssay <- targetAssayName
   }
@@ -333,6 +338,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
 
   for (groupName in groups) {
     cells <- colnames(seuratObj)[seuratObj@meta.data[[groupingVar]] == groupName]
+    print(paste0('Processing group: ', groupName, ' with ', length(cells), ' cells'))
     ad <- subset(seuratObj@assays[[sourceAssay]], cells = cells)
 
     if (!all(is.null(featureInclusionList))) {
