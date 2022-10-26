@@ -321,8 +321,13 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       }
 
       if (length(toDrop) > 0) {
-        print(paste0('Dropping total of ', length(toDrop), ' cells'))
+        cellsBefore <- ncol(seuratObj)
+        print(paste0('Dropping total of ', length(toDrop), ' cells, out of ', cellsBefore))
         seuratObj <- subset(seuratObj, cells = toDrop, invert = TRUE)
+        print(paste0('Remaining: ', ncol(seuratObj)))
+        if (ncol(seuratObj) != (cellsBefore - length(toDrop))) {
+          stop(paste0('subset did not work as expected. cells remaining: ', ncol(seuratObj)))
+        }
       }
     }
   }
@@ -343,23 +348,25 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
 
     if (!all(is.null(featureInclusionList))) {
       featureInclusionList <- RIRA::ExpandGeneList(featureInclusionList)
-      preExisting <- intersect(rownames(ad), featureInclusionList)
-      print(paste0('Limiting to ', length(featureInclusionList), ' features, of which ', length(preExisting), ' exist in this assay'))
-      if (length(preExisting) == 0) {
+      toKeep <- intersect(rownames(ad), featureInclusionList)
+      print(paste0('Limiting to ', length(featureInclusionList), ' features, of which ', length(toKeep), ' exist in this assay'))
+      if (length(toKeep) == 0) {
         stop(paste0('None of the featureInclusionList features were found in this object: ', paste0(featureInclusionList, collapse = ',')))
       }
-      ad <- subset(ad, features = preExisting)
+      ad <- subset(ad, features = toKeep)
       print(paste0('Total features after: ', nrow(ad)))
     }
 
     if (!all(is.null(featureExclusionList))){
       featureExclusionList <- RIRA::ExpandGeneList(featureExclusionList)
-      preExisting <- intersect(rownames(ad), featureExclusionList)
-      print(paste0('Excluding ', length(featureExclusionList), ' features(s) from the input assay, of which ', length(preExisting), ' existing in this assay'))
-      if (length(preExisting) == 0) {
+      toDrop <- intersect(rownames(ad), featureExclusionList)
+      print(paste0('Excluding ', length(featureExclusionList), ' features(s) from the input assay, of which ', length(toDrop), ' exist in this assay'))
+      if (length(toDrop) == 0) {
         stop(paste0('None of the featureExclusionList features were found in this object: ', paste0(featureExclusionList, collapse = ',')))
       }
-      ad <- subset(ad, features = preExisting, invert = TRUE)
+
+      featuresToKeep <- rownames(ad)[!rownames(ad) %in% toDrop]
+      ad <- subset(ad, features = featuresToKeep)
       print(paste0('Total features after: ', nrow(ad)))
     }
 
