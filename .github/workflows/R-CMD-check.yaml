@@ -61,7 +61,7 @@ jobs:
         run: |
           install.packages('devtools')
           if (!requireNamespace("BiocManager", quietly=TRUE))  install.packages("BiocManager");
-          BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE);
+          BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE, update = TRUE);
           cat(append = TRUE, file = "~/.Rprofile", "options(repos = BiocManager::repositories());")
           cat(append = TRUE, file = "~/.Rprofile", "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));");
         shell: Rscript {0}
