@@ -339,6 +339,9 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       featureInclusionList <- RIRA::ExpandGeneList(featureInclusionList)
       preExisting <- intersect(rownames(ad), featureInclusionList)
       print(paste0('Limiting to ', length(featureInclusionList), ' features, of which ', length(preExisting), ' exist in this assay'))
+      if (length(preExisting) == 0) {
+        stop(paste0('None of the featureInclusionList features were found in this object: ', paste0(featureInclusionList, collapse = ',')))
+      }
       ad <- subset(ad, features = preExisting)
       print(paste0('Total features after: ', nrow(ad)))
     }
@@ -347,6 +350,9 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       featureExclusionList <- RIRA::ExpandGeneList(featureExclusionList)
       preExisting <- intersect(rownames(ad), featureExclusionList)
       print(paste0('Excluding ', length(featureExclusionList), ' features(s) from the input assay, of which ', length(preExisting), ' existing in this assay'))
+      if (length(preExisting) == 0) {
+        stop(paste0('None of the featureExclusionList features were found in this object: ', paste0(featureExclusionList, collapse = ',')))
+      }
       ad <- subset(ad, features = preExisting, invert = TRUE)
       print(paste0('Total features after: ', nrow(ad)))
     }
