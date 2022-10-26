@@ -824,6 +824,7 @@ PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 
 #' @export
 #' @return A modified Seurat object.
 CalculateUcellPerFeature <- function(seuratObj, columnPrefix = NULL, assayName = 'ADT', ncores = 1) {
+	print('Calculating per-feature UCell scores')
 	feats <- rownames(seuratObj@assays[[assayName]])
 	toCalculate <- list()
 	for (feat in feats) {

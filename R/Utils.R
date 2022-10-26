@@ -376,7 +376,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
   seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = sourceAssay)
 
   if (calculatePerFeatureUCell) {
-    seuratObj <- CalculateUcellPerFeature(seuratObj, assayName = targetAssayName, columnPrefix = paste0(targetAssayName, '.'))
+    seuratObj <- CalculateUcellPerFeature(seuratObj, assayName = sourceAssay, columnPrefix = paste0(sourceAssay, '.'))
   }
 
   return(seuratObj)
