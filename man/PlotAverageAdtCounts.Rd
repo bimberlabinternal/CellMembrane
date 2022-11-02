@@ -11,7 +11,7 @@ PlotAverageAdtCounts(
   slot = "counts",
   outFile = NA,
   normalization.method = "CLR",
-  margin = 2
+  margin = 1
 )
 }
 \arguments{
