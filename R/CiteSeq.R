@@ -616,26 +616,27 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
 		}
 
 		print("Performing PCA on ADTs")
+		keyName <- paste0('pca.', tolower(assayName))
 		print(paste0('ADTs used: ', paste0(adtsForPca, collapse = ',')))
 		seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = assayName, features = adtsForPca)
-		seuratObj <- RunPCA(seuratObj, reduction.name = 'pca.adt', assay = assayName, verbose = FALSE, reduction.key  = 'adtPCA_', npcs = length(adtsForPca)-1, features = adtsForPca)
+		seuratObj <- RunPCA(seuratObj, reduction.name = keyName, assay = assayName, verbose = FALSE, reduction.key  = 'adtPCA_', npcs = length(adtsForPca)-1, features = adtsForPca)
 		if (print.plots) {
-			print(DimPlot(seuratObj, reduction = "pca.adt"))
-			print(ElbowPlot(object = seuratObj, reduction = 'pca.adt'))
+			print(DimPlot(seuratObj, reduction = keyName))
+			print(ElbowPlot(object = seuratObj, reduction = keyName))
 		}
 
 		if (is.null(dimsToUse)) {
-			dimsToUse <- 1:ncol(seuratObj@reductions[["pca.adt"]])
+			dimsToUse <- 1:ncol(seuratObj@reductions[[keyName]])
 			print(paste0('Using dims 1:', max(dimsToUse)))
 		}
 
-		seuratObj <- FindNeighbors(seuratObj, verbose = FALSE, reduction = "pca.adt", dims = dimsToUse, graph.name = "adt_snn.pca")
+		seuratObj <- FindNeighbors(seuratObj, verbose = FALSE, reduction = keyName, dims = dimsToUse, graph.name = "adt_snn.pca")
 		seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn.pca", verbose = FALSE)
 		seuratObj[["AdtClusterNames_2.0.PCA"]] <- Idents(object = seuratObj)
 
 		#tSNE:
 		print("Performing tSNE on ADT with PCA")
-		seuratObj <- RunTSNE(seuratObj, assay = assayName, reduction = "pca.adt", dims = dimsToUse, reduction.name = 'adt.tsne.pca', reduction.key = "adtTSNEPCA_", check_duplicates = FALSE)
+		seuratObj <- RunTSNE(seuratObj, assay = assayName, reduction = keyName, dims = dimsToUse, reduction.name = 'adt.tsne.pca', reduction.key = "adtTSNEPCA_", check_duplicates = FALSE)
 
 		if (print.plots) {
 			print(DimPlot(seuratObj, reduction = "adt.tsne.pca"))
@@ -645,7 +646,7 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
 		# Now, we rerun UMAP using our distance matrix defined only on ADT (protein) levels.
 		if (doUMAP) {
 			print("Performing UMAP on ADT with PCA")
-			seuratObj <- RunUMAP(seuratObj, assay = assayName, reduction = "pca.adt", dims = dimsToUse, reduction.name = 'adt.umap.pca', reduction.key = "adtUMAPPCA_", verbose = FALSE)
+			seuratObj <- RunUMAP(seuratObj, assay = assayName, reduction = keyName, dims = dimsToUse, reduction.name = 'adt.umap.pca', reduction.key = "adtUMAPPCA_", verbose = FALSE)
 
 			if (print.plots) {
 				print(DimPlot(seuratObj, reduction = "adt.umap.pca"))
@@ -695,9 +696,10 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
 #' @param seuratObj The seurat object
 #' @param dims.list Passed directly to Seurat::FindMultiModalNeighbors
 #' @param reduction.list Passed directly to Seurat::FindMultiModalNeighbors
+#' @param assayName The assay to use
 #' @export
 #' @import Seurat
-RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list = list("pca", "pca.adt")) {
+RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), assayName = 'ADT', reduction.list = list("pca", paste0("pca.", tolower(assayName)))) {
 	if (length(reduction.list) != length(dims.list)) {
 		stop('Length of reduction.list and dims.list must be equal')
 	}
@@ -787,7 +789,7 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), reduction.list
 #' @param margin This is provided to Seurat::NormalizeData()
 #' @param outFile If provided, the heatmap will be written to this file
 #' @export
-PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', slot = 'counts', outFile = NA, normalization.method = 'CLR', margin = 2) {
+PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', slot = 'counts', outFile = NA, normalization.method = 'CLR', margin = 1) {
 	for (fn in groupFields) {
 		avgSeurat <- Seurat::AverageExpression(seuratObj, return.seurat = T, group.by = fn, assays = assayName, slot = slot)
 		if (!is.null(normalization.method)) {
