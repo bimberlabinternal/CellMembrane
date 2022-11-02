@@ -7,13 +7,16 @@
 RunSeuratWnn(
   seuratObj,
   dims.list = list(1:30, 1:18),
-  reduction.list = list("pca", "pca.adt")
+  assayName = "ADT",
+  reduction.list = list("pca", paste0("pca.", tolower(assayName)))
 )
 }
 \arguments{
 \item{seuratObj}{The seurat object}
 
 \item{dims.list}{Passed directly to Seurat::FindMultiModalNeighbors}
+
+\item{assayName}{The assay to use}
 
 \item{reduction.list}{Passed directly to Seurat::FindMultiModalNeighbors}
 }
