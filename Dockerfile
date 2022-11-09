@@ -35,6 +35,7 @@ RUN Rscript -e "install.packages(c('remotes', 'devtools', 'stringi', 'BiocManage
 	# NOTE: this was added to avoid the build dying if this downloads a binary built on a later R version
 	&& echo "Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS='true');" >> ~/.Rprofile \
     && Rscript -e "print(version)" \
+    && Rscript -e "install.packages('rhdf5', dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
 	&& rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
 # This should not be cached if the files change
