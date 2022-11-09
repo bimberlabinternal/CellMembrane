@@ -14,7 +14,7 @@ RUN apt-get update -y \
         locales \
         locales-all \
         libicu-dev \
-        libssl-dev libcrypto++-dev \
+        libcurl4-openssl-dev libssl-dev libcrypto++-dev \
     && python3 -m pip install --upgrade pip \
 	&& pip3 install umap-learn phate \
 	&& apt-get clean \
