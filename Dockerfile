@@ -5,7 +5,6 @@ FROM bioconductor/bioconductor_docker:latest
 RUN apt-get update -y \
 	&& apt-get upgrade -y \
 	&& apt-get install -y \
-        build-essential \
 		libhdf5-dev \
 		libpython3-dev \
 		python3-pip \
