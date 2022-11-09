@@ -5,6 +5,7 @@ FROM bioconductor/bioconductor_docker:latest
 RUN apt-get update -y \
 	&& apt-get upgrade -y \
 	&& apt-get install -y \
+        build-essential \
 		libhdf5-dev \
 		libpython3-dev \
 		python3-pip \
@@ -13,6 +14,8 @@ RUN apt-get update -y \
         locales-all \
         #NOTE: added to avoid stringi /  libicui18n.so.66: cannot open shared object file error
         libicu-dev \
+        # Cannot find libcrypto error:
+        libssl-dev \
     && python3 -m pip install --upgrade pip \
 	&& pip3 install umap-learn phate \
 	&& apt-get clean \
