@@ -14,7 +14,7 @@ RUN apt-get update -y \
         #NOTE: added to avoid stringi /  libicui18n.so.66: cannot open shared object file error
         libicu-dev \
         # Cannot find libcrypto error:
-        openssl-dev libssl-dev \
+        libssl-dev libcrypto-dev libssl1.1 \
     && python3 -m pip install --upgrade pip \
 	&& pip3 install umap-learn phate \
 	&& apt-get clean \
