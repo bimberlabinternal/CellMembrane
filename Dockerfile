@@ -11,6 +11,8 @@ RUN apt-get update -y \
         # NOTE: these were added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb
         locales \
         locales-all \
+        #NOTE: added to avoid stringi /  libicui18n.so.66: cannot open shared object file error
+        libicu-dev \
     && python3 -m pip install --upgrade pip \
 	&& pip3 install umap-learn phate \
 	&& apt-get clean \
