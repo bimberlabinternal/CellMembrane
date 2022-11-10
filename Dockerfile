@@ -1,4 +1,4 @@
-FROM bioconductor/bioconductor_docker:latest
+FROM bioconductor/bioconductor_docker:RELEASE_3_16
 
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
@@ -6,15 +6,12 @@ FROM bioconductor/bioconductor_docker:latest
 # NOTE: libicu-dev added to avoid stringi /  libicui18n.so.66: cannot open shared object file error
 # NOTE: libssl-dev libcrypto-dev added due to 'Cannot find libcrypto error'
 RUN apt-get update -y \
-	&& apt-get upgrade -y \
-	&& apt-get install -y \
+    && apt-get install -y \
 		libhdf5-dev \
 		libpython3-dev \
 		python3-pip \
         locales \
         locales-all \
-        libicu-dev \
-        libcurl4-openssl-dev libssl-dev libcrypto++-dev \
     && python3 -m pip install --upgrade pip \
 	&& pip3 install umap-learn phate \
 	&& apt-get clean \
