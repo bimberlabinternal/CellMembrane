@@ -43,7 +43,6 @@ RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
 RUN cd /CellMembrane \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
-    && Rscript -e "BiocManager::install('DropletUtils', ask = FALSE, dependencies = T, upgrade = 'always');" \
 	&& Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE);" \
 	&& R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
