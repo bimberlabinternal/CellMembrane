@@ -25,7 +25,7 @@ RUN cd / \
     && pip3 install -e CellBender
 
 # Let this run for the purpose of installing/caching dependencies
-RUN Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
+RUN Rscript -e "install.packages(c('remotes', 'devtools', 'stringi', 'rhdf5', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
 	&& echo "local({options(repos = BiocManager::repositories())})" >> ~/.Rprofile \
 	&& echo "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));" >> ~/.Rprofile \
 	# NOTE: this was added to avoid the build dying if this downloads a binary built on a later R version
@@ -44,9 +44,7 @@ ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
 RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
 RUN cd /CellMembrane \
-	&& Rscript -e "BiocManager::install(ask = FALSE, upgrade = 'always');"
-
-RUN Rscript -e "install.packages(c('stringi', 'rhdf5'), dependencies=TRUE, ask = FALSE, upgrade = 'always')"
+	&& Rscript -e "BiocManager::install(ask = FALSE);"
 
 RUN	Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');"
 
