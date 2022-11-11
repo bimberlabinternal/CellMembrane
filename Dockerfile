@@ -44,8 +44,9 @@ ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
 RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
 RUN cd /CellMembrane \
-	&& Rscript -e "BiocManager::install(ask = FALSE, upgrade = 'always');" \
-    && Rscript -e "install.packages('rhdf5', force = TRUE, ask = FALSE, upgrade = 'always');"
+	&& Rscript -e "BiocManager::install(ask = FALSE, upgrade = 'always');"
+
+RUN Rscript -e "install.packages(c('stringi', 'rhdf5'), dependencies=TRUE, ask = FALSE, upgrade = 'always')"
 
 RUN	Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');"
 
