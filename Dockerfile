@@ -45,8 +45,9 @@ RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
 RUN cd /CellMembrane \
 	&& Rscript -e "BiocManager::install(ask = FALSE, upgrade = 'always');" \
-    && Rscript -e "install.packages('rhdf5', force = TRUE, ask = FALSE, upgrade = 'always');" \
-RUN	Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
+    && Rscript -e "install.packages('rhdf5', force = TRUE, ask = FALSE, upgrade = 'always');"
+
+RUN	Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');"
 
 RUN	R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
