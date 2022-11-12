@@ -1,5 +1,8 @@
 FROM bioconductor/bioconductor_docker:latest
 
+# See: https://github.com/Bioconductor/bioconductor_docker/issues/59#issuecomment-1312281094
+ENV BIOCONDUCTOR_USE_CONTAINER_REPOSITORY=FALSE
+
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
 # NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb \
@@ -25,7 +28,7 @@ RUN cd / \
     && pip3 install -e CellBender
 
 # Let this run for the purpose of installing/caching dependencies
-RUN Rscript -e "install.packages(c('remotes', 'devtools', 'stringi', 'rhdf5', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
+RUN Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
 	&& echo "local({options(repos = BiocManager::repositories())})" >> ~/.Rprofile \
 	&& echo "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));" >> ~/.Rprofile \
 	# NOTE: this was added to avoid the build dying if this downloads a binary built on a later R version
@@ -44,10 +47,8 @@ ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
 RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
 RUN cd /CellMembrane \
-	&& Rscript -e "BiocManager::install(ask = FALSE);"
-
-RUN	Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');"
-
-RUN	R CMD build . \
+	&& Rscript -e "BiocManager::install(ask = FALSE);" \
+    && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
+    && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds
