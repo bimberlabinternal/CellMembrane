@@ -302,8 +302,9 @@ ResolveLocGenes <- function(geneIds, maxBatchSize = 100) {
 #' @param calculatePerFeatureUCell If TRUE, UCell will be run once per feature in the assay
 #' @param featureInclusionList If provided, the input assay will be subset to just these features.
 #' @param featureExclusionList If provided, the input assay will be subset to exclude these features.
+#' @param doAsinhTransform If true, asinh transform will be performed on the raw counts prior to CLR
 #' @export
-ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targetAssayName = NA, margin = 1, minCellsPerGroup = 20, calculatePerFeatureUCell = FALSE, featureInclusionList = NULL, featureExclusionList = NULL) {
+ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targetAssayName = NA, margin = 1, minCellsPerGroup = 20, calculatePerFeatureUCell = FALSE, featureInclusionList = NULL, featureExclusionList = NULL, doAsinhTransform = FALSE) {
   if (!groupingVar %in% names(seuratObj@meta.data)) {
     stop(paste0('Field not found: ', groupingVar))
   }
@@ -334,7 +335,8 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
 
   sourceAssay <- assayName
   if (!is.na(targetAssayName) && !is.null(targetAssayName)) {
-    seuratObj@assays[[targetAssayName]] <- seuratObj@assays[[sourceAssay]]
+    seuratObj@assays[[targetAssayName]] <- Seurat::CreateAssayObject(seuratObj@assays[[sourceAssay]]@counts)
+    seuratObj@assays[[targetAssayName]]@key <- paste0(tolower(targetAssayName), '_')
     sourceAssay <- targetAssayName
   }
 
@@ -370,7 +372,21 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       print(paste0('Total features after: ', nrow(ad)))
     }
 
-    ad <- Seurat::NormalizeData(ad, normalization.method = 'CLR', margin = margin, verbose = FALSE)
+    if (doAsinhTransform) {
+      dat <- ad@counts
+      # based on flowCore module: https://github.com/RGLab/flowCore/blob/1dee3931c7ac922052b74fcdf6ba037fe1313892/R/AllClasses.R#L5030
+      # and ADTnorm: https://github.com/yezhengSTAT/ADTnorm/blob/d5d08d9cc075d1300d0ff1038ff2a3efae780b15/R/arcsinh_transform.R
+      a <- 1
+      b <- 1/5
+      c <- 0
+      dat <- asinh(a+b*dat) + c
+
+      dat <- Seurat::NormalizeData(dat, normalization.method = 'CLR', margin = margin, verbose = FALSE)
+      ad@data <- Seurat::as.sparse(dat)
+    } else {
+      ad <- Seurat::NormalizeData(ad, normalization.method = 'CLR', margin = margin, verbose = FALSE)
+    }
+
     if (all(is.null(normalizedMat))) {
       normalizedMat <- ad@data
     } else {
