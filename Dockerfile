@@ -1,14 +1,10 @@
 FROM bioconductor/bioconductor_docker:latest
 
-# See: https://github.com/Bioconductor/bioconductor_docker/issues/59#issuecomment-1312281094
-ENV BIOCONDUCTOR_USE_CONTAINER_REPOSITORY=FALSE
-
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
 # NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb \
-# NOTE: libicu-dev added to avoid stringi /  libicui18n.so.66: cannot open shared object file error
-# NOTE: libssl-dev libcrypto-dev added due to 'Cannot find libcrypto error'
 RUN apt-get update -y \
+    && apt-get upgrade -y \
     && apt-get install -y \
 		libhdf5-dev \
 		libpython3-dev \
