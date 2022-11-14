@@ -4,6 +4,7 @@ FROM bioconductor/bioconductor_docker:latest
 # After the cache is in place, builds from github commits should be fast.
 # NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb \
 RUN apt-get update -y \
+    && apt-get upgrade -y \
     && apt-get install -y \
 		libhdf5-dev \
 		libpython3-dev \
@@ -17,13 +18,13 @@ RUN apt-get update -y \
 
 # NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
 # See: https://github.com/broadinstitute/CellBender/issues/93
-#RUN cd / \
-#    && git clone https://github.com/broadinstitute/CellBender.git CellBender \
-#    && chmod -R 777 /CellBender \
-#    && pip3 install -e CellBender
+RUN cd / \
+    && git clone https://github.com/broadinstitute/CellBender.git CellBender \
+    && chmod -R 777 /CellBender \
+    && pip3 install -e CellBender
 
 # Let this run for the purpose of installing/caching dependencies
-RUN Rscript -e "install.packages(c('remotes', 'devtools', 'stringi', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
+RUN Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
 	&& echo "local({options(repos = BiocManager::repositories())})" >> ~/.Rprofile \
 	&& echo "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));" >> ~/.Rprofile \
 	# NOTE: this was added to avoid the build dying if this downloads a binary built on a later R version
@@ -43,7 +44,7 @@ RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
 RUN cd /CellMembrane \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
-	&& Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE);" \
-	&& R CMD build . \
+    && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
+    && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds

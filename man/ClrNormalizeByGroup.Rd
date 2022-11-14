@@ -13,7 +13,8 @@ ClrNormalizeByGroup(
   minCellsPerGroup = 20,
   calculatePerFeatureUCell = FALSE,
   featureInclusionList = NULL,
-  featureExclusionList = NULL
+  featureExclusionList = NULL,
+  doAsinhTransform = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ ClrNormalizeByGroup(
 \item{featureInclusionList}{If provided, the input assay will be subset to just these features.}
 
 \item{featureExclusionList}{If provided, the input assay will be subset to exclude these features.}
+
+\item{doAsinhTransform}{If true, asinh transform will be performed on the raw counts prior to CLR}
 }
 \description{
 This subsets the input object based on a variable (like dataset), and performs CLR normalization per-group, then combines them
