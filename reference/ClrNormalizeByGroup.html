@@ -59,7 +59,8 @@
 <span>  minCellsPerGroup <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>  calculatePerFeatureUCell <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  featureInclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  featureExclusionList <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  featureExclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  doAsinhTransform <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -99,6 +100,10 @@
 
 <dt>featureExclusionList</dt>
 <dd><p>If provided, the input assay will be subset to exclude these features.</p></dd>
+
+
+<dt>doAsinhTransform</dt>
+<dd><p>If true, asinh transform will be performed on the raw counts prior to CLR</p></dd>
 
 </dl></div>
 
