@@ -20,6 +20,7 @@ jobs:
         config:
           - {os: ubuntu-20.04, r: 'devel', bioc: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
           - {os: ubuntu-20.04, r: 'release', bioc: '3.16', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest", pkgdown: "true"}
+          # NOTE: disabled due to BiocManager / missing argument error
           #- {os: ubuntu-20.04, r: '4.2', bioc: '3.15', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
     env:
@@ -38,10 +39,11 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       # libsodium-dev installed for VISION
+      # libglpk-dev added for igraph error
       - name: Install packages
         if: runner.os != 'Windows'
         run: |
-          sudo apt-get update && sudo apt-get install -yq python3-pip libcurl4-openssl-dev libsodium-dev
+          sudo apt-get update && sudo apt-get install -yq python3-pip libcurl4-openssl-dev libsodium-dev libglpk-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
           python3 -m pip install --user umap-learn phate
