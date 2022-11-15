@@ -1,4 +1,5 @@
-FROM bioconductor/bioconductor_docker:latest
+# Note: this is the last base version supporting ubuntu focal, not jammy
+FROM rocker/rstudio:4.2.1
 
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
