@@ -1,6 +1,11 @@
 # Note: this is the last base version supporting ubuntu focal, not jammy
 FROM rocker/rstudio:4.2.1
 
+##  Add Bioconductor system dependencies
+RUN wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/master/bioc_scripts/install_bioc_sysdeps.sh \
+    && bash ./install_bioc_sysdeps.sh \
+    && rm ./install_bioc_sysdeps.sh
+
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
 # NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb \
