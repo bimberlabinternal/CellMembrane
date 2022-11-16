@@ -39,11 +39,10 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       # libsodium-dev installed for VISION
-      # libglpk-dev added for igraph error
       - name: Install packages
         if: runner.os != 'Windows'
         run: |
-          sudo apt-get update && sudo apt-get install -yq python3-pip libcurl4-openssl-dev libsodium-dev libglpk-dev
+          sudo apt-get update && sudo apt-get install -yq python3-pip libcurl4-openssl-dev libsodium-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
           python3 -m pip install --user umap-learn phate
