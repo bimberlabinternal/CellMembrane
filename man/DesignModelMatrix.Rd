@@ -9,7 +9,8 @@ DesignModelMatrix(
   contrast_columns,
   sampleIdCol = "cDNA_ID",
   test.use = "QLF",
-  assayName = "RNA"
+  assayName = "RNA",
+  minCountsPerGene = 1
 )
 }
 \arguments{
@@ -20,6 +21,8 @@ DesignModelMatrix(
 \item{sampleIdCol}{An additional column denoting the variable containing the sample (for grouping)}
 
 \item{assayName}{The name of the assay to use}
+
+\item{minCountsPerGene}{Any genes with fewer than this many counts (across samples) will be dropped}
 
 \item{test.use.}{Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT}
 }

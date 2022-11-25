@@ -2,6 +2,13 @@
 #' @import Seurat
 #' @import ggplot2
 
+utils::globalVariables(
+  names = c('FDR', 'gene', 'PValue'),
+  package = 'CellMembrane',
+  add = TRUE
+)
+
+
 #' @title Pseudobulk Seurat
 #'
 #' @description Aggregates raw counts in the seurat object, generating a new seurat object where each same has the sum of the counts, grouped by the desired variables
@@ -53,9 +60,10 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL) {
 #' @param sampleIdCol An additional column denoting the variable containing the sample (for grouping)
 #' @param test.use. Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
 #' @param assayName The name of the assay to use
+#' @param minCountsPerGene Any genes with fewer than this many counts (across samples) will be dropped
 #' @return An edgeR glm object
 #' @export
-DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_ID", test.use = "QLF", assayName = 'RNA'){
+DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_ID", test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1){
   #convert seurat object to SingleCellExperiment for edgeR
   sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = seuratObj@assays[[assayName]]@counts), colData = seuratObj@meta.data)
 
@@ -79,7 +87,7 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
   experiment_information <- data.frame(SingleCellExperiment::colData(sce),  row.names = NULL) %>%
     dplyr::select(sampleIdCol, "group")
   
-  design <- model.matrix(~ 0 + experiment_information$group) %>%
+  design <- stats::model.matrix(~ 0 + experiment_information$group) %>%
     magrittr::set_rownames(experiment_information[[sampleIdCol]]) %>%
     magrittr::set_colnames(levels(factor(experiment_information$group)))
 

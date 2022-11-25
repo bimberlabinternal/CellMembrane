@@ -786,7 +786,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
         # Genes as columns:
         mat <- t(as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data')))
-        plot(ComplexHeatmap::Heatmap(mat %>% pheatmap:::scale_mat(scale = 'column'),
+        plot(ComplexHeatmap::Heatmap(mat %>% scale_mat(scale = 'column'),
           column_title = fieldName,
           row_names_side = "left",
           row_dend_side = "right",
