@@ -46,6 +46,9 @@
     <loc>/reference/CreateSeuratObj.html</loc>
   </url>
   <url>
+    <loc>/reference/DesignModelMatrix.html</loc>
+  </url>
+  <url>
     <loc>/reference/DownsampleSeurat.html</loc>
   </url>
   <url>
@@ -91,6 +94,9 @@
     <loc>/reference/NormalizeAndScale.html</loc>
   </url>
   <url>
+    <loc>/reference/PerformDifferentialExpression.html</loc>
+  </url>
+  <url>
     <loc>/reference/PerformEmptyDropletFiltering.html</loc>
   </url>
   <url>
@@ -101,6 +107,9 @@
   </url>
   <url>
     <loc>/reference/PlotSeuratVariables.html</loc>
+  </url>
+  <url>
+    <loc>/reference/PseudobulkSeurat.html</loc>
   </url>
   <url>
     <loc>/reference/ReadAndFilter10xData.html</loc>
@@ -119,6 +128,9 @@
   </url>
   <url>
     <loc>/reference/RunPHATE.html</loc>
+  </url>
+  <url>
+    <loc>/reference/RunPairwiseContrasts.html</loc>
   </url>
   <url>
     <loc>/reference/RunPcaSteps.html</loc>
