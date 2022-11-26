@@ -20,7 +20,7 @@ PerformDifferentialExpression(
 
 \item{FDR_threshold}{The min FDR to report}
 
-\item{test.use.}{Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT}
+\item{test.use}{Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT}
 }
 \value{
 A list with the differential_expression results, volano ggplot object and pvalue_dist ggplot object

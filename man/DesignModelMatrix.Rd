@@ -24,7 +24,7 @@ DesignModelMatrix(
 
 \item{minCountsPerGene}{Any genes with fewer than this many counts (across samples) will be dropped}
 
-\item{test.use.}{Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT}
+\item{test.use}{Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT}
 }
 \value{
 An edgeR glm object
