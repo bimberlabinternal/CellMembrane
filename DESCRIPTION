@@ -52,7 +52,12 @@ Imports:
     UCell,
     grid,
     ggplotify,
-    phateR
+    phateR,
+    magrittr,
+    edgeR,
+    limma,
+    future.apply,
+    ggrepel
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -83,6 +88,7 @@ Collate:
     'CiteSeq.R'
     'Doublets.R'
     'Phate.R'
+    'PseudoBulk.R'
     'SeuratUtils.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'

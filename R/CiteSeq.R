@@ -799,7 +799,7 @@ PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 
 		mat <- t(as.matrix(GetAssayData(avgSeurat, slot = 'data')))
 		mat <- mat[,colSums(mat) > 0]
 
-		P1 <- ComplexHeatmap::Heatmap(mat %>% pheatmap:::scale_mat(scale = 'column'),
+		P1 <- ComplexHeatmap::Heatmap(mat %>% scale_mat(scale = 'column'),
 			column_title = paste0('Average ADT Counts By ', fn),
 			row_names_side = "left",
 			row_dend_side = "right",
