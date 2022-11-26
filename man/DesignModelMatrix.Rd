@@ -20,11 +20,11 @@ DesignModelMatrix(
 
 \item{sampleIdCol}{An additional column denoting the variable containing the sample (for grouping)}
 
+\item{test.use}{Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT}
+
 \item{assayName}{The name of the assay to use}
 
 \item{minCountsPerGene}{Any genes with fewer than this many counts (across samples) will be dropped}
-
-\item{test.use}{Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT}
 }
 \value{
 An edgeR glm object
