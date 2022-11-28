@@ -50,14 +50,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">DesignModelMatrix</span><span class="op">(</span></span>
-<span>  <span class="va">seuratObj</span>,</span>
-<span>  <span class="va">contrast_columns</span>,</span>
-<span>  sampleIdCol <span class="op">=</span> <span class="st">"cDNA_ID"</span>,</span>
-<span>  test.use <span class="op">=</span> <span class="st">"QLF"</span>,</span>
-<span>  assayName <span class="op">=</span> <span class="st">"RNA"</span>,</span>
-<span>  minCountsPerGene <span class="op">=</span> <span class="fl">1</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">DesignModelMatrix</span><span class="op">(</span><span class="va">seuratObj</span>, <span class="va">contrast_columns</span>, sampleIdCol <span class="op">=</span> <span class="st">"cDNA_ID"</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -72,18 +65,6 @@
 
 <dt>sampleIdCol</dt>
 <dd><p>An additional column denoting the variable containing the sample (for grouping)</p></dd>
-
-
-<dt>test.use</dt>
-<dd><p>Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT</p></dd>
-
-
-<dt>assayName</dt>
-<dd><p>The name of the assay to use</p></dd>
-
-
-<dt>minCountsPerGene</dt>
-<dd><p>Any genes with fewer than this many counts (across samples) will be dropped</p></dd>
 
 </dl></div>
     <div id="value">
