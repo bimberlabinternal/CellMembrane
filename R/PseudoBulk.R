@@ -38,6 +38,13 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL) {
   totals <- seuratObj@meta.data %>% group_by_at(groupFields) %>% summarise(TotalCells = n())
   a$TotalCells <- totals$TotalCells
 
+  print(ggplot(a@meta.data, aes(x = TotalCells)) +
+    geom_density() +
+    egg::theme_presentation(base_size = 18) +
+    labs(x = 'Cells/Sample', y = '# Cells') +
+    ggtitle('Total Cells/Sample')
+  )
+
   # Convert mean into sum:
   for (assayName in names(a@assays)) {
     m <- Seurat::GetAssayData(a, assay = assayName, slot = 'counts')
