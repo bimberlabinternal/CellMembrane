@@ -4,14 +4,7 @@
 \alias{DesignModelMatrix}
 \title{DesignModelMatrix}
 \usage{
-DesignModelMatrix(
-  seuratObj,
-  contrast_columns,
-  sampleIdCol = "cDNA_ID",
-  test.use = "QLF",
-  assayName = "RNA",
-  minCountsPerGene = 1
-)
+DesignModelMatrix(seuratObj, contrast_columns, sampleIdCol = "cDNA_ID")
 }
 \arguments{
 \item{seuratObj}{The seurat object}
@@ -19,12 +12,6 @@ DesignModelMatrix(
 \item{contrast_columns}{A vector of columns to contrast}
 
 \item{sampleIdCol}{An additional column denoting the variable containing the sample (for grouping)}
-
-\item{test.use}{Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT}
-
-\item{assayName}{The name of the assay to use}
-
-\item{minCountsPerGene}{Any genes with fewer than this many counts (across samples) will be dropped}
 }
 \value{
 An edgeR glm object
