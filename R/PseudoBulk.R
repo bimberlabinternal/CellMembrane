@@ -23,20 +23,24 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL) {
   }
 
   # TODO: perhaps filtering on saturation, min.counts or other features??
-
-  meta <- unique(seuratObj@meta.data[,groupFields, drop = F])
-  rownames(meta) <- apply(meta, 1, function(y){
+  seuratObj$KeyField <- apply(seuratObj@meta.data[,groupFields,drop = FALSE], 1, function(y){
     return(paste0(y, collapse = '_'))
   })
 
-  Seurat::Idents(seuratObj) <- rownames(meta)
+  Seurat::Idents(seuratObj) <- seuratObj$KeyField
 
   # This generates the mean() of counts. Even though we want sum(), this is a convenient way to ensure all other
   a <- Seurat::AverageExpression(seuratObj, return.seurat = T, verbose = F, slot = 'counts', assays = assays)
-  a <- Seurat::AddMetaData(a, meta)
 
-  totals <- seuratObj@meta.data %>% group_by_at(groupFields) %>% summarise(TotalCells = n())
-  a$TotalCells <- totals$TotalCells
+  metaGrouped <- unique(seuratObj@meta.data[,c('KeyField', groupFields),drop = FALSE])
+  rownames(metaGrouped) <- metaGrouped$KeyField
+  metaGrouped <- metaGrouped[,names(metaGrouped) != 'KeyField',drop = FALSE]
+  a <- Seurat::AddMetaData(a, metaGrouped)
+
+  totals <- as.data.frame(seuratObj@meta.data %>% dplyr::group_by(KeyField) %>% dplyr::summarise(TotalCells = n()))
+  rownames(totals) <- totals$KeyField
+
+  a <- Seurat::AddMetaData(a, totals[,'TotalCells',drop = FALSE])
 
   print(ggplot(a@meta.data, aes(x = TotalCells)) +
     geom_density() +
