@@ -110,7 +110,7 @@ PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA'
 
   #filter out lowly expressed genes
   if (!is.null(minCountsPerGene)) {
-    sce <- sce[rowSums(SingleCellExperiment::counts(sce)) > minCountsPerGene, ]
+    sce <- sce[rowSums(as.matrix(SingleCellExperiment::counts(sce))) > minCountsPerGene, ]
   }
 
   #preprocess the DGEList and fit the model
