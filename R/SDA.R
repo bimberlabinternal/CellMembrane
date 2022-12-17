@@ -24,26 +24,26 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   
   ## default gene inclusion (0.5 is basically including all detectable genes)
   print(paste0('Initial features: ', nrow(SerObj.DGE)))
-  inclusionFeats <- rownames(SerObj.DGE)[asinh(Matrix::rowSums(SerObj.DGE)) > minAsinhThreshold]
-  print(paste0('After gene count filter: ', length(inclusionFeats)))
+  featuresToUse <- rownames(SerObj.DGE)[asinh(Matrix::rowSums(SerObj.DGE)) > minAsinhThreshold]
+  print(paste0('After gene count filter: ', length(featuresToUse)))
 
   if (!all(is.null(featureInclusionList))) {
     featureInclusionList <- RIRA::ExpandGeneList(featureInclusionList)
-    preExisting <- intersect(features, featureInclusionList)
+    preExisting <- intersect(featuresToUse, featureInclusionList)
     print(paste0('Adding ', length(featureInclusionList), ' features, of which ', length(preExisting), ' are already present'))
-    features <- unique(c(features, featureInclusionList))
-    print(paste0('Total after: ', length(features)))
+    featuresToUse <- unique(c(featuresToUse, featureInclusionList))
+    print(paste0('Total after: ', length(featuresToUse)))
   }
 
   if (!all(is.null(featureExclusionList))){
     featureExclusionList <- RIRA::ExpandGeneList(featureExclusionList)
-    preExisting <- intersect(features, featureExclusionList)
+    preExisting <- intersect(featuresToUse, featureExclusionList)
     print(paste0('Excluding ', length(featureExclusionList), ' features(s), of which ', length(preExisting), ' are present'))
-    features <- unique(features[!(features %in% featureExclusionList)])
-    print(paste0('Total after: ', length(features)))
+    featuresToUse <- unique(featuresToUse[!(featuresToUse %in% featureExclusionList)])
+    print(paste0('Total after: ', length(featuresToUse)))
   }
 
-  P1 <- ggplot(data.frame(x = sqrt(Matrix::colSums(SerObj.DGE[inclusionFeats, ]))), aes(x = x)) +
+  P1 <- ggplot(data.frame(x = sqrt(Matrix::colSums(SerObj.DGE[featuresToUse, ]))), aes(x = x)) +
     geom_density() +
     ggtitle("SQRT(Total transcript per cell)") +
     geom_vline(xintercept = 50, color = 'dodgerblue') +
@@ -65,7 +65,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   ### other methods work, perhaps we can add other options in the future
    # most cases works but can be taken as input depeding on how the density plot above looks
   print("starting dropsim normaliseDGE")
-  normedDGE <- dropsim::normaliseDGE(Matrix::as.matrix(SerObj.DGE[inclusionFeats, ]),
+  normedDGE <- dropsim::normaliseDGE(Matrix::as.matrix(SerObj.DGE[featuresToUse, ]),
                                      center = FALSE, #dont change
                                      scale = TRUE,#dont change
                                      threshold = 10, #dont change
@@ -87,7 +87,6 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   rawDataDir <- paste0(outputFolder, 'rawData')
   print('Files after save:')
   print(list.files(outputFolder))
-  print(list.files(rawDataDir))
 
   resultsDir <- paste0(outputFolder, 'results/')
 
