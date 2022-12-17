@@ -14,11 +14,6 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v3
 
-      - name: Docker layer caching
-        uses: satackey/action-docker-layer-caching@v0.0.11
-        # Ignore the failure of a step and avoid terminating the job.
-        continue-on-error: true
-
       - name: Docker meta
         id: docker_meta
         uses: docker/metadata-action@v4
@@ -49,6 +44,8 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
+          build-args: |
+            "GITHUB_PAT=${{ secrets.PAT }}"
           pull: true
           push: true
           tags: ghcr.io/bimberlabinternal/cellmembrane:nightly,ghcr.io/bimberlabinternal/cellmembrane:latest
