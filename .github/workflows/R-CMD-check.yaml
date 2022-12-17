@@ -57,6 +57,11 @@ jobs:
           pip3 install -e CellBender
           cd CellMembrane
 
+      - name: Setup SDA
+        run: |
+          wget -O /bin/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1 \
+          chmod +x /bin/sda_static_linux    
+
       # Note: the environment variable R_BIOC_VERSION is set to force remotes::install_bioc to follow the proper version
       - name: Setup Bioconductor
         run: |
