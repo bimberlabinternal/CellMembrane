@@ -109,7 +109,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
           data = rawDataFile,
           num_comps = numComps,
           max_iter = max_iter,
-          save_freq = max_iter + 1,
+          save_freq = 1000,
           set_seed = randomSeed, #TODO: consider allowing a vector of seeds for replicates?
           N = n_cells,
           eigen_parallel = (nThreads > 1),

@@ -10,7 +10,7 @@ test_that("SDA works as expected", {
     }
 
     seuratObj <- subset(seuratObj, cells = colnames(seuratObj[1:100]))
-    results <- RunSDA(seuratObj, outputFolder = outputFolder, numComps = 2, minAsinhThreshold = 8)
+    results <- RunSDA(seuratObj, outputFolder = outputFolder, numComps = 2, minAsinhThreshold = 8, max_iter = 50)
     print(results)
     
     unlink(outputFolder)
