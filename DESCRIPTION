@@ -57,7 +57,9 @@ Imports:
     edgeR,
     limma,
     future.apply,
-    ggrepel
+    ggrepel,
+    SDAtools,
+    dropsim
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -66,13 +68,15 @@ Suggests:
     rmarkdown,
     shiny,
     pkgdown
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
     niaid/dsb,
     YosefLab/VISION,
     bimberlabinternal/RIRA,
+    marchinilab/SDAtools,
+    marchinilab/dropsim
 Config/reticulate:
   list(
     packages = list(
@@ -89,6 +93,7 @@ Collate:
     'Doublets.R'
     'Phate.R'
     'PseudoBulk.R'
+    'SDA.R'
     'SeuratUtils.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'

@@ -38,6 +38,11 @@ RUN Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), depend
     && Rscript -e "print(version)" \
 	&& rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
+# See: https://jmarchini.org/software/
+RUN mkdir /sda \
+    && wget -O /bin/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1 \
+    && chmod +x /bin/sda_static_linux
+
 # This should not be cached if the files change
 ADD . /CellMembrane
 
