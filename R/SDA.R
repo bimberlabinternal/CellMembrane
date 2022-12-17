@@ -84,7 +84,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   normedDGE <- as.matrix(normedDGE)
   SDAtools::export_data(normedDGE, path = outputFolder, name = 'rawData')
 
-  rawDataDir <- paste0(outputFolder, 'rawData')
+  rawDataFile <- paste0(outputFolder, 'rawData')
   print('Files after save:')
   print(list.files(outputFolder))
 
@@ -106,7 +106,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
 
   SDAtools::run_SDA(sda_location = path.sda,
           out = resultsDir,
-          data = rawDataDir,
+          data = rawDataFile,
           num_comps = numComps,
           max_iter = max_iter,
           save_freq = max_iter + 1,
