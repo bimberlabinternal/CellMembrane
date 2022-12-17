@@ -23,8 +23,9 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
   
   ## default gene inclusion (0.5 is basically including all detectable genes)
+  print(paste0('Initial features: ', nrow(SerObj.DGE)))
   inclusionFeats <- rownames(SerObj.DGE)[asinh(Matrix::rowSums(SerObj.DGE)) > minAsinhThreshold]
-  print(paste0('Initial passing features: ', length(inclusionFeats)))
+  print(paste0('After gene count filter: ', length(inclusionFeats)))
 
   if (!all(is.null(featureInclusionList))) {
     featureInclusionList <- RIRA::ExpandGeneList(featureInclusionList)
@@ -88,7 +89,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   print(list.files(outputFolder))
   print(list.files(rawDataDir))
 
-  resultsDir <- paste0(outputFolder, 'results')
+  resultsDir <- paste0(outputFolder, 'results/')
 
   print(paste0('Saving results to: ', resultsDir))
   if (dir.exists(resultsDir)) {

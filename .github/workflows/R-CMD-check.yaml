@@ -61,7 +61,7 @@ jobs:
         run: |
           SDA_PATH=$(pwd)/sda
           mkdir $SDA_PATH
-          wget -O $SDA_PATH/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1 \
+          wget -q -O $SDA_PATH/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1
           chmod +x $SDA_PATH/sda_static_linux          
           export PATH=$SDA_PATH:$PATH
           which sda_static_linux
