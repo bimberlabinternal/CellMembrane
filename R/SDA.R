@@ -109,7 +109,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
           data = rawDataDir,
           num_comps = numComps,
           max_iter = max_iter,
-          save_freq = 1000,
+          save_freq = max_iter + 1,
           set_seed = randomSeed, #TODO: consider allowing a vector of seeds for replicates?
           N = n_cells,
           eigen_parallel = (nThreads > 1),
@@ -118,7 +118,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
           num_openmp_threads = nThreads
   )
 
-  results <- SDAtools::load_results(results_folder = resultsDir, data_path = rawDataDir)
+  results <- SDAtools::load_results(results_folder = resultsDir, data_path = outputFolder)
 
   SDAtools::check_simulation_scores(data = normedDGE, results = results)
   SDAtools::check_convergence(results)
