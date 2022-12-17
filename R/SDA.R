@@ -84,6 +84,10 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   SDAtools::export_data(normedDGE, path = outputFolder, name = 'rawData')
 
   rawDataDir <- paste0(outputFolder, 'rawData')
+  print('Files after save:')
+  print(list.files(outputFolder))
+  print(list.files(rawDataDir))
+
   resultsDir <- paste0(outputFolder, 'results')
 
   print(paste0('Saving results to: ', resultsDir))
@@ -92,6 +96,14 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   }
 
   print('Running SDA')
+  if (!file.exists(path.sda)) {
+    x <- unname(Sys.which(path.sda))
+    if (x != '') {
+      print(paste0('Found SDA under PATH: ', x))
+      path.sda <- x
+    }
+  }
+
   SDAtools::run_SDA(sda_location = path.sda,
           out = resultsDir,
           data = rawDataDir,
