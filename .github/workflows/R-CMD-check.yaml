@@ -44,8 +44,8 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -yq python3-pip libcurl4-openssl-dev libsodium-dev
           python3 -m pip install --upgrade pip
-          pip3 install -e wheel setuptools
-          pip3 install -e umap-learn phate
+          python3 -m pip install --user wheel setuptools
+          python3 -m pip install --user umap-learn phate
 
       - name: Setup cellbender
         run: |
