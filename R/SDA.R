@@ -120,7 +120,6 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
 
   results <- SDAtools::load_results(results_folder = resultsDir, data_path = outputFolder)
 
-  SDAtools::check_simulation_scores(data = normedDGE, results = results)
   SDAtools::check_convergence(results)
   SDAtools::loading_distribution(results)
   SDAtools::scores_distribution(results)
