@@ -3,7 +3,7 @@
 #' @import ggplot2
 
 utils::globalVariables(
-  names = c('FDR', 'gene', 'PValue'),
+  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells'),
   package = 'CellMembrane',
   add = TRUE
 )
