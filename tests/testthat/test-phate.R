@@ -12,7 +12,8 @@ test_that("PHATE works as expected", {
             reticulate::import('phate')
         }
 
-        stop('The python phate module has not been installed!')
+        warning('The python phate module has not been installed!')
+        return()
     }
 
     set.seed(CellMembrane::GetSeed())
