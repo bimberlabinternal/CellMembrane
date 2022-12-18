@@ -6,6 +6,7 @@ test_that("PHATE works as expected", {
     }
 
     if (!reticulate::py_module_available('phate')) {
+        print(reticulate::py_list_packages())
         stop('The python phate module has not been installed!')
     }
 
