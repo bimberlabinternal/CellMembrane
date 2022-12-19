@@ -59,7 +59,7 @@ jobs:
 
       - name: Setup SDA
         run: |
-          SDA_PATH=$(pwd)/sda
+          SDA_PATH=/home/runner/work/sda
           mkdir $SDA_PATH
           wget -q -O $SDA_PATH/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1
           chmod +x $SDA_PATH/sda_static_linux          

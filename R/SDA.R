@@ -119,7 +119,6 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   )
 
   results <- SDAtools::load_results(results_folder = resultsDir, data_path = outputFolder)
-  print(utils::str(results))
 
   tryCatch({
     SDAtools::check_convergence(results)
@@ -131,14 +130,23 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   })
 
   tryCatch({
-    print('plot_scree')
     SDAtools::plot_scree(results)
-    print('PIP_distribution')
+  }, error = function(e){
+    print(paste0('Error generating SDA plot_scree'))
+    print(conditionMessage(e))
+  })
+
+  tryCatch({
     SDAtools::PIP_distribution(results)
-    print('PIP_threshold_distribution')
+  }, error = function(e){
+    print(paste0('Error generating SDA PIP_distribution'))
+    print(conditionMessage(e))
+  })
+
+  tryCatch({
     SDAtools::PIP_threshold_distribution(results)
   }, error = function(e){
-    print(paste0('Error generating SDA second plots'))
+    print(paste0('Error generating SDA PIP_threshold_distribution'))
     print(conditionMessage(e))
   })
 
