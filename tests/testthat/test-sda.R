@@ -1,4 +1,5 @@
 context("scRNAseq")
+library(Seurat)
 
 test_that("SDA works as expected", {
     seuratObj <- readRDS('../testdata/seuratOutput.rds')
@@ -8,9 +9,12 @@ test_that("SDA works as expected", {
         unlink(outputFolder, recursive = TRUE)
     }
 
-    results <- RunSDA(seuratObj, outputFolder = outputFolder, numComps = 5)
-    print(results)
-    
+    seuratObj <- subset(seuratObj, cells = colnames(seuratObj[1:100]))
+    results <- RunSDA(seuratObj, outputFolder = outputFolder, numComps = 2, minAsinhThreshold = 8, max_iter = 50)
+    print(utils::str(results))
+
+    expect_equal(length(results$scores), 3114)
+
     unlink(outputFolder)
 })
 

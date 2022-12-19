@@ -6,7 +6,20 @@ test_that("PHATE works as expected", {
     }
 
     if (!reticulate::py_module_available('phate')) {
-        stop('The python phate module has not been installed!')
+        print('Phate module not found, debugging:')
+        print(reticulate::py_list_packages())
+        if ('phate' %in% reticulate::py_list_packages()$package) {
+            tryCatch({
+                reticulate::import('phate')
+            }, error = function(e){
+                print("Error with reticulate::import('phate')")
+                print(conditionMessage(e))
+                traceback()
+            })
+        }
+
+        warning('The python phate module has not been installed!')
+        return()
     }
 
     set.seed(CellMembrane::GetSeed())

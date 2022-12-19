@@ -23,26 +23,27 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
   
   ## default gene inclusion (0.5 is basically including all detectable genes)
-  inclusionFeats <- rownames(SerObj.DGE)[asinh(Matrix::rowSums(SerObj.DGE)) > minAsinhThreshold]
-  print(paste0('Initial passing features: ', length(inclusionFeats)))
+  print(paste0('Initial features: ', nrow(SerObj.DGE)))
+  featuresToUse <- rownames(SerObj.DGE)[asinh(Matrix::rowSums(SerObj.DGE)) > minAsinhThreshold]
+  print(paste0('After gene count filter: ', length(featuresToUse)))
 
   if (!all(is.null(featureInclusionList))) {
     featureInclusionList <- RIRA::ExpandGeneList(featureInclusionList)
-    preExisting <- intersect(features, featureInclusionList)
+    preExisting <- intersect(featuresToUse, featureInclusionList)
     print(paste0('Adding ', length(featureInclusionList), ' features, of which ', length(preExisting), ' are already present'))
-    features <- unique(c(features, featureInclusionList))
-    print(paste0('Total after: ', length(features)))
+    featuresToUse <- unique(c(featuresToUse, featureInclusionList))
+    print(paste0('Total after: ', length(featuresToUse)))
   }
 
   if (!all(is.null(featureExclusionList))){
     featureExclusionList <- RIRA::ExpandGeneList(featureExclusionList)
-    preExisting <- intersect(features, featureExclusionList)
+    preExisting <- intersect(featuresToUse, featureExclusionList)
     print(paste0('Excluding ', length(featureExclusionList), ' features(s), of which ', length(preExisting), ' are present'))
-    features <- unique(features[!(features %in% featureExclusionList)])
-    print(paste0('Total after: ', length(features)))
+    featuresToUse <- unique(featuresToUse[!(featuresToUse %in% featureExclusionList)])
+    print(paste0('Total after: ', length(featuresToUse)))
   }
 
-  P1 <- ggplot(data.frame(x = sqrt(Matrix::colSums(SerObj.DGE[inclusionFeats, ]))), aes(x = x)) +
+  P1 <- ggplot(data.frame(x = sqrt(Matrix::colSums(SerObj.DGE[featuresToUse, ]))), aes(x = x)) +
     geom_density() +
     ggtitle("SQRT(Total transcript per cell)") +
     geom_vline(xintercept = 50, color = 'dodgerblue') +
@@ -64,7 +65,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   ### other methods work, perhaps we can add other options in the future
    # most cases works but can be taken as input depeding on how the density plot above looks
   print("starting dropsim normaliseDGE")
-  normedDGE <- dropsim::normaliseDGE(Matrix::as.matrix(SerObj.DGE[inclusionFeats, ]),
+  normedDGE <- dropsim::normaliseDGE(Matrix::as.matrix(SerObj.DGE[featuresToUse, ]),
                                      center = FALSE, #dont change
                                      scale = TRUE,#dont change
                                      threshold = 10, #dont change
@@ -83,8 +84,11 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   normedDGE <- as.matrix(normedDGE)
   SDAtools::export_data(normedDGE, path = outputFolder, name = 'rawData')
 
-  rawDataDir <- paste0(outputFolder, 'rawData')
-  resultsDir <- paste0(outputFolder, 'results')
+  rawDataFile <- paste0(outputFolder, 'rawData')
+  print('Files after save:')
+  print(list.files(outputFolder))
+
+  resultsDir <- paste0(outputFolder, 'results/')
 
   print(paste0('Saving results to: ', resultsDir))
   if (dir.exists(resultsDir)) {
@@ -92,9 +96,17 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
   }
 
   print('Running SDA')
+  if (!file.exists(path.sda)) {
+    x <- unname(Sys.which(path.sda))
+    if (x != '') {
+      print(paste0('Found SDA under PATH: ', x))
+      path.sda <- x
+    }
+  }
+
   SDAtools::run_SDA(sda_location = path.sda,
           out = resultsDir,
-          data = rawDataDir,
+          data = rawDataFile,
           num_comps = numComps,
           max_iter = max_iter,
           save_freq = 1000,
@@ -106,17 +118,37 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, assayName = 'RNA', ra
           num_openmp_threads = nThreads
   )
 
-  results <- SDAtools::load_results(results_folder = resultsDir, data_path = rawDataDir)
+  results <- SDAtools::load_results(results_folder = resultsDir, data_path = outputFolder)
 
-  SDAtools::check_simulation_scores(data = normedDGE, results = results)
-  SDAtools::check_convergence(results)
-  SDAtools::loading_distribution(results)
-  SDAtools::scores_distribution(results)
-  SDAtools::plot_maximums(results)
-  SDAtools::plot_scree(results)
-  SDAtools::PIP_distribution(results)
-  SDAtools::PIP_component_distribution(results, 2)
-  SDAtools::PIP_threshold_distribution(results)
+  tryCatch({
+    SDAtools::check_convergence(results)
+    SDAtools::loading_distribution(results)
+    SDAtools::scores_distribution(results)
+  }, error = function(e){
+    print(paste0('Error generating SDA first plots'))
+    print(conditionMessage(e))
+  })
+
+  tryCatch({
+    SDAtools::plot_scree(results)
+  }, error = function(e){
+    print(paste0('Error generating SDA plot_scree'))
+    print(conditionMessage(e))
+  })
+
+  tryCatch({
+    SDAtools::PIP_distribution(results)
+  }, error = function(e){
+    print(paste0('Error generating SDA PIP_distribution'))
+    print(conditionMessage(e))
+  })
+
+  tryCatch({
+    SDAtools::PIP_threshold_distribution(results)
+  }, error = function(e){
+    print(paste0('Error generating SDA PIP_threshold_distribution'))
+    print(conditionMessage(e))
+  })
 
   return(results)
 }
