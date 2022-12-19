@@ -9,7 +9,13 @@ test_that("PHATE works as expected", {
         print('Phate module not found, debugging:')
         print(reticulate::py_list_packages())
         if ('phate' %in% reticulate::py_list_packages()$package) {
-            reticulate::import('phate')
+            tryCatch({
+                reticulate::import('phate')
+            }, error = function(x){
+                print("Error with reticulate::import('phate')")
+                print(conditionMessage(e))
+                traceback()
+            })
         }
 
         warning('The python phate module has not been installed!')
