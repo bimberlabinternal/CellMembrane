@@ -63,7 +63,7 @@ jobs:
           mkdir $SDA_PATH
           wget -q -O $SDA_PATH/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1
           chmod +x $SDA_PATH/sda_static_linux          
-          echo $(pwd)/sda >> $GITHUB_PATH
+          echo /home/runner/work/sda >> $GITHUB_PATH
 
       # Note: the environment variable R_BIOC_VERSION is set to force remotes::install_bioc to follow the proper version
       - name: Setup Bioconductor
