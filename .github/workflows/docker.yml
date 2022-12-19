@@ -45,7 +45,7 @@ jobs:
           context: .
           file: ./Dockerfile
           build-args: |
-            "GITHUB_PAT=${{ secrets.PAT }}"
+            "GH_PAT=${{ secrets.PAT }}"
           pull: true
           push: true
           tags: ghcr.io/bimberlabinternal/cellmembrane:nightly,ghcr.io/bimberlabinternal/cellmembrane:latest

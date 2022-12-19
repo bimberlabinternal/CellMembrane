@@ -1,6 +1,8 @@
 # Note: this is the last base version supporting ubuntu focal, not jammy
 FROM rocker/rstudio:4.2.1
 
+ARG GH_PAT='NOT_SET'
+
 ##  Add Bioconductor system dependencies
 RUN wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/master/bioc_scripts/install_bioc_sysdeps.sh \
     && bash ./install_bioc_sysdeps.sh \
@@ -53,8 +55,10 @@ ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
 RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
 RUN cd /CellMembrane \
+    && if [[ '${GH_PAT}' != 'NOT_SET' ]];then export GITHUB_PAT='${GH_PAT}';fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
-	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds
+	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
+	&& unset GITHUB_PAT
