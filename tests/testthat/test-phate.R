@@ -11,7 +11,7 @@ test_that("PHATE works as expected", {
         if ('phate' %in% reticulate::py_list_packages()$package) {
             tryCatch({
                 reticulate::import('phate')
-            }, error = function(x){
+            }, error = function(e){
                 print("Error with reticulate::import('phate')")
                 print(conditionMessage(e))
                 traceback()
