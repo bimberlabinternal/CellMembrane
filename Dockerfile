@@ -55,7 +55,7 @@ ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
 RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
 
 RUN cd /CellMembrane \
-    && if [ '${GH_PAT}' != 'NOT_SET' ];then echo 'Setting GITHUB_PAT'; export GITHUB_PAT='${GH_PAT}';fi \
+    && if [[ "${GH_PAT}" != 'NOT_SET' ]];then echo 'Setting GITHUB_PAT'; export GITHUB_PAT="${GH_PAT}";fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
     && R CMD build . \
