@@ -285,6 +285,7 @@ SDAToSeuratReduction <- function(seuratObj, sdaResults, assayName = 'RNA', reduc
   projected <- t(sdaResults$loadings[[1]])
   colnames(projected) <- paste0(reduction.key, 1:ncol(projected))
 
+  # See: https://satijalab.org/seurat/archive/v3.0/dim_reduction_vignette.html
   sda.reduction <- Seurat::CreateDimReducObject(
     embeddings = embeddings,
     projected = projected,
