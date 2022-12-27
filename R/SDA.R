@@ -34,7 +34,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
       minCellsExpressingFeatureRaw <- minCellsExpressingFeature
       minCellsExpressingFeature <- floor(minCellsExpressingFeatureRaw * ncol(seuratObj))
 
-      print('Interpreting minCellsExpressingFeature as a percentage of total cells, converted from ', minCellsExpressingFeature, ' to ', minCellsExpressingFeature)
+      print(paste0('Interpreting minCellsExpressingFeature as a percentage of total cells, converted from ', minCellsExpressingFeature, ' to ', minCellsExpressingFeature))
     }
 
     numNonZeroCells <- Matrix::rowSums(SerObj.DGE > perCellExpressionThreshold)
