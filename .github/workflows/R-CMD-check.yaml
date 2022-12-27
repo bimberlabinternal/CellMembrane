@@ -39,6 +39,7 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       # libsodium-dev installed for VISION
+      # NOTE: remove skikit-learn if this is resolved: https://github.com/KrishnaswamyLab/PHATE/issues/124
       - name: Install packages
         if: runner.os != 'Windows'
         run: |

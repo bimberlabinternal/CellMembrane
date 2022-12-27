@@ -213,7 +213,7 @@ Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, dir
   }
 
   colnames(CompsDF) <- levels(factor(MetaDF[,1]))
-  CompsDF <- as.data.frame(CompsDF[gtools::mixedsort(rownames(CompsDF)),])
+  CompsDF <- as.data.frame(CompsDF[naturalsort::naturalsort(rownames(CompsDF)),])
   CompsDF$SDA <- factor(rownames(CompsDF), levels=rownames(CompsDF))
   ChiT <- chisq.test(CompsDF[,1:(ncol(CompsDF)-1)])
   ChiTres <- ChiT$residuals
