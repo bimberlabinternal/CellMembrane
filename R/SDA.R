@@ -198,12 +198,11 @@ Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, dir
   MetaDF <- seuratObj[[c(metadataFeature), drop = FALSE]]
   MetaDF <- MetaDF[rownames(SDAScores),,drop = FALSE]
 
-  # EISA: why do the two round functions use different decimal precision? 1 for neg and 2 for pos??
   if (direction == "Neg"){
     CompsDF <- as.data.frame(lapply(levels(factor(MetaDF[,1])), function(CondX){
       apply(SDAScores[rownames(MetaDF)[which(MetaDF[,1] == CondX)], ], 2,
             function(x){
-              round(sum(x<0)/nrow(SDAScores)*100, 1)
+              round(sum(x<0)/nrow(SDAScores)*100, 2)
             })
     }))
   } else if(direction == "Pos"){
@@ -266,7 +265,6 @@ SDAToSeuratMetadata <- function(seuratObj, results, plotComponents = TRUE){
 #' @param reduction.key The key used for this reduction
 #' @export
 SDAToSeuratReduction <- function(seuratObj, sdaResults, assayName = 'RNA', reduction.name = 'sda', reduction.key = 'SDA_') {
-  # EISA: does adding cells with zeros make sense? Seurat requires the matrix to have values for all cells
   # rows = cells. Note: since SDA could drop cells, add back in the missing cells with zeros
   embeddings <- sdaResults$scores
   colnames(embeddings) <- paste0(reduction.key, 1:ncol(embeddings))
@@ -304,8 +302,7 @@ SDAToSeuratReduction <- function(seuratObj, sdaResults, assayName = 'RNA', reduc
 }
 
 
-# EISA: note, I removed maxscoreThrsh = 20, maxloadThrsh = 1, since they were not used.
-.AddCompStats <- function(SDAres, sdThrsh = 0.04, redoCalc = T){
+.AddCompStats <- function(SDAres, redoCalc = T){
   if (redoCalc) {
     SDAres$component_statistics <- NULL
   }
@@ -327,20 +324,13 @@ SDAToSeuratReduction <- function(seuratObj, sdaResults, assayName = 'RNA', reduc
     print('component_statistics found, will not redo calculations. See redoCalc to repeat calculations')
   }
 
-  # EISA: what is this designed to do? Why do we need these other variables?
-  SDAres$component_statistics$Component_namev2 <- SDAres$component_statistics$Component_name
-  SDAres$component_statistics$Component_name_plot <- SDAres$component_statistics$Component_name
-
-  # EISA: what is this designed to do? This seems to be setting names to empty string?
-  #SDAres$component_statistics[which(SDAres$component_statistics$sd_loading<sdThrsh),]$Component_namev2 <- rep("", length(which(SDAres$component_statistics$sd_loading<sdThrsh)))
-
   SDAres$component_statistics <- data.frame(SDAres$component_statistics)
 
   return(SDAres)
 }
 
 
-# EISA: this is not well tested, but should be possible. Will need work.
+# Note: this is not well tested, but should be possible. Will need work.
 #' @title Run UMAP using SDA results
 #'
 #' @param seuratObj A Seurat object.
