@@ -10,7 +10,8 @@ RUN wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconduct
 
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
-# NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb \
+# NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb
+# NOTE: remove skikit-learn if this is resolved: https://github.com/KrishnaswamyLab/PHATE/issues/124
 RUN apt-get update -y \
     && apt-get upgrade -y \
     && apt-get install -y \
@@ -20,7 +21,7 @@ RUN apt-get update -y \
         locales \
         locales-all \
     && python3 -m pip install --upgrade pip \
-	&& pip3 install umap-learn phate \
+	&& pip3 install umap-learn scikit-learn==1.1.3 phate \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 

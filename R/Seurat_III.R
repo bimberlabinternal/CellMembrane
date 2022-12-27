@@ -37,7 +37,7 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
   }
 
   if (!endsWith(dataDir, '/')) {
-    dataDir <- paste0(dataDir, '/');
+    dataDir <- paste0(dataDir, '/')
   }
 
   dirWithFeatureMatrix <- .InferMatrixDir(dataDir)
@@ -577,18 +577,8 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
                                    umap.n.neighbors = NULL, umap.min.dist = NULL, umap.spread = NULL, seed.use = GetSeed(),
                                    umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30, umap.densmap = FALSE,
   clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2) ){
-  if (is.null(dimsToUse)) {
-    dimMax <- .FindSeuratElbow(seuratObj)
-    print(paste0('Inferred elbow: ', dimMax))
 
-    if (!is.null(minDimsToUse)) {
-      print(paste0('Min dims to use: ', minDimsToUse))
-      dimMax <- max(minDimsToUse, dimMax)
-    }
-
-    print(paste0('Selected dimsToUse: 1:', dimMax))
-    dimsToUse <- 1:dimMax
-  }
+  dimsToUse <- .GetDimsToUse(seuratObj, dimsToUse = dimsToUse, minDimsToUse = minDimsToUse)
 
   seuratObj <- FindNeighbors(object = seuratObj, dims = dimsToUse, verbose = FALSE)
 
@@ -606,11 +596,67 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 									reduction.key = 'rnaTSNE_',
 									max_iter = max.tsne.iter)
 
+  seuratObj <- .RunUMAP(seuratObj,
+        dimsToUse = dimsToUse,
+        minDimsToUse = minDimsToUse,
+        seed.use = seed.use,
+        umap.method = umap.method,
+        umap.metric = umap.metric,
+        umap.n.neighbors = umap.n.neighbors,
+        umap.min.dist = umap.min.dist,
+        umap.spread = umap.spread,
+        umap.n.epochs = umap.n.epochs,
+        umap.densmap = umap.densmap
+  )
+
+  seuratObj <- .ClearSeuratCommands(seuratObj)
+
+  for (reduction in c('tsne', 'umap')){
+    plotLS <- list()
+    i <- 0
+    for (res in as.character(clusterResolutions)){
+      i <- i + 1
+      plotLS[[i]] <- suppressWarnings(DimPlot(object = seuratObj, reduction = reduction, group.by = paste0("ClusterNames_", res), label = TRUE)) + patchwork::plot_annotation(title = paste0("Resolution: ", res))
+
+    }
+    print(patchwork::wrap_plots(plotLS))
+  }
+
+  return(seuratObj)
+}
+
+.GetDimsToUse <- function(seuratObj, dimsToUse, minDimsToUse){
+  if (is.null(dimsToUse)) {
+    dimMax <- .FindSeuratElbow(seuratObj)
+    print(paste0('Inferred elbow: ', dimMax))
+
+    if (!is.null(minDimsToUse)) {
+      print(paste0('Min dims to use: ', minDimsToUse))
+      dimMax <- max(minDimsToUse, dimMax)
+    }
+
+    print(paste0('Selected dimsToUse: 1:', dimMax))
+    dimsToUse <- 1:dimMax
+  }
+
+  return(dimsToUse)
+}
+
+.RunUMAP <- function(seuratObj, reduction = 'pca', dimsToUse = NULL, minDimsToUse = NULL,
+                     umap.method = 'uwot', umap.metric = NULL,
+                     umap.n.neighbors = NULL, umap.min.dist = NULL,
+                     umap.spread = NULL, seed.use = GetSeed(),
+                     umap.n.epochs = NULL, umap.densmap = FALSE, reduction.key = 'rnaUMAP_', reduction.name = 'umap') {
+
+  dimsToUse <- .GetDimsToUse(seuratObj, dimsToUse = dimsToUse, minDimsToUse = minDimsToUse)
+
   umapArgs <- list()
   umapArgs[['verbose']] <- FALSE
   umapArgs[['object']] <- seuratObj
   umapArgs[['dims']] <- dimsToUse
-  umapArgs[['reduction.key']] <- 'rnaUMAP_'
+  umapArgs[['reduction.key']] <- reduction.key
+  umapArgs[['reduction.name']] <- reduction.name
+  umapArgs[['reduction']] <- reduction
 
   possibleArgs <- list(
     n.neighbors = umap.n.neighbors,
@@ -631,18 +677,6 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
   }
 
   seuratObj <- rlang::invoke(RunUMAP, umapArgs)
-  seuratObj <- .ClearSeuratCommands(seuratObj)
-
-  for (reduction in c('tsne', 'umap')){
-    plotLS <- list()
-    i <- 0
-    for (res in as.character(clusterResolutions)){
-      i <- i + 1
-      plotLS[[i]] <- suppressWarnings(DimPlot(object = seuratObj, reduction = reduction, group.by = paste0("ClusterNames_", res), label = TRUE)) + patchwork::plot_annotation(title = paste0("Resolution: ", res))
-
-    }
-    print(patchwork::wrap_plots(plotLS))
-  }
 
   return(seuratObj)
 }
@@ -912,8 +946,6 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     ##
     ## Returns 9999 on 0 denominator conditions.
     lineMagnitude <- function(x1, y1, x2, y2) sqrt((x2-x1)^2+(y2-y1)^2)
-    ans <- NULL
-    ix <- iy <- 0   # intersecting point
     lineMag <- lineMagnitude(x1, y1, x2, y2)
     if (any(lineMag < 0.00000001)) {
       #warning("short segment")
@@ -924,6 +956,8 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     u <- u / (lineMag * lineMag)
 
     ans <- c()
+    ix <- 0
+    iy <- 0
     for (i in 1:length(u)) {
       if (u[i] < 0.00001 || u[i] > 1) {
         print('closest point does not fall within the line segment, take the shorter distance to an endpoint')

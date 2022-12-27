@@ -9,11 +9,23 @@ test_that("SDA works as expected", {
         unlink(outputFolder, recursive = TRUE)
     }
 
+    # NOTE: these values are designed to highly subset the matrix to make the input very small and fast to run. This is just designed to show code runs w/o errors.
     seuratObj <- subset(seuratObj, cells = colnames(seuratObj[1:100]))
-    results <- RunSDA(seuratObj, outputFolder = outputFolder, numComps = 2, minAsinhThreshold = 8, max_iter = 50)
-    print(utils::str(results))
+    sdaResults <- RunSDA(seuratObj, outputFolder = outputFolder, numComps = 2, minFeatureCount = 1490, max_iter = 50)
+    print(utils::str(sdaResults))
 
-    expect_equal(length(results$scores), 3114)
+    expect_true('component_statistics' %in% names(sdaResults))
+    expect_true('Features' %in% names(sdaResults))
+    expect_true('CellBarcodes' %in% names(sdaResults))
+
+    expect_equal(length(sdaResults$scores), 3114)
+
+    seuratObj <- SDAToSeuratMetadata(seuratObj, sdaResults)
+    expect_true('SDA_1' %in% names(seuratObj@meta.data))
+    expect_true('SDA_2' %in% names(seuratObj@meta.data))
+
+    seuratObj <- SDAToSeuratReduction(seuratObj, sdaResults)
+    expect_true('sda' %in% names(seuratObj@reductions))
 
     unlink(outputFolder)
 })
