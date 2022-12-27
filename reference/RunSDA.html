@@ -54,11 +54,13 @@
 <span>  <span class="va">seuratObj</span>,</span>
 <span>  <span class="va">outputFolder</span>,</span>
 <span>  numComps <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>  assayName <span class="op">=</span> <span class="st">"RNA"</span>,</span>
-<span>  randomSeed <span class="op">=</span> <span class="fu"><a href="GetSeed.html">GetSeed</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  minAsinhThreshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  minCellsExpressingFeature <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  perCellExpressionThreshold <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  minFeatureCount <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>  featureInclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  featureExclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  assayName <span class="op">=</span> <span class="st">"RNA"</span>,</span>
+<span>  randomSeed <span class="op">=</span> <span class="fu"><a href="GetSeed.html">GetSeed</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  minLibrarySize <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  path.sda <span class="op">=</span> <span class="st">"sda_static_linux"</span>,</span>
 <span>  max_iter <span class="op">=</span> <span class="fl">10000</span>,</span>
@@ -80,16 +82,16 @@
 <dd><p>Passed to SDAtools::run_SDA(). 30 is a good minimum but depends on input data complexity.</p></dd>
 
 
-<dt>assayName</dt>
-<dd><p>The name of the assay</p></dd>
+<dt>minCellsExpressingFeature</dt>
+<dd><p>Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.</p></dd>
 
 
-<dt>randomSeed</dt>
-<dd><p>Passed to SDAtools::run_SDA() set_seed</p></dd>
+<dt>perCellExpressionThreshold</dt>
+<dd><p>Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.</p></dd>
 
 
-<dt>minAsinhThreshold</dt>
-<dd><p>Only features with asinh() on total counts above this value will be included.</p></dd>
+<dt>minFeatureCount</dt>
+<dd><p>Only features where their total counts across all cells are above this value will be included.</p></dd>
 
 
 <dt>featureInclusionList</dt>
@@ -100,8 +102,16 @@
 <dd><p>An optional vector of genes that will be excluded from SDA</p></dd>
 
 
+<dt>assayName</dt>
+<dd><p>The name of the assay</p></dd>
+
+
+<dt>randomSeed</dt>
+<dd><p>Passed to SDAtools::run_SDA() set_seed</p></dd>
+
+
 <dt>minLibrarySize</dt>
-<dd><p>Passed to dropsim::normaliseDGE() min_library_size</p></dd>
+<dd><p>Passed to dropsim::normaliseDGE() min_library_size. Only cells with library size equal or greater to this will be kept. IMPORTANT: this is applied after feature selection.</p></dd>
 
 
 <dt>path.sda</dt>
