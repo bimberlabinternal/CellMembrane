@@ -49,7 +49,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
 
   if (!is.na(minFeatureCount)) {
     featuresToUse <- rownames(SerObj.DGE)[Matrix::rowSums(SerObj.DGE) > minFeatureCount]
-    print(paste0('After gene count filter of ', minFeatureCount, ': ', length(featuresToUse)), ' features remain')
+    print(paste0('After gene count filter of ', minFeatureCount, ': ', length(featuresToUse), ' features remain'))
   }
 
   if (!all(is.null(featureInclusionList))) {
