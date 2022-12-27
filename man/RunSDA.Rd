@@ -8,11 +8,13 @@ RunSDA(
   seuratObj,
   outputFolder,
   numComps = 50,
-  assayName = "RNA",
-  randomSeed = GetSeed(),
-  minAsinhThreshold = 0.5,
+  minCellsExpressingFeature = 0.01,
+  perCellExpressionThreshold = 0,
+  minFeatureCount = 200,
   featureInclusionList = NULL,
   featureExclusionList = NULL,
+  assayName = "RNA",
+  randomSeed = GetSeed(),
   minLibrarySize = 50,
   path.sda = "sda_static_linux",
   max_iter = 10000,
@@ -26,23 +28,27 @@ RunSDA(
 
 \item{numComps}{Passed to SDAtools::run_SDA(). 30 is a good minimum but depends on input data complexity.}
 
-\item{assayName}{The name of the assay}
+\item{perCellExpressionThreshold}{Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.}
 
-\item{randomSeed}{Passed to SDAtools::run_SDA() set_seed}
-
-\item{minAsinhThreshold}{Only features with asinh() on total counts above this value will be included.}
+\item{minFeatureCount}{Only features where their total counts across all cells are above this value will be included.}
 
 \item{featureInclusionList}{An optional vector of genes that will be included in SDA}
 
 \item{featureExclusionList}{An optional vector of genes that will be excluded from SDA}
 
-\item{minLibrarySize}{Passed to dropsim::normaliseDGE() min_library_size}
+\item{assayName}{The name of the assay}
+
+\item{randomSeed}{Passed to SDAtools::run_SDA() set_seed}
+
+\item{minLibrarySize}{Passed to dropsim::normaliseDGE() min_library_size. Only cells with library size equal or greater to this will be kept. IMPORTANT: this is applied after feature selection.}
 
 \item{path.sda}{The full path to the SDA binary. By default it assumes sda_static_linux in in your $PATH}
 
 \item{max_iter}{Passed directly to SDAtools::run_SDA()}
 
 \item{nThreads}{Passed to SDAtools::run_SDA() num_openmp_threads}
+
+\item{minCellsExpressingFeature.}{Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.}
 }
 \description{
 This will run SDA on the target assay

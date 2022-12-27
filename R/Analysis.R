@@ -97,8 +97,8 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   rawData$yField <- as.character(rawData$yField)
 
   # Make concatenated columns for grouping:
-  rawData <- rawData %>% tidyr::unite("XY_Key", all_of(c('xField', 'yField', extraGroupingFields)), remove = FALSE)
-  rawData <- rawData %>% tidyr::unite("Y_Key", all_of(c('yField', extraGroupingFields)), remove = FALSE)
+  rawData <- rawData %>% tidyr::unite("XY_Key", c('xField', 'yField', extraGroupingFields), remove = FALSE)
+  rawData <- rawData %>% tidyr::unite("Y_Key", c('yField', extraGroupingFields), remove = FALSE)
   
   # Calculate the weighted total of cells in each X/Y group
   xyTotals <- rawData %>% dplyr::count(XY_Key, wt = SizeFactor, name = 'TotalPerXY')
@@ -122,7 +122,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
 
   # Merge cluster enrichment and category enrichment tibbles.
   finalData <- merge(colorProportions, clusterProportions, by = "XY_Key")
-  metadata <- unique(rawData[all_of(c('XY_Key', 'xField', 'yField', extraGroupingFields))])
+  metadata <- unique(rawData[c('XY_Key', 'xField', 'yField', extraGroupingFields)])
   finalData <- merge(finalData, metadata, by = "XY_Key")
   finalData$xField <- naturalsort::naturalfactor(finalData$xField)
   finalData$yField <- naturalsort::naturalfactor(finalData$yField)

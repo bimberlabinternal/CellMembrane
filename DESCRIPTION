@@ -59,7 +59,8 @@ Imports:
     future.apply,
     ggrepel,
     SDAtools,
-    dropsim
+    dropsim,
+    RColorBrewer
 Suggests:
     devtools,
     testthat (>= 2.1.0),
