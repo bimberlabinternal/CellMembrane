@@ -28,6 +28,8 @@ RunSDA(
 
 \item{numComps}{Passed to SDAtools::run_SDA(). 30 is a good minimum but depends on input data complexity.}
 
+\item{minCellsExpressingFeature}{Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.}
+
 \item{perCellExpressionThreshold}{Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.}
 
 \item{minFeatureCount}{Only features where their total counts across all cells are above this value will be included.}
@@ -47,8 +49,6 @@ RunSDA(
 \item{max_iter}{Passed directly to SDAtools::run_SDA()}
 
 \item{nThreads}{Passed to SDAtools::run_SDA() num_openmp_threads}
-
-\item{minCellsExpressingFeature.}{Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.}
 }
 \description{
 This will run SDA on the target assay

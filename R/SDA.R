@@ -2,6 +2,11 @@
 #' @include Preprocessing.R
 #' @import Seurat
 
+utils::globalVariables(
+  names = c('Component'),
+  package = 'CellMembrane',
+  add = TRUE
+)
 
 #' @title RunSDA
 #'
@@ -9,7 +14,7 @@
 #' @param seuratObj A Seurat object.
 #' @param outputFolder The path to save results. There will be subfolders for ./rawData and ./results
 #' @param numComps Passed to SDAtools::run_SDA(). 30 is a good minimum but depends on input data complexity.
-#' @param minCellsExpressingFeature. Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.
+#' @param minCellsExpressingFeature Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.
 #' @param perCellExpressionThreshold Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.
 #' @param minFeatureCount Only features where their total counts across all cells are above this value will be included.
 #' @param featureInclusionList An optional vector of genes that will be included in SDA
@@ -38,7 +43,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
     }
 
     numNonZeroCells <- Matrix::rowSums(SerObj.DGE > perCellExpressionThreshold)
-    featuresToUse <- names(num.cells[which(numNonZeroCells >= minCellsExpressingFeature)])
+    featuresToUse <- names(numNonZeroCells[which(numNonZeroCells >= minCellsExpressingFeature)])
     print(paste0('After filtering to features with expression > ', perCellExpressionThreshold, ' in at least ', minCellsExpressingFeature, ' cells: ', length(featuresToUse)))
   }
 
@@ -215,7 +220,7 @@ Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, dir
   colnames(CompsDF) <- levels(factor(MetaDF[,1]))
   CompsDF <- as.data.frame(CompsDF[naturalsort::naturalsort(rownames(CompsDF)),])
   CompsDF$SDA <- factor(rownames(CompsDF), levels=rownames(CompsDF))
-  ChiT <- chisq.test(CompsDF[,1:(ncol(CompsDF)-1)])
+  ChiT <- stats::chisq.test(CompsDF[,1:(ncol(CompsDF)-1)])
   ChiTres <- ChiT$residuals
   ChiTres[which(is.na(ChiTres))] <- 0
   ChiResSD <- round(apply(ChiTres, 1, sd),2)
