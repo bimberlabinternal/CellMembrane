@@ -26,7 +26,7 @@ utils::globalVariables(
 #' @param max_iter Passed directly to SDAtools::run_SDA()
 #' @param nThreads Passed to SDAtools::run_SDA() num_openmp_threads
 #' @export
-RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 200, featureInclusionList = NULL, featureExclusionList = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = "sda_static_linux", max_iter = 10000, nThreads = 1) {
+RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = "sda_static_linux", max_iter = 10000, nThreads = 1) {
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
   
   ## default gene inclusion (0.5 is basically including all detectable genes)
@@ -225,7 +225,7 @@ Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, dir
   ChiResSD <- round(apply(ChiTres, 1, sd),2)
   ChiResSD[which(is.na(ChiResSD))] <- 0
   ChiResSD[ChiResSD < 0.2] <- ""
-  
+
   pheatmap::pheatmap((t(ChiTres)),
                      cluster_cols = TRUE, cluster_rows = TRUE,
                      color = grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(n = 7, name ="RdBu")))(10),
@@ -241,7 +241,7 @@ Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, dir
 #' @param plotComponents If true, FeaturePlots will be generated for the components
 #' @export
 SDAToSeuratMetadata <- function(seuratObj, results, plotComponents = TRUE){
-  # EISA: so this adds NAs for missing genes, right? Is that the desired behavior?
+  # Note: this adds NAs for missing cells. We could in theory change this to zeros if NAs are a problem.
   SDAScores <- results$scores[rownames(seuratObj@meta.data), ]
   colnames(SDAScores) <- paste0("SDA_", 1:ncol(SDAScores))
 
@@ -265,10 +265,11 @@ SDAToSeuratMetadata <- function(seuratObj, results, plotComponents = TRUE){
 #' @param reduction.key The key used for this reduction
 #' @export
 SDAToSeuratReduction <- function(seuratObj, sdaResults, assayName = 'RNA', reduction.name = 'sda', reduction.key = 'SDA_') {
-  # rows = cells. Note: since SDA could drop cells, add back in the missing cells with zeros
+  # rows = cells
   embeddings <- sdaResults$scores
   colnames(embeddings) <- paste0(reduction.key, 1:ncol(embeddings))
 
+  # Note: since SDA could drop cells, add back in the missing cells with zeros
   extraCells <- setdiff(rownames(embeddings), colnames(seuratObj))
   if (length(extraCells) > 0) {
     stop(paste0('There were ', length(extraCells), ' with data in the SDA results but not present in the seurat object.  Top barcodes: ', paste0(head(extraCells), collapse = ',')))

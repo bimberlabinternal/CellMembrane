@@ -10,7 +10,7 @@ RunSDA(
   numComps = 50,
   minCellsExpressingFeature = 0.01,
   perCellExpressionThreshold = 0,
-  minFeatureCount = 200,
+  minFeatureCount = 1,
   featureInclusionList = NULL,
   featureExclusionList = NULL,
   assayName = "RNA",
@@ -32,7 +32,7 @@ RunSDA(
 
 \item{perCellExpressionThreshold}{Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.}
 
-\item{minFeatureCount}{Only features where their total counts across all cells are above this value will be included.}
+\item{minFeatureCount}{Only features where their total counts across all cells are greater than this value will be included. The default value of 1 is designed to include all but the most lowly expressed genes.}
 
 \item{featureInclusionList}{An optional vector of genes that will be included in SDA}
 
