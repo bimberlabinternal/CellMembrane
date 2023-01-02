@@ -16,7 +16,7 @@ utils::globalVariables(
 #' @param numComps Passed to SDAtools::run_SDA(). 30 is a good minimum but depends on input data complexity.
 #' @param minCellsExpressingFeature Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.
 #' @param perCellExpressionThreshold Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.
-#' @param minFeatureCount Only features where their total counts across all cells are above this value will be included.
+#' @param minFeatureCount Only features where the total counts across all cells are greater than this value will be included.
 #' @param featureInclusionList An optional vector of genes that will be included in SDA
 #' @param featureExclusionList An optional vector of genes that will be excluded from SDA
 #' @param assayName The name of the assay
@@ -74,6 +74,10 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
     print(paste0('Excluding ', length(featureExclusionList), ' features(s), of which ', length(preExisting), ' are present'))
     featuresToUse <- unique(featuresToUse[!(featuresToUse %in% featureExclusionList)])
     print(paste0('Total after: ', length(featuresToUse)))
+  }
+
+  if (length(featuresToUse) == 0) {
+    stop('No features remain after filtering')
   }
 
   df <- data.frame(x = Matrix::colSums(SerObj.DGE[featuresToUse, ]))
