@@ -55,7 +55,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
 
   if (!is.na(minFeatureCount)) {
     numFeatures <- length(featuresToUse)
-    featuresToUse <- featuresToUse[Matrix::rowSums(SerObj.DGE) > minFeatureCount]
+    featuresToUse <- featuresToUse[Matrix::rowSums(SerObj.DGE[featuresToUse, ]) > minFeatureCount]
     print(paste0('After gene count filter of ', minFeatureCount, ': ', length(featuresToUse), ' features remain (', scales::percent(length(featuresToUse) / numFeatures),')'))
     rm(numFeatures)
   }
