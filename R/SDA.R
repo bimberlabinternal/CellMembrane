@@ -28,28 +28,36 @@ utils::globalVariables(
 #' @export
 RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = "sda_static_linux", max_iter = 10000, nThreads = 1) {
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
-  
-  ## default gene inclusion (0.5 is basically including all detectable genes)
+
+  n_cells <- ncol(SerObj.DGE)
+  if (n_cells > 250000) {
+    stop("SDA has shown to max handle ~200K cells ")
+  }
+  else if (n_cells > 150000) {
+    warning("SDA has shown to max handle ~200K cells ")
+  }
+
+  print(paste0('Initial features: ', nrow(SerObj.DGE)))
   featuresToUse <- rownames(SerObj.DGE)
-  print(paste0('Initial features: ', length(featuresToUse)))
 
   if (!is.na(minCellsExpressingFeature)) {
     print('Filtering on minCellsExpressingFeature')
     if (minCellsExpressingFeature < 1) {
       minCellsExpressingFeatureRaw <- minCellsExpressingFeature
       minCellsExpressingFeature <- floor(minCellsExpressingFeatureRaw * ncol(seuratObj))
-
-      print(paste0('Interpreting minCellsExpressingFeature as a percentage of total cells, converted from ', minCellsExpressingFeature, ' to ', minCellsExpressingFeature))
+      print(paste0('Interpreting minCellsExpressingFeature as a percentage of total cells, converted from ', minCellsExpressingFeatureRaw, ' to ', minCellsExpressingFeature))
     }
 
     numNonZeroCells <- Matrix::rowSums(SerObj.DGE > perCellExpressionThreshold)
     featuresToUse <- names(numNonZeroCells[which(numNonZeroCells >= minCellsExpressingFeature)])
-    print(paste0('After filtering to features with expression > ', perCellExpressionThreshold, ' in at least ', minCellsExpressingFeature, ' cells: ', length(featuresToUse)))
+    print(paste0('After filtering to features with expression > ', perCellExpressionThreshold, ' in at least ', minCellsExpressingFeature, ' cells: ', length(featuresToUse), ' (', scales::percent(length(featuresToUse) / nrow(SerObj.DGE)), ')'))
   }
 
   if (!is.na(minFeatureCount)) {
-    featuresToUse <- rownames(SerObj.DGE)[Matrix::rowSums(SerObj.DGE) > minFeatureCount]
-    print(paste0('After gene count filter of ', minFeatureCount, ': ', length(featuresToUse), ' features remain'))
+    numFeatures <- length(featuresToUse)
+    featuresToUse <- featuresToUse[Matrix::rowSums(SerObj.DGE) > minFeatureCount]
+    print(paste0('After gene count filter of ', minFeatureCount, ': ', length(featuresToUse), ' features remain (', scales::percent(length(featuresToUse) / numFeatures),')'))
+    rm(numFeatures)
   }
 
   if (!all(is.null(featureInclusionList))) {
@@ -68,25 +76,18 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
     print(paste0('Total after: ', length(featuresToUse)))
   }
 
-  P1 <- ggplot(data.frame(x = sqrt(Matrix::colSums(SerObj.DGE[featuresToUse, ]))), aes(x = x)) +
+  P1 <- ggplot(data.frame(x = Matrix::colSums(SerObj.DGE[featuresToUse, ])), aes(x = x)) +
     geom_density() +
-    ggtitle("SQRT(Total transcript per cell)") +
-    geom_vline(xintercept = 50, color = 'dodgerblue') +
-    geom_vline(xintercept = 100, color = 'orange') +
-    geom_vline(xintercept = 200, color = 'gold') +
-    geom_vline(xintercept = 800, color = 'red') +
-    geom_vline(xintercept = 1600, color = 'green') +
+    ggtitle("Total features per cell") +
+    labs(x = "Features/Cell") +
+    scale_x_sqrt() +
     ggtitle('Library Size')
 
-  print(P1)
+  if (!is.null(minLibrarySize)) {
+    P1 <- P1 + geom_vline(xintercept = minLibrarySize, color = 'red')
+  }
 
-  n_cells <- ncol(SerObj.DGE)
-  if (n_cells > 250000) {
-    stop("SDA has shown to max handle ~200K cells ")
-  }
-  else if (n_cells > 150000) {
-    warning("SDA has shown to max handle ~200K cells ")
-  }
+  print(P1)
 
   ### other methods work, perhaps we can add other options in the future
    # most cases works but can be taken as input depeding on how the density plot above looks
