@@ -76,12 +76,18 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
     print(paste0('Total after: ', length(featuresToUse)))
   }
 
-  P1 <- ggplot(data.frame(x = Matrix::colSums(SerObj.DGE[featuresToUse, ])), aes(x = x)) +
+  df <- data.frame(x = Matrix::colSums(SerObj.DGE[featuresToUse, ]))
+  dens <- stats::density(df$x)
+  mx <- dens$x[which.max(dens$y)]
+
+  P1 <- ggplot(df, aes(x = x)) +
+    scale_x_sqrt() +
     geom_density() +
     ggtitle("Total features per cell") +
-    labs(x = "Features/Cell") +
-    scale_x_sqrt() +
-    ggtitle('Library Size')
+    labs(x = "Features/Cell", y = 'Density') +
+    geom_vline(xintercept = mx, color = 'red') +
+    ggtitle(paste0('Library Size: Peak = ', mx))
+
 
   if (!is.null(minLibrarySize)) {
     P1 <- P1 + geom_vline(xintercept = minLibrarySize, color = 'red')
