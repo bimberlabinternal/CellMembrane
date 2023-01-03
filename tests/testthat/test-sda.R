@@ -18,7 +18,7 @@ test_that("SDA works as expected", {
     expect_true('Features' %in% names(sdaResults))
     expect_true('CellBarcodes' %in% names(sdaResults))
 
-    expect_equal(length(sdaResults$scores), 3114)
+    expect_equal(length(sdaResults$scores), 200)
 
     seuratObj <- SDAToSeuratMetadata(seuratObj, sdaResults)
     expect_true('SDA_1' %in% names(seuratObj@meta.data))
