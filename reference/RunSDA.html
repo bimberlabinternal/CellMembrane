@@ -56,7 +56,7 @@
 <span>  numComps <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  minCellsExpressingFeature <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  perCellExpressionThreshold <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  minFeatureCount <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>  minFeatureCount <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  featureInclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  featureExclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  assayName <span class="op">=</span> <span class="st">"RNA"</span>,</span>
@@ -91,7 +91,7 @@
 
 
 <dt>minFeatureCount</dt>
-<dd><p>Only features where their total counts across all cells are above this value will be included.</p></dd>
+<dd><p>Only features where the total counts across all cells are greater than this value will be included.</p></dd>
 
 
 <dt>featureInclusionList</dt>
