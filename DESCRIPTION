@@ -60,7 +60,8 @@ Imports:
     ggrepel,
     SDAtools,
     dropsim,
-    RColorBrewer
+    RColorBrewer,
+    scales
 Suggests:
     devtools,
     testthat (>= 2.1.0),

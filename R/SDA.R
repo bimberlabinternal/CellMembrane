@@ -16,7 +16,7 @@ utils::globalVariables(
 #' @param numComps Passed to SDAtools::run_SDA(). 30 is a good minimum but depends on input data complexity.
 #' @param minCellsExpressingFeature Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.
 #' @param perCellExpressionThreshold Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.
-#' @param minFeatureCount Only features where their total counts across all cells are above this value will be included.
+#' @param minFeatureCount Only features where the total counts across all cells are greater than this value will be included.
 #' @param featureInclusionList An optional vector of genes that will be included in SDA
 #' @param featureExclusionList An optional vector of genes that will be excluded from SDA
 #' @param assayName The name of the assay
@@ -28,28 +28,36 @@ utils::globalVariables(
 #' @export
 RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = "sda_static_linux", max_iter = 10000, nThreads = 1) {
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
-  
-  ## default gene inclusion (0.5 is basically including all detectable genes)
+
+  n_cells <- ncol(SerObj.DGE)
+  if (n_cells > 250000) {
+    stop("SDA has shown to max handle ~200K cells ")
+  }
+  else if (n_cells > 150000) {
+    warning("SDA has shown to max handle ~200K cells ")
+  }
+
+  print(paste0('Initial features: ', nrow(SerObj.DGE)))
   featuresToUse <- rownames(SerObj.DGE)
-  print(paste0('Initial features: ', length(featuresToUse)))
 
   if (!is.na(minCellsExpressingFeature)) {
     print('Filtering on minCellsExpressingFeature')
     if (minCellsExpressingFeature < 1) {
       minCellsExpressingFeatureRaw <- minCellsExpressingFeature
       minCellsExpressingFeature <- floor(minCellsExpressingFeatureRaw * ncol(seuratObj))
-
-      print(paste0('Interpreting minCellsExpressingFeature as a percentage of total cells, converted from ', minCellsExpressingFeature, ' to ', minCellsExpressingFeature))
+      print(paste0('Interpreting minCellsExpressingFeature as a percentage of total cells, converted from ', minCellsExpressingFeatureRaw, ' to ', minCellsExpressingFeature))
     }
 
     numNonZeroCells <- Matrix::rowSums(SerObj.DGE > perCellExpressionThreshold)
     featuresToUse <- names(numNonZeroCells[which(numNonZeroCells >= minCellsExpressingFeature)])
-    print(paste0('After filtering to features with expression > ', perCellExpressionThreshold, ' in at least ', minCellsExpressingFeature, ' cells: ', length(featuresToUse)))
+    print(paste0('After filtering to features with expression > ', perCellExpressionThreshold, ' in at least ', minCellsExpressingFeature, ' cells: ', length(featuresToUse), ' (', scales::percent(length(featuresToUse) / nrow(SerObj.DGE)), ')'))
   }
 
   if (!is.na(minFeatureCount)) {
-    featuresToUse <- rownames(SerObj.DGE)[Matrix::rowSums(SerObj.DGE) > minFeatureCount]
-    print(paste0('After gene count filter of ', minFeatureCount, ': ', length(featuresToUse), ' features remain'))
+    numFeatures <- length(featuresToUse)
+    featuresToUse <- featuresToUse[Matrix::rowSums(SerObj.DGE[featuresToUse, ]) > minFeatureCount]
+    print(paste0('After gene count filter of ', minFeatureCount, ': ', length(featuresToUse), ' features remain (', scales::percent(length(featuresToUse) / numFeatures),')'))
+    rm(numFeatures)
   }
 
   if (!all(is.null(featureInclusionList))) {
@@ -68,25 +76,28 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
     print(paste0('Total after: ', length(featuresToUse)))
   }
 
-  P1 <- ggplot(data.frame(x = sqrt(Matrix::colSums(SerObj.DGE[featuresToUse, ]))), aes(x = x)) +
+  if (length(featuresToUse) == 0) {
+    stop('No features remain after filtering')
+  }
+
+  df <- data.frame(x = Matrix::colSums(SerObj.DGE[featuresToUse, ]))
+  dens <- stats::density(df$x)
+  mx <- dens$x[which.max(dens$y)]
+
+  P1 <- ggplot(df, aes(x = x)) +
+    scale_x_sqrt() +
     geom_density() +
-    ggtitle("SQRT(Total transcript per cell)") +
-    geom_vline(xintercept = 50, color = 'dodgerblue') +
-    geom_vline(xintercept = 100, color = 'orange') +
-    geom_vline(xintercept = 200, color = 'gold') +
-    geom_vline(xintercept = 800, color = 'red') +
-    geom_vline(xintercept = 1600, color = 'green') +
-    ggtitle('Library Size')
+    ggtitle("Total features per cell") +
+    labs(x = "Features/Cell", y = 'Density') +
+    geom_vline(xintercept = mx, color = 'red') +
+    ggtitle(paste0('Library Size: Peak = ', mx))
+
+
+  if (!is.null(minLibrarySize)) {
+    P1 <- P1 + geom_vline(xintercept = minLibrarySize, color = 'red')
+  }
 
   print(P1)
-
-  n_cells <- ncol(SerObj.DGE)
-  if (n_cells > 250000) {
-    stop("SDA has shown to max handle ~200K cells ")
-  }
-  else if (n_cells > 150000) {
-    warning("SDA has shown to max handle ~200K cells ")
-  }
 
   ### other methods work, perhaps we can add other options in the future
    # most cases works but can be taken as input depeding on how the density plot above looks
