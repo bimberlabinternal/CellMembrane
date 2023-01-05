@@ -44,7 +44,6 @@ Imports:
     pdftools,
     reticulate,
     SoupX,
-    hdf5r,
     phytools,
     VISION,
     rentrez,
@@ -63,8 +62,7 @@ Imports:
     RColorBrewer,
     scales,
     clusterProfiler,
-    AnnotationHub,
-    AnnotationDbi
+    ggforce
 Suggests:
     devtools,
     testthat (>= 2.1.0),
