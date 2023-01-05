@@ -3,7 +3,7 @@
 #' @import Seurat
 
 utils::globalVariables(
-  names = c('Component'),
+  names = c('Component', 'Score', 'Comp', 'GO_data', 'GeneOdds', 'BgOdds', 'pvalue', 'Count', 'adjust', 'Description'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -25,8 +25,9 @@ utils::globalVariables(
 #' @param path.sda The full path to the SDA binary. By default it assumes sda_static_linux in in your $PATH
 #' @param max_iter Passed directly to SDAtools::run_SDA()
 #' @param nThreads Passed to SDAtools::run_SDA() num_openmp_threads
+#' @param storeGoEnrichment If true, SDA_GO_Enrichment will be performed and stored in the result list
 #' @export
-RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, nThreads = 1) {
+RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, nThreads = 1, storeGoEnrichment = FALSE) {
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
 
   n_cells <- ncol(SerObj.DGE)
@@ -156,6 +157,9 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
   results$CellBarcodes <- colnames(normedDGE)
   results$Features <- rownames(normedDGE)
   results <- .AddCompStats(results)
+  if (storeGoEnrichment) {
+    results$goEnrichment <- SDA_GO_Enrichment(results, components = 1:nrow(results$loadings[[1]]))
+  }
 
   tryCatch({
     SDAtools::check_convergence(results)
@@ -390,7 +394,7 @@ PlotSdaCellScores <- function(sdaResults, seuratObj, fieldNames) {
       totalValues <- length(unique(dat[[fieldName]]))
       totalPages <- ceiling(totalValues / perPage)
       for (i in 1:totalPages) {
-        f <- as.formula(paste0('. ~ ', fieldName))
+        f <- stats::as.formula(paste0('. ~ ', fieldName))
 
         P1 <- ggplot(dat, aes(y = Score, x = Comp)) +
           geom_boxplot(outlier.shape = NA) +

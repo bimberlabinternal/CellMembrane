@@ -18,7 +18,8 @@ RunSDA(
   minLibrarySize = 50,
   path.sda = "sda_static_linux",
   max_iter = 10000,
-  nThreads = 1
+  nThreads = 1,
+  storeGoEnrichment = FALSE
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ RunSDA(
 \item{max_iter}{Passed directly to SDAtools::run_SDA()}
 
 \item{nThreads}{Passed to SDAtools::run_SDA() num_openmp_threads}
+
+\item{storeGoEnrichment}{If true, SDA_GO_Enrichment will be performed and stored in the result list}
 }
 \description{
 This will run SDA on the target assay
