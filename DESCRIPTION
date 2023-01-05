@@ -44,6 +44,7 @@ Imports:
     pdftools,
     reticulate,
     SoupX,
+    hdf5r,
     phytools,
     VISION,
     rentrez,
