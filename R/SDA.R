@@ -3,7 +3,7 @@
 #' @import Seurat
 
 utils::globalVariables(
-  names = c('Component', 'Score', 'Comp', 'GO_data', 'GeneOdds', 'BgOdds', 'pvalue', 'Count', 'adjust', 'Description'),
+  names = c('Component', 'Score', 'Comp', 'GO_data', 'GeneOdds', 'BgOdds', 'pvalue', 'Count', 'p.adjust', 'Description'),
   package = 'CellMembrane',
   add = TRUE
 )
