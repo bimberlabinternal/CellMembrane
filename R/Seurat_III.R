@@ -362,12 +362,12 @@ RunPcaSteps <- function(seuratObj, npcs = 50, variableGeneTable = NULL) {
   seuratObj <- RunPCA(object = seuratObj, features = vg, reduction.name = 'pca', verbose = F, npcs = npcs)
   seuratObj <- ProjectDim(object = seuratObj)
 
-	if (!('SCT' %in% names(seuratObj@assays))) {
+  if (!('SCT' %in% names(seuratObj@assays))) {
   	seuratObj <- JackStraw(object = seuratObj, num.replicate = 100, verbose = F)
   	seuratObj <- ScoreJackStraw(object = seuratObj, dims = 1:20)
-	}
+  }
 
-	.PrintSeuratPlots(seuratObj)
+  .PrintSeuratPlots(seuratObj)
 
   return(seuratObj)
 }
@@ -457,7 +457,7 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
     ))
   }
 
-	totalCells <- min(500, ncol(seuratObj))
+  totalCells <- min(500, ncol(seuratObj))
   print(DimHeatmap(object = seuratObj, dims = 1, cells = totalCells, balanced = TRUE, fast = FALSE) + NoLegend())
   
   tryCatch({
