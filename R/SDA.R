@@ -400,8 +400,8 @@ PlotSdaCellScores <- function(sdaResults, seuratObj, fieldNames) {
           theme(
             legend.position = 'none',
             axis.text.x = element_text(angle = 90)
-          )
-        ggforce::facet_wrap_paginate(facets = f, drop = FALSE, ncol = 1, nrow = 3, page = i)
+          ) +
+          ggforce::facet_wrap_paginate(facets = f, drop = FALSE, ncol = 1, nrow = 3, page = i)
 
         print(P1)
       }
@@ -423,12 +423,12 @@ GO_enrichment <- function(sdaResults, components, orgDb = 'org.Hs.eg.db', geneNu
   ret <- list()
   for (comp in components) {
     if (side == "N"){
-      top_genes <- data.frame(as.matrix(sdaResults$loadings[[1]][component, ]), keep.rownames = TRUE)[order(V1)][1:geneNumber]$rn
+      top_genes <- sort(sdaResults$loadings[[1]][comp,])[1:geneNumber]
     } else {
-      top_genes <- data.frame(as.matrix(sdaResults$loadings[[1]][component, ]), keep.rownames = TRUE)[order(-V1)][1:geneNumber]$rn
+      top_genes <- sort(sdaResults$loadings[[1]][comp,], decreasing = T)[1:geneNumber]
     }
 
-    gene_universe <- data.frame(as.matrix(sdaResults$loadings[[1]][component,]), keep.rownames = TRUE)$rn
+    gene_universe <- data.frame(as.matrix(sdaResults$loadings[[1]][comp,]), keep.rownames = TRUE)$rn
     ego <- clusterProfiler::enrichGO(gene = top_genes,
                     universe = gene_universe,
                     OrgDb = orgDb,
