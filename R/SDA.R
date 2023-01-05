@@ -26,15 +26,15 @@ utils::globalVariables(
 #' @param max_iter Passed directly to SDAtools::run_SDA()
 #' @param nThreads Passed to SDAtools::run_SDA() num_openmp_threads
 #' @export
-RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = "sda_static_linux", max_iter = 10000, nThreads = 1) {
+RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, nThreads = 1) {
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
 
   n_cells <- ncol(SerObj.DGE)
   if (n_cells > 250000) {
-    stop("SDA has shown to max handle ~200K cells ")
+    stop('SDA has shown to max handle ~200K cells ')
   }
   else if (n_cells > 150000) {
-    warning("SDA has shown to max handle ~200K cells ")
+    warning('SDA has shown to max handle ~200K cells ')
   }
 
   print(paste0('Initial features: ', nrow(SerObj.DGE)))
@@ -87,8 +87,8 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
   P1 <- ggplot(df, aes(x = x)) +
     scale_x_sqrt() +
     geom_density() +
-    ggtitle("Total features per cell") +
-    labs(x = "Features/Cell", y = 'Density') +
+    ggtitle('Total features per cell') +
+    labs(x = 'Features/Cell', y = 'Density') +
     geom_vline(xintercept = mx, color = 'red') +
     ggtitle(paste0('Library Size: Peak = ', mx))
 
@@ -101,7 +101,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
 
   ### other methods work, perhaps we can add other options in the future
    # most cases works but can be taken as input depeding on how the density plot above looks
-  print("starting dropsim normaliseDGE")
+  print('starting dropsim normaliseDGE')
   normedDGE <- dropsim::normaliseDGE(Matrix::as.matrix(SerObj.DGE[featuresToUse, ]),
                                      center = FALSE,
                                      scale = TRUE,
@@ -197,26 +197,26 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
 }
 
 Plot_CorSDA_Loadings <- function(results) {
-  rownames(results$loadings[[1]]) <- paste0("SDAV", 1:nrow(results$loadings[[1]]))
+  rownames(results$loadings[[1]]) <- paste0('SDAV', 1:nrow(results$loadings[[1]]))
 
   pheatmap::pheatmap(cor(t(results$loadings[[1]][,])))
 }
 
-Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, direction = "Neg"){
+Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, direction = 'Neg'){
   .EnsureFeaturesInSdaResults(sdaResults)
 
   SDAScores <- sdaResults$scores
   MetaDF <- seuratObj[[c(metadataFeature), drop = FALSE]]
   MetaDF <- MetaDF[rownames(SDAScores),,drop = FALSE]
 
-  if (direction == "Neg"){
+  if (direction == 'Neg'){
     CompsDF <- as.data.frame(lapply(levels(factor(MetaDF[,1])), function(CondX){
       apply(SDAScores[rownames(MetaDF)[which(MetaDF[,1] == CondX)], ], 2,
             function(x){
               round(sum(x<0)/nrow(SDAScores)*100, 2)
             })
     }))
-  } else if(direction == "Pos"){
+  } else if(direction == 'Pos'){
     CompsDF <- as.data.frame(lapply(levels(factor(MetaDF[,1])), function(CondX){
       apply(SDAScores[rownames(MetaDF)[which(MetaDF[,1] == CondX)], ], 2,
             function(x){
@@ -224,7 +224,7 @@ Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, dir
             })
     }))
   } else {
-    stop("Direction needs to be Neg or Pos")
+    stop('Direction needs to be Neg or Pos')
   }
 
   colnames(CompsDF) <- levels(factor(MetaDF[,1]))
@@ -235,12 +235,12 @@ Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, dir
   ChiTres[which(is.na(ChiTres))] <- 0
   ChiResSD <- round(apply(ChiTres, 1, sd),2)
   ChiResSD[which(is.na(ChiResSD))] <- 0
-  ChiResSD[ChiResSD < 0.2] <- ""
+  ChiResSD[ChiResSD < 0.2] <- ''
 
   pheatmap::pheatmap((t(ChiTres)),
                      cluster_cols = TRUE, cluster_rows = TRUE,
-                     color = grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(n = 7, name ="RdBu")))(10),
-                     labels_col = paste0(rownames(CompsDF), " sd_", ChiResSD)
+                     color = grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(n = 7, name ='RdBu')))(10),
+                     labels_col = paste0(rownames(CompsDF), ' sd_', ChiResSD)
   )
 }
 
@@ -254,12 +254,12 @@ Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, dir
 SDAToSeuratMetadata <- function(seuratObj, results, plotComponents = TRUE){
   # Note: this adds NAs for missing cells. We could in theory change this to zeros if NAs are a problem.
   SDAScores <- results$scores[rownames(seuratObj@meta.data), ]
-  colnames(SDAScores) <- paste0("SDA_", 1:ncol(SDAScores))
+  colnames(SDAScores) <- paste0('SDA_', 1:ncol(SDAScores))
 
   for (cmp in  colnames(SDAScores)){
     seuratObj <- Seurat::AddMetaData(seuratObj, asinh(SDAScores[,cmp]), col.name = cmp)
     if (plotComponents){
-      print(Seurat::FeaturePlot(seuratObj, features = cmp, order = T) & ggplot2::scale_colour_gradientn(colours = c("navy", "dodgerblue", "white", "gold", "red")))
+      print(Seurat::FeaturePlot(seuratObj, features = cmp, order = T) & ggplot2::scale_colour_gradientn(colours = c('navy', 'dodgerblue', 'white', 'gold', 'red')))
     }
   }
 
@@ -392,7 +392,7 @@ PlotSdaCellScores <- function(sdaResults, seuratObj, fieldNames) {
       for (i in 1:totalPages) {
         f <- as.formula(paste0('. ~ ', fieldName))
 
-        P1 <- ggplot(dat, aes(y = Score, x = Comp, color = Comp)) +
+        P1 <- ggplot(dat, aes(y = Score, x = Comp)) +
           geom_boxplot(outlier.shape = NA) +
           geom_jitter(width = 0.1,alpha = 0.3) +
           egg::theme_presentation(base_size = 14) +
@@ -419,16 +419,21 @@ PlotSdaCellScores <- function(sdaResults, seuratObj, fieldNames) {
 #' @param direction Whether to include positive genes, negative, or both
 #' @return A list mapping component name + direction to the enrichGO results
 #' @export
-SDA_GO_Enrichment <- function(sdaResults, components, orgDb = 'org.Hs.eg.db', geneNumber = 100, direction = "Both"){
+SDA_GO_Enrichment <- function(sdaResults, components, orgDb = 'org.Hs.eg.db', geneNumber = 100, direction = 'Both'){
   ret <- list()
 
-  directions <- ifelse(direction == "Both", yes = c('Pos', 'Neg'), no = direction)
+  if (direction == 'Both') {
+    directions <- c('Pos', 'Neg')
+  } else {
+    directions <- direction
+  }
 
   for (comp in components) {
     for (direction in directions) {
-      if (direction == "Neg"){
+      print(paste0('Loading component ', comp, ', direction: ', direction))
+      if (direction == 'Neg'){
         top_genes <- names(sort(sdaResults$loadings[[1]][comp,]))[1:geneNumber]
-      } else {
+      } else if (direction == 'Pos'){
         top_genes <- names(sort(sdaResults$loadings[[1]][comp,], decreasing = T))[1:geneNumber]
       }
 
@@ -438,8 +443,8 @@ SDA_GO_Enrichment <- function(sdaResults, components, orgDb = 'org.Hs.eg.db', ge
                       universe = gene_universe,
                       OrgDb = orgDb,
                       keyType = 'SYMBOL',
-                      ont = "BP",
-                      pAdjustMethod = "BH",
+                      ont = 'BP',
+                      pAdjustMethod = 'BH',
                       pvalueCutoff = 1,
                       qvalueCutoff = 1
        )
@@ -447,11 +452,11 @@ SDA_GO_Enrichment <- function(sdaResults, components, orgDb = 'org.Hs.eg.db', ge
       frac_to_numeric <- function(x) sapply(x, function(x) eval(parse(text=x)))
 
       ego@result$Enrichment <- frac_to_numeric(ego@result$GeneRatio) / frac_to_numeric(ego@result$BgRatio)
-      ego@result$GeneOdds <- unlist(lapply(strsplit(ego@result$GeneRatio, "/", fixed = TRUE), function(x){
+      ego@result$GeneOdds <- unlist(lapply(strsplit(ego@result$GeneRatio, '/', fixed = TRUE), function(x){
         x <- as.numeric(x) ;x[1] / (x[2]-x[1])
       }))
 
-      ego@result$BgOdds <- unlist(lapply(strsplit(ego@result$BgRatio, "/", fixed = TRUE), function(x){
+      ego@result$BgOdds <- unlist(lapply(strsplit(ego@result$BgRatio, '/', fixed = TRUE), function(x){
         x <- as.numeric(x) ;x[1] / (x[2]-x[1])
       }))
 
@@ -463,13 +468,13 @@ SDA_GO_Enrichment <- function(sdaResults, components, orgDb = 'org.Hs.eg.db', ge
 }
 
 
-SDA_GO_VolcanoPlot <- function(x = GO_data, component = "V5N", plotTitle = paste0("Component : ", component)){
+SDA_GO_VolcanoPlot <- function(x = GO_data, component = 'V5N', plotTitle = paste0('Component : ', component)){
   print(ggplot(data.frame(x[[component]]), aes(GeneOdds/BgOdds, -log(pvalue), size = Count)) +
     geom_point(aes(colour=p.adjust<0.05)) +
     scale_size_area() +
     ggrepel::geom_label_repel(data = data.frame(x[[component]])[order(p.adjust)][1:30][p.adjust<0.7], aes(label = Description, size = 0.25), size = 3, force=2) +
     ggtitle(plotTitle) +
-    xlab("Odds Ratio") +
+    xlab('Odds Ratio') +
     scale_x_log10(limits=c(1,NA), breaks=c(1,2,3,4,5,6,7,8))
   )
 }
