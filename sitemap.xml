@@ -109,6 +109,9 @@
     <loc>/reference/PlotAverageAdtCounts.html</loc>
   </url>
   <url>
+    <loc>/reference/PlotSdaCellScores.html</loc>
+  </url>
+  <url>
     <loc>/reference/PlotSeuratVariables.html</loc>
   </url>
   <url>
@@ -158,6 +161,9 @@
   </url>
   <url>
     <loc>/reference/SDAToSeuratReduction.html</loc>
+  </url>
+  <url>
+    <loc>/reference/SDA_GO_Enrichment.html</loc>
   </url>
   <url>
     <loc>/reference/ScaleFeaturesIfNeeded.html</loc>
