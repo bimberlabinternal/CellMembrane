@@ -32,6 +32,9 @@ RUN cd / \
     && chmod -R 777 /CellBender \
     && pip3 install -e CellBender
 
+# NOTE: ggplot2 added to force version 3.4.0, which is needed by ggtree. Otherwise this container is pegged to ./focal/2022-10-28
+ENV CRAN=https://packagemanager.rstudio.com/cran/__linux__/focal/latest
+
 # Let this run for the purpose of installing/caching dependencies
 RUN Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
 	&& echo "local({options(repos = BiocManager::repositories())})" >> ~/.Rprofile \
