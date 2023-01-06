@@ -13,6 +13,7 @@ RunSDA(
   minFeatureCount = 1,
   featureInclusionList = NULL,
   featureExclusionList = NULL,
+  maxFeaturesDiscarded = NULL,
   assayName = "RNA",
   randomSeed = GetSeed(),
   minLibrarySize = 50,
@@ -29,7 +30,7 @@ RunSDA(
 
 \item{numComps}{Passed to SDAtools::run_SDA(). 30 is a good minimum but depends on input data complexity.}
 
-\item{minCellsExpressingFeature}{Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.}
+\item{minCellsExpressingFeature}{Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than one it is interpreted as a percentage of total cells. If above one it is interpreted as the min number of cells.}
 
 \item{perCellExpressionThreshold}{Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.}
 
@@ -38,6 +39,8 @@ RunSDA(
 \item{featureInclusionList}{An optional vector of genes that will be included in SDA}
 
 \item{featureExclusionList}{An optional vector of genes that will be excluded from SDA}
+
+\item{maxFeaturesDiscarded}{After filtering, if fewer than this number of features remain, an error will be thrown. This is a guard against overly aggressive filtering. This can either be an integer (meaning number of features), or 0-1 (which is interpreted as a percent of the input features)}
 
 \item{assayName}{The name of the assay}
 

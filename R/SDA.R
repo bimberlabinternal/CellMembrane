@@ -14,11 +14,12 @@ utils::globalVariables(
 #' @param seuratObj A Seurat object.
 #' @param outputFolder The path to save results. There will be subfolders for ./rawData and ./results
 #' @param numComps Passed to SDAtools::run_SDA(). 30 is a good minimum but depends on input data complexity.
-#' @param minCellsExpressingFeature Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.
+#' @param minCellsExpressingFeature Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than one it is interpreted as a percentage of total cells. If above one it is interpreted as the min number of cells.
 #' @param perCellExpressionThreshold Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.
 #' @param minFeatureCount Only features where the total counts across all cells are greater than this value will be included.
 #' @param featureInclusionList An optional vector of genes that will be included in SDA
 #' @param featureExclusionList An optional vector of genes that will be excluded from SDA
+#' @param maxFeaturesDiscarded After filtering, if fewer than this number of features remain, an error will be thrown. This is a guard against overly aggressive filtering. This can either be an integer (meaning number of features), or 0-1 (which is interpreted as a percent of the input features)
 #' @param assayName The name of the assay
 #' @param randomSeed Passed to SDAtools::run_SDA() set_seed
 #' @param minLibrarySize Passed to dropsim::normaliseDGE() min_library_size. Only cells with library size equal or greater to this will be kept. IMPORTANT: this is applied after feature selection.
@@ -27,18 +28,18 @@ utils::globalVariables(
 #' @param nThreads Passed to SDAtools::run_SDA() num_openmp_threads
 #' @param storeGoEnrichment If true, SDA_GO_Enrichment will be performed and stored in the result list
 #' @export
-RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, nThreads = 1, storeGoEnrichment = FALSE) {
+RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, nThreads = 1, storeGoEnrichment = FALSE) {
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
 
   n_cells <- ncol(SerObj.DGE)
   if (n_cells > 250000) {
     stop('SDA has shown to max handle ~200K cells ')
-  }
-  else if (n_cells > 150000) {
+  } else if (n_cells > 150000) {
     warning('SDA has shown to max handle ~200K cells ')
   }
 
   print(paste0('Initial features: ', nrow(SerObj.DGE)))
+  print(paste0('Initial cells: ', ncol(SerObj.DGE)))
   featuresToUse <- rownames(SerObj.DGE)
 
   if (!is.na(minCellsExpressingFeature)) {
@@ -46,18 +47,18 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
     if (minCellsExpressingFeature < 1) {
       minCellsExpressingFeatureRaw <- minCellsExpressingFeature
       minCellsExpressingFeature <- floor(minCellsExpressingFeatureRaw * ncol(seuratObj))
-      print(paste0('Interpreting minCellsExpressingFeature as a percentage of total cells, converted from ', minCellsExpressingFeatureRaw, ' to ', minCellsExpressingFeature))
+      print(paste0('Interpreting minCellsExpressingFeature as a percentage of total cells (', ncol(seuratObj), '), converted from ', minCellsExpressingFeatureRaw, ' to ', minCellsExpressingFeature))
     }
 
     numNonZeroCells <- Matrix::rowSums(SerObj.DGE > perCellExpressionThreshold)
     featuresToUse <- names(numNonZeroCells[which(numNonZeroCells >= minCellsExpressingFeature)])
-    print(paste0('After filtering to features with expression > ', perCellExpressionThreshold, ' in at least ', minCellsExpressingFeature, ' cells: ', length(featuresToUse), ' (', scales::percent(length(featuresToUse) / nrow(SerObj.DGE)), ')'))
+    print(paste0('After filtering to features with expression > ', perCellExpressionThreshold, ' in at least ', minCellsExpressingFeature, ' cells: ', length(featuresToUse), ' (', scales::percent(length(featuresToUse) / nrow(SerObj.DGE)), ' of input)'))
   }
 
   if (!is.na(minFeatureCount)) {
     numFeatures <- length(featuresToUse)
     featuresToUse <- featuresToUse[Matrix::rowSums(SerObj.DGE[featuresToUse, ]) > minFeatureCount]
-    print(paste0('After gene count filter of ', minFeatureCount, ': ', length(featuresToUse), ' features remain (', scales::percent(length(featuresToUse) / numFeatures),')'))
+    print(paste0('After filtering features with total counts less than ', minFeatureCount, ': ', length(featuresToUse), ' features remain (', scales::percent(length(featuresToUse) / numFeatures),')'))
     rm(numFeatures)
   }
 
@@ -79,6 +80,17 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
 
   if (length(featuresToUse) == 0) {
     stop('No features remain after filtering')
+  }
+
+  if (!is.null(maxFeaturesDiscarded)) {
+    if (maxFeaturesDiscarded < 1) {
+      maxFeaturesDiscarded <- maxFeaturesDiscarded * nrow(SerObj.DGE)
+    }
+
+    featsDiscarded <- nrow(SerObj.DGE) - length(featuresToUse)
+    if (featsDiscarded > maxFeaturesDiscarded) {
+      stop(paste0('The total number of features discarded, ', featsDiscarded, ' exceeds the threshold of ', maxFeaturesDiscarded))
+    }
   }
 
   df <- data.frame(x = Matrix::colSums(SerObj.DGE[featuresToUse, ]))
