@@ -59,6 +59,7 @@
 <span>  minFeatureCount <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  featureInclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  featureExclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  maxFeaturesDiscarded <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  assayName <span class="op">=</span> <span class="st">"RNA"</span>,</span>
 <span>  randomSeed <span class="op">=</span> <span class="fu"><a href="GetSeed.html">GetSeed</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  minLibrarySize <span class="op">=</span> <span class="fl">50</span>,</span>
@@ -84,7 +85,7 @@
 
 
 <dt>minCellsExpressingFeature</dt>
-<dd><p>Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than zero it is interpreted as a percentage of total cells. If above zero it is interpeted as the min number of cells.</p></dd>
+<dd><p>Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than one it is interpreted as a percentage of total cells. If above one it is interpreted as the min number of cells.</p></dd>
 
 
 <dt>perCellExpressionThreshold</dt>
@@ -101,6 +102,10 @@
 
 <dt>featureExclusionList</dt>
 <dd><p>An optional vector of genes that will be excluded from SDA</p></dd>
+
+
+<dt>maxFeaturesDiscarded</dt>
+<dd><p>After filtering, if fewer than this number of features remain, an error will be thrown. This is a guard against overly aggressive filtering. This can either be an integer (meaning number of features), or 0-1 (which is interpreted as a percent of the input features)</p></dd>
 
 
 <dt>assayName</dt>
