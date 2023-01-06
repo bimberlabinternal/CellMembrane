@@ -33,11 +33,12 @@ RUN cd / \
     && pip3 install -e CellBender
 
 # NOTE: ggplot2 added to force version 3.4.0, which is needed by ggtree. Otherwise this container is pegged to ./focal/2022-10-28
-ENV CRAN=https://packagemanager.rstudio.com/cran/__linux__/focal/latest
+ENV CRAN='https://packagemanager.rstudio.com/cran/__linux__/focal/latest'
 
 # Let this run for the purpose of installing/caching dependencies
-RUN Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
-	&& echo "local({options(repos = BiocManager::repositories())})" >> ~/.Rprofile \
+RUN echo "local({r <- getOption('repos') ;r['CRAN'] = 'https://packagemanager.rstudio.com/cran/__linux__/focal/latest';options(repos = r);rm(r)})" >> ~/.Rprofile \
+    && Rscript -e "install.packages(c('remotes', 'devtools', 'BiocManager'), dependencies=TRUE, ask = FALSE, upgrade = 'always')" \
+	&& echo "local({options(repos = BiocManager::repositories('https://packagemanager.rstudio.com/cran/__linux__/focal/latest'))})" >> ~/.Rprofile \
 	&& echo "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));" >> ~/.Rprofile \
 	# NOTE: this was added to avoid the build dying if this downloads a binary built on a later R version
 	&& echo "Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS='true');" >> ~/.Rprofile \
