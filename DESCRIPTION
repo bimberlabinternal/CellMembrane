@@ -61,7 +61,9 @@ Imports:
     SDAtools,
     dropsim,
     RColorBrewer,
-    scales
+    scales,
+    clusterProfiler,
+    ggforce
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -69,7 +71,9 @@ Suggests:
     rmdformats,
     rmarkdown,
     shiny,
-    pkgdown
+    pkgdown,
+    org.Hs.eg.db,
+    org.Mmu.eg.db
 RoxygenNote: 7.2.3
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
