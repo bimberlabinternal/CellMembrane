@@ -341,6 +341,12 @@ SDAToSeuratReduction <- function(seuratObj, sdaResults, assayName = 'RNA', reduc
     assay = assayName
   )
 
+  for (x in c('component_statistics', 'n', 'goEnrichment')) {
+    if (x %in% names(sdaResults)) {
+      sda.reduction@misc[[x]] <- sdaResults[[x]]
+    }
+  }
+
   seuratObj[[reduction.name]] <- sda.reduction
 
   return(seuratObj)
