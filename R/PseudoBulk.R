@@ -208,6 +208,6 @@ RunPairwiseContrasts <- function(fit, test.use){
     result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = 1, FDR_threshold = 0.05, test.use = test.use)
   })
   #use contrast names to label the results list
-  names(results) <- paste(contrasts[,1],  "-", contrasts[,2])
+  names(results) <- paste0(contrasts[,1],  "-", contrasts[,2])
   return(results)
 }
