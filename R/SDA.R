@@ -230,6 +230,11 @@ Plot_CorSDA_Loadings <- function(results) {
 Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, direction = 'Both'){
   .EnsureFeaturesInSdaResults(sdaResults)
 
+  if (!metadataFeature %in% names(seuratObj@meta.data)) {
+    print(paste0('Feature not found, skipping: ', metadataFeature))
+    return()
+  }
+
   if (direction == 'Both') {
     directions <- c('Pos', 'Neg')
   } else {
@@ -238,7 +243,7 @@ Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, dir
 
   for (direction in directions) {
     SDAScores <- sdaResults$scores
-    MetaDF <- seuratObj[[c(metadataFeature), drop = FALSE]]
+    MetaDF <- seuratObj[[metadataFeature, drop = FALSE]]
     MetaDF <- MetaDF[rownames(SDAScores),,drop = FALSE]
 
     CompsDF <- as.data.frame(lapply(levels(factor(MetaDF[,1,drop = TRUE])), function(CondX){
