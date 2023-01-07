@@ -197,6 +197,7 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
 #' @return A list with the differential_expression results, volano ggplot object and pvalue_dist ggplot object
 #' @export
 RunPairwiseContrasts <- function(fit, test.use){
+  #create a nx2 array of all possible unique pairwise combinations of contrasts
   contrasts <- t(utils::combn(colnames(fit$design), m = 2))
   results <- future.apply::future_lapply(split(contrasts, 1:nrow(contrasts)) , FUN = function(x){
     up_contrast<- x[[1]]
@@ -206,6 +207,8 @@ RunPairwiseContrasts <- function(fit, test.use){
     contrast <- limma::makeContrasts(contrasts = contrast_name, levels = fit$design)
     result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = 1, FDR_threshold = 0.05, test.use = test.use)
   })
-
+  #use contrast names to label the results list
+  names(results) <- paste(contrasts[,1],  "-", contrasts[,2])
   return(results)
+}
 }
