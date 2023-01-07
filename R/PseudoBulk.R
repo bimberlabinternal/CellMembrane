@@ -211,4 +211,3 @@ RunPairwiseContrasts <- function(fit, test.use){
   names(results) <- paste(contrasts[,1],  "-", contrasts[,2])
   return(results)
 }
-}
