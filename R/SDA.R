@@ -14,9 +14,9 @@ utils::globalVariables(
 #' @param seuratObj A Seurat object.
 #' @param outputFolder The path to save results. There will be subfolders for ./rawData and ./results
 #' @param numComps Passed to SDAtools::run_SDA(). 30 is a good minimum but depends on input data complexity.
-#' @param minCellsExpressingFeature Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than one it is interpreted as a percentage of total cells. If above one it is interpreted as the min number of cells.
-#' @param perCellExpressionThreshold Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.
-#' @param minFeatureCount Only features where the total counts across all cells are greater than this value will be included.
+#' @param minCellsExpressingFeature Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features expressed >= perCellExpressionThreshold in at least minCellsExpressingFeature cells will be retained. If this value is less than one it is interpreted as a percentage of total cells. If above one it is interpreted as the min number of cells.
+#' @param perCellExpressionThreshold Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features expressed >= perCellExpressionThreshold in at least minCellsExpressingFeature cells will be retained.
+#' @param minFeatureCount Only features where the total counts across all cells are greater than or equal to this value will be included. Setting this value to one will include all expressed genes.
 #' @param featureInclusionList An optional vector of genes that will be included in SDA
 #' @param featureExclusionList An optional vector of genes that will be excluded from SDA
 #' @param maxFeaturesDiscarded After filtering, if fewer than this number of features remain, an error will be thrown. This is a guard against overly aggressive filtering. This can either be an integer (meaning number of features), or 0-1 (which is interpreted as a percent of the input features)
@@ -28,7 +28,7 @@ utils::globalVariables(
 #' @param nThreads Passed to SDAtools::run_SDA() num_openmp_threads
 #' @param storeGoEnrichment If true, SDA_GO_Enrichment will be performed and stored in the result list
 #' @export
-RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, nThreads = 1, storeGoEnrichment = FALSE) {
+RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 2, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, nThreads = 1, storeGoEnrichment = FALSE) {
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
 
   n_cells <- ncol(SerObj.DGE)
@@ -42,7 +42,18 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
   print(paste0('Initial cells: ', ncol(SerObj.DGE)))
   featuresToUse <- rownames(SerObj.DGE)
 
-  if (!is.na(minCellsExpressingFeature)) {
+  if (!is.na(minFeatureCount) && minFeatureCount > 0) {
+    numFeatures <- length(featuresToUse)
+    featuresToUse <- featuresToUse[Matrix::rowSums(SerObj.DGE[featuresToUse, ]) >= minFeatureCount]
+    print(paste0('After filtering to features with total counts of at least ', minFeatureCount, ': ', length(featuresToUse), ' features remain (', scales::percent(length(featuresToUse) / numFeatures),' of input)'))
+    rm(numFeatures)
+  }
+
+  if (!is.na(minCellsExpressingFeature) && minCellsExpressingFeature > 0) {
+    if (is.na(perCellExpressionThreshold)) {
+      stop('Must provide perCellExpressionThreshold when minCellsExpressingFeature is above zero')
+    }
+
     print('Filtering on minCellsExpressingFeature')
     if (minCellsExpressingFeature < 1) {
       minCellsExpressingFeatureRaw <- minCellsExpressingFeature
@@ -50,15 +61,10 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
       print(paste0('Interpreting minCellsExpressingFeature as a percentage of total cells (', ncol(seuratObj), '), converted from ', minCellsExpressingFeatureRaw, ' to ', minCellsExpressingFeature))
     }
 
-    numNonZeroCells <- Matrix::rowSums(SerObj.DGE > perCellExpressionThreshold)
-    featuresToUse <- names(numNonZeroCells[which(numNonZeroCells >= minCellsExpressingFeature)])
-    print(paste0('After filtering to features with expression > ', perCellExpressionThreshold, ' in at least ', minCellsExpressingFeature, ' cells: ', length(featuresToUse), ' (', scales::percent(length(featuresToUse) / nrow(SerObj.DGE)), ' of input)'))
-  }
-
-  if (!is.na(minFeatureCount)) {
     numFeatures <- length(featuresToUse)
-    featuresToUse <- featuresToUse[Matrix::rowSums(SerObj.DGE[featuresToUse, ]) > minFeatureCount]
-    print(paste0('After filtering features with total counts less than ', minFeatureCount, ': ', length(featuresToUse), ' features remain (', scales::percent(length(featuresToUse) / numFeatures),')'))
+    numNonZeroCells <- Matrix::rowSums(SerObj.DGE >= perCellExpressionThreshold)
+    featuresToUse <- names(numNonZeroCells[which(numNonZeroCells >= minCellsExpressingFeature)])
+    print(paste0('After limiting to features with expression GTE ', perCellExpressionThreshold, ' in at least ', minCellsExpressingFeature, ' cells: ', length(featuresToUse), ' features remain (', scales::percent(length(featuresToUse) / numFeatures), ' of input)'))
     rm(numFeatures)
   }
 
