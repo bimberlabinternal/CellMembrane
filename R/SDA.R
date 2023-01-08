@@ -28,7 +28,7 @@ utils::globalVariables(
 #' @param nThreads Passed to SDAtools::run_SDA() num_openmp_threads
 #' @param storeGoEnrichment If true, SDA_GO_Enrichment will be performed and stored in the result list
 #' @export
-RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 0, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, nThreads = 1, storeGoEnrichment = FALSE) {
+RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 2, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, nThreads = 1, storeGoEnrichment = FALSE) {
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
 
   n_cells <- ncol(SerObj.DGE)
@@ -49,7 +49,11 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
     rm(numFeatures)
   }
 
-  if (!is.na(minCellsExpressingFeature)) {
+  if (!is.na(minCellsExpressingFeature) && minCellsExpressingFeature > 0) {
+    if (is.na(perCellExpressionThreshold)) {
+      stop('Must provide perCellExpressionThreshold when minCellsExpressingFeature is above zero')
+    }
+
     print('Filtering on minCellsExpressingFeature')
     if (minCellsExpressingFeature < 1) {
       minCellsExpressingFeatureRaw <- minCellsExpressingFeature
