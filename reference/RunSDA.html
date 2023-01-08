@@ -55,7 +55,7 @@
 <span>  <span class="va">outputFolder</span>,</span>
 <span>  numComps <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  minCellsExpressingFeature <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  perCellExpressionThreshold <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  perCellExpressionThreshold <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  minFeatureCount <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  featureInclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  featureExclusionList <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -85,15 +85,15 @@
 
 
 <dt>minCellsExpressingFeature</dt>
-<dd><p>Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained. If this value is less than one it is interpreted as a percentage of total cells. If above one it is interpreted as the min number of cells.</p></dd>
+<dd><p>Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features expressed &gt;= perCellExpressionThreshold in at least minCellsExpressingFeature cells will be retained. If this value is less than one it is interpreted as a percentage of total cells. If above one it is interpreted as the min number of cells.</p></dd>
 
 
 <dt>perCellExpressionThreshold</dt>
-<dd><p>Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features detected above perCellExpressionThreshold in at least minCellsExpressingFeature will be retained.</p></dd>
+<dd><p>Can be used with perCellExpressionThreshold to drop features present in limited cells. Only features expressed &gt;= perCellExpressionThreshold in at least minCellsExpressingFeature cells will be retained.</p></dd>
 
 
 <dt>minFeatureCount</dt>
-<dd><p>Only features where the total counts across all cells are greater than this value will be included.</p></dd>
+<dd><p>Only features where the total counts across all cells are greater than or equal to this value will be included. Setting this value to one will include all expressed genes.</p></dd>
 
 
 <dt>featureInclusionList</dt>
