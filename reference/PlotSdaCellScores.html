@@ -50,7 +50,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">PlotSdaCellScores</span><span class="op">(</span><span class="va">sdaResults</span>, <span class="va">seuratObj</span>, <span class="va">fieldNames</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">PlotSdaCellScores</span><span class="op">(</span><span class="va">sdaResults</span>, <span class="va">seuratObj</span>, <span class="va">fieldNames</span>, scaleMean0 <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -65,6 +65,10 @@
 
 <dt>fieldNames</dt>
 <dd><p>A vector of field names (present in the seurat object) to plot. These must be non-numeric fields.</p></dd>
+
+
+<dt>scaleMean0</dt>
+<dd><p>Boolean default T to scale each compoent to mean 0</p></dd>
 
 </dl></div>
 
