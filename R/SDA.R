@@ -190,13 +190,6 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
   })
 
   tryCatch({
-    SDAtools::plot_scree(results)
-  }, error = function(e){
-    print(paste0('Error generating SDA plot_scree'))
-    print(conditionMessage(e))
-  })
-
-  tryCatch({
     SDAtools::PIP_distribution(results)
   }, error = function(e){
     print(paste0('Error generating SDA PIP_distribution'))
