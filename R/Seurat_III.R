@@ -352,6 +352,10 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 #' @return A modified Seurat object.
 #' @export
 RunPcaSteps <- function(seuratObj, npcs = 50, variableGeneTable = NULL) {
+  if (ncol(seuratObj) < npcs) {
+    stop(paste0('More PCs were requested, ', npcs, ', than the number of cells: ', ncol(seuratObj)))
+  }
+
   vg <- VariableFeatures(object = seuratObj)
 
   print(paste0('Total variable genes: ', length(vg)))
