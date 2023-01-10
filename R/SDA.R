@@ -25,10 +25,11 @@ utils::globalVariables(
 #' @param minLibrarySize Passed to dropsim::normaliseDGE() min_library_size. Only cells with library size equal or greater to this will be kept. IMPORTANT: this is applied after feature selection.
 #' @param path.sda The full path to the SDA binary. By default it assumes sda_static_linux in in your $PATH
 #' @param max_iter Passed directly to SDAtools::run_SDA()
+#' @param save_freq Passed directly to SDAtools::run_SDA()
 #' @param nThreads Passed to SDAtools::run_SDA() num_openmp_threads
 #' @param storeGoEnrichment If true, SDA_GO_Enrichment will be performed and stored in the result list
 #' @export
-RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 2, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, nThreads = 1, storeGoEnrichment = FALSE) {
+RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 2, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, save_freq = 1000, nThreads = 1, storeGoEnrichment = FALSE) {
   SerObj.DGE <- seuratObj@assays[[assayName]]@counts
 
   n_cells <- ncol(SerObj.DGE)
@@ -163,7 +164,7 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
           data = rawDataFile,
           num_comps = numComps,
           max_iter = max_iter,
-          save_freq = 1000,
+          save_freq = save_freq,
           set_seed = randomSeed, #TODO: consider allowing a vector of seeds for replicates?
           N = n_cells,
           eigen_parallel = (nThreads > 1),

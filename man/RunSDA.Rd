@@ -19,6 +19,7 @@ RunSDA(
   minLibrarySize = 50,
   path.sda = "sda_static_linux",
   max_iter = 10000,
+  save_freq = 1000,
   nThreads = 1,
   storeGoEnrichment = FALSE
 )
@@ -51,6 +52,8 @@ RunSDA(
 \item{path.sda}{The full path to the SDA binary. By default it assumes sda_static_linux in in your $PATH}
 
 \item{max_iter}{Passed directly to SDAtools::run_SDA()}
+
+\item{save_freq}{Passed directly to SDAtools::run_SDA()}
 
 \item{nThreads}{Passed to SDAtools::run_SDA() num_openmp_threads}
 
