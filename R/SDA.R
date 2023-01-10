@@ -181,23 +181,23 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
   }
 
   tryCatch({
-    SDAtools::check_convergence(results)
-    SDAtools::loading_distribution(results)
-    SDAtools::scores_distribution(results)
+    print(SDAtools::check_convergence(results))
+    print(SDAtools::loading_distribution(results))
+    print(SDAtools::scores_distribution(results))
   }, error = function(e){
     print(paste0('Error generating SDA first plots'))
     print(conditionMessage(e))
   })
 
   tryCatch({
-    SDAtools::PIP_distribution(results)
+    print(SDAtools::PIP_distribution(results))
   }, error = function(e){
     print(paste0('Error generating SDA PIP_distribution'))
     print(conditionMessage(e))
   })
 
   tryCatch({
-    SDAtools::PIP_threshold_distribution(results)
+    print(SDAtools::PIP_threshold_distribution(results))
   }, error = function(e){
     print(paste0('Error generating SDA PIP_threshold_distribution'))
     print(conditionMessage(e))
