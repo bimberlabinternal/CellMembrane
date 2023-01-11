@@ -246,7 +246,13 @@ Plot_SDAScoresPerFeature <- function(seuratObj, sdaResults, metadataFeature, dir
     MetaDF <- seuratObj[[metadataFeature, drop = FALSE]]
     MetaDF <- MetaDF[rownames(SDAScores),,drop = FALSE]
 
-    CompsDF <- as.data.frame(lapply(levels(factor(MetaDF[,1,drop = TRUE])), function(CondX){
+    lvl <- levels(factor(MetaDF[,1,drop = TRUE]))
+    if (length(lvl) < 2) {
+      print(paste0('Only one value for field, skipping: ', metadataFeature))
+      return()
+    }
+
+    CompsDF <- as.data.frame(lapply(lvl, function(CondX){
       apply(SDAScores[rownames(MetaDF)[which(MetaDF[,1,drop = TRUE] == CondX)], ,drop = FALSE], 2,
             function(x){
               if (direction == 'Neg'){
