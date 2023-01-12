@@ -9,6 +9,7 @@ SplitSeurat(
   splitField,
   minCellsToKeep = 0.02,
   naOtherLabel = "Other",
+  excludedClasses = NULL,
   appendLowFreqToOther = TRUE
 )
 }
@@ -20,6 +21,8 @@ SplitSeurat(
 \item{minCellsToKeep}{If any of the resulting seurat objects have less than this many cells, they will be discarded. If this value is less than 1, it will be interpreted as a fraction of the total input cells.}
 
 \item{naOtherLabel}{This string will be used to label any cells marked NA.}
+
+\item{excludedClasses}{Any cells with these labels will be lumped into the NA/Other bin.}
 
 \item{appendLowFreqToOther}{If true, any cells with NAs for the splitField, or terms with fewer than minCellsToKeep, will be merged into a single seurat object}
 }
