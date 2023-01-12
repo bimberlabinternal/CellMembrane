@@ -55,6 +55,7 @@
 <span>  <span class="va">splitField</span>,</span>
 <span>  minCellsToKeep <span class="op">=</span> <span class="fl">0.02</span>,</span>
 <span>  naOtherLabel <span class="op">=</span> <span class="st">"Other"</span>,</span>
+<span>  excludedClasses <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  appendLowFreqToOther <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -75,6 +76,10 @@
 
 <dt>naOtherLabel</dt>
 <dd><p>This string will be used to label any cells marked NA.</p></dd>
+
+
+<dt>excludedClasses</dt>
+<dd><p>Any cells with these labels will be lumped into the NA/Other bin.</p></dd>
 
 
 <dt>appendLowFreqToOther</dt>
