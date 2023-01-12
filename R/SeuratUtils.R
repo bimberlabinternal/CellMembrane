@@ -91,9 +91,10 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 #' @param splitField The name of the field on which to split the object
 #' @param minCellsToKeep If any of the resulting seurat objects have less than this many cells, they will be discarded. If this value is less than 1, it will be interpreted as a fraction of the total input cells.
 #' @param naOtherLabel This string will be used to label any cells marked NA.
+#' @param excludedClasses Any cells with these labels will be lumped into the NA/Other bin.
 #' @param appendLowFreqToOther If true, any cells with NAs for the splitField, or terms with fewer than minCellsToKeep, will be merged into a single seurat object
 #' @export
-SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLabel = 'Other', appendLowFreqToOther = TRUE) {
+SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLabel = 'Other', excludedClasses = NULL, appendLowFreqToOther = TRUE) {
 	if (!(splitField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not present in seurat object: ', splitField))
 	}
@@ -106,6 +107,13 @@ SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLab
 
 	data <- as.character(seuratObj@meta.data[[splitField]])
 	data[is.na(data)] <- naOtherLabel
+	if (!all(is.null(excludedClasses))) {
+		toDrop <- unique(data %in% excludedClasses)
+		if (length(toDrop) > 0) {
+			print(paste0('Merging the following classes into ', naOtherLabel, ': ', paste0(toDrop, collapse = ',')))
+			data[data %in% excludedClasses] <- naOtherLabel
+		}
+	}
 	values <- unique(data)
 	cellsForOther <- colnames(seuratObj)[data == naOtherLabel]
 
