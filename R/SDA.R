@@ -455,8 +455,8 @@ PlotSdaCellScores <- function(sdaResults, seuratObj, fieldNames, scaleMean0 = TR
 
     for (i in 1:totalPages) {
       P1 <- ggplot(dat, aes_string(y = 'Score', x = fieldName)) +
-        geom_boxplot(outlier.shape = NA) +
         geom_jitter(width = 0.1,alpha = 0.3) +
+        geom_violin(alpha = 0.5) +
         egg::theme_presentation(base_size = 14) +
         coord_trans(y = asinhTrans) +
         ggtitle(fieldName) +
