@@ -1,4 +1,4 @@
-#' @import Seurat ggplot2
+#' @import Seurat ggplot2 Matrix
 #' @importFrom compositions geometricmean geometricmeanRow 
 #' @importFrom RUVSeq RUVg
 #' @importFrom matrixStats rowMedians
@@ -10,21 +10,26 @@
 #' @param assay The assay holding the raw data - the counts slot will be assumed to hold raw data.
 #' @return Returns a Seurat object containing normalized counts stored in the counts slot of the Q3 assay. 
 #' @export
+
 Q3_Normalization <- function(seuratObj, assay = "RNA"){
   #from here: https://www.dlongwood.com/wp-content/uploads/2021/05/WP_MK2833_Introduction_to_GeoMx_Normalization_CTA_R5-1.pdf page 7
   # first, divide all the genes per AOI by their respective Q3 count, 
   #ii) second, multiply all the genes in all AOIs by a constant, defined as the geometric mean of Q3 counts for all AOIs.
   
   #calculate column (ROI) Q3s
-  counts <- seuratObj[[assay]]@counts
+  counts <- as.matrix(seuratObj[[assay]]@counts)
   Q3_Sample_Counts <- apply(counts,MARGIN = 2,FUN = quantile,prob=c(.75))
+  #Ensure no downstream division by zero errors
+  if(any(Q3_Sample_Counts == 0)){
+    stop("Error: 75th percentile is zero for some samples. Q3 is either too low to normalize by, or the data is too sparse.")
+  }
   #divide count matrix by vector of Q3s
   Q3_Divided_Counts <- counts/Q3_Sample_Counts
   #multiply Q3 divided counts by geometric mean of Q3s (scalar)
   Q3_Final_Counts <- Q3_Divided_Counts * compositions::geometricmean(Q3_Sample_Counts)
   
   #stash into seurat object under new assay
-  seuratObj[['Q3']] <- Seurat::CreateAssayObject(Q3_Final_Counts)
+  seuratObj[['Q3']] <- Seurat::CreateAssayObject(as(Q3_Final_Counts, "dgCMatrix"))
   
   return(seuratObj)
 }
@@ -41,16 +46,14 @@ RUVg_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", k = 1){
   housekeeping_genes <- c("ABCF1", "ACTB", "ALAS1", "B2M", "CLTC", "G6PD", "GAPDH", 
                           "GUSB", "HPRT1", "LDHA", "PGK1", "POLR1B", "POLR2A",
                           "RPL19", "RPLP0", "SDHA", "TBP", "TUBB")
-  counts <- seuratObj[[assay]]@counts
+  counts <- as.matrix(seuratObj[[assay]]@counts)
   rounded_counts <- round(as.matrix(counts))
   RUVg <- RUVSeq::RUVg(rounded_counts,
                        housekeeping_genes[housekeeping_genes %in% rownames(seuratObj)], 
                        k = k)
-  seuratObj[['RUVg']] <- Seurat::CreateAssayObject(RUVg$normalizedCounts)
+  seuratObj[['RUVg']] <- Seurat::CreateAssayObject(as(RUVg$normalizedCounts, "dgCMatrix"))
   return(seuratObj)
 }
-
-
 
 #' @title NanoString_Housekeeping_Normalization
 #'
@@ -68,19 +71,25 @@ NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA"){
   #3. Divide this arithmetic mean by the geometric mean of each lane to generate a lane-specific normalization factor.
   #4. Multiply the counts for every gene by its lane-specific normalization factor.
   
-  counts <- seuratObj[[assay]]@counts 
+  counts <- as.matrix(seuratObj[[assay]]@counts) 
   
   housekeeping_genes <- c("ABCF1", "ACTB", "ALAS1", "B2M", "CLTC", "G6PD", "GAPDH", 
                           "GUSB", "HPRT1", "LDHA", "PGK1", "POLR1B", "POLR2A",
                           "RPL19", "RPLP0", "SDHA", "TBP", "TUBB")
   housekeeping_counts <- counts[rownames(counts) %in% housekeeping_genes, ]
   
+  #Ensure no downstream division by zero errors
+  if(any(compositions::geometricmeanRow(as.matrix(t(housekeeping_counts)) == 0))){
+    stop("Error: Geometric mean of housekeeping counts for one or more samples is zero. One of the housekeeping genes likely has a value of zero. Either add a pseudocount (if appropriate) or choose a different normalization")
+  }
+  
   #steps 1-3 of the normalization are computed here
   Sample_Normalization_Factors <- mean(compositions::geometricmeanRow(as.matrix(t(housekeeping_counts)))) / compositions::geometricmeanRow(as.matrix(t(housekeeping_counts)))
+  
   #step 4 of the normalization is computed here
   hk_normalized_counts <- housekeeping_counts %*% diag(Sample_Normalization_Factors)
   colnames(hk_normalized_counts) <- colnames(counts)
-  seuratObj[["Housekeeping"]] <- Seurat::CreateAssayObject(counts = hk_normalized_counts)
+  seuratObj[["Housekeeping"]] <- Seurat::CreateAssayObject(counts = as(hk_normalized_counts, "dgCMatrix"))
   return(seuratObj)
 }
 
