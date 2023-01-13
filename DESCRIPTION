@@ -63,7 +63,9 @@ Imports:
     RColorBrewer,
     scales,
     clusterProfiler,
-    ggforce
+    ggforce, 
+    compositions, 
+    matrixStats
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -82,7 +84,8 @@ Remotes:
     YosefLab/VISION,
     bimberlabinternal/RIRA,
     marchinilab/SDAtools,
-    marchinilab/dropsim
+    marchinilab/dropsim,
+    drisso/RUVSeq
 Config/reticulate:
   list(
     packages = list(

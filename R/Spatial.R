@@ -8,10 +8,11 @@
 #' @description a normalization method that uses the 75th percentile to find size factors for data normalization.
 #' @param seuratObj The Seurat object that holds the data to be normalized.
 #' @param assay The assay holding the raw data - the counts slot will be assumed to hold raw data.
+#' @param targetAssayName The assay name that the normalized data should be stored in. 
 #' @return Returns a Seurat object containing normalized counts stored in the counts slot of the Q3 assay. 
 #' @export
 
-Q3_Normalization <- function(seuratObj, assay = "RNA"){
+Q3_Normalization <- function(seuratObj, assay = "RNA", targetAssayName = "Q3"){
   #from here: https://www.dlongwood.com/wp-content/uploads/2021/05/WP_MK2833_Introduction_to_GeoMx_Normalization_CTA_R5-1.pdf page 7
   # first, divide all the genes per AOI by their respective Q3 count, 
   #ii) second, multiply all the genes in all AOIs by a constant, defined as the geometric mean of Q3 counts for all AOIs.
@@ -29,7 +30,7 @@ Q3_Normalization <- function(seuratObj, assay = "RNA"){
   Q3_Final_Counts <- Q3_Divided_Counts * compositions::geometricmean(Q3_Sample_Counts)
   
   #stash into seurat object under new assay
-  seuratObj[['Q3']] <- Seurat::CreateAssayObject(as(Q3_Final_Counts, "dgCMatrix"))
+  seuratObj[[targetAssayName]] <- Seurat::CreateAssayObject(as(Q3_Final_Counts, "dgCMatrix"))
   
   return(seuratObj)
 }
@@ -39,10 +40,12 @@ Q3_Normalization <- function(seuratObj, assay = "RNA"){
 #' @description a normalization method that uses residuals from a fitted model to Remove Unwanted Variation by leveraging housekeeping genes (https://www.nature.com/articles/nbt.2931).
 #' @param seuratObj The Seurat object that holds the data to be normalized.
 #' @param assay The assay holding the raw data - the counts slot will be assumed to hold raw data.
+#' @param targetAssayName The assay name that the normalized data should be stored in. 
 #' @param k the number of factors of unwanted variation. See section "Choice of number of factors of unwanted variation." in paper cited in the description.
 #' @return Returns a Seurat object containing normalized counts stored in the counts slot of the RUVg assay. 
 #' @export
-RUVg_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", k = 1){
+
+RUVg_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", targetAssayName = "RUVg",  k = 1){
   housekeeping_genes <- c("ABCF1", "ACTB", "ALAS1", "B2M", "CLTC", "G6PD", "GAPDH", 
                           "GUSB", "HPRT1", "LDHA", "PGK1", "POLR1B", "POLR2A",
                           "RPL19", "RPLP0", "SDHA", "TBP", "TUBB")
@@ -51,7 +54,7 @@ RUVg_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", k = 1){
   RUVg <- RUVSeq::RUVg(rounded_counts,
                        housekeeping_genes[housekeeping_genes %in% rownames(seuratObj)], 
                        k = k)
-  seuratObj[['RUVg']] <- Seurat::CreateAssayObject(as(RUVg$normalizedCounts, "dgCMatrix"))
+  seuratObj[[targetAssayName]] <- Seurat::CreateAssayObject(as(RUVg$normalizedCounts, "dgCMatrix"))
   return(seuratObj)
 }
 
@@ -60,10 +63,11 @@ RUVg_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", k = 1){
 #' @description a normalization method that uses the housekeeping genes to generate size factors for normalization.
 #' @param seuratObj The Seurat object that holds the data to be normalized.
 #' @param assay The assay holding the raw data - the counts slot will be assumed to hold raw data.
+#' @param targetAssayName The assay name that the normalized data should be stored in. 
 #' @return Returns a Seurat object containing normalized counts stored in the counts slot of the "Housekeeping" assay. 
 #' @export
 
-NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA"){
+NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", targetAssayName = "Housekeeping"){
   
   #Normalization Steps from Nanostring 
   #1.  Calculate the geometric mean of the selected housekeeping genes for each lane.
@@ -76,6 +80,13 @@ NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA"){
   housekeeping_genes <- c("ABCF1", "ACTB", "ALAS1", "B2M", "CLTC", "G6PD", "GAPDH", 
                           "GUSB", "HPRT1", "LDHA", "PGK1", "POLR1B", "POLR2A",
                           "RPL19", "RPLP0", "SDHA", "TBP", "TUBB")
+  #Check to ensure housekeeping genes present in the count matrix.
+  if (sum(rownames(counts) %in% housekeeping_genes) == 0){
+    stop("No housekeeping genes detected in the count matrix.")
+  }
+  #Report how many housekeeping genes are present in the count matrix.
+  print(paste0(sum(rownames(counts) %in% housekeeping_genes), " housekeeping genes detected in the count matrix."))
+  
   housekeeping_counts <- counts[rownames(counts) %in% housekeeping_genes, ]
   
   #Ensure no downstream division by zero errors
@@ -89,7 +100,7 @@ NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA"){
   #step 4 of the normalization is computed here
   hk_normalized_counts <- housekeeping_counts %*% diag(Sample_Normalization_Factors)
   colnames(hk_normalized_counts) <- colnames(counts)
-  seuratObj[["Housekeeping"]] <- Seurat::CreateAssayObject(counts = as(hk_normalized_counts, "dgCMatrix"))
+  seuratObj[[targetAssayName]] <- Seurat::CreateAssayObject(counts = as(hk_normalized_counts, "dgCMatrix"))
   return(seuratObj)
 }
 
@@ -100,17 +111,29 @@ NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA"){
 #' @param assay The assay holding the raw data - the counts slot will be assumed to hold raw data.
 #' @param normalizationMethod The normalization method to be applied (One of: Q3, Housekeeping, or RUVg) across the batches/groups in groupField. 
 #' @param groupField the metadata column that delineates how the samples within Seurat object should be grouped. 
+#' @param targetAssayName The assay name that the normalized data should be stored in. 
 #' @param k a passthrough variable for the RUVg normalization. Please see RUVg_Housekeeping_Normalization for details about this parameter.
 #' @return Returns a Seurat object containing normalized counts stored in the counts slot of the "Housekeeping" assay. 
 #' @export
 
-SpatialNormalizeByGroup <- function(seuratObj, assay = "RNA", normalizationMethod= NULL, groupField = "SlideName", k = NA){
+SpatialNormalizeByGroup <- function(seuratObj, assay = "RNA", normalizationMethod = NULL, inferAssayName = T, targetAssayName = NULL, groupField = "SlideName", k = NA){
   #Ensure that groupField is the currently set Idents value.
   Seurat::Idents(seuratObj) <- groupField
   #Test that a normalizationMethod is set.
   if (is.null(normalizationMethod)){
     stop("Please specify a normalization method. Currently supported methods are: Q3, Housekeeping, or RUVg.")
   }
+  #Ensure a resolvable targetAssayName, and infer targetAssayName if desired.
+  if (inferAssayName != TRUE & is.null(targetAssayName)){
+    stop("Please either set a targetAssayName or set inferAssayName = TRUE.")
+  } else if (inferAssayName == TRUE & !is.null(targetAssayName)){
+    print(paste0("inferAssayName is TRUE. Setting targetAssayName = ", normalizationMethod, "."))
+    targetAssayName <- normalizationMethod
+  } else if (inferAssayName != TRUE & !is.null(targetAssayName)){
+    print(paste0("Normalizations will be stored in the ", targetAssayName, " assay."))
+  }
+    
+  
   
   #split the seurat object according to groupField
   list_of_seurat_objects <- CellMembrane::SplitSeurat(seuratObj, splitField = groupField, minCellsToKeep = 1)
@@ -118,11 +141,11 @@ SpatialNormalizeByGroup <- function(seuratObj, assay = "RNA", normalizationMetho
   #Apply one of the Normalization methods across the values of groupField
   for (group in names(list_of_seurat_objects)){
     if (normalizationMethod == "Q3"){
-      list_of_seurat_objects[[group]] <- Q3_Normalization(seuratObj = list_of_seurat_objects[[group]], assay = assay)
+      list_of_seurat_objects[[group]] <- Q3_Normalization(seuratObj = list_of_seurat_objects[[group]], assay = assay, targetAssayName = targetAssayName)
     } else if(normalizationMethod == "Housekeeping") {
-      list_of_seurat_objects[[group]] <- NanoString_Housekeeping_Normalization(seuratObj = list_of_seurat_objects[[group]], assay = assay)
+      list_of_seurat_objects[[group]] <- NanoString_Housekeeping_Normalization(seuratObj = list_of_seurat_objects[[group]], assay = assay, targetAssayName = targetAssayName)
     } else if(normalizationMethod == "RUVg"){
-      list_of_seurat_objects[[group]] <- RUVg_Housekeeping_Normalization(seuratObj = list_of_seurat_objects[[group]], assay = assay)
+      list_of_seurat_objects[[group]] <- RUVg_Housekeeping_Normalization(seuratObj = list_of_seurat_objects[[group]], assay = assay, targetAssayName = targetAssayName)
     } else{
       #Test for a supported normalizationMethod.
       stop("Error: no supported normalization method selected. Please select one of: Q3, Housekeeping, or RUVg.")
