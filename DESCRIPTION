@@ -65,7 +65,8 @@ Imports:
     clusterProfiler,
     ggforce, 
     compositions, 
-    matrixStats
+    matrixStats,
+    RUVSeq
 Suggests:
     devtools,
     testthat (>= 2.1.0),
