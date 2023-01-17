@@ -112,6 +112,7 @@ NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", targ
 #' @param normalizationMethod The normalization method to be applied (One of: Q3, Housekeeping, or RUVg) across the batches/groups in groupField. 
 #' @param groupField the metadata column that delineates how the samples within Seurat object should be grouped. 
 #' @param targetAssayName The assay name that the normalized data should be stored in. 
+#' @param inferAssayName Boolean to determine whether or not the function should infer the name of the assay that the normalized counts will be stored in based on the name of normalizationMethod.
 #' @param k a passthrough variable for the RUVg normalization. Please see RUVg_Housekeeping_Normalization for details about this parameter.
 #' @return Returns a Seurat object containing normalized counts stored in the counts slot of the "Housekeeping" assay. 
 #' @export

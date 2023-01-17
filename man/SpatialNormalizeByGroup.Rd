@@ -21,6 +21,8 @@ SpatialNormalizeByGroup(
 
 \item{normalizationMethod}{The normalization method to be applied (One of: Q3, Housekeeping, or RUVg) across the batches/groups in groupField.}
 
+\item{inferAssayName}{Boolean to determine whether or not the function should infer the name of the assay that the normalized counts will be stored in based on the name of normalizationMethod.}
+
 \item{targetAssayName}{The assay name that the normalized data should be stored in.}
 
 \item{groupField}{the metadata column that delineates how the samples within Seurat object should be grouped.}
