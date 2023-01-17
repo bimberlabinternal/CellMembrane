@@ -30,7 +30,7 @@ Q3_Normalization <- function(seuratObj, assay = "RNA", targetAssayName = "Q3"){
   Q3_Final_Counts <- Q3_Divided_Counts * compositions::geometricmean(Q3_Sample_Counts)
   
   #stash into seurat object under new assay
-  seuratObj[[targetAssayName]] <- Seurat::CreateAssayObject(as(Q3_Final_Counts, "dgCMatrix"))
+  seuratObj[[targetAssayName]] <- Seurat::CreateAssayObject(methods::as(Q3_Final_Counts, "dgCMatrix"))
   
   return(seuratObj)
 }
@@ -54,7 +54,7 @@ RUVg_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", targetAssa
   RUVg <- RUVSeq::RUVg(rounded_counts,
                        housekeeping_genes[housekeeping_genes %in% rownames(seuratObj)], 
                        k = k)
-  seuratObj[[targetAssayName]] <- Seurat::CreateAssayObject(as(RUVg$normalizedCounts, "dgCMatrix"))
+  seuratObj[[targetAssayName]] <- Seurat::CreateAssayObject(methods::as(RUVg$normalizedCounts, "dgCMatrix"))
   return(seuratObj)
 }
 
@@ -100,7 +100,7 @@ NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", targ
   #step 4 of the normalization is computed here
   hk_normalized_counts <- housekeeping_counts %*% diag(Sample_Normalization_Factors)
   colnames(hk_normalized_counts) <- colnames(counts)
-  seuratObj[[targetAssayName]] <- Seurat::CreateAssayObject(counts = as(hk_normalized_counts, "dgCMatrix"))
+  seuratObj[[targetAssayName]] <- Seurat::CreateAssayObject(counts = methods::as(hk_normalized_counts, "dgCMatrix"))
   return(seuratObj)
 }
 
