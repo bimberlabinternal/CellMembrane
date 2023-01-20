@@ -104,8 +104,6 @@ SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLab
 		minCellsToKeep <- ncol(seuratObj) * minCellsToKeep
 		print(paste0('Interpreting minCellsToKeep as a fraction of input cells. Converting from ', minCellsToKeepOrig, ' to: ', minCellsToKeep))
 	}
-  #This prevents NAs in the currently set Idents field from preventing cells.idents from properly splitting the cells.
-  Seurat::Idents(seuratObj) <- splitField 
   #Fix NAs in splitField
 	data <- as.character(seuratObj@meta.data[[splitField]])
 	data[is.na(data)] <- naOtherLabel
