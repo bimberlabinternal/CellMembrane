@@ -118,8 +118,6 @@ NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", targ
 #' @export
 
 SpatialNormalizeByGroup <- function(seuratObj, assay = "RNA", normalizationMethod = NULL, inferAssayName = T, targetAssayName = NULL, groupField = "SlideName", k = NA){
-  #Ensure that groupField is the currently set Idents value.
-  Seurat::Idents(seuratObj) <- groupField
   #Test that a normalizationMethod is set.
   if (is.null(normalizationMethod)){
     stop("Please specify a normalization method. Currently supported methods are: Q3, Housekeeping, or RUVg.")
