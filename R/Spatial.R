@@ -1,7 +1,12 @@
-#' @import Seurat ggplot2 Matrix
-#' @importFrom compositions geometricmean geometricmeanRow 
-#' @importFrom RUVSeq RUVg
-#' @importFrom matrixStats rowMedians
+#' @import Seurat ggplot2 
+
+
+
+utils::globalVariables(
+  names = c('Sample', 'RLE'),
+  package = 'CellMembrane',
+  add = TRUE
+)
 
 #' @title Q3_Normalization
 #'
