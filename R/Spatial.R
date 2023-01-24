@@ -90,7 +90,7 @@ NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", targ
   housekeeping_counts <- counts[rownames(counts) %in% housekeeping_genes, ]
   
   #Ensure no downstream division by zero errors
-  if(any(compositions::geometricmeanRow(as.matrix(t(housekeeping_counts)) == 0))){
+  if(any(compositions::geometricmeanRow(as.matrix(t(housekeeping_counts))) == 0)){
     stop("Error: Geometric mean of housekeeping counts for one or more samples is zero. One of the housekeeping genes likely has a value of zero. Either add a pseudocount (if appropriate) or choose a different normalization")
   }
   
