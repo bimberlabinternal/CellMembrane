@@ -888,6 +888,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
 
 #' @importFrom stats coef
+#' @noRd 
 .FindElbow <- function(y, plot = FALSE, ignore.concavity = FALSE, min.y = NA, min.x = NA) {
 
   # minor modification to debug specic scenarios when fail to find elbow
