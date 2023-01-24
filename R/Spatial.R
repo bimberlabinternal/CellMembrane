@@ -1,7 +1,5 @@
 #' @import Seurat ggplot2 
 
-
-
 utils::globalVariables(
   names = c('Sample', 'RLE'),
   package = 'CellMembrane',
