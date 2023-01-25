@@ -91,6 +91,9 @@
     <loc>/reference/MergeSeuratObjs.html</loc>
   </url>
   <url>
+    <loc>/reference/NanoString_Housekeeping_Normalization.html</loc>
+  </url>
+  <url>
     <loc>/reference/NormalizeAndScale.html</loc>
   </url>
   <url>
@@ -119,6 +122,15 @@
   </url>
   <url>
     <loc>/reference/PseudobulkSeurat.html</loc>
+  </url>
+  <url>
+    <loc>/reference/Q3_Normalization.html</loc>
+  </url>
+  <url>
+    <loc>/reference/RLE_Plot.html</loc>
+  </url>
+  <url>
+    <loc>/reference/RUVg_Housekeeping_Normalization.html</loc>
   </url>
   <url>
     <loc>/reference/ReadAndFilter10xData.html</loc>
@@ -176,6 +188,9 @@
   </url>
   <url>
     <loc>/reference/SetSeed.html</loc>
+  </url>
+  <url>
+    <loc>/reference/SpatialNormalizeByGroup.html</loc>
   </url>
   <url>
     <loc>/reference/SplitSeurat.html</loc>
