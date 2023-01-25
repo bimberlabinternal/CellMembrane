@@ -63,7 +63,10 @@ Imports:
     RColorBrewer,
     scales,
     clusterProfiler,
-    ggforce
+    ggforce, 
+    compositions, 
+    matrixStats,
+    RUVSeq
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -82,7 +85,8 @@ Remotes:
     YosefLab/VISION,
     bimberlabinternal/RIRA,
     marchinilab/SDAtools,
-    marchinilab/dropsim
+    marchinilab/dropsim,
+    drisso/RUVSeq
 Config/reticulate:
   list(
     packages = list(
@@ -103,5 +107,6 @@ Collate:
     'SeuratUtils.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'
+    'Spatial.R'
     'Vision.R'
     'data.R'

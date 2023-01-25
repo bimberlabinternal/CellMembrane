@@ -95,7 +95,7 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 #' @param appendLowFreqToOther If true, any cells with NAs for the splitField, or terms with fewer than minCellsToKeep, will be merged into a single seurat object
 #' @export
 SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLabel = 'Other', excludedClasses = NULL, appendLowFreqToOther = TRUE) {
-	if (!(splitField %in% names(seuratObj@meta.data))) {
+  if (!(splitField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not present in seurat object: ', splitField))
 	}
 
@@ -104,7 +104,7 @@ SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLab
 		minCellsToKeep <- ncol(seuratObj) * minCellsToKeep
 		print(paste0('Interpreting minCellsToKeep as a fraction of input cells. Converting from ', minCellsToKeepOrig, ' to: ', minCellsToKeep))
 	}
-
+  #Fix NAs in splitField
 	data <- as.character(seuratObj@meta.data[[splitField]])
 	data[is.na(data)] <- naOtherLabel
 	if (!all(is.null(excludedClasses))) {
