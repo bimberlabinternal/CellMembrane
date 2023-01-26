@@ -66,7 +66,8 @@ Imports:
     ggforce, 
     compositions, 
     matrixStats,
-    RUVSeq
+    RUVSeq,
+    TITAN
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -86,7 +87,8 @@ Remotes:
     bimberlabinternal/RIRA,
     marchinilab/SDAtools,
     marchinilab/dropsim,
-    drisso/RUVSeq
+    drisso/RUVSeq,
+    ohsu-cedar-comp-hub/TITAN
 Config/reticulate:
   list(
     packages = list(
@@ -108,5 +110,6 @@ Collate:
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'Spatial.R'
+    'Titan.R'
     'Vision.R'
     'data.R'
