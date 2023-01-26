@@ -88,7 +88,7 @@ Remotes:
     marchinilab/SDAtools,
     marchinilab/dropsim,
     drisso/RUVSeq,
-    ohsu-cedar-comp-hub/TITAN
+    bbimber/TITAN
 Config/reticulate:
   list(
     packages = list(
