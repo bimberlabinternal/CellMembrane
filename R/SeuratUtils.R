@@ -781,20 +781,3 @@ ScaleFeaturesIfNeeded <- function(seuratObj, toScale, assayName = 'RNA') {
 
 	return(seuratObj)
 }
-
-#' @title Create a dataframe with chi-squared statistics of clones
-#' @description This function creates a dataframe with chi-squared statistics of clones
-#' @param so the dataframe with the clones and the meta data
-#' @param clone_vector a character vector of 2 or more TRA_V clones
-#' @param metaF the column name of the metaF in the dataframe so
-#' @param plot logical to plot a heatmap using pheatmap
-#' @return a dataframe with chi-squared statistics of clones
-#' @export
-clone2ChiDF = function(so=NULL, clone_vector, metaF="BarcodePrefix", plot=F){
-  tempDF = lapply(clone_vector, function(x) {
-    chisq.test(table(ifelse(ComboSerObj$TRA_V == x, x, "other"), ComboSerObj@meta.data[,metaF]))$res[2,]
-  }) %>% as.data.frame()
-  colnames(tempDF) = clone_vector
-  if(plot) pheatmap::pheatmap(asinh(tempDF))
-  return(tempDF)
-}
