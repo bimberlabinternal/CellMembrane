@@ -22,7 +22,7 @@
 #' @export
 DoLdaParameterScan <- function(seuratObj, outputFolder, ntopics = seq(5, 50, by=5), normalizationMethod = "CLR", varFeatures = 5000, randomSeed = GetSeed(), nCores = 1) {
   # Perform normalization once:
-  seuratObj <- Seurat::NormalizeData(Object, assay = assayName, normalization.method = normalizationMethod)
+  seuratObj <- Seurat::NormalizeData(seuratObj, assay = assayName, normalization.method = normalizationMethod)
   seuratObj <- Seurat::FindVariableFeatures(seuratObj, assay = assayName, nfeatures = varFeatures)
 
   TITAN::runLDA(seuratObj, ntopics = ntopics, normalizationMethod = normalizationMethod, seed.number = randomSeed, parallel = TRUE, outDir = outputFolder, cores = nCores, skipNormalization = TRUE)
