@@ -18,9 +18,10 @@
 #' @param normalizationMethod The method used for Seurat::NormalizeData()
 #' @param varFeatures The number of variable features to use in the LDA model. The more features that are used, the slower the model will run and the more noise that will be introduced, but the model will be more complete in representing your entire dataset.
 #' @param randomSeed Passed to TITAN::runLDA seed.number argument
+#' @param assayName The name of the source assay
 #' @param nCores The number of cores to use
 #' @export
-DoLdaParameterScan <- function(seuratObj, outputFolder, ntopics = seq(5, 50, by=5), normalizationMethod = "CLR", varFeatures = 5000, randomSeed = GetSeed(), nCores = 1) {
+DoLdaParameterScan <- function(seuratObj, outputFolder, ntopics = seq(5, 50, by=5), normalizationMethod = "CLR", varFeatures = 5000, randomSeed = GetSeed(), assayName = 'RNA', nCores = 1) {
   # Perform normalization once:
   seuratObj <- Seurat::NormalizeData(seuratObj, assay = assayName, normalization.method = normalizationMethod)
   seuratObj <- Seurat::FindVariableFeatures(seuratObj, assay = assayName, nfeatures = varFeatures)

@@ -11,6 +11,7 @@ DoLdaParameterScan(
   normalizationMethod = "CLR",
   varFeatures = 5000,
   randomSeed = GetSeed(),
+  assayName = "RNA",
   nCores = 1
 )
 }
@@ -26,6 +27,8 @@ DoLdaParameterScan(
 \item{varFeatures}{The number of variable features to use in the LDA model. The more features that are used, the slower the model will run and the more noise that will be introduced, but the model will be more complete in representing your entire dataset.}
 
 \item{randomSeed}{Passed to TITAN::runLDA seed.number argument}
+
+\item{assayName}{The name of the source assay}
 
 \item{nCores}{The number of cores to use}
 }
