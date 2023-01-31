@@ -210,7 +210,7 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
 #' @param scoreCellCycle If true, ScoreCellCycle will be run to compute Phase, which is stored in meta.data. If a field named Phase already exists, this will be skipped.
 #' @return A modified Seurat object.
 #' @export
-NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE, useSCTransform = FALSE, additionalFindVariableFeatureArgList = NULL, scoreCellCycle = TRUE){
+NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c(paste0("nCount_", Seurat::DefaultAssay(seuratObj))), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE, useSCTransform = FALSE, additionalFindVariableFeatureArgList = NULL, scoreCellCycle = TRUE){
   if (!is.null(featuresToRegress)) {
     if ('p.mito' %in% featuresToRegress) {
       if ('p.mito' %in% names(seuratObj@meta.data)) {
@@ -286,7 +286,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	return(seuratObj)
 }
 
-.NormalizeAndScaleDefault <- function(seuratObj, additionalFindVariableFeatureArgList = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c("nCount_RNA"), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE) {
+.NormalizeAndScaleDefault <- function(seuratObj, additionalFindVariableFeatureArgList = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c(paste0("nCount_", assayName)), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE) {
 	seuratObj <- NormalizeData(object = seuratObj, normalization.method = "LogNormalize", verbose = F)
 
 	print('Find variable features:')
@@ -392,12 +392,16 @@ RunPcaSteps <- function(seuratObj, npcs = 50, variableGeneTable = NULL) {
 FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low = 1, nFeature.high = 3000, nFeature.low = 200, pMito.high = 0.15, pMito.low = 0) {
   print("Filtering Cells...")
 
+  assayName <- Seurat::DefaultAssay(seuratObj)
+  nCountField <- paste0('nCount_', assayName)
+  nFeatureField <- paste0('nFeature_', assayName)
+
   print(paste0('Initial cells: ', length(colnames(x = seuratObj))))
 
   if ('p.mito' %in% colnames(seuratObj@meta.data)) {
 	  uniquePMito <- length(unique(seuratObj$p.mito))
     if (uniquePMito > 1) {
-      P1 <- FeatureScatter(object = seuratObj, feature1 = "nCount_RNA", feature2 = "p.mito")
+      P1 <- FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = "p.mito")
       P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.low), color="blue", linetype="dashed", size=1)
       P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.high), color="blue", linetype="dashed", size=1)
       P1 <- P1 + geom_hline(aes(yintercept=pMito.low), color="blue", linetype="dashed", size=1)
@@ -408,7 +412,7 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
     }
   }
 
-	P1 <- FeatureScatter(object = seuratObj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+	P1 <- FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = nFeatureField)
 	P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.low), color="blue", linetype="dashed", size=1)
 	P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.high), color="blue", linetype="dashed", size=1)
 	P1 <- P1 + geom_hline(aes(yintercept=nFeature.low), color="blue", linetype="dashed", size=1)
@@ -416,13 +420,13 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
 	print(P1)
 
   #See: https://github.com/satijalab/seurat/issues/1053#issuecomment-454512002
-  expr <- Seurat::FetchData(object = seuratObj, vars = 'nCount_RNA')
+  expr <- Seurat::FetchData(object = seuratObj, vars = nCountField)
   seuratObj <- seuratObj[, which(x = expr >= nCount_RNA.low & expr <= nCount_RNA.high)]
-  print(paste0('After nCount_RNA filter: ', length(colnames(x = seuratObj))))
+  print(paste0('After ', nCountField, ' filter: ', length(colnames(x = seuratObj))))
 
-  expr <- Seurat::FetchData(object = seuratObj, vars = 'nFeature_RNA')
+  expr <- Seurat::FetchData(object = seuratObj, vars = nFeatureField)
   seuratObj <- seuratObj[, which(x = expr >= nFeature.low & expr <= nFeature.high)]
-  print(paste0('After nFeature_RNA filter: ', length(colnames(x = seuratObj))))
+  print(paste0('After ', nFeatureField, ' filter: ', length(colnames(x = seuratObj))))
 
   if ('p.mito' %in% colnames(seuratObj@meta.data)) {
     expr <- Seurat::FetchData(object = seuratObj, vars = 'p.mito')

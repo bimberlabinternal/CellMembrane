@@ -18,14 +18,13 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: 20.04, r: 'devel', bioc: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
-          - {os: 20.04, r: 'release', bioc: '3.16', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest", pkgdown: "true"}
+          - {os: 20.04, r: 'devel', bioc: 'devel'}
+          - {os: 20.04, r: 'release', bioc: '3.16', pkgdown: "true"}
           # NOTE: disabled due to BiocManager / missing argument error
-          #- {os: 20.04, r: '4.2', bioc: '3.15', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          #- {os: 20.04, r: '4.2', bioc: '3.15'}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
-      RSPM: ${{ matrix.config.rspm }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
@@ -35,6 +34,7 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
+          use-public-rspm: true
 
       - uses: r-lib/actions/setup-pandoc@v2
 
