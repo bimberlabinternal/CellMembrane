@@ -67,7 +67,9 @@ Imports:
     compositions, 
     matrixStats,
     RUVSeq,
-    TITAN
+    lda,
+    parallel,
+    text2vec
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -87,8 +89,7 @@ Remotes:
     bimberlabinternal/RIRA,
     marchinilab/SDAtools,
     marchinilab/dropsim,
-    drisso/RUVSeq,
-    bbimber/TITAN
+    drisso/RUVSeq
 Config/reticulate:
   list(
     packages = list(
@@ -103,6 +104,7 @@ Collate:
     'Utils.R'
     'CiteSeq.R'
     'Doublets.R'
+    'LDA.R'
     'Phate.R'
     'PseudoBulk.R'
     'SDA.R'
@@ -110,6 +112,5 @@ Collate:
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'Spatial.R'
-    'Titan.R'
     'Vision.R'
     'data.R'

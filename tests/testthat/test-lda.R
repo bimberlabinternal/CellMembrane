@@ -1,7 +1,7 @@
 context("scRNAseq")
 library(Seurat)
 
-test_that("SDA works as expected", {
+test_that("LDA works as expected", {
     seuratObj <- readRDS('../testdata/seuratOutput.rds')
 
     outputFolder <- paste0(tempdir(), '/lda')
