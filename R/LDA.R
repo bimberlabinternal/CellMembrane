@@ -14,10 +14,10 @@
 #' @description This will run LDA on the target assay
 #' @param seuratObj A Seurat object.
 #' @param outputFolder The path to save results. There will be subfolders for ./rawData and ./results
-#' @param ntopics Passed to TITAN::runLDA.
+#' @param ntopics Passed to runLDA.
 #' @param normalizationMethod The method used for Seurat::NormalizeData()
 #' @param varFeatures The number of variable features to use in the LDA model. The more features that are used, the slower the model will run and the more noise that will be introduced, but the model will be more complete in representing your entire dataset.
-#' @param randomSeed Passed to TITAN::runLDA seed.number argument
+#' @param randomSeed Passed to runLDA seed.number argument
 #' @param assayName The name of the source assay
 #' @param nCores The number of cores to use
 #' @export
@@ -28,7 +28,7 @@ DoLdaParameterScan <- function(seuratObj, outputFolder, ntopics = seq(5, 50, by=
 
   runLDA(seuratObj, ntopics = ntopics, normalizationMethod = normalizationMethod, seed.number = randomSeed, parallel = TRUE, outDir = outputFolder, cores = nCores, skipNormalization = TRUE)
   if (length(ntopics) > 1) {
-    print(TITAN::LDAelbowPlot(outputFolder, seuratObj, skipNormalization = TRUE))
+    print(LDAelbowPlot(outputFolder, seuratObj, skipNormalization = TRUE))
   }
 }
 

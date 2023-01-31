@@ -20,13 +20,13 @@ DoLdaParameterScan(
 
 \item{outputFolder}{The path to save results. There will be subfolders for ./rawData and ./results}
 
-\item{ntopics}{Passed to TITAN::runLDA.}
+\item{ntopics}{Passed to runLDA.}
 
 \item{normalizationMethod}{The method used for Seurat::NormalizeData()}
 
 \item{varFeatures}{The number of variable features to use in the LDA model. The more features that are used, the slower the model will run and the more noise that will be introduced, but the model will be more complete in representing your entire dataset.}
 
-\item{randomSeed}{Passed to TITAN::runLDA seed.number argument}
+\item{randomSeed}{Passed to runLDA seed.number argument}
 
 \item{assayName}{The name of the source assay}
 
