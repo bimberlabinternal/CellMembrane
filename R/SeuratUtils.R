@@ -781,3 +781,35 @@ ScaleFeaturesIfNeeded <- function(seuratObj, toScale, assayName = 'RNA') {
 
 	return(seuratObj)
 }
+
+
+#' @title Create a dataframe with chi-squared statistics of clones
+#' @description This function creates a dataframe with chi-squared statistics between two metadata fields
+#' @param seuratObj The seurat object
+#' @param field1 The name of the first column to compare
+#' @param field2 The name of the second column to compare
+#' @param plot If true, the function will plot a heatmap using pheatmap
+#' @return A dataframe with chi-squared statistics of clones
+#' @export
+GetChiDF <- function(seuratObj, field1, field2, plot = FALSE) {
+	if (!field1 %in% names(seuratObj@meta.data)) {
+		stop(paste0('Missing field: ', field1))
+	}
+	dat1 <- seuratObj@meta.data[,field1]
+
+	if (!field2 %in% names(seuratObj@meta.data)) {
+		stop(paste0('Missing field: ', field2))
+	}
+	dat2 <- seuratObj@meta.data[,field2]
+
+	tempDF <- lapply(clone_vector, function(x) {
+		chisq.test(table(dat1, dat2))$res[2,]
+	}) %>% as.data.frame()
+
+	colnames(tempDF) <- dat1
+	if (plot) {
+		pheatmap::pheatmap(asinh(tempDF))
+	}
+
+	return(tempDF)
+}
