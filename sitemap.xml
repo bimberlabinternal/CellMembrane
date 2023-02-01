@@ -49,6 +49,9 @@
     <loc>/reference/DesignModelMatrix.html</loc>
   </url>
   <url>
+    <loc>/reference/DoLdaParameterScan.html</loc>
+  </url>
+  <url>
     <loc>/reference/DownsampleSeurat.html</loc>
   </url>
   <url>
@@ -221,5 +224,8 @@
   </url>
   <url>
     <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/runLDA.html</loc>
   </url>
 </urlset>
