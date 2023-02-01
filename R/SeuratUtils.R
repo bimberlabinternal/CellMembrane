@@ -791,6 +791,7 @@ ScaleFeaturesIfNeeded <- function(seuratObj, toScale, assayName = 'RNA') {
 #' @param plot If true, the function will plot a heatmap using pheatmap
 #' @return A dataframe with chi-squared statistics of clones
 #' @export
+# TODO: fix this
 GetChiDF <- function(seuratObj, field1, field2, plot = FALSE) {
 	if (!field1 %in% names(seuratObj@meta.data)) {
 		stop(paste0('Missing field: ', field1))
@@ -803,7 +804,7 @@ GetChiDF <- function(seuratObj, field1, field2, plot = FALSE) {
 	dat2 <- seuratObj@meta.data[,field2]
 
 	tempDF <- lapply(clone_vector, function(x) {
-		chisq.test(table(dat1, dat2))$res[2,]
+		stats::chisq.test(table(dat1, dat2))$res[2,]
 	}) %>% as.data.frame()
 
 	colnames(tempDF) <- dat1

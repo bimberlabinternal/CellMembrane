@@ -402,10 +402,10 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
 	  uniquePMito <- length(unique(seuratObj$p.mito))
     if (uniquePMito > 1) {
       P1 <- FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = "p.mito")
-      P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.low), color="blue", linetype="dashed", size=1)
-      P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.high), color="blue", linetype="dashed", size=1)
-      P1 <- P1 + geom_hline(aes(yintercept=pMito.low), color="blue", linetype="dashed", size=1)
-      P1 <- P1 + geom_hline(aes(yintercept=pMito.high), color="blue", linetype="dashed", size=1)
+      P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.low), color="blue", linetype="dashed", linewidth=1)
+      P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.high), color="blue", linetype="dashed", linewidth=1)
+      P1 <- P1 + geom_hline(aes(yintercept=pMito.low), color="blue", linetype="dashed", linewidth=1)
+      P1 <- P1 + geom_hline(aes(yintercept=pMito.high), color="blue", linetype="dashed", linewidth=1)
       print(P1)
     } else {
       print("p.mito is either absent or identical across all cells")
@@ -413,10 +413,10 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
   }
 
 	P1 <- FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = nFeatureField)
-	P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.low), color="blue", linetype="dashed", size=1)
-	P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.high), color="blue", linetype="dashed", size=1)
-	P1 <- P1 + geom_hline(aes(yintercept=nFeature.low), color="blue", linetype="dashed", size=1)
-	P1 <- P1 + geom_hline(aes(yintercept=nFeature.high), color="blue", linetype="dashed", size=1)
+	P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.low), color="blue", linetype="dashed", linewidth=1)
+	P1 <- P1 + geom_vline(aes(xintercept=nCount_RNA.high), color="blue", linetype="dashed", linewidth=1)
+	P1 <- P1 + geom_hline(aes(yintercept=nFeature.low), color="blue", linetype="dashed", linewidth=1)
+	P1 <- P1 + geom_hline(aes(yintercept=nFeature.high), color="blue", linetype="dashed", linewidth=1)
 	print(P1)
 
   #See: https://github.com/satijalab/seurat/issues/1053#issuecomment-454512002
