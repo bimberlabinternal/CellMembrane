@@ -2,11 +2,11 @@
 #' @include Preprocessing.R
 #' @import Seurat
 
-# utils::globalVariables(
-#   names = c(''),
-#   package = 'CellMembrane',
-#   add = TRUE
-# )
+utils::globalVariables(
+  names = c('Topics'),
+  package = 'CellMembrane',
+  add = TRUE
+)
 
 
 #' @title DoLdaParameterScan
@@ -180,7 +180,7 @@ LDAelbowPlot <- function(model_dir, seuratObj, varFeatures = 5000, assayName = "
 
     #extract document-term matrix
     docterMat     <- t(as.matrix(data.use))
-    docterMat     <- as(docterMat, "sparseMatrix")
+    docterMat     <- methods::as(docterMat, "sparseMatrix")
 
     #calculate topic word distribution
     topworddist   <- .normalize(model$topics, byrow = T)
@@ -212,10 +212,10 @@ LDAelbowPlot <- function(model_dir, seuratObj, varFeatures = 5000, assayName = "
   object <- x
 
   if (!byrow){
-    object.new <- t(normalize( t(object), tol = tol, byrow = TRUE) )
+    object.new <- t(.normalize( t(object), tol = tol, byrow = TRUE) )
   } else {
     if (is.matrix(object) || any(is(object) == "Matrix")) {
-      object.new <- threshold(object, min = 0)
+      object.new <- .threshold(object, min = 0)
       max.pos <- integer(0)
       all.zeros <- which(apply(object.new, 1, function(u) all(u == 0)))
       if (any(all.zeros)) {
@@ -243,7 +243,7 @@ LDAelbowPlot <- function(model_dir, seuratObj, varFeatures = 5000, assayName = "
       }
     } else if (is.vector(object)) {
       max.pos <- which.max(object)
-      object.new <- threshold(object, min = 0)
+      object.new <- .threshold(object, min = 0)
       if (all(object.new == 0)) {
         object.new[max.pos] <- 1
       } else {
@@ -252,4 +252,15 @@ LDAelbowPlot <- function(model_dir, seuratObj, varFeatures = 5000, assayName = "
     }
   }
   return(object.new)
+}
+
+.threshold <- function(x, min = -Inf, max = Inf){
+
+  if (min > -Inf){
+    x[x < min] <- min
+  }
+  if (max < Inf){
+    x[x > max] <- max
+  }
+  invisible(x)
 }
