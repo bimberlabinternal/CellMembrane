@@ -102,6 +102,7 @@ runLDA <- function(seuratObj,
 
   #Run model
   model_maker <- function(topics) {
+    print(paste0('Running LDA with ', topics, ' topics'))
     selected.Model <- lda::lda.collapsed.gibbs.sampler(
       cellList,
       topics,
