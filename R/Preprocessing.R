@@ -76,7 +76,11 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 		totalPMito <- -1
 	}
 
-	feats <- c("nFeature_RNA", "nCount_RNA")
+	assayName <- Seurat::DefaultAssay(seuratObj)
+	nCountField <- paste0('nCount_', assayName)
+	nFeatureField <- paste0('nFeature_', assayName)
+
+	feats <- c(nFeatureField, nCountField)
 	if (totalPMito > 1) {
 		feats <- c(feats, "p.mito")
 	}
@@ -84,11 +88,11 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 	print(VlnPlot(object = seuratObj, features = feats, ncol = length(feats)))
 
 	if (totalPMito > 1) {
-		print(FeatureScatter(object = seuratObj, feature1 = "nCount_RNA", feature2 = "p.mito"))
+		print(FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = "p.mito"))
 	} else {
 		print("p.mito absent or identical across all cells, will not plot")
 	}
-	print(FeatureScatter(object = seuratObj, feature1 = "nCount_RNA", feature2 = "nFeature_RNA"))
+	print(FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = nFeatureField))
 
 	#10x-like plot
 	nUMI <- Matrix::colSums(GetAssayData(object = seuratObj, slot = "counts"))

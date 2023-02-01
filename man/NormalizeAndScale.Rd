@@ -10,7 +10,7 @@ NormalizeAndScale(
   block.size = 1000,
   variableGenesWhitelist = NULL,
   variableGenesBlacklist = NULL,
-  featuresToRegress = c("nCount_RNA"),
+  featuresToRegress = c(paste0("nCount_", Seurat::DefaultAssay(seuratObj))),
   scaleVariableFeaturesOnly = TRUE,
   includeCellCycleGenesInScaleData = TRUE,
   useSCTransform = FALSE,
