@@ -56,10 +56,6 @@ LDA Model
 \description{
 This function runs an LDA model on scRNA-seq expression data
 }
-\examples{
-runLDA(SeuratObj, ntopics = 20)
-
-}
 \references{
 https://github.com/ohsu-cedar-comp-hub/TITAN
 }

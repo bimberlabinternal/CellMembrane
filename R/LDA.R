@@ -53,9 +53,6 @@ DoLdaParameterScan <- function(seuratObj, outputFolder, ntopics = seq(5, 50, by=
 #'
 #' @author TITAN
 #' @references https://github.com/ohsu-cedar-comp-hub/TITAN
-
-#' @examples
-#' runLDA(SeuratObj, ntopics = 20)
 #'
 #' @return LDA Model
 #' @export
