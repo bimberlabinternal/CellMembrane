@@ -146,6 +146,7 @@ LDAelbowPlot <- function(ldaResults, seuratObj, assayName = "RNA") {
 
   for (topic_num in names(ldaResults)) {
     model <- ldaResults[[topic_num]]
+    topic_num <- as.integer(topic_num)
     topic_numbers <- c(topic_numbers, topic_num)
 
     #extract document-term matrix
