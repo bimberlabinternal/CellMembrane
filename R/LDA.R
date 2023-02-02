@@ -102,7 +102,7 @@ runLDA <- function(seuratObj,
 
   #Run model
   model_maker <- function(topics) {
-    print(paste0('Running LDA with ', topics, ' topics'))
+    print(paste0('Running LDA with ntopics = ', topics))
     selected.Model <- lda::lda.collapsed.gibbs.sampler(
       cellList,
       topics,
@@ -118,6 +118,10 @@ runLDA <- function(seuratObj,
 
   if (length(ntopics) > 1) {
     models <- parallel::mclapply(ntopics, model_maker, mc.cores = cores)
+    names(models) <- sapply(models, function(x){
+    	return(length(x$topic_sums))
+    })
+    
     return(models)
   } else {
     m <- model_maker(ntopics)
@@ -127,8 +131,8 @@ runLDA <- function(seuratObj,
 
 
 LDAelbowPlot <- function(ldaResults, seuratObj, assayName = "RNA") {
-  Object.sparse <- GetAssayData(seuratObj, slot = "data",assay = assayName)
-  Object.sparse <- Object.sparse[VariableFeatures(seuratObj, assay = assayName),]
+  Object.sparse <- Seurat::GetAssayData(seuratObj, slot = "data", assay = assayName)
+  Object.sparse <- Object.sparse[Seurat::VariableFeatures(seuratObj, assay = assayName),]
 
   #convert data into the proper input format for lda.collapsed.gibbs.sampler
   data.use <- Matrix::Matrix(Object.sparse, sparse = T)
