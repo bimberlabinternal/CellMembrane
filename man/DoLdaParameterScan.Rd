@@ -6,19 +6,16 @@
 \usage{
 DoLdaParameterScan(
   seuratObj,
-  outputFolder,
   ntopics = seq(5, 50, by = 5),
   normalizationMethod = "CLR",
   varFeatures = 5000,
   randomSeed = GetSeed(),
-  assayName = "RNA",
+  assayName = Seurat::DefaultAssay(seuratObj),
   nCores = 1
 )
 }
 \arguments{
 \item{seuratObj}{A Seurat object.}
-
-\item{outputFolder}{The path to save results. There will be subfolders for ./rawData and ./results}
 
 \item{ntopics}{Passed to runLDA.}
 

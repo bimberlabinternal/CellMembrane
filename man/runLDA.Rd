@@ -13,11 +13,9 @@ runLDA(
   iterations = 500,
   burnin = 250,
   seed.number = GetSeed(),
-  parallel = F,
-  outDir = NULL,
   cores = 1,
   normalizationMethod = "CLR",
-  assayName = "RNA",
+  assayName = Seurat::DefaultAssay(seuratObj),
   skipNormalization = FALSE
 )
 }
@@ -37,10 +35,6 @@ runLDA(
 \item{burnin}{number of iterations to run to allow the model to learn before calculating certain statistics. Models start at random points, so this allows model to get closer to the fit before certain statistics are calculated.}
 
 \item{seed.number}{random integer to set seed}
-
-\item{parallel}{if TRUE, will run multiple models in parallel. NOT AVAILABLE ON WINDOWS}
-
-\item{outDir}{if parallel = TRUE, the output directory for the multiple models}
 
 \item{cores}{Number of cores to use, only applicable if parallel = TRUE}
 
