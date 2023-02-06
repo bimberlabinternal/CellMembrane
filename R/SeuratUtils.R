@@ -814,3 +814,27 @@ GetChiDF <- function(seuratObj, field1, field2, plot = FALSE) {
 
 	return(tempDF)
 }
+
+#' Calculate the percent expressed cells for each group in a Seurat object
+#'
+#' @param so A Seurat object
+#' @param group.by A meta feature used to group the cells
+#' @param features A vector of features (genes) to calculate the percent expressed cells for
+#' @param plot_perHM A logical indicating whether to plot a heatmap of the results
+#' @return A data frame with the percent expressed cells for each group and feature
+#' @export
+PercentExpressed <- function(so, group.by, features, plot_perHM = F){
+  MyDot = DotPlot(so, group.by = group.by, features = unique(features) )
+  
+  PctExprDF = lapply(levels(MyDot$data$id), function(xL){
+    subset(MyDot$data, id == xL)$pct.exp
+  }) %>% as.data.frame()
+  
+  rownames(PctExprDF) = rownames(subset(MyDot$data, id == levels(MyDot$data$id)[1]))
+  colnames(PctExprDF) = levels(MyDot$data$id)
+  rowSums(PctExprDF)
+  
+  if(plot_perHM) pheatmap::pheatmap(PctExprDF)
+  
+  return(PctExprDF)
+}
