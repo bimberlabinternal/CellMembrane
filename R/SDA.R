@@ -454,7 +454,7 @@ PlotSdaCellScores <- function(sdaResults, seuratObj, fieldNames, scaleMean0 = TR
     asinhTrans <- scales::trans_new(name = 'asinh3', transform = function(x){ asinh(x^3) }, inverse = function(x){ sinh(x)^(1/3) })
 
     for (i in 1:totalPages) {
-      P1 <- ggplot(dat, aes_string(y = 'Score', x = fieldName)) +
+      P1 <- ggplot(dat, aes(y = Score, x = !!rlang::sym(fieldName))) +
         geom_jitter(width = 0.1,alpha = 0.3) +
         geom_violin(alpha = 0.5) +
         egg::theme_presentation(base_size = 14) +

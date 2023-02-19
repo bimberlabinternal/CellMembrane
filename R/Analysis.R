@@ -131,7 +131,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   
   #Initial Visualization
   ggplot(seuratObj@meta.data) + 
-    geom_boxplot(aes_string(x = independentVariableTestField, y = dependentVariableTestField))
+    geom_boxplot(aes(x = !!rlang::sym(independentVariableTestField), y = !!rlang::sym(dependentVariableTestField)))
   
   #Fit linear model relating "independent variable" and SizeFactor
   #Interpret the first intercept as mean SizeFactor and subsequent intercepts as a difference in average size factor
