@@ -3,7 +3,7 @@
 #' @import Seurat
 
 utils::globalVariables(
-  names = c('nCount_RNA', 'nFeature_RNA', 'p.mito', 'x', 'y', 'p_val_adj', 'avg_logFC', 'groupField', 'cluster', 'pct.1', 'pct.2', 'S.Score_UCell', 'G2M.Score_UCell', 'Phase', 'min.score.threshold'),
+  names = c('nCount_RNA', 'nFeature_RNA', 'p.mito', 'x', 'y', 'p_val_adj', 'avg_logFC', 'groupField', 'cluster', 'pct.1', 'pct.2', 'S.Score_UCell', 'G2M.Score_UCell', 'Phase', 'min.score.threshold', 'dims', 'stdev'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -879,7 +879,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   }
 
   plot <- ggplot(data = data.frame(dims = 1:ndims, stdev = data.use[1:ndims])) +
-    geom_point(mapping = aes_string(x = "dims", y = "stdev")) +
+    geom_point(mapping = aes(x = dims, y = stdev)) +
     labs(x = gsub(pattern = "_$", replacement = "", x = Key(object = object[[reduction]])),
     y = "Standard Deviation") + theme_bw() + geom_vline(xintercept = elbowX) + ggtitle("Elbow Identification")
 
