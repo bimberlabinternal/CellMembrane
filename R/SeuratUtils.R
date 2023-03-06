@@ -93,8 +93,9 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 #' @param naOtherLabel This string will be used to label any cells marked NA.
 #' @param excludedClasses Any cells with these labels will be lumped into the NA/Other bin.
 #' @param appendLowFreqToOther If true, any cells with NAs for the splitField, or terms with fewer than minCellsToKeep, will be merged into a single seurat object
+#' @param alwaysRetainOtherClass If true, even if the number of cells is less than minCellsToKeep, this class with be retained.
 #' @export
-SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLabel = 'Other', excludedClasses = NULL, appendLowFreqToOther = TRUE) {
+SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLabel = 'Other', excludedClasses = NULL, appendLowFreqToOther = TRUE, alwaysRetainOtherClass = FALSE) {
   if (!(splitField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not present in seurat object: ', splitField))
 	}
@@ -104,7 +105,8 @@ SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLab
 		minCellsToKeep <- ncol(seuratObj) * minCellsToKeep
 		print(paste0('Interpreting minCellsToKeep as a fraction of input cells. Converting from ', minCellsToKeepOrig, ' to: ', minCellsToKeep))
 	}
-  #Fix NAs in splitField
+
+	#Fix NAs in splitField
 	data <- as.character(seuratObj@meta.data[[splitField]])
 	data[is.na(data)] <- naOtherLabel
 	if (!all(is.null(excludedClasses))) {
@@ -126,7 +128,7 @@ SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLab
 
 		toKeep <- colnames(seuratObj)[data == value]
 		if (length(toKeep) == 0 || length(toKeep) < minCellsToKeep) {
-			print(paste0('Too few cells (', length(toKeep), '), discarding subset: ', value))
+			print(paste0('Too few cells (', length(toKeep), '): ', value, ', ', ifelse(appendLowFreqToOther, yes = paste0('cells will be merged into: ', naOtherLabel), no = 'discarding cells')))
 			if (appendLowFreqToOther) {
 				cellsForOther <- c(cellsForOther, toKeep)
 			}
@@ -137,7 +139,7 @@ SplitSeurat <- function(seuratObj, splitField, minCellsToKeep = 0.02, naOtherLab
 	}
 
 	if (length(cellsForOther) > 0) {
-		if (length(cellsForOther) < minCellsToKeep) {
+		if (!alwaysRetainOtherClass && length(cellsForOther) < minCellsToKeep) {
 			print(paste0('A total of ', length(cellsForOther), ' cells are in low-frequency groups, which is below minCellsToKeep and will be dropped'))
 		} else {
 			print(paste0('Adding category for other (', length(cellsForOther), ' cells):'))
