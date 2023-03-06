@@ -21,13 +21,12 @@ utils::globalVariables(
 #' @param storeGeneIds If true, a map to translate geneId and name (by default rownames will use gene name)
 #' @param useEmptyDropsCellRanger If TRUE, will use DropletUtils emptyDropsCellRanger instead of emptyDrops
 #' @param nExpectedCells Only applied if emptyDropsCellRanger is selected. Passed to n.expected.cells argument
-#' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
 #' @param previouslyFilteredMatrix An optional filepath to a pre-filtered count matrix in h5 format. If non-null, this file will be read instead of dataDir. Empty drops and/or soupX will be skipped.
 #' @param useSoupX If true, SoupX will be run against the run input data, instead of emptyDrops
 #' @return A Seurat object.
 #' @export
 #' @importFrom Seurat Read10X
-ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, emptyDropsFdrThreshold = 0.001, storeGeneIds=TRUE, emptyDropsLower = 100, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000, annotateMitoFromReference = TRUE, useSoupX = FALSE, previouslyFilteredMatrix = NULL) {
+ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, emptyDropsFdrThreshold = 0.001, storeGeneIds=TRUE, emptyDropsLower = 100, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000, useSoupX = FALSE, previouslyFilteredMatrix = NULL) {
   if (!file.exists(dataDir)){
     stop(paste0("File does not exist: ", dataDir))
   }
@@ -72,7 +71,7 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
     rownames(seuratRawData) <- gsub(x = rownames(seuratRawData), pattern = '_', replacement = '-')
   }
 
-  seuratObj <- CreateSeuratObj(seuratRawData, datasetId = datasetId, datasetName = datasetName, annotateMitoFromReference = TRUE)
+  seuratObj <- CreateSeuratObj(seuratRawData, datasetId = datasetId, datasetName = datasetName)
   .PrintQcPlots(seuratObj)
 
   if (useSoupX || !is.null(previouslyFilteredMatrix)) {

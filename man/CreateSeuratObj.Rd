@@ -11,7 +11,7 @@ CreateSeuratObj(
   minFeatures = 25,
   minCells = 0,
   mitoGenesPattern = "^MT-",
-  annotateMitoFromReference = TRUE
+  annotateMitoFromReferenceIfNoHitsFound = TRUE
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ CreateSeuratObj(
 
 \item{mitoGenesPattern}{The expression to use when identifying mitochondrial genes}
 
-\item{annotateMitoFromReference}{If true, a list of mitochondrial genes, taken from (https://en.wikipedia.org/wiki/Category:Human_mitochondrial_genes) will be used to calculate p.mito}
+\item{annotateMitoFromReferenceIfNoHitsFound}{If true, a list of mitochondrial genes, taken from (https://en.wikipedia.org/wiki/Category:Human_mitochondrial_genes) will be used to calculate p.mito}
 }
 \value{
 A Seurat object with p.mito calculated.

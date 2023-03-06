@@ -15,14 +15,14 @@ utils::globalVariables(
 #' @param minFeatures Include cells where at least this many features are detected.
 #' @param minCells Include features detected in at least this many cells.
 #' @param mitoGenesPattern The expression to use when identifying mitochondrial genes
-#' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://en.wikipedia.org/wiki/Category:Human_mitochondrial_genes) will be used to calculate p.mito
+#' @param annotateMitoFromReferenceIfNoHitsFound If true, a list of mitochondrial genes, taken from (https://en.wikipedia.org/wiki/Category:Human_mitochondrial_genes) will be used to calculate p.mito
 #' @return A Seurat object with p.mito calculated.
 #' @export
 #' @importFrom Matrix colSums
-CreateSeuratObj <- function(seuratData, datasetId, datasetName = NULL, minFeatures = 25, minCells = 0, mitoGenesPattern = "^MT-", annotateMitoFromReference = TRUE){
+CreateSeuratObj <- function(seuratData, datasetId, datasetName = NULL, minFeatures = 25, minCells = 0, mitoGenesPattern = "^MT-", annotateMitoFromReferenceIfNoHitsFound = TRUE){
 	seuratObj <- Seurat::CreateSeuratObject(counts = seuratData, min.cells = minCells, min.features = minFeatures, project = datasetId)
 	seuratObj <- .PossiblyAddBarcodePrefix(seuratObj, datasetId = datasetId, datasetName = datasetName)
-	seuratObj<- CalculatePercentMito(seuratObj, mitoGenesPattern = mitoGenesPattern, annotateMitoFromReference = annotateMitoFromReference)
+	seuratObj<- CalculatePercentMito(seuratObj, mitoGenesPattern = mitoGenesPattern, annotateMitoFromReferenceIfNoHitsFound = annotateMitoFromReferenceIfNoHitsFound)
 
 	return(seuratObj)
 }
@@ -32,24 +32,24 @@ CreateSeuratObj <- function(seuratData, datasetId, datasetName = NULL, minFeatur
 #' @description This will identify mitochrondrial genes and calculate p.mito for each cell
 #' @param seuratObj The seurat object
 #' @param mitoGenesPattern The expression to use when identifying mitochondrial genes
-#' @param annotateMitoFromReference If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
+#' @param annotateMitoFromReferenceIfNoHitsFound If true, a list of mitochondrial genes, taken from (https://www.genedx.com/wp-content/uploads/crm_docs/Mito-Gene-List.pdf) will be used to calculate p.mito
 #' @param outputColName The name of the output column to hold p.mito
 #' @return A Seurat object with p.mito calculated.
 #' @export
-CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateMitoFromReference = TRUE, outputColName = 'p.mito') {
-	mito.features <- NULL
-	if (!annotateMitoFromReference) {
-		mito.features <- grep(pattern = mitoGenesPattern, x = rownames(x = seuratObj), value = TRUE)
-	} else {
+CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateMitoFromReferenceIfNoHitsFound = TRUE, outputColName = 'p.mito') {
+	mito.features <- grep(pattern = mitoGenesPattern, x = rownames(x = seuratObj), value = TRUE)
+	if (length(mito.features) == 0 && annotateMitoFromReferenceIfNoHitsFound) {
+		print('There were no genes matching mitoGenesPattern, so attempting to identify MT genes using name')
 		mito.features <- c('ATP6','ATP8','COX1','COX2','COX3','CYTB','ND1','ND2','ND3','ND4','ND4L','ND5','ND6')
-
 		mito.features.prefix <- c('MT-', mito.features)
 		i1 <- length(intersect(mito.features, rownames(seuratObj)))
 		i2 <- length(intersect(mito.features.prefix, rownames(seuratObj)))
-		if (i2 > i1) {
+		if (i2 > 0 && i2 > i1) {
 			print('Selecting using reference gene set with MT- prefix')
 			mito.features <- mito.features.prefix
 		}
+
+		mito.features <- intersect(mito.features, rownames(seuratObj))
 	}
 
 	print(paste0('Total mito features: ', length(mito.features)))
