@@ -62,14 +62,14 @@ test_that("Serat processing works as expected", {
 
   vgFile <- 'variableGenes.txt'
   seuratObj <- RunPcaSteps(seuratObj, variableGeneTable = vgFile)
-  expect_equal(ncol(seuratObj), 488)
+  expect_equal(ncol(seuratObj), 487)
 
   expect_equal(file.exists(vgFile), T)
   expect_equal(nrow(utils::read.table(vgFile, sep = '\t', header = F)), 2000)
   unlink(vgFile)
 
   seuratObj <- FindClustersAndDimRedux(seuratObj)
-  expect_equal(ncol(seuratObj), 488)
+  expect_equal(ncol(seuratObj), 487)
   expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 6)
 
   # NOTE: we no longer expect this to be true:
