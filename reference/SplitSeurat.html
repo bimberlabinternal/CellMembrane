@@ -56,7 +56,8 @@
 <span>  minCellsToKeep <span class="op">=</span> <span class="fl">0.02</span>,</span>
 <span>  naOtherLabel <span class="op">=</span> <span class="st">"Other"</span>,</span>
 <span>  excludedClasses <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  appendLowFreqToOther <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  appendLowFreqToOther <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  alwaysRetainOtherClass <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -84,6 +85,10 @@
 
 <dt>appendLowFreqToOther</dt>
 <dd><p>If true, any cells with NAs for the splitField, or terms with fewer than minCellsToKeep, will be merged into a single seurat object</p></dd>
+
+
+<dt>alwaysRetainOtherClass</dt>
+<dd><p>If true, even if the number of cells is less than minCellsToKeep, this class with be retained.</p></dd>
 
 </dl></div>
 
