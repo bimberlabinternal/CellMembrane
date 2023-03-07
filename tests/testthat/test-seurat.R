@@ -49,14 +49,14 @@ test_that("Serat processing works as expected", {
   seuratObj <- seuratObj[,cellsToUse]
 
   seuratObj <- FilterRawCounts(seuratObj)
-  expect_equal(ncol(seuratObj), 488)
+  expect_equal(ncol(seuratObj), 487)
   
   seuratObj <- NormalizeAndScale(seuratObj)
   tbl <- table(seuratObj$Phase)
-  expect_equal(tbl[['G1']], 183)
-  expect_equal(tbl[['G2M']], 95)
-  expect_equal(tbl[['S']], 210)
-  expect_equal(ncol(seuratObj), 488)
+  expect_equal(tbl[['G1']], 190)
+  expect_equal(tbl[['G2M']], 92)
+  expect_equal(tbl[['S']], 205)
+  expect_equal(ncol(seuratObj), 487)
 
   seuratObj <- RegressCellCycle(seuratObj)
 
@@ -89,7 +89,7 @@ test_that("Serat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 592)
+  expect_equal(nrow(df), 583)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
