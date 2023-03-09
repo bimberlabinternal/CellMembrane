@@ -50,7 +50,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">RunPairwiseContrasts</span><span class="op">(</span><span class="va">fit</span>, <span class="va">test.use</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">RunPairwiseContrasts</span><span class="op">(</span><span class="va">fit</span>, <span class="va">test.use</span>, logFC_threshold <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -61,6 +61,10 @@
 
 <dt>test.use</dt>
 <dd><p>Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT</p></dd>
+
+
+<dt>logFC_threshold</dt>
+<dd><p>Log fold change threshold pass-through variable to be sent to PerformDifferentialExpression.</p></dd>
 
 </dl></div>
     <div id="value">
