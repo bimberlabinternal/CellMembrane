@@ -1062,6 +1062,9 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 }
 
 .PlotVariableFeatures <- function(seuratObj) {
+  if (length(VariableFeatures(seuratObj)) == 0) {
+    stop('There are no VariableFeatures in this seurat object')
+  }
   df <- seuratObj@assays[[DefaultAssay(seuratObj)]]@meta.features
   dat <- sort(df$vst.variance.standardized)
   dat <- dat[dat > 0]
