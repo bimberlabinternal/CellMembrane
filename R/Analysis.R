@@ -97,8 +97,8 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   rawData$yField <- as.character(rawData$yField)
 
   # Make concatenated columns for grouping:
-  rawData <- rawData %>% tidyr::unite("XY_Key", c('xField', 'yField', extraGroupingFields), remove = FALSE)
-  rawData <- rawData %>% tidyr::unite("Y_Key", c('yField', extraGroupingFields), remove = FALSE)
+  rawData <- rawData %>% tidyr::unite("XY_Key", tidyr::all_of(c('xField', 'yField', extraGroupingFields)), remove = FALSE)
+  rawData <- rawData %>% tidyr::unite("Y_Key", tidyr::all_of(c('yField', extraGroupingFields)), remove = FALSE)
   
   # Calculate the weighted total of cells in each X/Y group
   xyTotals <- rawData %>% dplyr::count(XY_Key, wt = SizeFactor, name = 'TotalPerXY')
