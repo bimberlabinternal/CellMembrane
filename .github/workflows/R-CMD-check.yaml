@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: 20.04, r: 'release', bioc: 'devel'}
+          - {os: 20.04, r: 'next', bioc: 'devel'}
           # Note: restore this once R 4.3 is released
           #- {os: 20.04, r: 'release', bioc: '3.17', pkgdown: "true"}
           - {os: 20.04, r: '4.2', bioc: '3.16'}
