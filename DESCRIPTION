@@ -69,7 +69,8 @@ Imports:
     RUVSeq,
     lda,
     parallel,
-    text2vec
+    text2vec, 
+    tibble
 Suggests:
     devtools,
     testthat (>= 2.1.0),
