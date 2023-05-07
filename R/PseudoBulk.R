@@ -228,28 +228,28 @@ RunPairwiseContrasts <- function(fit, test.use, logFC_threshold = 1){
 CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05, logFC_threshold = 1, LikeVsLike = F, LikeVsLikeGroupFieldIndex= NULL, facetLikeVsLike = T){
   
   #check to see if the LikeVsLike variables are set properly
-  if(LikeVsLike != TRUE & LikeVsLike != FALSE){
+  if (!is.logical(LikeVsLike)){
     stop("Please ensure LikeVsLike is equal to either TRUE or FALSE. LikeVsLike determines whether or not you want to only keep comparisons where a specific value of the contrast is fixed between samples. For instance: the contrast Vaccinated_Tcells-Vaccinated_Myeloid could be discarded if you wanted only comparisons between T cells")
   }
   
-  if(facetLikeVsLike != TRUE & facetLikeVsLike != FALSE){
+  if (!is.logical(facetLikeVsLike)){
     stop("Please ensure facetLikeVsLike is equal to either TRUE or FALSE. In the case of a LikeVsLike comparison, should the unique values of the LikeVsLike contrast be faceted?")
   }
   
-  if(LikeVsLike){
+  if (LikeVsLike){
     #determine how many grouping fields are present. This splits on _ and -.  _ determines the number of grouping fields, and - splits the two contrasts. We divide by two because the assumption is that these are all pairwise contrasts.
     number_of_grouping_fields <- length(strsplit(names(pairwise_de_results)[1], split = "_|-")[[1]])/2
-    if(is.null(LikeVsLikeGroupFieldIndex)){
+    if (is.null(LikeVsLikeGroupFieldIndex)){
       stop("LikeVsLikeGroupFieldIndex is NULL. Please define which groupField should be filtered to perform LikeVsLike comparisons. For instance, if you want to filter for cell type comparisons and your groupFields are c('Tissue', 'Timepoint', 'CellType', 'cDNA_ID'), then you would pass 3 as the LikeVsLikeGroupFieldIndex. Please additionally note that your sampleIdCol will be omitted from this indexing, so for the arragement: c('cDNA_ID', 'Tissue', 'Timepoint', 'CellType'), where sampleIdCol = cDNA_ID, the index should still be specified as 3.")   
-    }else if(!is.numeric(LikeVsLikeGroupFieldIndex)){
+    } else if (!is.numeric(LikeVsLikeGroupFieldIndex)){
       stop("LikeVsLikeGroupFieldIndex is non-numeric. Please ensure that LikeVsLikeGroupFieldIndex is the numerical index of the groupField (i.e. 3), rather than the name of the group field. ")
-    }else if(LikeVsLikeGroupFieldIndex > number_of_grouping_fields){
+    } else if (LikeVsLikeGroupFieldIndex > number_of_grouping_fields){
       stop(paste0("LikeVsLikeGroupFieldIndex exceeds the total number of grouping fields possible: ", number_of_grouping_fields, ". Please ensure that you omitted the groupField that defines sampleIdCol within the DesignModelMatrix function."))
-    }else{
+    } else {
       #If LikeVsLike is properly configured, filter out all of the non-LikeVsLike contrasts
       pairwise_de_results_filtered <- list()
       #mine out the groupingFields info from the contrast and discard contrasts where LikeVsLikeGroupFieldIndex varies.
-      for(contrast in names(pairwise_de_results)){
+      for (contrast in names(pairwise_de_results)){
         #isolate the contrasts
         contrasts <- strsplit(contrast, split = "-")
         positive_contrast <- contrasts[[1]][1]
@@ -258,7 +258,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
         positive_contrast_LikeVsLikeGroup <- strsplit(positive_contrast, split = "_")[[1]][LikeVsLikeGroupFieldIndex]
         negative_contrast_LikeVsLikeGroup <- strsplit(negative_contrast, split = "_")[[1]][LikeVsLikeGroupFieldIndex]
         #compare the LikeVsLike group and add it to the filtered list if they match
-        if(positive_contrast_LikeVsLikeGroup == negative_contrast_LikeVsLikeGroup){
+        if (positive_contrast_LikeVsLikeGroup == negative_contrast_LikeVsLikeGroup){
           pairwise_de_results_filtered[contrast] <-  pairwise_de_results[contrast]
         }
       }
@@ -272,7 +272,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
   
   #Construct Barplot 
   #iterate through contrasts (filtered contrasts if LikeVsLike = T).
-  for(contrast in names(pairwise_de_results)){
+  for (contrast in names(pairwise_de_results)){
     #create dataframe to store differentially expressed genes table
     deg <- pairwise_de_results[[contrast]]$differential_expression$table
     title <- pairwise_de_results[[contrast]]$volcano$labels$title
@@ -289,6 +289,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
     #concatenate into a cross-contrast list of differentially expressed gene results
     degs <- rbind(degs, deg)
   }
+
   #iterate through the concatenation of all significant & logFC filtered DEG results for uniqueness. 
   plotting_DEGs <- degs |>
     dplyr::group_by(gene) |>
@@ -304,7 +305,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
   plotting_DEGs[plotting_DEGs$regulation == "upregulated", "n_DEG"] <- 1 
   plotting_DEGs[plotting_DEGs$regulation == "downregulated", "n_DEG"] <- -1 
   
-  if(!facetLikeVsLike){
+  if (!facetLikeVsLike){
     #construct plot without faceting
     DEG_bargraph <- ggplot2::ggplot(plotting_DEGs) + 
       ggplot2::geom_bar(data = plotting_DEGs, ggplot2::aes(x = contrast, y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
@@ -313,10 +314,10 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
       ggplot2::ylab("Number of DEGs")+ 
       egg::theme_article() + 
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))
-  } else{
+  } else {
     #mine the faceting grouping variables from the contrast names using LikeVsLikeGroupFieldIndex
     contrast_splits <- strsplit(plotting_DEGs$contrast, split = "-")
-    for(contrast_split_index in 1:length(contrast_splits)){
+    for (contrast_split_index in 1:length(contrast_splits)){
       contrast_splits[[contrast_split_index]]
       plotting_DEGs[contrast_split_index,'faceting_variable_values'] <- strsplit(contrast_splits[[contrast_split_index]][1], split = "_")[[1]][LikeVsLikeGroupFieldIndex]
     }
