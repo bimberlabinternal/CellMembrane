@@ -230,7 +230,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
   #check to see if the LikeVsLike variables are set properly
   if (!is.logical(LikeVsLike)){
     stop("Please ensure LikeVsLike is equal to either TRUE or FALSE. LikeVsLike determines whether or not you want to only keep comparisons where a specific value of the contrast is fixed between samples. For instance: the contrast Vaccinated_Tcells-Vaccinated_Myeloid could be discarded if you wanted only comparisons between T cells")
-  } else if (LikeVsLike == FALSE) {
+  } else if (!LikeVsLike) {
     #if not performing Like vs Like comparisons, force Like vs Like faceting to be false.
     print("LikeVsLike is set to FALSE. Forcing facetLikeVsLike to FALSE as well.")
     facetLikeVsLike <- FALSE
