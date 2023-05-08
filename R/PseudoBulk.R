@@ -200,7 +200,7 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
 RunPairwiseContrasts <- function(fit, test.use, logFC_threshold = 1){
   #create a nx2 array of all possible unique pairwise combinations of contrasts
   contrasts <- t(utils::combn(colnames(fit$design), m = 2))
-  results <- future.apply::future_lapply(split(contrasts, 1:nrow(contrasts)) , FUN = function(x){
+  results <- future.apply::future_lapply(split(contrasts, 1:nrow(contrasts)), future.seed = GetSeed(), FUN = function(x){
     up_contrast<- x[[1]]
     down_contrast <- x[[2]]
     contrast_name <- paste0(up_contrast, "-", down_contrast)
@@ -230,13 +230,17 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
   #check to see if the LikeVsLike variables are set properly
   if (!is.logical(LikeVsLike)){
     stop("Please ensure LikeVsLike is equal to either TRUE or FALSE. LikeVsLike determines whether or not you want to only keep comparisons where a specific value of the contrast is fixed between samples. For instance: the contrast Vaccinated_Tcells-Vaccinated_Myeloid could be discarded if you wanted only comparisons between T cells")
+  } else if (LikeVsLike == FALSE) {
+    #if not performing Like vs Like comparisons, force Like vs Like faceting to be false.
+    print("LikeVsLike is set to FALSE. Forcing facetLikeVsLike to FALSE as well.")
+    facetLikeVsLike <- FALSE
   }
   
   if (!is.logical(facetLikeVsLike)){
     stop("Please ensure facetLikeVsLike is equal to either TRUE or FALSE. In the case of a LikeVsLike comparison, should the unique values of the LikeVsLike contrast be faceted?")
   }
   
-  if (LikeVsLike){
+  if (LikeVsLike | facetLikeVsLike){
     #determine how many grouping fields are present. This splits on _ and -.  _ determines the number of grouping fields, and - splits the two contrasts. We divide by two because the assumption is that these are all pairwise contrasts.
     number_of_grouping_fields <- length(strsplit(names(pairwise_de_results)[1], split = "_|-")[[1]])/2
     if (is.null(LikeVsLikeGroupFieldIndex)){
