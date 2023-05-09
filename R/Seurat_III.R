@@ -285,7 +285,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
 	return(seuratObj)
 }
 
-.NormalizeAndScaleDefault <- function(seuratObj, additionalFindVariableFeatureArgList = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c(paste0("nCount_", assayName)), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE) {
+.NormalizeAndScaleDefault <- function(seuratObj, assayName = 'RNA', additionalFindVariableFeatureArgList = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c(paste0("nCount_", assayName)), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE) {
 	seuratObj <- NormalizeData(object = seuratObj, normalization.method = "LogNormalize", verbose = F)
 
 	print('Find variable features:')
