@@ -1,15 +1,23 @@
 context("scRNAseq")
 
 test_that("Pseudobulk works", {
-	seuratObj <- readRDS('../testdata/seuratOutput.rds')
+  seuratObj <- readRDS('../testdata/seuratOutput.rds')
 
-	pseudo <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'))
-	expect_equal(length(unique(seuratObj$ClusterNames_0.2)), nrow(pseudo@meta.data))
-	expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo@assays$RNA))
-	
-	pseudo2 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assays = c('RNA'))
-	expect_equal(length(unique(seuratObj$ClusterNames_0.4)), nrow(pseudo2@meta.data))
-	expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo2@assays$RNA))
+  pseudo <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'))
+  expect_equal(length(unique(seuratObj$ClusterNames_0.2)), nrow(pseudo@meta.data))
+  expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo@assays$RNA))
+
+  pseudo2 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assays = c('RNA'))
+  expect_equal(length(unique(seuratObj$ClusterNames_0.4)), nrow(pseudo2@meta.data))
+  expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo2@assays$RNA))
+
+  pseudo3 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assays = c('RNA'), additionalFieldsToAggregate = c('G2M.Score', 'p.mito'))
+  expect_equal(length(unique(seuratObj$ClusterNames_0.4)), nrow(pseudo3@meta.data))
+  expect_equal(max(pseudo3$G2M.Score_mean, na.rm = T), -0.007676878)
+  expect_equal(min(pseudo3$G2M.Score_mean, na.rm = T), -0.02633076)
+  
+  expect_equal(max(pseudo3$p.mito_mean, na.rm = T), 0.06488353)
+  expect_equal(min(pseudo3$p.mito_mean, na.rm = T), 0.04050757)
 })
 
 test_that("Pseudobulk-based differential expression works", {
