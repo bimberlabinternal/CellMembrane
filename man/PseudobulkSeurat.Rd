@@ -4,7 +4,12 @@
 \alias{PseudobulkSeurat}
 \title{Pseudobulk Seurat}
 \usage{
-PseudobulkSeurat(seuratObj, groupFields, assays = NULL)
+PseudobulkSeurat(
+  seuratObj,
+  groupFields,
+  assays = NULL,
+  additionalFieldsToAggregate = NULL
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
@@ -12,6 +17,8 @@ PseudobulkSeurat(seuratObj, groupFields, assays = NULL)
 \item{groupFields}{The set of fields on which to group}
 
 \item{assays}{The assays to aggregate}
+
+\item{additionalFieldsToAggregate}{An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.}
 }
 \value{
 An aggregated Seurat object.

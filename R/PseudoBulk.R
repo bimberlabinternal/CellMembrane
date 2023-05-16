@@ -15,9 +15,10 @@ utils::globalVariables(
 #' @param seuratObj The seurat object
 #' @param groupFields The set of fields on which to group
 #' @param assays The assays to aggregate
+#' @param additionalFieldsToAggregate An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.
 #' @return An aggregated Seurat object.
 #' @export
-PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL) {
+PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFieldsToAggregate = NULL) {
   if (!all(groupFields %in% names(seuratObj@meta.data))) {
     stop('All fields from groupFields must be in seuratObj@meta.data')
   }
@@ -41,6 +42,19 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL) {
   rownames(totals) <- totals$KeyField
 
   a <- Seurat::AddMetaData(a, totals[,'TotalCells',drop = FALSE])
+
+  if (!all(is.null(additionalFieldsToAggregate))) {
+    for (fn in additionalFieldsToAggregate) {
+      if (!fn %in% colnames(seuratObj@meta.data)) {
+        stop(paste0('Missing field: ', fn))
+      }
+
+      totals <- as.data.frame(seuratObj@meta.data %>% dplyr::group_by(KeyField) %>% dplyr::summarise(Mean = mean(!!sym(fn))))
+      names(totals) <- c('keyField', paste0(fn, '_mean'))
+      rownames(totals) <- totals$KeyField
+      a <- Seurat::AddMetaData(a, totals[,paste0(fn, '_mean'),drop = FALSE])
+    }
+  }
 
   print(ggplot(a@meta.data, aes(x = TotalCells)) +
     geom_density() +
