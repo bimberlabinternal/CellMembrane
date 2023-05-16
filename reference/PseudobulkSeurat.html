@@ -50,7 +50,12 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">PseudobulkSeurat</span><span class="op">(</span><span class="va">seuratObj</span>, <span class="va">groupFields</span>, assays <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">PseudobulkSeurat</span><span class="op">(</span></span>
+<span>  <span class="va">seuratObj</span>,</span>
+<span>  <span class="va">groupFields</span>,</span>
+<span>  assays <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  additionalFieldsToAggregate <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -65,6 +70,10 @@
 
 <dt>assays</dt>
 <dd><p>The assays to aggregate</p></dd>
+
+
+<dt>additionalFieldsToAggregate</dt>
+<dd><p>An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.</p></dd>
 
 </dl></div>
     <div id="value">
