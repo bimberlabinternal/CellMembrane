@@ -327,7 +327,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
         seuratObj <- subset(seuratObj, cells = toDrop, invert = TRUE)
         print(paste0('Remaining: ', ncol(seuratObj)))
         if (ncol(seuratObj) != (cellsBefore - length(toDrop))) {
-          stop(paste0('subset did not work as expected. cells remaining: ', ncol(seuratObj)))
+          stop(paste0('subset did not work as expected. initial cells: ', cellsBefore, ', to drop: ', length(toDrop), ', cells remaining: ', ncol(seuratObj)))
         }
       }
     }
