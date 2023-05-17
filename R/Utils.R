@@ -311,12 +311,19 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
 
   if (!is.null(minCellsPerGroup) && !is.na(minCellsPerGroup)) {
     groupValues <- as.character(seuratObj[[groupingVar, drop = TRUE]])
+    if (any(is.na(groupValues))) {
+      stop(paste0('There were NAs for the column: ', groupingVar))
+    }
+
     totals <- table(groupValues)
     totals <- totals[totals < minCellsPerGroup]
     toDrop <- character()
     if (length(totals) > 0) {
       for (groupName in names(totals)) {
         d <- colnames(seuratObj)[groupValues == groupName]
+        if (any(is.na(d))) {
+          stop(paste0('There were NAs for the column: ', groupingVar, ' with value: ', groupName))
+        }
         print(paste0('Dropping group: ', groupName, ' with total cells: ', length(d)))
         toDrop <- c(toDrop, d)
       }
