@@ -410,6 +410,9 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 
 			dat <- Seurat::GetAssay(seuratObj, assay = assay)
 			dat <- subset(dat, cells = cellsWhitelist)
+			if (ncol(dat) != length(cellsWhitelist)) {
+				stop(paste0('Incorrect assay subset. Expected: ', length(cellsWhitelist), ', actual: ', ncol(dat)))
+			}
 
 			toAdd[val] <- sum(Seurat::GetAssayData(dat, slot = slot))
 		}
