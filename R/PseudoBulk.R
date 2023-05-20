@@ -90,7 +90,7 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
   #combined columns are (by default) separated by an underscore
   colData_intermediate <- seuratObj@meta.data |>
     as.data.frame() |>
-    tidyr::unite('group', contrast_columns)
+    tidyr::unite('group', tidyr::all_of(contrast_columns))
   
   colData_intermediate$group <- make.names(colData_intermediate$group)
   
@@ -99,7 +99,7 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
   
   # Create the sample level metadata by selecting specific columns
   experiment_information <- data.frame(seuratObj@meta.data,  row.names = NULL) %>%
-    dplyr::select(sampleIdCol, "group")
+    dplyr::select(tidyr::all_of(c(sampleIdCol, "group")))
   
   design <- stats::model.matrix(~ 0 + experiment_information$group) %>%
     magrittr::set_rownames(experiment_information[[sampleIdCol]]) %>%

@@ -46,7 +46,11 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 			print(paste0('The following barcodes were not in the count matrix: ', paste0(barcodes[!barcodes %in% colnames(assayData)], collapse = ','), ', first was: ', colnames(assayData)[1]))
 		}
 
-		assayData <- subset(assayData, cells = colnames(assayData)[!colnames(assayData) %in% barcodes])
+		toKeep <- colnames(assayData)[!colnames(assayData) %in% barcodes]
+		assayData <- subset(assayData, cells = toKeep)
+		if (ncol(assayData) != length(toKeep)) {
+			stop(paste0('Incorrect assay subset. Expected: ', length(toKeep), ', actual: ', ncol(assayData)))
+		}
 		print(paste0('After removing: ', ncol(assayData)))
 	}
 
@@ -68,10 +72,18 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	if (is.null(normalizeMethod)){
 		print('Normalization will not be performed')
 		assayData <- subset(assayData, cells = sharedCells)
+		if (ncol(assayData) != length(sharedCells)) {
+			stop(paste0('Incorrect assay subset. Expected: ', length(sharedCells), ', actual: ', ncol(assayData)))
+		}
+
 	} else if (normalizeMethod == 'dsb') {
 		assayData <- .NormalizeDsbWithEmptyDrops(seuratObj, assayData)
 	} else if (normalizeMethod == 'clr') {
 		assayData <- subset(assayData, cells = sharedCells)
+		if (ncol(assayData) != length(sharedCells)) {
+			stop(paste0('Incorrect assay subset. Expected: ', length(sharedCells), ', actual: ', ncol(assayData)))
+		}
+
 		assayData <- Seurat::NormalizeData(assayData, normalization.method = 'CLR', margin = 2, verbose = FALSE)
 	} else {
 		stop('Unknown normalizationMethod. Pass NULL to skip normalization')

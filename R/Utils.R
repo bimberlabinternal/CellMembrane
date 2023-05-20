@@ -354,6 +354,9 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
     cells <- colnames(seuratObj)[seuratObj@meta.data[[groupingVar]] == groupName]
     print(paste0('Processing group: ', groupName, ' with ', length(cells), ' cells'))
     ad <- subset(seuratObj@assays[[sourceAssay]], cells = cells)
+    if (ncol(ad) != length(cells)) {
+      stop(paste0('Incorrect assay subset. Expected: ', length(cells), ', actual: ', ncol(ad)))
+    }
 
     if (!all(is.null(featureInclusionList))) {
       featureInclusionList <- RIRA::ExpandGeneList(featureInclusionList)
@@ -363,6 +366,9 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
         stop(paste0('None of the featureInclusionList features were found in this object: ', paste0(featureInclusionList, collapse = ',')))
       }
       ad <- subset(ad, features = toKeep)
+      if (nrow(ad) != length(toKeep)) {
+        stop(paste0('Incorrect assay subset. Expected: ', length(toKeep), ', actual: ', nrow(ad)))
+      }
       print(paste0('Total features after: ', nrow(ad)))
     }
 
@@ -376,6 +382,9 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
 
       featuresToKeep <- rownames(ad)[!rownames(ad) %in% toDrop]
       ad <- subset(ad, features = featuresToKeep)
+      if (nrow(ad) != length(featuresToKeep)) {
+        stop(paste0('Incorrect assay subset. Expected: ', length(featuresToKeep), ', actual: ', nrow(ad)))
+      }
       print(paste0('Total features after: ', nrow(ad)))
     }
 
