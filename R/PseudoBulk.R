@@ -90,7 +90,7 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
   #combined columns are (by default) separated by an underscore
   colData_intermediate <- seuratObj@meta.data |>
     as.data.frame() |>
-    tidyr::unite('group', contrast_columns)
+    tidyr::unite('group', tidyr::all_of(contrast_columns))
   
   colData_intermediate$group <- make.names(colData_intermediate$group)
   
