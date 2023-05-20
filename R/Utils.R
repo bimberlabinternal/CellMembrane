@@ -365,9 +365,9 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       if (length(toKeep) == 0) {
         stop(paste0('None of the featureInclusionList features were found in this object: ', paste0(featureInclusionList, collapse = ',')))
       }
-      ad <- subset(ad, cells = toKeep)
-      if (ncol(ad) != length(toKeep)) {
-        stop(paste0('Incorrect assay subset. Expected: ', length(toKeep), ', actual: ', ncol(ad)))
+      ad <- subset(ad, features = toKeep)
+      if (nrow(ad) != length(toKeep)) {
+        stop(paste0('Incorrect assay subset. Expected: ', length(toKeep), ', actual: ', nrow(ad)))
       }
       print(paste0('Total features after: ', nrow(ad)))
     }
@@ -381,9 +381,9 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       }
 
       featuresToKeep <- rownames(ad)[!rownames(ad) %in% toDrop]
-      ad <- subset(ad, cells = featuresToKeep)
-      if (ncol(ad) != length(featuresToKeep)) {
-        stop(paste0('Incorrect assay subset. Expected: ', length(featuresToKeep), ', actual: ', ncol(ad)))
+      ad <- subset(ad, features = featuresToKeep)
+      if (nrow(ad) != length(featuresToKeep)) {
+        stop(paste0('Incorrect assay subset. Expected: ', length(featuresToKeep), ', actual: ', nrow(ad)))
       }
       print(paste0('Total features after: ', nrow(ad)))
     }
