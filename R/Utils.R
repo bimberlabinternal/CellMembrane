@@ -353,7 +353,10 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
   for (groupName in groups) {
     cells <- colnames(seuratObj)[seuratObj@meta.data[[groupingVar]] == groupName]
     print(paste0('Processing group: ', groupName, ' with ', length(cells), ' cells'))
-    ad <- seuratObj@assays[[sourceAssay]][,cells]
+    ad <- subset(seuratObj@assays[[sourceAssay]], cells = cells)
+    if (ncol(ad) != length(cells)) {
+      stop(paste0('Incorrect assay subset. Expected: ', length(cells), ', actual: ', ncol(ad)))
+    }
 
     if (!all(is.null(featureInclusionList))) {
       featureInclusionList <- RIRA::ExpandGeneList(featureInclusionList)
@@ -362,7 +365,10 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       if (length(toKeep) == 0) {
         stop(paste0('None of the featureInclusionList features were found in this object: ', paste0(featureInclusionList, collapse = ',')))
       }
-      ad <- ad[toKeep,]
+      ad <- subset(ad, cells = toKeep)
+      if (ncol(ad) != length(toKeep)) {
+        stop(paste0('Incorrect assay subset. Expected: ', length(toKeep), ', actual: ', ncol(ad)))
+      }
       print(paste0('Total features after: ', nrow(ad)))
     }
 
@@ -375,7 +381,10 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       }
 
       featuresToKeep <- rownames(ad)[!rownames(ad) %in% toDrop]
-      ad <- ad[featuresToKeep,]
+      ad <- subset(ad, cells = featuresToKeep)
+      if (ncol(ad) != length(featuresToKeep)) {
+        stop(paste0('Incorrect assay subset. Expected: ', length(featuresToKeep), ', actual: ', ncol(ad)))
+      }
       print(paste0('Total features after: ', nrow(ad)))
     }
 

@@ -46,10 +46,10 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 			print(paste0('The following barcodes were not in the count matrix: ', paste0(barcodes[!barcodes %in% colnames(assayData)], collapse = ','), ', first was: ', colnames(assayData)[1]))
 		}
 
-		toSubset <- colnames(assayData)[!colnames(assayData) %in% barcodes]
-		assayData <- assayData[,toSubset]
-		if (ncol(assayData) != length(toSubset)) {
-			stop(paste0('Incorrect assay subset. Expected: ', length(toSubset), ', actual: ', ncol(assayData)))
+		toKeep <- colnames(assayData)[!colnames(assayData) %in% barcodes]
+		assayData <- subset(assayData, cells = toKeep)
+		if (ncol(assayData) != length(toKeep)) {
+			stop(paste0('Incorrect assay subset. Expected: ', length(toKeep), ', actual: ', ncol(assayData)))
 		}
 		print(paste0('After removing: ', ncol(assayData)))
 	}
@@ -71,7 +71,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 	if (is.null(normalizeMethod)){
 		print('Normalization will not be performed')
-		assayData <- assayData[,sharedCells]
+		assayData <- subset(assayData, cells = sharedCells)
 		if (ncol(assayData) != length(sharedCells)) {
 			stop(paste0('Incorrect assay subset. Expected: ', length(sharedCells), ', actual: ', ncol(assayData)))
 		}
@@ -79,7 +79,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	} else if (normalizeMethod == 'dsb') {
 		assayData <- .NormalizeDsbWithEmptyDrops(seuratObj, assayData)
 	} else if (normalizeMethod == 'clr') {
-		assayData <- assayData[,sharedCells]
+		assayData <- subset(assayData, cells = sharedCells)
 		if (ncol(assayData) != length(sharedCells)) {
 			stop(paste0('Incorrect assay subset. Expected: ', length(sharedCells), ', actual: ', ncol(assayData)))
 		}

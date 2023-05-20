@@ -56,7 +56,7 @@ DownsampleSeurat <- function(seuratObj, targetCells, subsetFields = NULL, seed =
 
 		cellsToRetain <- sample(colnames(seuratObj), toSample, replace = F)
 	} else {
-		groupVals <- (seuratObj@meta.data %>% tidyr::unite("x", subsetFields, remove = FALSE))$x
+		groupVals <- (seuratObj@meta.data %>% tidyr::unite("x", tidyr::all_of(subsetFields), remove = FALSE))$x
 		names(groupVals) <- colnames(seuratObj)
 		counts <- table(groupVals)
 		print(paste0('Unique values: ', paste0(unique(names(counts)), collapse = ',')))
@@ -409,7 +409,7 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 			cellsWhitelist <- colnames(seuratObj)[seuratObj@meta.data[[groupField]] == val]
 
 			dat <- Seurat::GetAssay(seuratObj, assay = assay)
-			dat <- dat[,cellsWhitelist]
+			dat <- subset(dat, cells = cellsWhitelist)
 			if (ncol(dat) != length(cellsWhitelist)) {
 				stop(paste0('Incorrect assay subset. Expected: ', length(cellsWhitelist), ', actual: ', ncol(dat)))
 			}
