@@ -309,6 +309,10 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
     stop(paste0('Field not found: ', groupingVar))
   }
 
+  if (!assayName %in% names(seuratObj@assays)) {
+    stop(paste0('Source assay not found: ', assayName))
+  }
+
   if (!is.null(minCellsPerGroup) && !is.na(minCellsPerGroup)) {
     groupValues <- as.character(seuratObj[[groupingVar, drop = TRUE]])
     if (any(is.na(groupValues))) {
