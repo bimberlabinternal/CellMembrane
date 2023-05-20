@@ -353,7 +353,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
   for (groupName in groups) {
     cells <- colnames(seuratObj)[seuratObj@meta.data[[groupingVar]] == groupName]
     print(paste0('Processing group: ', groupName, ' with ', length(cells), ' cells'))
-    ad <- subset(seuratObj@assays[[sourceAssay]], cells = cells)
+    ad <- seuratObj@assays[[sourceAssay]][,cells]
 
     if (!all(is.null(featureInclusionList))) {
       featureInclusionList <- RIRA::ExpandGeneList(featureInclusionList)
@@ -362,7 +362,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       if (length(toKeep) == 0) {
         stop(paste0('None of the featureInclusionList features were found in this object: ', paste0(featureInclusionList, collapse = ',')))
       }
-      ad <- subset(ad, features = toKeep)
+      ad <- ad[toKeep,]
       print(paste0('Total features after: ', nrow(ad)))
     }
 
@@ -375,7 +375,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       }
 
       featuresToKeep <- rownames(ad)[!rownames(ad) %in% toDrop]
-      ad <- subset(ad, features = featuresToKeep)
+      ad <- ad[featuresToKeep,]
       print(paste0('Total features after: ', nrow(ad)))
     }
 
