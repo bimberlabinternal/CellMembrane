@@ -40,7 +40,6 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
 
       # libsodium-dev installed for VISION
-      # NOTE: remove skikit-learn if this is resolved: https://github.com/KrishnaswamyLab/PHATE/issues/124
       # libharfbuzz-dev libfribidi-dev are added to fix textshaping install error
       - name: Install packages
         if: runner.os != 'Windows'
@@ -48,7 +47,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -yq python3-pip libcurl4-openssl-dev libsodium-dev libharfbuzz-dev libfribidi-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
-          python3 -m pip install --user umap-learn scikit-learn==1.1.3 phate
+          python3 -m pip install --user umap-learn phate
 
       - name: Setup cellbender
         run: |
@@ -103,11 +102,13 @@ jobs:
             eval sudo $cmd
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "${{ matrix.config.os }}"))')
 
+      # TODO: seurat is related to: https://github.com/satijalab/seurat/issues/7328. Should revert to a release once patched.
       - name: Install dependencies
         run: |
           getOption('repos');
           print(paste0("R_BIOC_VERSION: ", Sys.getenv("R_BIOC_VERSION")));
           remotes::install_deps(dependencies = TRUE, upgrade = "always")
+          remotes::install_github('satijalab/seurat', ref='443ab86684253d9a7290c3d38c2bc1d8db021776')
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
