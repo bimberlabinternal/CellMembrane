@@ -11,7 +11,6 @@ RUN wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconduct
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
 # NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb
-# NOTE: remove skikit-learn if this is resolved: https://github.com/KrishnaswamyLab/PHATE/issues/124
 RUN apt-get update -y \
     && apt-get upgrade -y \
     && apt-get install -y \
@@ -21,7 +20,7 @@ RUN apt-get update -y \
         locales \
         locales-all \
     && python3 -m pip install --upgrade pip \
-	&& pip3 install umap-learn scikit-learn==1.1.3 phate \
+	&& pip3 install umap-learn phate \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
 
@@ -63,6 +62,8 @@ RUN cd /CellMembrane \
     && if [ "${GH_PAT}" != 'NOT_SET' ];then echo 'Setting GITHUB_PAT to: '${GH_PAT}; export GITHUB_PAT="${GH_PAT}";fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
+    # NOTE: Related to: https://github.com/satijalab/seurat/issues/7328. Should revert to a release once patched.
+    && Rscript -e "remotes::install_github('satijalab/seurat', ref='443ab86684253d9a7290c3d38c2bc1d8db021776');" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \

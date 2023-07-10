@@ -57,7 +57,18 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     } else if (dataset == 'monaco') {
       ref <- celldex::MonacoImmuneData()
     } else {
-      stop(paste0('unknown reference dataset: ', dataset))
+      ref <- NULL
+      tryCatch({
+        ref <- get(dataset, envir = rlang::pkg_env('celldex'))
+      }, error = function(x){
+        # Ignore
+      })
+
+      if (is.null(ref)) {
+        stop(paste0('Unknown reference dataset: ', dataset))
+      }
+
+      ref <- do.call(ref, args = list())
     }
 
     #Subset genes:
