@@ -160,7 +160,7 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
       }
     }
 
-    if (errorOnBarcodeSuffix && sum(grepl(colnames(seuratObj), pattern = '-[0-9]+') > 0)) {
+    if (errorOnBarcodeSuffix && any(grepl(colnames(seuratObj), pattern = '-[0-9]{1,2}$'))) {
       stop(paste0('Encountered barcodes with numeric suffixes (i.e. -1) for dataset: ', datasetId))
     }
 
