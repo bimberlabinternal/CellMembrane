@@ -42,24 +42,23 @@ RUN echo "local({r <- getOption('repos') ;r['CRAN'] = 'https://packagemanager.rs
 	# NOTE: this was added to avoid the build dying if this downloads a binary built on a later R version
 	&& echo "Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS='true');" >> ~/.Rprofile \
     && Rscript -e "print(version)" \
-	&& rm -rf /tmp/downloaded_packages/ /tmp/*.rds
-
-# See: https://jmarchini.org/software/
-RUN wget -O /bin/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1 \
+	&& rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
+    && mkdir /BiocFileCache && chmod 777 /BiocFileCache \
+    # See: https://jmarchini.org/software/
+    && wget -O /bin/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1 \
     && chmod +x /bin/sda_static_linux
-
-# This should not be cached if the files change
-ADD . /CellMembrane
 
 ENV RETICULATE_PYTHON=/usr/bin/python3
 
 # Create location for BioConductor AnnotationHub/ExperimentHub caches:
 ENV ANNOTATION_HUB_CACHE=/BiocFileCache
 ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
-RUN mkdir /BiocFileCache && chmod 777 /BiocFileCache
+
+# This should not be cached if the files change
+ADD . /CellMembrane
 
 RUN cd /CellMembrane \
-    && if [ "${GH_PAT}" != 'NOT_SET' ];then echo 'Setting GITHUB_PAT to: '${GH_PAT}; export GITHUB_PAT="${GH_PAT}";fi \
+    && if [ "${GH_PAT}" != 'NOT_SET' ];then echo 'Setting GITHUB_PAT'; export GITHUB_PAT="${GH_PAT}";fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
     # NOTE: Related to: https://github.com/satijalab/seurat/issues/7328. Should revert to a release once patched.
