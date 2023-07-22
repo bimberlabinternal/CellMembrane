@@ -823,7 +823,7 @@ PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 
 		print(P1)
 
 		if (!is.na(outFile)) {
-			P1 <- ggplotify::as.ggplot(grid::grid.grabExpr(R.utils::draw(P1)))
+			P1 <- ggplotify::as.ggplot(grid::grid.grabExpr(ComplexHeatmap::draw(P1)))
 			ggsave(P1, filename = outFile)
 		}
 	}
