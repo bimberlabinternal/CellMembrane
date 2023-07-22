@@ -33,6 +33,8 @@ jobs:
           # Use the previous version of buildx to force docker to save a V1 image,
           # since Exacloud's outdated docker version cannot handle V2/OCI:
           version: v0.9.1
+          driver-opts: |
+            image=moby/buildkit:v0.12.0
 
       - name: Login to GitHub Container Registry
         if: github.event_name != 'pull_request'
