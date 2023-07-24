@@ -451,3 +451,48 @@ scale_rows <- function(x){
   s <- apply(x, 1, sd, na.rm = T)
   return((x - m) / s)
 }
+
+PrependDatasetIdToClonotypeBarcodes <- function(clonotype_directory, output_directory){
+  
+  #initialize the output directory
+  if (!dir.exists(output_directory)) {
+    dir.create(output_directory, recursive = T)
+  }
+  #populate the list of clonotype files to iterate on
+  files <- list.files(clonotype_directory, full.names = T)
+  
+  #iterate on clonotype files, prepending barcodePrefix/DatasetId to the barcodes
+  for (file in files){
+    print(paste("Parsing", file))
+    #isolate & store final directory in path (file name)
+    file_name <- tail(unlist(strsplit(file, split = "/")),1)
+    #grab the first numeric string (datasetId)
+    datasetId <- strsplit(file_name, split = "\\.")[[1]][1]
+    clonotype_csv_df <- read.csv(file) |> as.data.frame()
+    clonotype_csv_df$barcode <- paste0(datasetId, "_", clonotype_csv_df$barcode)
+    clonotype_csv_df$barcode <- gsub("-1", "", clonotype_csv_df$barcode)
+    #when writing the concatenated CSV, keep the colnames of the first file, else discard them. 
+    output_file_name <- file_name
+    
+    write.table(clonotype_csv_df, 
+                file = paste0(output_directory,output_file_name), 
+                append = F, 
+                sep = ",", 
+                row.names = F, 
+                col.names = T)
+  }
+  
+}
+
+SeuratToCoNGA <- function(seuratObj, TCR_indir, TCR_outdir, GEX_dir) {
+  seuratObj <- Rdiscvr::DownloadAndAppendTcrClonotypes(seuratObj, TCR_indir)
+  PrependDatasetIdToClonotypeBarcodes(clonotype_directory = TCR_indir, output_directory = TCR_outdir)
+  for (sub in unique(seuratObj$BarcodePrefix)){
+    if (!dir.exists(GEX_dir)) {
+      dir.create(GEX_dir, recursive = T)
+    }
+    seuratsub <- subset(seuratObj, subset = BarcodePrefix %in% sub)
+    outfile <- paste0(GEX_dir, "/counts", sub, ".h5")
+    DropletUtils::write10xCounts(x = seuratsub@assays$RNA@counts, path = outfile)
+  }
+}
