@@ -483,6 +483,10 @@ PrependDatasetIdToClonotypeBarcodes <- function(clonotype_directory, output_dire
   }
   
 }
+#' @title SeuratToConga
+#'
+#' @description A wrapper function to prepare a Seurat object for Conga.
+#' @export
 
 SeuratToCoNGA <- function(seuratObj, TCR_indir, TCR_outdir, GEX_dir) {
   seuratObj <- Rdiscvr::DownloadAndAppendTcrClonotypes(seuratObj, TCR_indir)
