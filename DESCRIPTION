@@ -70,7 +70,8 @@ Imports:
     lda,
     parallel,
     text2vec, 
-    tibble
+    tibble, 
+    Rdiscvr
 Suggests:
     devtools,
     testthat (>= 2.1.0),
