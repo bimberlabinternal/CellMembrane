@@ -4,7 +4,7 @@
 #' @importFrom utils head read.csv read.table tail write.csv write.table
 
 utils::globalVariables(
-  names = c('X', 'Y', 'SortOrder'),
+  names = c('X', 'Y', 'SortOrder', 'BarcodePrefix'),
   package = 'CellMembrane',
   add = TRUE
 )
