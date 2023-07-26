@@ -593,13 +593,14 @@ CiteSeqDimRedux.Dist <- function(seuratObj, assayName = 'ADT', dist.method = "eu
 #' @importFrom dplyr arrange
 #' @import Seurat
 CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE, performClrNormalization = TRUE, doUMAP = TRUE, dimsToUse = NULL, adtWhitelist = NULL, adtBlacklist = NULL){
+	origAssay <- DefaultAssay(seuratObj)
+
+	# Before we recluster the data on ADT levels, we'll stash the original cluster IDs for later
+	seuratObj[["origClusterID"]] <- Idents(seuratObj)
 	tryCatch({
-		origAssay <- DefaultAssay(seuratObj)
 		DefaultAssay(seuratObj) <- assayName
 		print(paste0('Processing ADT data, features: ', paste0(rownames(seuratObj), collapse = ',')))
 
-		# Before we recluster the data on ADT levels, we'll stash the original cluster IDs for later
-		seuratObj[["origClusterID"]] <- Idents(seuratObj)
 
 		if (!is.null(adtWhitelist)) {
 			sharedADTs <- intersect(adtWhitelist, rownames(seuratObj[[assayName]]))
@@ -665,11 +666,6 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
 			}
 		}
 
-		#Restore original state:
-		Idents(seuratObj) <- seuratObj[["origClusterID"]]
-		DefaultAssay(seuratObj) <- origAssay
-		seuratObj[["origClusterID"]] <- NULL
-
 		reductions <- c('tsne')
 		if (doUMAP) {
 			reductions <- c(reductions, 'umap')
@@ -697,6 +693,11 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
 		print(conditionMessage(e))
 		traceback()
 	})
+
+	#Restore original state:
+	Idents(seuratObj) <- seuratObj[["origClusterID"]]
+	DefaultAssay(seuratObj) <- origAssay
+	seuratObj[["origClusterID"]] <- NULL
 
 	return(seuratObj)
 }
