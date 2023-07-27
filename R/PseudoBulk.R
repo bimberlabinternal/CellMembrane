@@ -352,3 +352,118 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
   
   return(DEG_bargraph)
 }
+
+#' @title FilterPseudobulkContrasts
+#'
+#' @description This is designed to accept a study design defined by a series of logical gates applied to metadata fields, test them for equivalence to some criterion, and then filter pairwise contrasts accordingly.
+#' @param logical_dataframe The dataframe that defines the study design. Please see examples for the setup and use. This dataframe should have three columns: fields_to_check, field_logic, and criteria. fields_to_check defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. field_logic defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor. criteria defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.
+#' @param design a design/model matrix returned by DesignModelMatrix().
+#' @param contrast_columns The vector of contrast names supplied to DesignModelMatrix() upstream of this function. Please ensure this vector is identical to the contrast_columns vector supplied to DesignModelMatrix().
+#' @param use_invariant_logic Whether or not to apply invariance logic using invariant_fields. It is possible to use logic gates to keep metadata fields constant, but using invarant logic saves time & effort in those cases.
+#' @param invariant_fields The metadata columns of the SeuratObj that you wish to keep constant. For example: defining "Tissue" in this vector would filter all constrasts comparing Liver to PBMC, as their tissue is not invariant.
+#' @param filtered_contrasts_output_file The file to write the list of filtered contrasts to (one pair of samples per row).
+#' @return A matrix of pairwise contrasts (number of contrasts x 2). 
+#' @examples
+#' #set up design matrix
+#' contrast_columns = c("Timepoint", "Vaccine", "Challenge", "Tissue", "cell_type", "SampleType")
+#' design <- DesignModelMatrix(seuratObj, contrast_columns = c("Timepoint", "Vaccine", "Challenge", "Tissue", "cell_type","SampleType"), sampleIdCol = 'cDNA_ID')
+#' 
+#' #form study design using logic gates
+#' fields_to_check <- c("Challenge", "SampleType")
+#' field_logic <- c("xor", "all") #check for equality. any can be used for an OR gate, all can be used as an AND gate. 
+#' criteria <- c("Mock.challenged", "Necropsy")
+#' logical_dataframe <- data.frame(fields_to_check = fields_to_check, field_logic = field_logic, criteria = criteria)
+#' invariant_fields <- c("Tissue","cell_type", "SampleType")
+#' 
+#' #finally, enumerate all possible contrasts, then filter and return them according to the study design defined by logical_dataframe.
+#' filtered_contrasts <- FilterPseudobulkContrasts(logical_dataframe = logical_dataframe, design = design, contrast_columns = contrast_columns, use_invariant_logic = T, invariant_fields = invariant_fields, filtered_contrasts_output_file = "./filtered_contrasts.tsv")
+#' @export
+
+FilterPseudobulkContrasts <- function(logical_dataframe = NULL, design = NULL, contrast_columns = NULL, use_invariant_logic = T, invariant_fields = NULL, filtered_contrasts_output_file = "./filtered_contrasts.tsv"){
+  #ensure logical_dataframe is properly defined
+  if(is.null(logical_dataframe)){
+    stop("Please supply a logical dataframe that defines the logic gates used for filtering the contrasts. This dataframe should have three columns: fields_to_check, field_logic, and criteria. fields_to_check defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. field_logic defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor. criteria defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate. ")
+  } else if (!(all(c("fields_to_check", "field_logic", "criteria") %in% colnames(logical_dataframe)))){
+    stop("One of the required columns in the logical_dataframe is missing. Please ensure fields_to_check, field_logic, and criteria are all valid columns in logical dataframe. fields_to_check defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. field_logic defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor. criteria defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
+  } else if (!all(colnames(logical_dataframe) %in% c("fields_to_check", "field_logic", "criteria"))){
+    warning("There are columns in the logical_dataframe that will not be used. Please ensure the logical_dataframe is properly formatted.")
+  }
+  #check design matrix
+  if(is.null(design)){
+    stop("Please define a design matrix. The design matrix is intended to be returned by DesignModelMatrix().")
+  }
+  #check contrast_columns
+  if(is.null(contrast_columns)){
+    stop("Please define your contrast_columns vector. This vector should be identical to the argument defined in DesignModelMatrix(), which defines the columns of the Seurat object's metadata that will be used to create contrasts. It is critical that the order of this vector is identical to the one supplied to DesignModelMatrix().")
+  }
+  #check invariant fields arguments
+  if(!is.logical(use_invariant_logic)){
+    stop("Please set use_invariant_logic to TRUE or FALSE.")
+  }
+  if(!is.null(invariant_fields) & !use_invariant_logic){
+    warning("use_invariant_logic is set to FALSE, but invariant_fields are supplied. These will not be used for filtering.")
+  } else if(use_invariant_logic & is.null(invariant_fields)){
+    stop("use_invariant_logic is TRUE, but no invariant_fields have been supplied.")
+  } else if(!all(invariant_fields %in% contrast_columns)){
+    stop("Metadata columns requested in invariant_fields do not appear in contrast_columns. Please ensure that the contrast_columns vector is identical to the one supplied to DesignModelMatrix() and that all elements in the invariant_fields vector are metadata column names whose values you intended to keep constant across all pairwise contrasts.")
+  }
+  
+  
+  
+  #create a nx2 array of all possible unique pairwise combinations of contrasts from the design matrix
+  contrasts <- t(utils::combn(colnames(design), m = 2))
+  contrasts <- gsub("_T_NK_", "_TNK_", contrasts) #fix CellMembrane specific T_NK parsing
+  #initialize contrast indices vector (to be used to subset the total contrast list after filtering)
+  filtered_contrast_indices <- c()
+  
+  for (row_index in 1:nrow(contrasts)){
+    #define the relevant metadata fields for each side of the contrast
+    positive_contrast <- unlist(strsplit(contrasts[row_index,1], split = "_"))
+    names(positive_contrast) <- contrast_columns
+    negative_contrast <- unlist(strsplit(contrasts[row_index,2], split = "_"))
+    names(negative_contrast) <- contrast_columns
+    
+    #define iterator to track how many logic gates were passed for the contrast pair
+    gates_satisfied <- 0
+    for (logic_row_index in 1:nrow(logical_dataframe)){
+      #define variables to set up the logic gate from logical_dataframe
+      field_to_check <- logical_dataframe[logic_row_index,"fields_to_check"]
+      gate <- logical_dataframe[logic_row_index,"field_logic"]
+      criterion <- logical_dataframe[logic_row_index,"criteria"]
+      #set up logic gate
+      if(get(gate)(
+        positive_contrast[field_to_check] == criterion,
+        negative_contrast[field_to_check] == criterion)){
+        
+        gates_satisfied <- gates_satisfied + 1
+        #it is possible to fully define your study design within logical_dataframe without using the invariant_fields logic as a shortcut.
+        if (use_invariant_logic == T){
+          #check if the contrast passed all of the logic gates, if so, test for invariant fields
+          if (gates_satisfied == nrow(logical_dataframe)){
+            
+            #reset counter for matching invariant fields
+            invariant_fields_satisfied <- 0
+            for (invariant in invariant_fields){
+              #keep track of how many invariant fields are equal to each other
+              if(positive_contrast[invariant] == negative_contrast[invariant]){
+                invariant_fields_satisfied <- invariant_fields_satisfied + 1
+              }
+              #if all of the invariant fields are invariant keep the contrast
+              if (invariant_fields_satisfied == length(invariant_fields)){
+                filtered_contrast_indices <- c(filtered_contrast_indices, row_index)
+              }
+            }
+          }
+        }
+      } else{
+        #if all of the gates are satisfied and the invariant logic isn't used, keep the contrast.
+        if (gates_satisfied == nrow(logical_dataframe)){
+          filtered_contrast_indices <- c(filtered_contrast_indices, row_index)
+        }
+      }
+    }
+  }
+  contrasts <- contrasts[filtered_contrast_indices,]
+  write.table( contrasts, file = filtered_contrasts_output_file, row.names = F, col.names = F)
+  return(contrasts)
+}
