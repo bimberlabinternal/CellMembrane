@@ -198,7 +198,7 @@ LDAelbowPlot <- function(ldaResults, seuratObj, assayName = "RNA") {
       }
       if (any(is(object.new) == "Matrix")) {
         # normalize rows for sparse matrices
-        object.new <- Diagonal(x = 1 / rowSums(object.new)) %*% object.new
+        object.new <- Matrix::Diagonal(x = 1 / rowSums(object.new)) %*% object.new
       } else {
         object.new <- sweep(object.new, 1, rowSums(object.new), "/")
       }
@@ -206,7 +206,7 @@ LDAelbowPlot <- function(ldaResults, seuratObj, assayName = "RNA") {
         object.new[object.new < tol] <- 0
         if (any(is(object.new) == "Matrix")) {
           # normalize rows for sparse matrices
-          object.new <- Diagonal(x = 1 / rowSums(object.new)) %*% object.new
+          object.new <- Matrix::Diagonal(x = 1 / rowSums(object.new)) %*% object.new
         } else {
           object.new <- sweep(object.new, 1, rowSums(object.new), "/")
         }
