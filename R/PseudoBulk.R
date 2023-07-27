@@ -467,3 +467,8 @@ FilterPseudobulkContrasts <- function(logical_dataframe = NULL, design = NULL, c
   write.table( contrasts, file = filtered_contrasts_output_file, row.names = F, col.names = F)
   return(contrasts)
 }
+
+#logic gates to be used with FilterPseudobulkContrasts()
+nand <- function(x,y){ !(x&y) } 
+nor <- function(x,y){ !(x|y) } 
+xnor <- function(x,y){(x == y)} 
