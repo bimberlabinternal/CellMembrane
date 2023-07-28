@@ -364,6 +364,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
 #' @param filtered_contrasts_output_file The file to write the list of filtered contrasts to (one pair of samples per row).
 #' @return A matrix of pairwise contrasts (number of contrasts x 2). 
 #' @examples
+#' \dontrun{
 #' #set up design matrix
 #' contrast_columns = c("Timepoint", "Vaccine", "Challenge", "Tissue", "cell_type", "SampleType")
 #' design <- DesignModelMatrix(seuratObj, contrast_columns = c("Timepoint", "Vaccine", "Challenge", "Tissue", "cell_type","SampleType"), sampleIdCol = 'cDNA_ID')
@@ -377,6 +378,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
 #' 
 #' #finally, enumerate all possible contrasts, then filter and return them according to the study design defined by logical_dataframe.
 #' filtered_contrasts <- FilterPseudobulkContrasts(logical_dataframe = logical_dataframe, design = design, contrast_columns = contrast_columns, use_invariant_logic = T, invariant_fields = invariant_fields, filtered_contrasts_output_file = "./filtered_contrasts.tsv")
+#' }
 #' @export
 
 FilterPseudobulkContrasts <- function(logical_dataframe = NULL, design = NULL, contrast_columns = NULL, use_invariant_logic = T, invariant_fields = NULL, filtered_contrasts_output_file = "./filtered_contrasts.tsv"){

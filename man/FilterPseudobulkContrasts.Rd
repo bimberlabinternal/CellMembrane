@@ -33,6 +33,7 @@ A matrix of pairwise contrasts (number of contrasts x 2).
 This is designed to accept a study design defined by a series of logical gates applied to metadata fields, test them for equivalence to some criterion, and then filter pairwise contrasts accordingly.
 }
 \examples{
+\dontrun{
 #set up design matrix
 contrast_columns = c("Timepoint", "Vaccine", "Challenge", "Tissue", "cell_type", "SampleType")
 design <- DesignModelMatrix(seuratObj, contrast_columns = c("Timepoint", "Vaccine", "Challenge", "Tissue", "cell_type","SampleType"), sampleIdCol = 'cDNA_ID')
@@ -46,4 +47,5 @@ invariant_fields <- c("Tissue","cell_type", "SampleType")
 
 #finally, enumerate all possible contrasts, then filter and return them according to the study design defined by logical_dataframe.
 filtered_contrasts <- FilterPseudobulkContrasts(logical_dataframe = logical_dataframe, design = design, contrast_columns = contrast_columns, use_invariant_logic = T, invariant_fields = invariant_fields, filtered_contrasts_output_file = "./filtered_contrasts.tsv")
+}
 }
