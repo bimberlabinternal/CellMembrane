@@ -22,47 +22,47 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFi
   if (!all(groupFields %in% names(seuratObj@meta.data))) {
     stop('All fields from groupFields must be in seuratObj@meta.data')
   }
-
+  
   # TODO: perhaps filtering on saturation, min.counts or other features??
   seuratObj$KeyField <- apply(seuratObj@meta.data[,groupFields,drop = FALSE], 1, function(y){
     return(paste0(y, collapse = '_'))
   })
-
+  
   Seurat::Idents(seuratObj) <- seuratObj$KeyField
-
+  
   # This generates the mean() of counts. Even though we want sum(), this is a convenient way to ensure all other
   a <- Seurat::AverageExpression(seuratObj, return.seurat = T, verbose = F, slot = 'counts', assays = assays)
-
+  
   metaGrouped <- unique(seuratObj@meta.data[,c('KeyField', groupFields),drop = FALSE])
   rownames(metaGrouped) <- metaGrouped$KeyField
   metaGrouped <- metaGrouped[,names(metaGrouped) != 'KeyField',drop = FALSE]
   a <- Seurat::AddMetaData(a, metaGrouped)
-
+  
   totals <- as.data.frame(seuratObj@meta.data %>% dplyr::group_by(KeyField) %>% dplyr::summarise(TotalCells = n()))
   rownames(totals) <- totals$KeyField
-
+  
   a <- Seurat::AddMetaData(a, totals[,'TotalCells',drop = FALSE])
-
+  
   if (!all(is.null(additionalFieldsToAggregate))) {
     for (fn in additionalFieldsToAggregate) {
       if (!fn %in% colnames(seuratObj@meta.data)) {
         stop(paste0('Missing field: ', fn))
       }
-
+      
       totals <- as.data.frame(seuratObj@meta.data %>% dplyr::group_by(KeyField) %>% dplyr::summarise(Mean = mean(!!sym(fn))))
       names(totals) <- c('keyField', paste0(fn, '_mean'))
       rownames(totals) <- totals$KeyField
       a <- Seurat::AddMetaData(a, totals[,paste0(fn, '_mean'),drop = FALSE])
     }
   }
-
+  
   print(ggplot(a@meta.data, aes(x = TotalCells)) +
-    geom_density() +
-    egg::theme_presentation(base_size = 18) +
-    labs(x = 'Cells/Sample', y = '# Cells') +
-    ggtitle('Total Cells/Sample')
+          geom_density() +
+          egg::theme_presentation(base_size = 18) +
+          labs(x = 'Cells/Sample', y = '# Cells') +
+          ggtitle('Total Cells/Sample')
   )
-
+  
   # Convert mean into sum:
   for (assayName in names(a@assays)) {
     m <- Seurat::GetAssayData(a, assay = assayName, slot = 'counts')
@@ -72,7 +72,7 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFi
     a <- Seurat::SetAssayData(a, assay = assayName, slot = 'counts', new.data = Seurat::as.sparse(m2))
     a <- Seurat::NormalizeData(a, verbose = FALSE, assay = assayName)
   }
-
+  
   return(a)
 }
 
@@ -104,7 +104,7 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
   design <- stats::model.matrix(~ 0 + experiment_information$group) %>%
     magrittr::set_rownames(experiment_information[[sampleIdCol]]) %>%
     magrittr::set_colnames(levels(factor(experiment_information$group)))
-
+  
   return(design)
 }
 
@@ -121,18 +121,18 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
 PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1){
   #convert seurat object to SingleCellExperiment for edgeR
   sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = seuratObj@assays[[assayName]]@counts), colData = seuratObj@meta.data)
-
+  
   #filter out lowly expressed genes
   if (!is.null(minCountsPerGene)) {
     sce <- sce[rowSums(as.matrix(SingleCellExperiment::counts(sce))) > minCountsPerGene, ]
   }
-
+  
   #preprocess the DGEList and fit the model
   y <- edgeR::DGEList(SingleCellExperiment::counts(sce), remove.zeros = TRUE)
   y <- edgeR::calcNormFactors(y)
   y <- edgeR::estimateDisp(y, design)
   print(edgeR::plotBCV(y))
-
+  
   if (test.use == "QLF"){
     fit <- edgeR::glmQLFit(y, design)
   } else if (test.use == "LRT"){
@@ -140,7 +140,7 @@ PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA'
   } else {
     stop("Please supply a valid test.use argument.")
   }
-
+  
   return(fit)
 }
 
@@ -164,11 +164,11 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
   } else {
     stop("Please supply a valid test.use argument.")
   }
-
+  
   #distill results into differential_expression list
   differential_expression <- edgeR::topTags(fit_test, n= Inf)
   differential_expression$table$gene <- rownames(differential_expression$table)
-
+  
   #create
   volcano <- ggplot(differential_expression$table, aes(x= logFC, y = -log10(FDR), label = gene)) +
     #plot the upregulated genes using logFC cutoff and FDR cutoff
@@ -179,9 +179,9 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
                                                       differential_expression$table$FDR <=FDR_threshold,], color = "cadetblue2") +
     #repel labels for the up- and down-regulated genes
     ggrepel::geom_text_repel(data = differential_expression$table[
-        (differential_expression$table$logFC >= logFC_threshold & differential_expression$table$FDR < FDR_threshold) |
+      (differential_expression$table$logFC >= logFC_threshold & differential_expression$table$FDR < FDR_threshold) |
         (differential_expression$table$logFC <= -logFC_threshold & differential_expression$table$FDR < FDR_threshold),] ,
-        max.overlaps = 10) +
+      max.overlaps = 10) +
     #plot the rest of the genes
     geom_point(data = differential_expression$table[(differential_expression$table$logFC > -logFC_threshold & differential_expression$table$logFC < logFC_threshold) |differential_expression$table$FDR > FDR_threshold,], color = "black") +
     #plot thresholds
@@ -190,12 +190,12 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
     geom_vline(xintercept = -logFC_threshold, color = "red", linetype="dashed") +
     egg::theme_article() +
     ggtitle(contrast_name)
-
+  
   print(volcano)
-
+  
   pvalue_dist <- ggplot(differential_expression$table, aes( x= PValue)) + geom_histogram() + ggtitle("PValue Distribution")
   print(pvalue_dist)
-
+  
   return(list(
     differential_expression = differential_expression,
     volcano = volcano,
@@ -307,7 +307,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
     #concatenate into a cross-contrast list of differentially expressed gene results
     degs <- rbind(degs, deg)
   }
-
+  
   #iterate through the concatenation of all significant & logFC filtered DEG results for uniqueness. 
   plotting_DEGs <- degs |>
     dplyr::group_by(gene) |>
@@ -456,11 +456,11 @@ FilterPseudobulkContrasts <- function(logical_dataframe = NULL, design = NULL, c
               }
             }
           }
-        }
-      } else{
-        #if all of the gates are satisfied and the invariant logic isn't used, keep the contrast.
-        if (gates_satisfied == nrow(logical_dataframe)){
-          filtered_contrast_indices <- c(filtered_contrast_indices, row_index)
+        } else{
+          #if all of the gates are satisfied and the invariant logic isn't used, keep the contrast.
+          if (gates_satisfied == nrow(logical_dataframe)){
+            filtered_contrast_indices <- c(filtered_contrast_indices, row_index)
+          }
         }
       }
     }
