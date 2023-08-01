@@ -53,8 +53,8 @@ test_that("Logic gate study design works", {
   filtered_contrasts <- FilterPseudobulkContrasts(logical_dataframe = logical_dataframe, 
                                                   design = design, 
                                                   contrast_columns = c("vaccine_cohort", "timepoint"), 
-                                                  use_invariant_logic = F, 
-                                                  invariant_fields = NULL, 
+                                                  use_require_identical_logic = F, 
+                                                  require_identical_fields = NULL, 
                                                   filtered_contrasts_output_file = tempfile())
   #test filtering worked as expected
   testthat::expect_equal(nrow(filtered_contrasts), expected =  15)
@@ -66,23 +66,23 @@ test_that("Logic gate study design works", {
   testthat::expect_false(any(apply(filtered_contrasts, 
                                    MARGIN = 1,
                                    FUN = function(x){nor(grepl("necropsy",x[1]), grepl("necropsy",x[2]))})))
-  #Test invariant_field logic
+  #Test require_identical_field logic
   fields_to_check <- c("vaccine_cohort")
   field_logic <- c("xor") #check for equality. any can be used for an OR gate, all can be used as an AND gate. 
   criteria <- c("control")
   logical_dataframe <- data.frame(fields_to_check = fields_to_check, field_logic = field_logic, criteria = criteria)
-  invariant_fields <- c("timepoint")
-  filtered_contrasts_invariant <- FilterPseudobulkContrasts(logical_dataframe = logical_dataframe, 
+  require_identical_fields <- c("timepoint")
+  filtered_contrasts_require_identical <- FilterPseudobulkContrasts(logical_dataframe = logical_dataframe, 
                                                             design = design, 
                                                             contrast_columns = c("vaccine_cohort", "timepoint"), 
-                                                            use_invariant_logic = T, 
-                                                            invariant_fields = c("timepoint"), 
+                                                            use_require_identical_logic = T, 
+                                                            require_identical_fields = c("timepoint"), 
                                                             filtered_contrasts_output_file = tempfile())
   #test filtering worked as expected
-  testthat::expect_equal(nrow(filtered_contrasts_invariant), expected =  9)
+  testthat::expect_equal(nrow(filtered_contrasts_require_identical), expected =  9)
   #test invariance
-  positive_side_timepoints <- unlist(strsplit(filtered_contrasts_invariant[,1], split = '_'))
-  negative_side_timepoints <- unlist(strsplit(filtered_contrasts_invariant[,2], split = '_'))
+  positive_side_timepoints <- unlist(strsplit(filtered_contrasts_require_identical[,1], split = '_'))
+  negative_side_timepoints <- unlist(strsplit(filtered_contrasts_require_identical[,2], split = '_'))
   #test that every second value in the contrasts (timepoint) are always equal
   testthat::expect_true(all(positive_side_timepoints[1:length(positive_side_timepoints)%% 2 == 0] == negative_side_timepoints[1:length(negative_side_timepoints)%% 2 == 0]))
 })
