@@ -8,8 +8,8 @@ FilterPseudobulkContrasts(
   logical_dataframe = NULL,
   design = NULL,
   contrast_columns = NULL,
-  use_invariant_logic = T,
-  invariant_fields = NULL,
+  use_require_identical_logic = T,
+  require_identical_fields = NULL,
   filtered_contrasts_output_file = "./filtered_contrasts.tsv"
 )
 }
@@ -20,9 +20,9 @@ FilterPseudobulkContrasts(
 
 \item{contrast_columns}{The vector of contrast names supplied to DesignModelMatrix() upstream of this function. Please ensure this vector is identical to the contrast_columns vector supplied to DesignModelMatrix().}
 
-\item{use_invariant_logic}{Whether or not to apply invariance logic using invariant_fields. It is possible to use logic gates to keep metadata fields constant, but using invarant logic saves time & effort in those cases.}
+\item{use_require_identical_logic}{Whether or not to apply require_identical logic using require_identical_fields. It is possible to use logic gates to keep metadata fields constant, but using this saves time & effort/iteration.}
 
-\item{invariant_fields}{The metadata columns of the SeuratObj that you wish to keep constant. For example: defining "Tissue" in this vector would filter all constrasts comparing Liver to PBMC, as their tissue is not invariant.}
+\item{require_identical_fields}{The metadata columns of the SeuratObj that you wish to keep constant. For example: defining "Tissue" in this vector would filter all contrasts comparing Liver to PBMC, as their tissue is not identical.}
 
 \item{filtered_contrasts_output_file}{The file to write the list of filtered contrasts to (one pair of samples per row).}
 }
@@ -43,9 +43,9 @@ fields_to_check <- c("Challenge", "SampleType")
 field_logic <- c("xor", "all") #check for equality. any can be used for an OR gate, all can be used as an AND gate. 
 criteria <- c("Mock.challenged", "Necropsy")
 logical_dataframe <- data.frame(fields_to_check = fields_to_check, field_logic = field_logic, criteria = criteria)
-invariant_fields <- c("Tissue","cell_type", "SampleType")
+require_identical_fields <- c("Tissue","cell_type", "SampleType")
 
 #finally, enumerate all possible contrasts, then filter and return them according to the study design defined by logical_dataframe.
-filtered_contrasts <- FilterPseudobulkContrasts(logical_dataframe = logical_dataframe, design = design, contrast_columns = contrast_columns, use_invariant_logic = T, invariant_fields = invariant_fields, filtered_contrasts_output_file = "./filtered_contrasts.tsv")
+filtered_contrasts <- FilterPseudobulkContrasts(logical_dataframe = logical_dataframe, design = design, contrast_columns = contrast_columns, use_require_identical_logic = T, require_identical_fields = require_identical_fields, filtered_contrasts_output_file = "./filtered_contrasts.tsv")
 }
 }
