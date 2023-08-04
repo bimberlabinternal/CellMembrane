@@ -14,7 +14,7 @@ FilterPseudobulkContrasts(
 )
 }
 \arguments{
-\item{logical_dataframe}{The dataframe that defines the study design. Please see examples for the setup and use. This dataframe should have three columns: fields_to_check, field_logic, and criteria. fields_to_check defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. field_logic defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor. criteria defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.}
+\item{logical_dataframe}{The dataframe that defines the study design. Please see examples for the setup and use. This dataframe should have three columns: field_to_check, field_logic, and criteria. field_to_check defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. field_logic defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor. criteria defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.}
 
 \item{design}{a design/model matrix returned by DesignModelMatrix().}
 
@@ -24,10 +24,10 @@ FilterPseudobulkContrasts(
 
 \item{require_identical_fields}{The metadata columns of the SeuratObj that you wish to keep constant. For example: defining "Tissue" in this vector would filter all contrasts comparing Liver to PBMC, as their tissue is not identical.}
 
-\item{filtered_contrasts_output_file}{The file to write the list of filtered contrasts to (one pair of samples per row).}
+\item{filtered_contrasts_output_file}{The file to write the list of filtered contrasts to (one pair of samples per row, separated into their metadata fields).}
 }
 \value{
-A matrix of pairwise contrasts (number of contrasts x 2).
+A dataframe of pairwise contrasts, with column names indicating the directionality (positive vs negative) and associated metadata column (inferred by contrast_columns).
 }
 \description{
 This is designed to accept a study design defined by a series of logical gates applied to metadata fields, test them for equivalence to some criterion, and then filter pairwise contrasts accordingly.
@@ -38,11 +38,11 @@ This is designed to accept a study design defined by a series of logical gates a
 contrast_columns = c("Timepoint", "Vaccine", "Challenge", "Tissue", "cell_type", "SampleType")
 design <- DesignModelMatrix(seuratObj, contrast_columns = c("Timepoint", "Vaccine", "Challenge", "Tissue", "cell_type","SampleType"), sampleIdCol = 'cDNA_ID')
 
-#form study design using logic gates
-fields_to_check <- c("Challenge", "SampleType")
-field_logic <- c("xor", "all") #check for equality. any can be used for an OR gate, all can be used as an AND gate. 
-criteria <- c("Mock.challenged", "Necropsy")
-logical_dataframe <- data.frame(fields_to_check = fields_to_check, field_logic = field_logic, criteria = criteria)
+
+#form study design using logic gates. Each gate consists of a metadata field (field_to_check) to apply the logic gate to 
+gate_one <- data.frame(field_to_check = "Challenge", field_logic = "xor", criteria = "Mock.challenged")
+gate_two <- data.frame(field_to_check = "SampleType", field_logic = "all", criteria = "Necropsy")
+logical_dataframe <- rbind(gate_one, gate_two)
 require_identical_fields <- c("Tissue","cell_type", "SampleType")
 
 #finally, enumerate all possible contrasts, then filter and return them according to the study design defined by logical_dataframe.
