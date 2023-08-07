@@ -46,12 +46,9 @@ test_that("Logic gate study design works", {
   pbulk <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint","subject"))
   design <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort", "timepoint"), sampleIdCol = "subject")
   #create logical_dataframe/study design
-  gate_one <- data.frame(field_to_check = "vaccine_cohort", field_logic = "xor", criteria = "control")
-  gate_two <- data.frame(field_to_check = "timepoint", field_logic = "any", criteria = "necropsy")
-  logical_dataframe <- rbind(gate_one, gate_two)
-  filtered_contrasts <- FilterPseudobulkContrasts(logical_dataframe = logical_dataframe, 
+  logic_list <- list( list("vaccine_cohort", "xor", "control"), list("timepoint", "any", "necropsy"))
+  filtered_contrasts <- FilterPseudobulkContrasts(logic_list = logic_list, 
                                                   design = design, 
-                                                  contrast_columns = c("vaccine_cohort", "timepoint"), 
                                                   use_require_identical_logic = F, 
                                                   require_identical_fields = NULL, 
                                                   filtered_contrasts_output_file = tempfile())
@@ -68,12 +65,10 @@ test_that("Logic gate study design works", {
                                    FUN = function(x){nor(grepl("necropsy",x["positive_contrast_timepoint"]), 
                                                          grepl("necropsy",x["negative_contrast_timepoint"]))})))
   #Test require_identical_field logic
-  gate_one <- data.frame(field_to_check = "vaccine_cohort", field_logic = "xor", criteria = "control")
-  logical_dataframe <- gate_one
+  logic_list <- list( list("vaccine_cohort", "xor", "control"))
   require_identical_fields <- c("timepoint")
-  filtered_contrasts_require_identical <- FilterPseudobulkContrasts(logical_dataframe = logical_dataframe, 
+  filtered_contrasts_require_identical <- FilterPseudobulkContrasts(logic_list = logic_list, 
                                                             design = design, 
-                                                            contrast_columns = c("vaccine_cohort", "timepoint"), 
                                                             use_require_identical_logic = T, 
                                                             require_identical_fields = c("timepoint"), 
                                                             filtered_contrasts_output_file = tempfile())
