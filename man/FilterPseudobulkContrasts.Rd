@@ -29,11 +29,26 @@ A dataframe of pairwise contrasts, with column names indicating the directionali
 \description{
 This is designed to accept a study design defined by a series of logical gates applied to metadata fields, test them for equivalence to some criterion, and then filter pairwise contrasts accordingly.
 }
+\details{
+\tabular{cccccccccc}{
+   \strong{Filtered} \tab \emph{Reason} \tab \strong{positive_contrast_Challenge} \tab \emph{positive_contrast_Tissue} \tab \strong{positive_contrast_cell_type} \tab \emph{positive_contrast_SampleType} \tab \strong{negative_contrast_Challenge} \tab \emph{negative_contrast_Tissue} \tab \strong{negative_contrast_cell_type} \tab \emph{negative_contrast_SampleType} \cr
+   yes \tab non-identical cell_types \tab Mtb \tab Spleen \tab \emph{\strong{Myeloid}} \tab Necropsy \tab Mock.challenged \tab Spleen \tab \emph{\strong{Bcell}} \tab Necropsy \cr
+    \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \cr
+    \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \cr
+   no \tab N/A \tab Mtb \tab Lung \tab T.NK \tab Necropsy \tab Mock.challenged \tab Lung \tab T.NK \tab Necropsy \cr
+    \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \cr
+    \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \cr
+   yes \tab fails Challenge xor gate \tab \emph{\strong{Mock.challenged}} \tab Lung \tab T.NK \tab Necropsy \tab \emph{\strong{Mock.challenged}} \tab Lung \tab T.NK \tab Necropsy \cr
+    \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \cr
+    \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \cr
+   yes \tab fails SampleType AND gate \tab Mock.challenged \tab MesLN \tab Bcell \tab \emph{\strong{Baseline}} \tab Mock.challenged \tab MesLN \tab Bcell \tab \emph{\strong{Necropsy}} \cr
+}
+}
 \examples{
 \dontrun{
 #Set up design matrix
 design <- DesignModelMatrix(pseudobulked_seuratObj, 
-                            contrast_columns = c('Timepoint', 'Vaccine', 'Challenge', 'Tissue', 'cell_type', 'SampleType'), 
+                            contrast_columns = c('Challenge', 'Tissue', 'cell_type', 'SampleType'), 
                             sampleIdCol = 'cDNA_ID')
 
 
@@ -54,5 +69,6 @@ filtered_contrasts <- FilterPseudobulkContrasts(logic_list = logic_list,
                                                 use_require_identical_logic = T, 
                                                 require_identical_fields = c('Tissue','cell_type', 'SampleType'), 
                                                 filtered_contrasts_output_file = './filtered_contrasts.tsv')
+                                                
 }
 }

@@ -372,7 +372,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
 #' \dontrun{
 #' #Set up design matrix
 #' design <- DesignModelMatrix(pseudobulked_seuratObj, 
-#'                             contrast_columns = c('Timepoint', 'Vaccine', 'Challenge', 'Tissue', 'cell_type', 'SampleType'), 
+#'                             contrast_columns = c('Challenge', 'Tissue', 'cell_type', 'SampleType'), 
 #'                             sampleIdCol = 'cDNA_ID')
 #' 
 #' 
@@ -393,8 +393,25 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
 #'                                                 use_require_identical_logic = T, 
 #'                                                 require_identical_fields = c('Tissue','cell_type', 'SampleType'), 
 #'                                                 filtered_contrasts_output_file = './filtered_contrasts.tsv')
+#'                                                 
 #' }
+#' @details
+#' 
+#' | \strong{Filtered} | \emph{Reason}   | \strong{positive_contrast_Challenge} | \emph{positive_contrast_Tissue} | \strong{positive_contrast_cell_type} | \emph{positive_contrast_SampleType} | \strong{negative_contrast_Challenge} | \emph{negative_contrast_Tissue} | \strong{negative_contrast_cell_type} | \emph{negative_contrast_SampleType} |
+#' | :-------------: |:-------------:| :----------------------------:| :----------------------------:| :----------------------------:| :----------------------------:| :----------------------------:| :----------------------------:| :----------------------------:| :----------------------------:|
+#' | yes   | non-identical cell_types | Mtb | Spleen| \emph{\strong{Myeloid}} | Necropsy | Mock.challenged | Spleen | \emph{\strong{Bcell}} | Necropsy |
+#' | | | | | | | | | | | 
+#' | | | | | | | | | | | 
+#' | no   | N/A      |   Mtb | Lung | T.NK | Necropsy | Mock.challenged | Lung | T.NK | Necropsy |
+#' | | | | | | | | | | | 
+#' | | | | | | | | | | | 
+#' | yes   | fails Challenge xor gate      |   \emph{\strong{Mock.challenged}} | Lung | T.NK | Necropsy | \emph{\strong{Mock.challenged}} | Lung | T.NK | Necropsy |
+#' | | | | | | | | | | | 
+#' | | | | | | | | | | | 
+#' | yes   | fails SampleType AND gate      |   Mock.challenged | MesLN | Bcell | \emph{\strong{Baseline}} | Mock.challenged | MesLN | Bcell | \emph{\strong{Necropsy}} |
+#' 
 #' @export
+#' @md
 
 FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_require_identical_logic = T, require_identical_fields = NULL, filtered_contrasts_output_file = './filtered_contrasts.tsv'){
   #check design matrix.
