@@ -108,7 +108,9 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
   design <- stats::model.matrix(~ 0 + experiment_information$group) %>%
     magrittr::set_rownames(experiment_information[[sampleIdCol]]) %>%
     magrittr::set_colnames(levels(factor(experiment_information$group)))
+  #stash metadata-specific values in the design matrix for retrieval downstream. 
   attr(design, "contrast_columns") <- contrast_columns
+  attr(design, "sampleIdCol") <- sampleIdCol
   return(design)
 }
 
