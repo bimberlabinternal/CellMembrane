@@ -11,6 +11,7 @@ RUN wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconduct
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
 # NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb
+# NOTE: the conga rhesus branch should eventually merge, so we'll need to remove -b rhesus. The cd commands downstream are necessary to compile the reimplementation of tcrdist within conga.
 RUN apt-get update -y \
     && apt-get upgrade -y \
     && apt-get install -y \
@@ -20,9 +21,15 @@ RUN apt-get update -y \
         locales \
         locales-all \
     && python3 -m pip install --upgrade pip \
-	&& pip3 install umap-learn phate \
-	&& apt-get clean \
-	&& rm -rf /var/lib/apt/lists/*
+	     && pip3 install umap-learn phate \
+	     && pip3 install scanpy[leiden] \
+	     && git clone -b rhesus https://github.com/phbradley/conga.git \
+	        && cd conga/tcrdist_cpp \
+	        && make \
+	        && cd .. \
+	        && pip3 install -e . \
+	  && apt-get clean \
+	  && rm -rf /var/lib/apt/lists/*
 
 # NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
 # See: https://github.com/broadinstitute/CellBender/issues/93
