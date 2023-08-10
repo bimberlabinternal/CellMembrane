@@ -31,7 +31,7 @@ RUN apt-get update -y \
     && make \
     && cd .. \
     && pip3 install -e . \
-    && cd \
+    && cd /
 
 # NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
 # See: https://github.com/broadinstitute/CellBender/issues/93
