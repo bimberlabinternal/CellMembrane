@@ -29,7 +29,7 @@ RUN apt-get update -y \
     && git clone -b rhesus https://github.com/phbradley/conga.git \
     && cd conga/tcrdist_cpp \
     && make \
-    && cd .. \
+    && cd ../ \
     && pip3 install -e . \
     && cd /
 
