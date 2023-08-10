@@ -415,7 +415,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
 
 FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_require_identical_logic = T, require_identical_fields = NULL, filtered_contrasts_output_file = './filtered_contrasts.tsv'){
   #check design matrix.
-  if(is.null(design)){
+  if (is.null(design)){
     stop("Please define a design matrix. The design matrix is intended to be returned by DesignModelMatrix().")
   }
   #ensure design matrix is from DesignModelMatrix() (or at least has contrast_columns in its attributes.)
@@ -424,9 +424,9 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
   }
   contrast_columns <- attr(design, "contrast_columns")
   #ensure logic_list is properly defined.
-  if(is.null(logic_list)){
+  if (is.null(logic_list)){
     stop("Please supply a list that defines the logic gates used for filtering the contrasts. This list should have three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
-  } else if(typeof(logic_list) != "list"){
+  } else if (typeof(logic_list) != "list"){
       stop("Please ensure that logic_list is a list composed of lists. Each sub-list should define a gate that will filter possible contrasts. This list should have three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
   } else if (!(all(lengths(logic_list) == 3))){
       stop("The lengths of all of the elements (i.e. logic gates) within logic_list are not equal to 3. Please ensure there are exactly three entries in each element of logic_list. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
@@ -439,14 +439,14 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
   }
   
   #check require_identical fields arguments.
-  if(!is.logical(use_require_identical_logic)){
+  if (!is.logical(use_require_identical_logic)){
     stop("Please set use_require_identical_logic to TRUE or FALSE.")
   }
-  if(!is.null(require_identical_fields) & !use_require_identical_logic){
+  if (!is.null(require_identical_fields) & !use_require_identical_logic){
     warning("use_require_identical_logic is set to FALSE, but require_identical_fields are supplied. These will not be used for filtering.")
-  } else if(use_require_identical_logic & is.null(require_identical_fields)){
+  } else if (use_require_identical_logic & is.null(require_identical_fields)){
     stop("use_require_identical_logic is TRUE, but no require_identical_fields have been supplied.")
-  } else if(!all(require_identical_fields %in% contrast_columns)){
+  } else if (!all(require_identical_fields %in% contrast_columns)){
     stop("Metadata columns requested in require_identical_fields do not appear in the supplied design matrix's contrast_columns attribute. Please ensure that the contrast_columns vector supplied to DesignModelMatrix() is correct and that all elements in the require_identical_fields vector are metadata column names whose values you intended to keep constant across all pairwise contrasts.")
   }
   
@@ -471,7 +471,7 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
       gate <- logic_list[[logic_gate_index]][[2]]
       criterion <- logic_list[[logic_gate_index]][[3]]
       #set up logic gate and check if the contrast satisfies the gate.
-      if(get(gate)(
+      if (get(gate)(
         positive_contrast[field_to_check] == criterion,
         negative_contrast[field_to_check] == criterion)){
         #if true, mark the gate as satisfied.
@@ -484,7 +484,7 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
             require_identical_fields_satisfied <- 0
             for (require_identical in require_identical_fields){
               #keep track of how many require_identical fields are equal to each other.
-              if(positive_contrast[require_identical] == negative_contrast[require_identical]){
+              if (positive_contrast[require_identical] == negative_contrast[require_identical]){
                 require_identical_fields_satisfied <- require_identical_fields_satisfied + 1
               }
               #if all of the require_identical fields are require_identical keep the contrast.
