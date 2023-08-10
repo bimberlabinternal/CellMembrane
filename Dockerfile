@@ -20,8 +20,6 @@ RUN apt-get update -y \
 		python3-pip \
         locales \
         locales-all \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
     && python3 -m pip install --upgrade pip \
     && pip3 install umap-learn phate scanpy[leiden] \
     && mkdir /conga \
@@ -31,7 +29,9 @@ RUN apt-get update -y \
     && make \
     && cd ../ \
     && pip3 install -e . \
-    && cd /
+    && cd / \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
 # See: https://github.com/broadinstitute/CellBender/issues/93
