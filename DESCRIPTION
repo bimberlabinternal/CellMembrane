@@ -104,6 +104,7 @@ Collate:
     'Preprocessing.R'
     'Utils.R'
     'CiteSeq.R'
+    'CoNGA.R'
     'Doublets.R'
     'LDA.R'
     'Phate.R'
