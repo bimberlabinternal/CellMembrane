@@ -10,23 +10,20 @@ ENV CRAN=https://packagemanager.posit.co/cran/__linux__/focal/latest
 RUN /bin/sh -c /rocker_scripts/install_R_source.sh
 RUN /bin/sh -c /rocker_scripts/setup_R.sh
 
-##  Add Bioconductor system dependencies
-RUN wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/master/bioc_scripts/install_bioc_sysdeps.sh \
-    && bash ./install_bioc_sysdeps.sh 3.17 \
-    && rm ./install_bioc_sysdeps.sh
-
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
 # NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb
 # NOTE: the conga rhesus branch should eventually merge, so we'll need to remove -b rhesus. The cd commands downstream are necessary to compile the reimplementation of tcrdist within conga.
 RUN apt-get update -y \
-    && apt-get upgrade -y \
-    && apt-get install -y \
+	&& apt-get upgrade -y \
+	&& apt-get install -y \
 		libhdf5-dev \
 		libpython3-dev \
 		python3-pip \
         locales \
         locales-all \
+        wget \
+        git \
     && python3 -m pip install --upgrade pip \
     && pip3 install umap-learn phate scanpy[leiden] \
     && mkdir /conga \
@@ -39,6 +36,11 @@ RUN apt-get update -y \
     && cd / \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+##  Add Bioconductor system dependencies
+RUN wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/master/bioc_scripts/install_bioc_sysdeps.sh \
+    && bash ./install_bioc_sysdeps.sh 3.17 \
+    && rm ./install_bioc_sysdeps.sh
 
 # NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
 # See: https://github.com/broadinstitute/CellBender/issues/93
