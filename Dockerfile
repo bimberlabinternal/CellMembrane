@@ -3,6 +3,13 @@ FROM rocker/rstudio:4.2.1
 
 ARG GH_PAT='NOT_SET'
 
+## Redo the R installation, since we need a base image using focal, but updated R version:
+# This should be removed in favor of choosing a better base image once Exacloud supports jammy
+ENV R_VERSION=4.3.1
+ENV CRAN=https://packagemanager.posit.co/cran/__linux__/focal/latest
+RUN /bin/sh -c /rocker_scripts/install_R_source.sh
+RUN /bin/sh -c /rocker_scripts/setup_R.sh
+
 ##  Add Bioconductor system dependencies
 RUN wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/master/bioc_scripts/install_bioc_sysdeps.sh \
     && bash ./install_bioc_sysdeps.sh 3.17 \
@@ -39,9 +46,6 @@ RUN cd / \
     && git clone https://github.com/broadinstitute/CellBender.git CellBender \
     && chmod -R 777 /CellBender \
     && pip3 install -e CellBender
-
-# NOTE: ggplot2 added to force version 3.4.0, which is needed by ggtree. Otherwise this container is pegged to ./focal/2022-10-28
-ENV CRAN='https://packagemanager.rstudio.com/cran/__linux__/focal/latest'
 
 # Let this run for the purpose of installing/caching dependencies
 RUN echo "local({r <- getOption('repos') ;r['CRAN'] = 'https://packagemanager.rstudio.com/cran/__linux__/focal/latest';options(repos = r);rm(r)})" >> ~/.Rprofile \
