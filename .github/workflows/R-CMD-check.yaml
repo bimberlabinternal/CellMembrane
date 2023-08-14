@@ -39,10 +39,11 @@ jobs:
 
       # libsodium-dev installed for VISION
       # libharfbuzz-dev libfribidi-dev are added to fix textshaping install error
+      # libicu-dev added for stringi
       - name: Install packages
         if: runner.os != 'Windows'
         run: |
-          sudo apt-get update && sudo apt-get install -yq python3-pip libcurl4-openssl-dev libsodium-dev libharfbuzz-dev libfribidi-dev
+          sudo apt-get update && sudo apt-get install -yq python3-pip libcurl4-openssl-dev libsodium-dev libharfbuzz-dev libfribidi-dev libicu-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
           python3 -m pip install --user umap-learn phate
