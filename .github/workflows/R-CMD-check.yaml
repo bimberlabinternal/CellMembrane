@@ -77,7 +77,7 @@ jobs:
       - name: Query dependencies
         run: |
           install.packages('remotes')
-          remotes::install_github("r-lib/remotes")
+          remotes::install_github("r-lib/remotes", force = TRUE)
           print(paste0("R_BIOC_VERSION: ", Sys.getenv("R_BIOC_VERSION")));
           saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
           writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
