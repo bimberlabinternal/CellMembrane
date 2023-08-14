@@ -33,4 +33,78 @@ RunCoNGA <- function(features_file, tcr_datafile, gex_datafile, organism,
   system2(reticulate::py_exe(), script)
 }
 
-
+runCoNGA_on_seuratdata_and_subsets <-function(seuratObj, splitFields,
+                                              outputdir, organism, gex_datatype) {
+  dir.create(outputdir)
+  maindir <- paste0(outputdir, "/main")
+  dir.create(maindir)
+  SeuratToCoNGA(seuratObj, maindir)
+  clonesfile <- paste0(maindir, "/TCRs.csv")
+  clones <- read.csv(clonesfile)
+  meta <- seuratObj@meta.data
+  clones_sub <- subset(clones, subset = barcode %in% rownames(meta))
+  write.csv(clones_sub, paste0(maindir, "/TCRs_sub.csv"), row.names = F)
+  grouplist <- list()
+  for (i in 1:length(splitFields)) {
+    grouplist[[i]] <- meta[,splitFields[i]]
+  }
+  splitlist <- split(meta, grouplist)
+  barcodelist <- lapply(splitlist, rownames)
+  
+  features_file = paste0(maindir, "/varfeats.csv")
+  outfile_prefix = paste0(maindir, "/")
+  clones_file = paste0(maindir, "/clones.tsv")
+  tcr_datafile <- paste0(maindir, "/TCRs_sub.csv")
+  gex_datafile <- paste0(maindir, "/GEX.h5")
+  outfile_prefix_for_qc_plots= paste0(maindir, "/QC_plots/")
+  RunCoNGA(features_file, tcr_datafile, gex_datafile, organism,
+           outfile_prefix, gex_datatype, clones_file,
+           outfile_prefix_for_qc_plots)
+  
+  for (splitname in names(barcodelist)) {
+    if (length(barcodelist[[splitname]]) > 0){
+      current_dir <- paste0(outputdir, "/", splitname)
+      dir.create(current_dir)
+      clones_sub <- subset(clones, subset = barcode %in% barcodelist[[splitname]])
+      tcr_datafile <- paste0(current_dir, "/TCRs_sub.csv")
+      write.csv(clones_sub, tcr_datafile, row.names = F)
+      gex_datafile <- paste0(current_dir, "/GEX.h5")
+      seuratObj_sub <- subset(seuratObj, cells = barcodelist[[splitname]])
+      seuratObj_sub <- NormalizeAndScale(seuratObj_sub)
+      DropletUtils::write10xCounts(x = seuratObj_sub@assays$RNA@counts, path = gex_datafile)
+      features_file = paste0(current_dir, "/varfeats.csv")
+      write.table(VariableFeatures(seuratObj_sub), features_file, row.names = FALSE, col.names = FALSE)
+      
+      outfile_prefix = paste0(current_dir, "/")
+      clones_file = paste0(current_dir, "/clones.tsv")
+      outfile_prefix_for_qc_plots= paste0(current_dir, "/QC_plots/")
+      RunCoNGA(features_file, tcr_datafile, gex_datafile, organism,
+               outfile_prefix, gex_datatype, clones_file,
+               outfile_prefix_for_qc_plots)
+    }
+  }
+  
+  clones_df <- read.csv(paste0(maindir, "/TCRs_sub.csv"))
+  clones <- (clones_df$raw_clonotype_id)
+  names(clones) <- clones_df$barcode
+  seuratObj <- Seurat::AddMetaData(seuratObj, clones, col.name = "clone")
+  
+  df <- data.frame()
+  for (sample in list.files(outputdir)[list.files(outputdir) != "main"]) {
+    sample_obs <- paste0(outputdir, "/", sample, "/adata2obs.csv")
+    tempdf <- read.csv(sample_obs, header=TRUE, row.names = 1)
+    tempdf$sample <- sample
+    df <- rbind(df, tempdf)
+  }
+  dfout <- df %>% select(c(clusters_gex, clusters_tcr, nndists_gex, nndists_tcr,
+                           is_invariant, conga_scores, conga_fdr_values, sample))
+  colnames(dfout) <- paste0("ind_", colnames(dfout))
+  seuratObj <- Seurat::AddMetaData(seuratObj, dfout)
+  
+  combo_df <- read.csv(paste0(outputdir, "/main/adata2obs.csv"), header=TRUE, row.names = 1)
+  combo_dfout <- combo_df %>% select(c(clusters_gex, clusters_tcr, nndists_gex, nndists_tcr,
+                                       is_invariant, conga_scores, conga_fdr_values))
+  colnames(combo_dfout) <- paste0("combo_", colnames(combo_dfout))
+  seuratObj <- Seurat::AddMetaData(seuratObj, combo_dfout)
+  return(seuratObj)
+}
