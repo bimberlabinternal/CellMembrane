@@ -92,6 +92,12 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-${{ matrix.config.bioc }}-${{ secrets.CACHE_VERSION || 1 }}-${{ hashFiles('.github/depends.Rds') }}
           restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-${{ matrix.config.bioc }}-${{ secrets.CACHE_VERSION || 1 }}-
 
+      # The install_github() on remotes is to ensure system_requirements() supports 22.04
+      - name: Install r-lib/remotes
+        run: |          
+          print(paste0("Remotes version: ", packageVersion("remotes")))
+        shell: Rscript {0}
+
       - name: Install system dependencies
         if: runner.os == 'Linux'
         run: |
