@@ -12,7 +12,7 @@ from conga.preprocess import retrieve_tcrs_from_adata
 from conga.preprocess import read_adata
 from conga.preprocess import normalize_and_log_the_raw_matrix
 from conga.tcrdist.tcr_distances import TcrDistCalculator
-tcrdist_calculator = TcrDistCalculator('rhesus')
+
 module_path = os.path.abspath(os.getcwd() + '\\..')
 if module_path not in sys.path:
     sys.path.append(module_path)
@@ -20,6 +20,7 @@ if module_path not in sys.path:
 def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefix, 
          gex_datatype, clones_file, outfile_prefix_for_qc_plots):
 
+    tcrdist_calculator = TcrDistCalculator(organism)
     os.makedirs(os.path.dirname(outfile_prefix), exist_ok=True)
     conga.tcrdist.make_10x_clones_file.make_10x_clones_file( tcr_datafile, organism, clones_file )
     conga.preprocess.make_tcrdist_kernel_pcs_file_from_clones_file( clones_file, organism )
@@ -114,3 +115,4 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
 
     html_file = outfile_prefix+'_results_summary.html'
     conga.plotting.make_html_summary(adata2, html_file)
+    adata2.obs.to_csv(outfile_prefix+"adata2obs.csv")
