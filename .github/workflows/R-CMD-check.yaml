@@ -73,11 +73,9 @@ jobs:
           cat(append = TRUE, file = "~/.Rprofile", "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));");
         shell: Rscript {0}
 
-      # The install_github() on remotes is to ensure system_requirements() supports 22.04
       - name: Query dependencies
         run: |
           install.packages('remotes')
-          remotes::install_github("r-lib/remotes", force = TRUE)
           print(paste0("R_BIOC_VERSION: ", Sys.getenv("R_BIOC_VERSION")));
           saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
           writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
@@ -94,7 +92,8 @@ jobs:
 
       # The install_github() on remotes is to ensure system_requirements() supports 22.04
       - name: Install r-lib/remotes
-        run: |          
+        run: |
+          remotes::install_github("r-lib/remotes", force = TRUE)
           print(paste0("Remotes version: ", packageVersion("remotes")))
         shell: Rscript {0}
 
