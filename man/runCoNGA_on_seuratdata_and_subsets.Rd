@@ -9,7 +9,8 @@ runCoNGA_on_seuratdata_and_subsets(
   splitFields,
   outputdir,
   organism,
-  gex_datatype
+  gex_datatype,
+  assayName = "RNA"
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ runCoNGA_on_seuratdata_and_subsets(
 \item{organism}{'human' or 'rhesus'}
 
 \item{gex_datatype}{"10x_h5"}
+
+\item{assayName}{The name of the gene expression data assay}
 }
 \description{
 Runs CoNGA on combo data and on combo data split apart into individual samples
