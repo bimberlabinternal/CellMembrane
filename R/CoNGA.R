@@ -33,6 +33,16 @@ RunCoNGA <- function(features_file, tcr_datafile, gex_datafile, organism,
   system2(reticulate::py_exe(), script)
 }
 
+#' @title Run CoNGA on Seurat data and subsets
+#'
+#' @description Runs CoNGA on combo data and on combo data split apart into individual samples
+#' @param seuratObj input Seurat object
+#' @param splitFields a vector of metadata columns used for splitting the Seurat object
+#' @param outputdir file path of directory for output files
+#' @param organism 'human' or 'rhesus'
+#' @param gex_datatype "10x_h5"
+#'
+#' @export
 runCoNGA_on_seuratdata_and_subsets <-function(seuratObj, splitFields,
                                               outputdir, organism, gex_datatype) {
   dir.create(outputdir)
