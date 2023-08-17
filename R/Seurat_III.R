@@ -828,6 +828,11 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
         )
 
         topGene <- toPlot %>% group_by(cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
+        if (length(unique(topGene$gene)) < 3) {
+          print('Too few genes, skipping heatmap')
+          next
+        }
+
         avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', assays = assayName, return.seurat = T)
         avgSeurat <- NormalizeData(avgSeurat, verbose = FALSE)
 
