@@ -39,17 +39,16 @@ RUN apt-get update -y \
     && bash ./install_bioc_sysdeps.sh 3.17 \
     && rm ./install_bioc_sysdeps.sh \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
-# See: https://github.com/broadinstitute/CellBender/issues/93
-RUN cd / \
+    && rm -rf /var/lib/apt/lists/* \
+    # NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
+    # See: https://github.com/broadinstitute/CellBender/issues/93
+    cd / \
     && git clone https://github.com/broadinstitute/CellBender.git CellBender \
     && chmod -R 777 /CellBender \
-    && pip3 install -e CellBender
+    && pip3 install -e CellBender \
+    # This is to avoid the numba 'cannot cache function' error, such as: https://github.com/numba/numba/issues/5566
+    mkdir /numba_cache && chmod -R 777 /numba_cache
 
-# This is to avoid the numba 'cannot cache function' error, such as: https://github.com/numba/numba/issues/5566
-RUN mkdir /numba_cache && chmod -R 777 /numba_cache
 ENV NUMBA_CACHE_DIR=/numba_cache
 
 # Let this run for the purpose of installing/caching dependencies
