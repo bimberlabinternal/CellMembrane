@@ -40,12 +40,7 @@ RUN apt-get update -y \
     && rm ./install_bioc_sysdeps.sh \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    # NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
-    # See: https://github.com/broadinstitute/CellBender/issues/93
-    cd / \
-    && git clone https://github.com/broadinstitute/CellBender.git CellBender \
-    && chmod -R 777 /CellBender \
-    && pip3 install -e CellBender \
+    && pip3 install git+https://github.com/broadinstitute/CellBender.git \
     # This is to avoid the numba 'cannot cache function' error, such as: https://github.com/numba/numba/issues/5566
     mkdir /numba_cache && chmod -R 777 /numba_cache
 
