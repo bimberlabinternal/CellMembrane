@@ -40,6 +40,7 @@ RUN apt-get update -y \
     && rm -Rf /bioconductor \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
+    && pip3 cache purge \
     # This is to avoid the numba 'cannot cache function' error, such as: https://github.com/numba/numba/issues/5566
     && mkdir /numba_cache && chmod -R 777 /numba_cache
 
