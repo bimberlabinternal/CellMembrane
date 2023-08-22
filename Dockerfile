@@ -40,10 +40,13 @@ RUN apt-get update -y \
     && rm -Rf /bioconductor \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
+    && pip3 cache purge \
     # This is to avoid the numba 'cannot cache function' error, such as: https://github.com/numba/numba/issues/5566
-    && mkdir /numba_cache && chmod -R 777 /numba_cache
+    && mkdir /numba_cache && chmod -R 777 /numba_cache \
+    && mkdir /mpl_cache && chmod -R 777 /mpl_cache
 
 ENV NUMBA_CACHE_DIR=/numba_cache
+ENV MPLCONFIGDIR=/mpl_cache
 
 # Let this run for the purpose of installing/caching dependencies
 RUN echo "local({r <- getOption('repos') ;r['CRAN'] = 'https://packagemanager.rstudio.com/cran/__linux__/focal/latest';options(repos = r);rm(r)})" >> ~/.Rprofile \
