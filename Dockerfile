@@ -26,31 +26,27 @@ RUN apt-get update -y \
         git \
     && python3 -m pip install --upgrade pip \
     && pip3 install umap-learn phate scanpy[leiden] \
+    && pip3 install git+https://github.com/broadinstitute/CellBender.git \
     && mkdir /conga \
     && cd /conga \
     && git clone -b rhesus https://github.com/phbradley/conga.git \
     && cd conga/tcrdist_cpp \
     && make \
-    && cd ../ \
-    && pip3 install -e . \
-    && cd / \
     ##  Add Bioconductor system dependencies
+    && mkdir /bioconductor && cd /bioconductor \
     && wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/master/bioc_scripts/install_bioc_sysdeps.sh \
     && bash ./install_bioc_sysdeps.sh 3.17 \
-    && rm ./install_bioc_sysdeps.sh \
+    && cd / \
+    && rm -Rf /bioconductor \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 cache purge \
+    # This is to avoid the numba 'cannot cache function' error, such as: https://github.com/numba/numba/issues/5566
+    && mkdir /numba_cache && chmod -R 777 /numba_cache \
+    && mkdir /mpl_cache && chmod -R 777 /mpl_cache
 
-# NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
-# See: https://github.com/broadinstitute/CellBender/issues/93
-RUN cd / \
-    && git clone https://github.com/broadinstitute/CellBender.git CellBender \
-    && chmod -R 777 /CellBender \
-    && pip3 install -e CellBender
-
-# This is to avoid the numba 'cannot cache function' error, such as: https://github.com/numba/numba/issues/5566
-RUN mkdir /numba_cache && chmod -R 777 /numba_cache
 ENV NUMBA_CACHE_DIR=/numba_cache
+ENV MPLCONFIGDIR=/mpl_cache
 
 # Let this run for the purpose of installing/caching dependencies
 RUN echo "local({r <- getOption('repos') ;r['CRAN'] = 'https://packagemanager.rstudio.com/cran/__linux__/focal/latest';options(repos = r);rm(r)})" >> ~/.Rprofile \
