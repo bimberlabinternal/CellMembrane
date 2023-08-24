@@ -32,6 +32,8 @@ RUN apt-get update -y \
     && git clone -b rhesus https://github.com/phbradley/conga.git \
     && cd conga/tcrdist_cpp \
     && make \
+    && cd ../ \
+    && pip3 install -e . \
     ##  Add Bioconductor system dependencies
     && mkdir /bioconductor && cd /bioconductor \
     && wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/master/bioc_scripts/install_bioc_sysdeps.sh \
