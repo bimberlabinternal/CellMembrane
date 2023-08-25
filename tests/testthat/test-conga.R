@@ -21,6 +21,7 @@ test_that("RunConga works", {
                 tcr_file_from_rdiscvr = "../testdata/tcr_df.csv", 
                 outputDir = outputDir, 
                 overwrite = T)
+  reticulate::import("conga")
   #test that the GEX file exists (i.e that SeuratToConga worked).
   testthat::expect_true(file.exists(paste0(outputDir, "/GEX.h5")))
   #create a temporary directory to store the output from RunCoNGA
