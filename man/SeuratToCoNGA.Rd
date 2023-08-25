@@ -4,16 +4,24 @@
 \alias{SeuratToCoNGA}
 \title{SeuratToCoNGA}
 \usage{
-SeuratToCoNGA(seuratObj, clonotypesFile, outputDir, assayName = "RNA")
+SeuratToCoNGA(
+  seuratObj,
+  tcr_file_from_rdiscvr,
+  outputDir,
+  assayName = "RNA",
+  overwrite = TRUE
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
 
-\item{clonotypesFile}{The 10x clonotypes file for this run}
+\item{tcr_file_from_rdiscvr}{The 10x clonotypes file for this run created by Rdiscvr::CreateMergedTcrClonotypeFile().}
 
-\item{outputDir}{The local path to write the output files}
+\item{outputDir}{The local path to write the output files. The critical files are}
 
-\item{assayName}{The name of the gene expression data assay}
+\item{assayName}{The name of the gene expression data assay.}
+
+\item{overwrite}{Boolean describing whether or not to overwrite the GEX info through write10xCounts().}
 }
 \description{
 A wrapper function to prepare a Seurat object for Conga.
