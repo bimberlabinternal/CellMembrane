@@ -45,7 +45,7 @@ RunCoNGA <- function(variable_features_file, tcr_datafile, gex_datafile, organis
     stop('The conga python package has not been installed! If you believe it has been installed, run reticulate::import("conga") to get more information and debug')
   }
   #copy run_CoNGA.py in inst/scripts and supply custom arguments 
-  str <- readr::read_file(system.file("inst/scripts/run_CoNGA.py", package = "CellMembrane"))
+  str <- readr::read_file(system.file("scripts/run_CoNGA.py", package = "CellMembrane"))
   script <- tempfile()
   readr::write_file(str, script)
   newstr <- paste0("run_CoNGA(features_file = '", variable_features_file,
