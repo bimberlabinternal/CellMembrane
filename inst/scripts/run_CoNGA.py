@@ -18,28 +18,22 @@ from conga.tcrdist.tcr_distances import TcrDistCalculator
 
 def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefix, 
          gex_datatype, clones_file, outfile_prefix_for_qc_plots, working_directory):
+    #set working directory (inherited from the R session)
     os.chdir(working_directory)
-    #module_path = os.path.abspath(os.getcwd() + '\\..')
-    #if module_path not in sys.path:
-    #sys.path.append(module_path)
-    #print(module_path)
-    print(os.getcwd())
     tcrdist_calculator = TcrDistCalculator(organism)
-    print(outfile_prefix)
-    #print(module_path)
-    print(os.path.join(os.getcwd(),outfile_prefix))
+    #make directories
     os.makedirs(os.path.dirname(os.path.join(os.getcwd(),outfile_prefix)), exist_ok=True)
+    #initializing clonotype file and kPCA
     conga.tcrdist.make_10x_clones_file.make_10x_clones_file( tcr_datafile, organism, clones_file )
     conga.preprocess.make_tcrdist_kernel_pcs_file_from_clones_file( clones_file, organism )
     adata = conga.preprocess.read_dataset(gex_datafile, gex_datatype, clones_file )
     genes_df = pd.read_csv(features_file, header=None)
-    print()
     os.makedirs(os.path.dirname(os.path.join(os.getcwd(),outfile_prefix_for_qc_plots)), exist_ok=True)
 
     # store the organism info in adata
     adata.uns['organism'] = organism
     adata.uns['force_variable_genes'] = list(genes_df[0].values)
-
+    #scanpy gene expression preprocessing wrapper
     adata = conga.preprocess.filter_and_scale( 
         adata, 
         min_genes_per_cell=200,
@@ -47,7 +41,7 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
         max_percent_mito=0.1,
         outfile_prefix_for_qc_plots = outfile_prefix_for_qc_plots
     )
-
+    #create a second adata object that stores one representative clone per clonotype (specifically for gene expression analysis)
     adata2 = conga.preprocess.reduce_to_single_cell_per_clone(adata)
     adata2 = conga.preprocess.cluster_and_tsne_and_umap( adata2 )
 
@@ -70,6 +64,7 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
     plt.title('TCR UMAP colored by TCR clusters');
 
     # these are the nbrhood sizes, as a fraction of the entire dataset:
+    #TODO: maybe we should expose these as arguments?
     nbr_fracs = [0.01, 0.1]
 
     # we use this nbrhood size for computing the nndists
@@ -124,3 +119,4 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
     html_file = outfile_prefix+'_results_summary.html'
     conga.plotting.make_html_summary(adata2, html_file)
     adata2.obs.to_csv(outfile_prefix+"adata2obs.csv")
+

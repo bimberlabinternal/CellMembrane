@@ -1,8 +1,6 @@
 context("scRNAseq")
 
 test_that("RunConga works", {
-  #temp solution, delete before pushing
-  setwd("/Users/mcelfreg/scRNASeq/bimber-lab/CellMembrane/tests/testdata/")
   #read data
   seuratObj <- readRDS("../testdata/seuratOutput.rds")
   tcr_df <- read.table("../testdata/tcr_df.csv", header = T, sep = ",") #this is spoofed TCR data from 438-21
@@ -18,22 +16,27 @@ test_that("RunConga works", {
   #tcr_df <- tcr_df[tcr_df$barcode %in% colnames(seuratObj), ]
   #write.table(tcr_df, "../testdata/tcr_df.csv", col.names = T, sep = ",")
   #create a temporary directory to store the output from RunCoNGA
-  seuratToCongaDirectory <- "../testdata/tmpoutput"
+  outputDir <- "../testdata/tmpoutput"
   SeuratToCoNGA(seuratObj, 
                 tcr_file_from_rdiscvr = "../testdata/tcr_df.csv", 
-                seuratToCongaDirectory = seuratToCongaDirectory, 
+                outputDir = outputDir, 
                 overwrite = T)
   #test that the GEX file exists (i.e that SeuratToConga worked).
   testthat::expect_true(file.exists(paste0(seuratToCongaDirectory, "/GEX.h5")))
   #create a temporary directory to store the output from RunCoNGA
   setwd(file.path("../testdata", "tmpoutput"))
-  RunCoNGA(seuratToCongaDirectory = seuratToCongaDirectory, 
+  RunCoNGA(variable_features_file = "varfeats.csv",
+           tcr_datafile = "TCRs.csv",
+           gex_datafile = "GEX.h5",
+           organism = "rhesus",
+           outfile_prefix = "conga_output",
            gex_datatype = "10x_h5",
-           organism = "rhesus", 
-           outfile_prefix = "testing_conga",
-           outfile_prefix_for_qc_plots = "plots",
-           clones_file = "/Users/mcelfreg/scRNASeq/bimber-lab/CellMembrane/tests/testdata/tmpoutput/tmp_clonesfile.txt", 
+           clones_file = "clones_file.txt",
+           outfile_prefix_for_qc_plots = "qc_plots",
            working_directory = getwd())
+  testthat::expect_true(file.exists("./conga_output_results_summary.html"))
+  setwd("..")
+  unlink("./tmpoutput", recursive = TRUE)
   
 })
   
