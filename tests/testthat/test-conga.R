@@ -22,7 +22,7 @@ test_that("RunConga works", {
                 outputDir = outputDir, 
                 overwrite = T)
   #test that the GEX file exists (i.e that SeuratToConga worked).
-  testthat::expect_true(file.exists(paste0(seuratToCongaDirectory, "/GEX.h5")))
+  testthat::expect_true(file.exists(paste0(outputDir, "/GEX.h5")))
   #create a temporary directory to store the output from RunCoNGA
   setwd(file.path("../testdata", "tmpoutput"))
   RunCoNGA(variable_features_file = "varfeats.csv",

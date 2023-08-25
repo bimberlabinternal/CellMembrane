@@ -1,3 +1,10 @@
+
+utils::globalVariables(
+  names = c('barcode', 'clusters_gex', 'clusters_tcr', 'nndists_gex', 'nndists_tcr', 'is_invariant', 'conga_scores', 'conga_fdr_values'),
+  package = 'CellMembrane',
+  add = TRUE
+)
+
 #' @title SeuratToCoNGA
 #' @param seuratObj The seurat object
 #' @param tcr_file_from_rdiscvr The 10x clonotypes file for this run created by Rdiscvr::CreateMergedTcrClonotypeFile().
