@@ -26,7 +26,7 @@ test_that("PHATE works as expected", {
     seuratObj <- readRDS('../testdata/seuratOutput.rds')
 
     seuratObj <- RunPHATE(seuratObj)
-    testthat::expect_equals(ncol(seuratObj), 10)
+    testthat::expect_equal(ncol(seuratObj), 10)
     
     Seurat::DimPlot(seuratObj, reduction = 'phate')
 })
