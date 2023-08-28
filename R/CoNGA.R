@@ -43,8 +43,12 @@ SeuratToCoNGA <- function(seuratObj, tcr_file_from_rdiscvr, outputDir, assayName
 #' @export
 
 RunCoNGA <- function(variable_features_file, tcr_datafile, gex_datafile, organism,
-                     outfile_prefix, gex_datatype = "10x_h5", clones_file, 
-                     outfile_prefix_for_qc_plots, working_directory = getwd(), conga_metadata_prefix = "conga_") {
+                     outfile_prefix, 
+                     gex_datatype = "10x_h5", 
+                     clones_file, 
+                     outfile_prefix_for_qc_plots, 
+                     working_directory = getwd(), 
+                     conga_metadata_prefix = "conga_") {
   
   if (!reticulate::py_available(initialize = TRUE)) {
     stop(paste0('Python/reticulate not configured. Run "reticulate::py_config()" to initialize python'))
