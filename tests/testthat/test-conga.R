@@ -53,7 +53,7 @@ test_that("RunConga works", {
            working_directory = getwd(), 
            return_seurat = T, 
            seuratObj = seuratObj,
-           conga_metadata_prefix = "conga")
+           conga_metadata_prefix = "conga_")
   testthat::expect_true(file.exists("./conga_output_results_summary.html"))
   #test that clustering worked and was appended to the seurat object.
   testthat::expect_true(1 %in% congaSeuratObj@meta.data[,"conga_clusters_gex"])
