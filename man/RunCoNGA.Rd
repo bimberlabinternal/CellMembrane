@@ -14,6 +14,8 @@ RunCoNGA(
   clones_file,
   outfile_prefix_for_qc_plots,
   working_directory = getwd(),
+  return_seurat = T,
+  seuratObj = NULL,
   conga_metadata_prefix = "conga_"
 )
 }
@@ -35,6 +37,10 @@ RunCoNGA(
 \item{outfile_prefix_for_qc_plots}{Prefix for the qc output files.}
 
 \item{working_directory}{The current working directory (to be passed into python to run CoNGA).}
+
+\item{return_seurat}{Boolean determining if Conga should return a Seurat object or not. If not, the files created during the CoNGA step of RunCoNGA will still be written.}
+
+\item{seuratObj}{The Seurat object input to SeuratToConga(). This is only necessary if you want a Seurat object with the CoNGA metadata returned.}
 
 \item{conga_metadata_prefix}{A prefix to be added to the columns of the metadata that will be added from CoNGA within the returned Seurat object.}
 }

@@ -51,6 +51,8 @@ test_that("RunConga works", {
            clones_file = "clones_file.txt",
            outfile_prefix_for_qc_plots = "qc_plots",
            working_directory = getwd(), 
+           return_seurat = T, 
+           seuratObj = seuratObj,
            conga_metadata_prefix = "conga")
   testthat::expect_true(file.exists("./conga_output_results_summary.html"))
   #test that clustering worked and was appended to the seurat object.
