@@ -38,13 +38,11 @@ test_that("RunConga works", {
                 tcr_file_from_rdiscvr = "../testdata/tcr_df.csv", 
                 outputDir = outputDir, 
                 overwrite = T)
-  reticulate::import("conga")
-  reticulate::py_last_error()
   #test that the GEX file exists (i.e that SeuratToConga worked).
   testthat::expect_true(file.exists(paste0(outputDir, "/GEX.h5")))
   #create a temporary directory to store the output from RunCoNGA
   setwd(file.path("../testdata", "tmpoutput"))
-  RunCoNGA(variable_features_file = "varfeats.csv",
+  congaSeuratObj <- RunCoNGA(variable_features_file = "varfeats.csv",
            tcr_datafile = "TCRs.csv",
            gex_datafile = "GEX.h5",
            organism = "rhesus",
@@ -52,8 +50,10 @@ test_that("RunConga works", {
            gex_datatype = "10x_h5",
            clones_file = "clones_file.txt",
            outfile_prefix_for_qc_plots = "qc_plots",
-           working_directory = getwd())
+           working_directory = getwd(), conga_prefix = "conga")
   testthat::expect_true(file.exists("./conga_output_results_summary.html"))
+  #test that clustering worked and was appended to the seurat object.
+  testthat::expect_true(1 %in% congaSeuratObj@meta.data[,"conga_clusters_gex"])
   setwd("..")
   unlink("./tmpoutput", recursive = TRUE)
   

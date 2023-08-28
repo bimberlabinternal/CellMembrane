@@ -118,5 +118,5 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
 
     html_file = outfile_prefix+'_results_summary.html'
     conga.plotting.make_html_summary(adata2, html_file)
-    adata2.obs.to_csv(outfile_prefix+"adata2obs.csv")
+    adata2.obs.to_csv(outfile_prefix+"_adata2obs.csv")
 
