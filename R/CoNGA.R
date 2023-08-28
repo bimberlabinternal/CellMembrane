@@ -99,6 +99,7 @@ RunCoNGA <- function(variable_features_file, tcr_datafile, gex_datafile, organis
     rownames(conga_dataframe) <- conga_dataframe[,"X"]
     #Append conga_metadata_prefix so we can run Conga iteratively and record the clustering information.
     colnames(conga_dataframe) <- paste0(conga_metadata_prefix, colnames(conga_dataframe))
-    seuratObj <- Seurat::AddMetaData(seuratObj, metadata = conga_dataframe[,paste0(conga_metadata_prefix,c("clusters_gex", "clusters_tcr", "is_invariant", "conga_scores"))])
+    seuratObj <- Seurat::AddMetaData(seuratObj, metadata = conga_dataframe[,paste0(conga_metadata_prefix,c("clusters_gex", "clusters_tcr", 'nndists_gex', 'nndists_tcr',
+                                                                                                           'is_invariant', 'conga_scores', 'conga_fdr_values'))])
   }
 }
