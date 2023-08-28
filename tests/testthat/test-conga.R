@@ -1,6 +1,23 @@
 context("scRNAseq")
 
 test_that("RunConga works", {
+  if (!reticulate::py_module_available('conga')) {
+    print('conga module not found, debugging:')
+    print(reticulate::py_list_packages())
+    if ('conga' %in% reticulate::py_list_packages()$package) {
+      tryCatch({
+        reticulate::import('conga')
+      }, error = function(e){
+        print("Error with reticulate::import('conga')")
+        print(conditionMessage(e))
+        traceback()
+      })
+    }
+
+    warning('The python conga module has not been installed!')
+    return()
+  }
+
   #read data
   seuratObj <- readRDS("../testdata/seuratOutput.rds")
   tcr_df <- read.table("../testdata/tcr_df.csv", header = T, sep = ",") #this is spoofed TCR data from 438-21
