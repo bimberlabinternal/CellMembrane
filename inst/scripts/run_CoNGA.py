@@ -24,7 +24,7 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
     #make directories
     os.makedirs(os.path.dirname(os.path.join(os.getcwd(),outfile_prefix)), exist_ok=True)
     #initializing clonotype file and kPCA
-    conga.tcrdist.make_10x_clones_file.make_10x_clones_file( tcr_datafile, organism, clones_file )
+    conga.tcrdist.make_10x_clones_file.make_10x_clones_file( tcr_datafile, organism, clones_file)
     conga.preprocess.make_tcrdist_kernel_pcs_file_from_clones_file( clones_file, organism )
     adata = conga.preprocess.read_dataset(gex_datafile, gex_datatype, clones_file )
     genes_df = pd.read_csv(features_file, header=None)

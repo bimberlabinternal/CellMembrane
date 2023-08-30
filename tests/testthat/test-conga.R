@@ -32,33 +32,22 @@ test_that("RunConga works", {
   #}
   #tcr_df <- tcr_df[tcr_df$barcode %in% colnames(seuratObj), ]
   #write.table(tcr_df, "../testdata/tcr_df.csv", col.names = T, sep = ",")
-  #create a temporary directory to store the output from RunCoNGA
-  outputDir <- "../testdata/tmpoutput"
-  SeuratToCoNGA(seuratObj, 
-                tcr_file_from_rdiscvr = "../testdata/tcr_df.csv", 
-                outputDir = outputDir, 
-                overwrite = T)
+
+  congaSeuratObj <- RunCoNGA(seuratObj = seuratObj,
+                             assayName = "RNA",
+                             tcrFileFromRdiscvr = "../testdata/tcr_df.csv",
+                             seuratToCongaDir = "../testdata/tmpoutput",
+                             organism = "rhesus",
+                             runCongaOutputFilePrefix = "conga_output",
+                             gexDatatype = "10x_h5",
+                             runCongaOutfilePrefixForQcPlots = "qc_plots",
+                             runCongaOutputDirectory = "../testdata/tmpoutput", 
+                             congaMetadataPrefix = "conga_")
   #test that the GEX file exists (i.e that SeuratToConga worked).
   testthat::expect_true(file.exists(paste0(outputDir, "/GEX.h5")))
-  #create a temporary directory to store the output from RunCoNGA
-  setwd(file.path("../testdata", "tmpoutput"))
-  congaSeuratObj <- RunCoNGA(variable_features_file = "varfeats.csv",
-           tcr_datafile = "TCRs.csv",
-           gex_datafile = "GEX.h5",
-           organism = "rhesus",
-           outfile_prefix = "conga_output",
-           gex_datatype = "10x_h5",
-           clones_file = "clones_file.txt",
-           outfile_prefix_for_qc_plots = "qc_plots",
-           working_directory = getwd(), 
-           return_seurat = T, 
-           seuratObj = seuratObj,
-           conga_metadata_prefix = "conga_")
-  testthat::expect_true(file.exists("./conga_output_results_summary.html"))
+  testthat::expect_true(file.exists("./tmpoutput/conga_output_results_summary.html"))
   #test that clustering worked and was appended to the seurat object.
   testthat::expect_true(1 %in% congaSeuratObj@meta.data[,"conga_clusters_gex"])
-  setwd("..")
   unlink("./tmpoutput", recursive = TRUE)
-  
 })
   
