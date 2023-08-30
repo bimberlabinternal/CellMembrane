@@ -44,8 +44,9 @@ test_that("RunConga works", {
                              runCongaOutputDirectory = "../testdata/tmpoutput", 
                              congaMetadataPrefix = "conga_")
   #test that the GEX file exists (i.e that SeuratToConga worked).
-  testthat::expect_true(file.exists(paste0(outputDir, "/GEX.h5")))
-  testthat::expect_true(file.exists("./tmpoutput/conga_output_results_summary.html"))
+  testthat::expect_true(file.exists("../testdata/tmpoutput/GEX.h5"))
+  #test that conga ran successfully
+  testthat::expect_true(file.exists("../testdata/tmpoutput/conga_output_results_summary.html"))
   #test that clustering worked and was appended to the seurat object.
   testthat::expect_true(1 %in% congaSeuratObj@meta.data[,"conga_clusters_gex"])
   unlink("./tmpoutput", recursive = TRUE)
