@@ -57,13 +57,13 @@ RunCoNGA <- function(seuratObj=NULL,
   
   if (is.null(tcrFileFromRdiscvr)){
     stop("tcrFileFromRdiscvr is NULL. Please supply a csv file created with Rdiscvr::CreateMergedTcrClonotypeFile().")
-  } else if(!file.exists(tcrFileFromRdiscvr)){
+  } else if (!file.exists(tcrFileFromRdiscvr)){
     stop("tcrFileFromRdsicvr does not exist. Please ensure your path specification is correct and that there wasn't an issue with running Rdiscvr::CreateMergedTcrClonotypeFile().")
   }
   
   if (is.null(organism)){
     stop("Please specify an organism. 'human', 'mouse', and 'rhesus' are supported.")
-  } else if (!(organism %in% c('human', 'mouse','rhesus') )){
+  } else if (!(organism %in% c('human', 'mouse', 'rhesus') )){
     stop("Unsupported organism type supplied. Please specify one of 'human', 'mouse', or 'rhesus'.")
   }
   
@@ -75,6 +75,7 @@ RunCoNGA <- function(seuratObj=NULL,
   if (!dir.exists(runCongaOutputDirectory)) {
     dir.create(runCongaOutputDirectory, recursive = T)
   }
+
   #normalize paths in case they were specified using non-absolute paths.
   runCongaOutputDirectory <- normalizePath(runCongaOutputDirectory)
   tcrFileFromRdiscvr <- normalizePath(tcrFileFromRdiscvr)
@@ -135,26 +136,13 @@ RunCoNGA <- function(seuratObj=NULL,
   if (!dir.exists(seuratToCongaDir)) {
     dir.create(seuratToCongaDir, recursive = T)
   }
-  #create these files so we can return global paths via normalizePath()
-  if (!file.exists(paste0(seuratToCongaDir, "/varfeats.csv"))){
-    file.create(paste0(seuratToCongaDir, "/varfeats.csv"))
-  }
-  if (!file.exists(paste0(seuratToCongaDir, "/TCRs.csv"))){
-    file.create(paste0(seuratToCongaDir, "/TCRs.csv"))
-  }
-  if (!file.exists(paste0(seuratToCongaDir, "/GEX.h5"))){
-    file.create(paste0(seuratToCongaDir, "/GEX.h5"))
-  }
-  #clones_file will be referenced downstream within RunConga()
-  if (!file.exists(paste0(seuratToCongaDir, "/clones_file.txt"))){
-    file.create(paste0(seuratToCongaDir, "/clones_file.txt"))
-  }
-  write.table(Seurat::VariableFeatures(seuratObj), normalizePath(paste0(seuratToCongaDir, "/varfeats.csv")), row.names = FALSE, col.names = FALSE)
-  file.copy(from = normalizePath(tcrFileFromRdiscvr), 
-            to = normalizePath(paste0(seuratToCongaDir, "/TCRs.csv")), 
+
+  write.table(Seurat::VariableFeatures(seuratObj), normalizePath(paste0(seuratToCongaDir, "/varfeats.csv"), mustWork = FALSE), row.names = FALSE, col.names = FALSE)
+  file.copy(from = normalizePath(tcrFileFromRdiscvr, mustWork = FALSE),
+            to = normalizePath(paste0(seuratToCongaDir, "/TCRs.csv"), mustWork = FALSE),
             overwrite = T)
   
   DropletUtils::write10xCounts(x = seuratObj@assays[[assayName]]@counts, 
-                               path = normalizePath(paste0(seuratToCongaDir, "/GEX.h5")), 
+                               path = normalizePath(paste0(seuratToCongaDir, "/GEX.h5"), mustWork = FALSE),
                                overwrite = TRUE)
 }
