@@ -44,8 +44,6 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
           python3 -m pip install --user umap-learn phate
-          # NOTE: this specific branch is currently needed for conga
-          python3 -m pip install --user scanpy[leiden]
           python3 -m pip install --user git+https://github.com/broadinstitute/CellBender.git
 
       - name: Setup CoNGA
