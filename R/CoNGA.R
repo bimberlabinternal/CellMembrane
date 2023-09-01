@@ -77,15 +77,15 @@ RunCoNGA <- function(seuratObj=NULL,
   }
 
   #normalize paths in case they were specified using non-absolute paths.
-  runCongaOutputDirectory <- normalizePath(runCongaOutputDirectory)
-  tcrClonesFile <- normalizePath(tcrClonesFile)
+  runCongaOutputDirectory <- R.utils::getAbsolutePath(runCongaOutputDirectory)
+  tcrClonesFile <- R.utils::getAbsolutePath(tcrClonesFile)
 
   #Run SeuratToCoNGA() to generate files for the python run_CoNGA() call and normalize paths. 
   SeuratToCoNGA(seuratObj, tcrClonesFile, seuratToCongaDir, assayName = assayName)
-  variable_features_file <- normalizePath(paste0(seuratToCongaDir, "/varfeats.csv"))
-  tcr_datafile <- normalizePath(paste0(seuratToCongaDir, "/TCRs.csv"))
-  gex_datafile <- normalizePath(paste0(seuratToCongaDir, "/GEX.h5"))
-  clones_file <- normalizePath(paste0(seuratToCongaDir,"/clones_file.txt"), mustWork = FALSE)
+  variable_features_file <- R.utils::getAbsolutePath(paste0(seuratToCongaDir, "/varfeats.csv"))
+  tcr_datafile <- R.utils::getAbsolutePath(paste0(seuratToCongaDir, "/TCRs.csv"))
+  gex_datafile <- R.utils::getAbsolutePath(paste0(seuratToCongaDir, "/GEX.h5"))
+  clones_file <- R.utils::getAbsolutePath(paste0(seuratToCongaDir,"/clones_file.txt"), mustWork = FALSE)
 
   #copy run_CoNGA.py in inst/scripts and supply custom arguments 
   str <- readr::read_file(system.file("scripts/run_CoNGA.py", package = "CellMembrane"))
@@ -110,7 +110,7 @@ RunCoNGA <- function(seuratObj=NULL,
     stop(paste0(runCongaOutputFilePrefix,"_adata2obs.csv was not found! Unable to append CoNGA's clustering information to input Seurat object."))
   }
 
-  conga_dataframe <- read.csv(normalizePath(paste0(runCongaOutputDirectory,"/", runCongaOutputFilePrefix,"_adata2obs.csv")))
+  conga_dataframe <- read.csv(R.utils::getAbsolutePath(paste0(runCongaOutputDirectory,"/", runCongaOutputFilePrefix,"_adata2obs.csv")))
   #the cell barcodes are stored in "X"
   rownames(conga_dataframe) <- conga_dataframe[,"X"]
   #Append congaMetadataPrefix so we can run Conga iteratively and record the clustering information.
@@ -135,12 +135,12 @@ SeuratToCoNGA <- function(seuratObj,
     dir.create(seuratToCongaDir, recursive = T)
   }
 
-  write.table(Seurat::VariableFeatures(seuratObj), normalizePath(paste0(seuratToCongaDir, "/varfeats.csv"), mustWork = FALSE), row.names = FALSE, col.names = FALSE)
-  file.copy(from = normalizePath(tcrClonesFile, mustWork = FALSE),
-            to = normalizePath(paste0(seuratToCongaDir, "/TCRs.csv"), mustWork = FALSE),
+  write.table(Seurat::VariableFeatures(seuratObj), R.utils::getAbsolutePath(paste0(seuratToCongaDir, "/varfeats.csv"), mustWork = FALSE), row.names = FALSE, col.names = FALSE)
+  file.copy(from = R.utils::getAbsolutePath(tcrClonesFile, mustWork = FALSE),
+            to = R.utils::getAbsolutePath(paste0(seuratToCongaDir, "/TCRs.csv"), mustWork = FALSE),
             overwrite = T)
   
   DropletUtils::write10xCounts(x = seuratObj@assays[[assayName]]@counts, 
-                               path = normalizePath(paste0(seuratToCongaDir, "/GEX.h5"), mustWork = FALSE),
+                               path = R.utils::getAbsolutePath(paste0(seuratToCongaDir, "/GEX.h5"), mustWork = FALSE),
                                overwrite = TRUE)
 }
