@@ -6,7 +6,7 @@
 \usage{
 RunCoNGA(
   seuratObj = NULL,
-  tcrFileFromRdiscvr = NULL,
+  tcrClonesFile = NULL,
   seuratToCongaDir = "./seuratToConga",
   assayName = "RNA",
   organism = NULL,
@@ -20,11 +20,11 @@ RunCoNGA(
 \arguments{
 \item{seuratObj}{The Seurat object containing the data to be run using CoNGA.}
 
-\item{tcrFileFromRdiscvr}{The 10x clonotypes file for this Seurat Object created by Rdiscvr::CreateMergedTcrClonotypeFile().}
+\item{tcrClonesFile}{The 10x clonotypes file for this Seurat object. Single lanes can use the CellRanger/Vloupe contigs CSV file. Merged lanes need to merge these files and modify them to create unique cellbarcodes and clonotype names, such as the code from Rdiscvr::CreateMergedTcrClonotypeFile().}
 
-\item{seuratToCongaDir}{The directory to store the results of .SeuratToConga() (the input files for the python call to run_CoNGA()).}
+\item{seuratToCongaDir}{The directory to store the results of SeuratToCoNGA() (the input files for the python call to run_CoNGA()).}
 
-\item{assayName}{Pass-through variable for accessing the assay name within the Seurat object for .SeuratToConga().}
+\item{assayName}{Pass-through variable for accessing the assay name within the Seurat object for SeuratToCoNGA().}
 
 \item{organism}{'human' or 'rhesus'}
 
@@ -49,7 +49,7 @@ Runs CoNGA on a seurat object
   CreateMergedTcrClonotypeFile(seuratObj,
                                outputFile = "./tcrs.csv")
   congaSeuratObj <- RunCoNGA(seuratObj = seuratObj,
-                             tcrFileFromRdiscvr = "./tcrs.csv",
+                             tcrClonesFile = "./tcrs.csv",
                              organism = "rhesus")
 }
 }

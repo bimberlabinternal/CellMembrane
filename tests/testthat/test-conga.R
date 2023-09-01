@@ -35,7 +35,7 @@ test_that("RunConga works", {
 
   congaSeuratObj <- RunCoNGA(seuratObj = seuratObj,
                              assayName = "RNA",
-                             tcrFileFromRdiscvr = "../testdata/tcr_df.csv",
+                             tcrClonesFile = "../testdata/tcr_df.csv",
                              seuratToCongaDir = "../testdata/tmpoutput",
                              organism = "rhesus",
                              runCongaOutputFilePrefix = "conga_output",

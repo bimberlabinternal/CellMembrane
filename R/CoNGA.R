@@ -11,9 +11,9 @@ utils::globalVariables(
 #'
 #' @description Runs CoNGA on a seurat object
 #' @param seuratObj The Seurat object containing the data to be run using CoNGA.
-#' @param tcrFileFromRdiscvr The 10x clonotypes file for this Seurat Object created by Rdiscvr::CreateMergedTcrClonotypeFile().
-#' @param seuratToCongaDir The directory to store the results of .SeuratToConga() (the input files for the python call to run_CoNGA()).
-#' @param assayName Pass-through variable for accessing the assay name within the Seurat object for .SeuratToConga().
+#' @param tcrClonesFile The 10x clonotypes file for this Seurat object. Single lanes can use the CellRanger/Vloupe contigs CSV file. Merged lanes need to merge these files and modify them to create unique cellbarcodes and clonotype names, such as the code from Rdiscvr::CreateMergedTcrClonotypeFile().
+#' @param seuratToCongaDir The directory to store the results of SeuratToCoNGA() (the input files for the python call to run_CoNGA()).
+#' @param assayName Pass-through variable for accessing the assay name within the Seurat object for SeuratToCoNGA().
 #' @param organism 'human' or 'rhesus'
 #' @param runCongaOutputFilePrefix prefix for the output files from the python call to run_CoNGA().
 #' @param gexDatatype This should be "10x_h5" since we're using DropletUtils to write the counts, although "h5ad" is supported.
@@ -26,13 +26,13 @@ utils::globalVariables(
 #'   CreateMergedTcrClonotypeFile(seuratObj,
 #'                                outputFile = "./tcrs.csv")
 #'   congaSeuratObj <- RunCoNGA(seuratObj = seuratObj,
-#'                              tcrFileFromRdiscvr = "./tcrs.csv",
+#'                              tcrClonesFile = "./tcrs.csv",
 #'                              organism = "rhesus")
 #' }
 #' @export
 
 RunCoNGA <- function(seuratObj=NULL,
-                     tcrFileFromRdiscvr = NULL, 
+                     tcrClonesFile = NULL,
                      seuratToCongaDir = "./seuratToConga", 
                      assayName = "RNA", 
                      organism = NULL,
@@ -55,10 +55,10 @@ RunCoNGA <- function(seuratObj=NULL,
     stop("seuratObj is NULL. Please supply a Seurat object to run CoNGA.")
   }
   
-  if (is.null(tcrFileFromRdiscvr)){
-    stop("tcrFileFromRdiscvr is NULL. Please supply a csv file created with Rdiscvr::CreateMergedTcrClonotypeFile().")
-  } else if (!file.exists(tcrFileFromRdiscvr)){
-    stop("tcrFileFromRdsicvr does not exist. Please ensure your path specification is correct and that there wasn't an issue with running Rdiscvr::CreateMergedTcrClonotypeFile().")
+  if (is.null(tcrClonesFile)){
+    stop("tcrClonesFile is NULL. Please supply a csv file.")
+  } else if (!file.exists(tcrClonesFile)){
+    stop("tcrFileFromRdsicvr does not exist. Please ensure your path specification is correct.")
   }
   
   if (is.null(organism)){
@@ -78,10 +78,10 @@ RunCoNGA <- function(seuratObj=NULL,
 
   #normalize paths in case they were specified using non-absolute paths.
   runCongaOutputDirectory <- normalizePath(runCongaOutputDirectory)
-  tcrFileFromRdiscvr <- normalizePath(tcrFileFromRdiscvr)
+  tcrClonesFile <- normalizePath(tcrClonesFile)
 
-  #Run .SeuratToConga() to generate files for the python run_CoNGA() call and normalize paths. 
-  .SeuratToCoNGA(seuratObj, tcrFileFromRdiscvr, seuratToCongaDir, assayName = assayName)
+  #Run SeuratToCoNGA() to generate files for the python run_CoNGA() call and normalize paths. 
+  SeuratToCoNGA(seuratObj, tcrClonesFile, seuratToCongaDir, assayName = assayName)
   variable_features_file <- normalizePath(paste0(seuratToCongaDir, "/varfeats.csv"))
   tcr_datafile <- normalizePath(paste0(seuratToCongaDir, "/TCRs.csv"))
   gex_datafile <- normalizePath(paste0(seuratToCongaDir, "/GEX.h5"))
@@ -122,15 +122,15 @@ RunCoNGA <- function(seuratObj=NULL,
   return(seuratObj)
 }
 
-#' @title .SeuratToCoNGA
+#' @title SeuratToCoNGA
 #' @param seuratObj The Seurat object to be written into a 10x file format
-#' @param tcrFileFromRdiscvr The 10x clonotypes file for this run created by Rdiscvr::CreateMergedTcrClonotypeFile().
+#' @param tcrClonesFile The 10x clonotypes file for this Seurat object. Single lanes can use the CellRanger/Vloupe contigs CSV file. Merged lanes need to merge these files and modify them to create unique cellbarcodes and clonotype names, such as the code from Rdiscvr::CreateMergedTcrClonotypeFile().
 #' @param seuratToCongaDir The local path to write the output files.
 #' @param assayName The name of the gene expression data assay.
 #' @description A wrapper function to prepare a Seurat object for Conga.
 #' @export
-.SeuratToCoNGA <- function(seuratObj, 
-                           tcrFileFromRdiscvr, 
+SeuratToCoNGA <- function(seuratObj, 
+                           tcrClonesFile,
                            seuratToCongaDir, 
                            assayName = 'RNA') {
   if (!dir.exists(seuratToCongaDir)) {
@@ -138,7 +138,7 @@ RunCoNGA <- function(seuratObj=NULL,
   }
 
   write.table(Seurat::VariableFeatures(seuratObj), normalizePath(paste0(seuratToCongaDir, "/varfeats.csv"), mustWork = FALSE), row.names = FALSE, col.names = FALSE)
-  file.copy(from = normalizePath(tcrFileFromRdiscvr, mustWork = FALSE),
+  file.copy(from = normalizePath(tcrClonesFile, mustWork = FALSE),
             to = normalizePath(paste0(seuratToCongaDir, "/TCRs.csv"), mustWork = FALSE),
             overwrite = T)
   
