@@ -85,10 +85,8 @@ RunCoNGA <- function(seuratObj=NULL,
   variable_features_file <- normalizePath(paste0(seuratToCongaDir, "/varfeats.csv"))
   tcr_datafile <- normalizePath(paste0(seuratToCongaDir, "/TCRs.csv"))
   gex_datafile <- normalizePath(paste0(seuratToCongaDir, "/GEX.h5"))
-  clones_file <- normalizePath(paste0(seuratToCongaDir,"/clones_file.txt"))
-  #delete the clones file (overwriting via run_CoNGA.py is kind of a pain) but keep the absolute path definition
-  unlink(clones_file)
-  
+  clones_file <- normalizePath(paste0(seuratToCongaDir,"/clones_file.txt"), mustWork = FALSE)
+
   #copy run_CoNGA.py in inst/scripts and supply custom arguments 
   str <- readr::read_file(system.file("scripts/run_CoNGA.py", package = "CellMembrane"))
   script <- tempfile()
