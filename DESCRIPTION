@@ -70,7 +70,8 @@ Imports:
     lda,
     parallel,
     text2vec, 
-    tibble
+    tibble, 
+    readr
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -104,6 +105,7 @@ Collate:
     'Preprocessing.R'
     'Utils.R'
     'CiteSeq.R'
+    'CoNGA.R'
     'Doublets.R'
     'LDA.R'
     'Phate.R'

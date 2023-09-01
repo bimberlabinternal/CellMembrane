@@ -1,0 +1,54 @@
+context("scRNAseq")
+
+test_that("RunConga works", {
+  if (!reticulate::py_module_available('conga')) {
+    print('conga module not found, debugging:')
+    print(reticulate::py_list_packages())
+    if ('conga' %in% reticulate::py_list_packages()$package) {
+      tryCatch({
+        reticulate::import('conga')
+      }, error = function(e){
+        print("Error with reticulate::import('conga')")
+        print(conditionMessage(e))
+        traceback()
+      })
+    }
+
+    warning('The python conga module has not been installed!')
+    return()
+  }
+
+  #read data
+  seuratObj <- readRDS("../testdata/seuratOutput.rds")
+  tcr_df <- read.table("../testdata/tcr_df.csv", header = T, sep = ",") #this is spoofed TCR data from 438-21
+  
+  #The tcr_df was originally downloaded via Rdiscvr, but altered like so:
+  #iterate through the colnames of the seurat object, replacing the values of tcr_df$barcodes and then drop the rest (the goal is to fake the tcr data using the gex barcodes)
+  #i = 0
+  #for(cell_barcode in unique(colnames(seuratObj))){
+  #  barcode_to_replace <- unique(tcr_df$barcode)[i]
+  #  tcr_df[tcr_df$barcode == barcode_to_replace,"barcode"] <- cell_barcode
+  #  i=i+1
+  #}
+  #tcr_df <- tcr_df[tcr_df$barcode %in% colnames(seuratObj), ]
+  #write.table(tcr_df, "../testdata/tcr_df.csv", col.names = T, sep = ",")
+
+  congaSeuratObj <- RunCoNGA(seuratObj = seuratObj,
+                             assayName = "RNA",
+                             tcrClonesFile = "../testdata/tcr_df.csv",
+                             seuratToCongaDir = "../testdata/tmpoutput",
+                             organism = "rhesus",
+                             runCongaOutputFilePrefix = "conga_output",
+                             gexDatatype = "10x_h5",
+                             runCongaOutfilePrefixForQcPlots = "qc_plots",
+                             runCongaOutputDirectory = "../testdata/tmpoutput", 
+                             congaMetadataPrefix = "conga_")
+  #test that the GEX file exists (i.e that SeuratToConga worked).
+  testthat::expect_true(file.exists("../testdata/tmpoutput/GEX.h5"))
+  #test that conga ran successfully
+  testthat::expect_true(file.exists("../testdata/tmpoutput/conga_output_results_summary.html"))
+  #test that clustering worked and was appended to the seurat object.
+  testthat::expect_true(1 %in% congaSeuratObj@meta.data[,"conga_clusters_gex"])
+  unlink("./tmpoutput", recursive = TRUE)
+})
+  

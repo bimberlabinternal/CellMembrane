@@ -44,15 +44,18 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
           python3 -m pip install --user umap-learn phate
+          python3 -m pip install --user git+https://github.com/broadinstitute/CellBender.git
 
-      - name: Setup cellbender
+      - name: Setup CoNGA
         run: |
-          # NOTE: for some reason 'pip3 install git+https://github.com/broadinstitute/CellBender.git' doesnt work.
-          # See: https://github.com/broadinstitute/CellBender/issues/93
-          # Perform clone in parent directory so it doesnt get packaged into the tar
+          # NOTE: this specific branch is currently needed for conga
+          python3 -m pip install --user scanpy[leiden]
           cd ../
-          git clone https://github.com/broadinstitute/CellBender.git CellBender
-          pip3 install -e CellBender
+          git clone -b rhesus https://github.com/phbradley/conga.git conga
+          cd conga/tcrdist_cpp
+          make
+          cd ../../
+          pip3 install -e conga
           cd CellMembrane
 
       - name: Setup SDA
