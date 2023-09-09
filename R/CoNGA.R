@@ -79,6 +79,9 @@ RunCoNGA <- function(seuratObj=NULL,
   #normalize paths in case they were specified using non-absolute paths.
   runCongaOutputDirectory <- R.utils::getAbsolutePath(runCongaOutputDirectory)
   tcrClonesFile <- R.utils::getAbsolutePath(tcrClonesFile)
+  tcrClones <- read.csv(tcrClonesFile)
+  tcrClones <- tcrClones |> dplyr::filter(barcode %in% rownames(seuratObj@meta.data))
+  write.csv(tcrClones, tcrClonesFile)
 
   #Run SeuratToCoNGA() to generate files for the python run_CoNGA() call and normalize paths. 
   SeuratToCoNGA(seuratObj, tcrClonesFile, seuratToCongaDir, assayName = assayName)
