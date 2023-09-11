@@ -81,7 +81,7 @@ RunCoNGA <- function(seuratObj=NULL,
   tcrClonesFile <- R.utils::getAbsolutePath(tcrClonesFile)
   tcrClones <- read.csv(tcrClonesFile)
   tcrClones <- tcrClones |> dplyr::filter(barcode %in% rownames(seuratObj@meta.data))
-  if (nrows(tcrClones) == 0) {
+  if (nrow(tcrClones) == 0) {
     stop('There were no matching barcodes between the seurat object and TCR clones file')
   }
   write.csv(tcrClones, tcrClonesFile)
