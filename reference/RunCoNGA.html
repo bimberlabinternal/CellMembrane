@@ -60,7 +60,8 @@
 <span>  gexDatatype <span class="op">=</span> <span class="st">"10x_h5"</span>,</span>
 <span>  runCongaOutfilePrefixForQcPlots <span class="op">=</span> <span class="st">"qc_plots"</span>,</span>
 <span>  runCongaOutputDirectory <span class="op">=</span> <span class="st">"./conga_output"</span>,</span>
-<span>  congaMetadataPrefix <span class="op">=</span> <span class="st">"conga_"</span></span>
+<span>  congaMetadataPrefix <span class="op">=</span> <span class="st">"conga_"</span>,</span>
+<span>  pngConversionTool <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -104,6 +105,10 @@
 
 <dt>congaMetadataPrefix</dt>
 <dd><p>A prefix to be added to the columns of the metadata that will be added from CoNGA within the returned Seurat object.</p></dd>
+
+
+<dt>pngConversionTool</dt>
+<dd><p>specify the conversion tool used by CoNGA for svg to png conversion. Can be any of: convert, inkscape, rsvg</p></dd>
 
 </dl></div>
     <div id="value">
