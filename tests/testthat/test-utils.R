@@ -22,6 +22,8 @@ test_that("AddNewMetaColumn works as expected", {
   expect_equal(97, table(seuratObj$binnedCounts)[["Low"]])
   expect_equal(270, table(seuratObj$binnedCounts)[["Mid"]])
   
+  
+  seuratObj <- readRDS('../testdata/seuratOutputWithTCR.rds')
   seuratObj <- AddNewMetaColumn(seuratObj, varname = "TRAVs", 
                                 formulavector = c(TRA_V %in% c("TRAV1-2", "TRAV13-1") ~ "OfInterest"),
                                 defaultname = "Meh")
