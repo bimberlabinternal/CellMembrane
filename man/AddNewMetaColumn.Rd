@@ -4,7 +4,13 @@
 \alias{AddNewMetaColumn}
 \title{Add a new Seurat object metadata column based on current metadata}
 \usage{
-AddNewMetaColumn(seuratObj, varname, formulavector, defaultname)
+AddNewMetaColumn(
+  seuratObj,
+  varname,
+  formulavector,
+  defaultname,
+  enforceFunctionalFormulae = TRUE
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
@@ -14,6 +20,8 @@ AddNewMetaColumn(seuratObj, varname, formulavector, defaultname)
 \item{formulavector}{vector of formulas, e.g.: c(Tcell_NaiveToEffector > 10 ~ "Effector", Tcell_NaiveToEffector < 5 ~ "Naive")}
 
 \item{defaultname}{The default value applied when none of the formulas in formulavec are TRUE}
+
+\item{enforceFunctionalFormulae}{Boolean determining whether or not to sanity check that all defined formulae in formulavector labeled at least one cell in the Seurat Object.}
 }
 \value{
 Updated Seurat object

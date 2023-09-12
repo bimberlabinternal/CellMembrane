@@ -29,5 +29,10 @@ test_that("AddNewMetaColumn works as expected", {
                                 defaultname = "Meh")
   expect_equal(26, table(seuratObj$TRAVs)[["Meh"]])
   expect_equal(2, table(seuratObj$TRAVs)[["OfInterest"]])
+  
+  expect_error(AddNewMetaColumn(seuratObj, varname = "binnedCounts", 
+                                 formulavector = c(nCount_RNA > 1e10 ~ "High", 
+                                                   nCount_RNA < 1000 ~ "Low"), 
+                                 defaultname = "Mid"))
 })
 
