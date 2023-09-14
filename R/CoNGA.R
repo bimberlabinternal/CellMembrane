@@ -62,11 +62,12 @@ RunCoNGA <- function(seuratObj=NULL,
   } else if (!file.exists(tcrClonesFile)){
     stop("tcrFileFromRdsicvr does not exist. Please ensure your path specification is correct.")
   }
-  
+
+  allowedOrganisms <- c('human', 'mouse', 'rhesus', 'human_gd', 'mouse_gd', 'rhesus_gd')
   if (is.null(organism)){
     stop("Please specify an organism. 'human', 'mouse', and 'rhesus' are supported.")
-  } else if (!(organism %in% c('human', 'mouse', 'rhesus') )){
-    stop("Unsupported organism type supplied. Please specify one of 'human', 'mouse', or 'rhesus'.")
+  } else if (!(organism %in% allowedOrganisms )){
+    stop(paste0("Unsupported organism type supplied. Please specify one of: ", paste0(allowedOrganisms, collapse = ', ')))
   }
   
   #strip trailing slashes from runCongaOutputDirectory directory if user-supplied
