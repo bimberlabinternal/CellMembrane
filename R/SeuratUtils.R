@@ -819,3 +819,40 @@ GetChiDF <- function(seuratObj, field1, field2, plot = FALSE) {
 
 	return(tempDF)
 }
+
+#' @title Add a new Seurat object metadata column based on current metadata
+#' @description This function creates a new Seurat object metadata column based on current formulas applied to current metadata columns
+#' @param seuratObj The seurat object
+#' @param varname The name of the new metadata column
+#' @param formulavector vector of formulas, e.g.: c(Tcell_NaiveToEffector > 10 ~ "Effector", Tcell_NaiveToEffector < 5 ~ "Naive")
+#' @param defaultname The default value applied when none of the formulas in formulavec are TRUE
+#' @param enforceFunctionalFormulae Boolean determining whether or not to sanity check that all defined formulae in formulavector labeled at least one cell in the Seurat Object.
+#' @return Updated Seurat object
+#' @export
+AddNewMetaColumn <- function(seuratObj, varname, formulavector, defaultname, enforceFunctionalFormulae = TRUE) {
+  seuratObj@meta.data <- seuratObj@meta.data |> mutate(
+    "{varname}" := case_when(
+      !!!rlang::parse_exprs(paste0(formulavector)),
+      .default = defaultname)
+  )
+  
+  if (enforceFunctionalFormulae) {
+    unique_values <- list()
+    #figure out the unique values supplied to the formula vector
+    for (formula in formulavector){
+        #pasting a RHS formula looks like: "~" ,"Tcell_NaiveToEffector > 10", "Effector"     
+        value <- paste0(formula)[[3]]
+      unique_values <- append(unique_values, value)
+    }
+    #add the default name
+    unique_values <- append(unique_values, defaultname)
+    #convert to vector
+    unique_values <- unlist(unique_values)
+    #check that all of those unique values exist in the metadata
+    if (!all(unique_values %in% unique(seuratObj@meta.data[,varname]) )){
+      stop("Not all of the values specified in the formulae exist in the newly defined metadata column. Please check that each of your formula in formulavector are valid.")
+    }
+  }
+  return(seuratObj)
+  
+}
