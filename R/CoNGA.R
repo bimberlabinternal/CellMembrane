@@ -165,3 +165,64 @@ SeuratToCoNGA <- function(seuratObj,
                                path = R.utils::getAbsolutePath(paste0(seuratToCongaDir, "/GEX.h5"), mustWork = FALSE),
                                overwrite = TRUE)
 }
+
+#' @title Plot Diversity
+#'
+#' @description Plot a diversity profile for each library in the data
+#' @param conga_clones_file The output clones file from CoNGA (named clones_file.txt).
+#' @param OutputFile The output file containing the data used for generating diversity profiles.
+#' @param order1 The minimum order for calculating the generalized Simpson entropy.
+#' @param order2 The maximum order for calculating the generalized Simpson entropy.
+#' @param organism 'human' or 'rhesus'
+#' @examples
+#' \dontrun{
+#'   PlotDiversity(conga_clones_file = "./clones_file.txt",
+#'                 OutputFile = "./diversity_output.csv", 
+#'                 order1 = 1, order2 = 200)
+#' }
+#' @export
+
+PlotDiversity <- function(conga_clones_file = "./clones_file.txt",
+                     OutputFile = "./diversity_output.csv", 
+                     order1 = 1,
+                     order2 = 200) {
+  #check python requirements
+  if (!reticulate::py_available(initialize = TRUE)) {
+    stop(paste0('Python/reticulate not configured. Run "reticulate::py_config()" to initialize python'))
+  }
+  
+  if (!reticulate::py_module_available('tcrdist')) {
+    stop('The conga python package has not been installed! If you believe it has been installed, run reticulate::import("tcrdist") to get more information and debug')
+  }
+  
+  if (is.null(conga_clones_file)){
+    stop("conga_clones_file is NULL. Please supply a csv file.")
+  } else if (!file.exists(conga_clones_file)){
+    stop("conga_clones_file does not exist. Please ensure your path specification is correct.")
+  }
+
+  #normalize paths in case they were specified using non-absolute paths.
+  conga_clones_file <- R.utils::getAbsolutePath(conga_clones_file)
+  OutputFile <- R.utils::getAbsolutePath(OutputFile)
+  
+  #copy calculate_Diversity.py in inst/scripts and supply custom arguments 
+  str <- readr::read_file(system.file("scripts/calculate_Diversity.py", package = "CellMembrane"))
+  script <- tempfile()
+  readr::write_file(str, script)
+  
+  newstr <- paste0("calculate_Diversity(conga_clones_file = '", conga_clones_file,
+                   "', OutputFile = '", OutputFile,
+                   "', order1 = '", order1,
+                   "', order2 = '", order2,
+                   "')")
+  
+  #write the new arguments into the script and execute
+  readr::write_file(newstr, script, append = TRUE)
+  system2(reticulate::py_exe(), script)
+  
+  df <-read.csv(OutputFile)
+  y <- grep("Z_[0-9]+", colnames(df), value = T)
+  df |> select(c("order", y)) |>
+    pivot_longer(cols = y, names_to = "sample_div", values_to = "y") |> 
+    ggplot(aes(x = order, y = y)) + geom_line(aes(color = sample_div)) + egg::theme_article()
+}
