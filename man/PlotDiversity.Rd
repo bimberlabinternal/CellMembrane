@@ -19,8 +19,6 @@ PlotDiversity(
 \item{order1}{The minimum order for calculating the generalized Simpson entropy.}
 
 \item{order2}{The maximum order for calculating the generalized Simpson entropy.}
-
-\item{organism}{'human' or 'rhesus'}
 }
 \description{
 Plot a diversity profile for each library in the data

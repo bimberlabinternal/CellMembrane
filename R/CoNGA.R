@@ -173,7 +173,6 @@ SeuratToCoNGA <- function(seuratObj,
 #' @param OutputFile The output file containing the data used for generating diversity profiles.
 #' @param order1 The minimum order for calculating the generalized Simpson entropy.
 #' @param order2 The maximum order for calculating the generalized Simpson entropy.
-#' @param organism 'human' or 'rhesus'
 #' @examples
 #' \dontrun{
 #'   PlotDiversity(conga_clones_file = "./clones_file.txt",
