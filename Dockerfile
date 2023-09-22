@@ -27,6 +27,7 @@ RUN apt-get update -y \
     && python3 -m pip install --upgrade pip \
     && pip3 install umap-learn phate scanpy[leiden] \
     && pip3 install git+https://github.com/broadinstitute/CellBender.git \
+    && python3 -m pip install --user git+https://github.com/kmayerb/tcrdist3.git@0.2.2 \
     && mkdir /conga \
     && cd /conga \
     && git clone https://github.com/phbradley/conga.git \
