@@ -71,7 +71,8 @@ Imports:
     parallel,
     text2vec, 
     tibble, 
-    readr
+    readr, 
+    data.table
 Suggests:
     devtools,
     testthat (>= 2.1.0),

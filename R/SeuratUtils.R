@@ -1,3 +1,5 @@
+#' @import data.table
+
 utils::globalVariables(
 	names = c('subsetField', 'CountsPerCell', 'Saturation', 'Color', 'Label', 'clone_vector'),
 	package = 'CellMembrane',

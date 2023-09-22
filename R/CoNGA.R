@@ -1,6 +1,6 @@
 
 utils::globalVariables(
-  names = c('barcode', 'clusters_gex', 'clusters_tcr', 'nndists_gex', 'nndists_tcr', 'is_invariant', 'conga_scores', 'conga_fdr_values'),
+  names = c('barcode', 'clusters_gex', 'clusters_tcr', 'nndists_gex', 'nndists_tcr', 'is_invariant', 'conga_scores', 'conga_fdr_values', "sample_div"),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -223,6 +223,6 @@ PlotDiversity <- function(conga_clones_file = "./clones_file.txt",
   df <-read.csv(OutputFile)
   y <- grep("Z_[0-9]+", colnames(df), value = T)
   df |> select(c("order", y)) |>
-    pivot_longer(cols = y, names_to = "sample_div", values_to = "y") |> 
+    tidyr::pivot_longer(cols = y, names_to = "sample_div", values_to = "y") |> 
     ggplot(aes(x = order, y = y)) + geom_line(aes(color = sample_div)) + egg::theme_article()
 }
