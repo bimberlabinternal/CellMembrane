@@ -51,7 +51,7 @@ jobs:
           # NOTE: this specific branch is currently needed for conga
           python3 -m pip install --user scanpy[leiden]
           cd ../
-          git clone -b rhesus https://github.com/phbradley/conga.git conga
+          git clone https://github.com/phbradley/conga.git conga
           cd conga/tcrdist_cpp
           make
           cd ../../

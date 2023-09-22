@@ -29,7 +29,7 @@ RUN apt-get update -y \
     && pip3 install git+https://github.com/broadinstitute/CellBender.git \
     && mkdir /conga \
     && cd /conga \
-    && git clone -b rhesus https://github.com/phbradley/conga.git \
+    && git clone https://github.com/phbradley/conga.git \
     && cd conga/tcrdist_cpp \
     && make \
     && cd ../ \
