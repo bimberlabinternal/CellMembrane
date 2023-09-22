@@ -6,7 +6,7 @@
 \usage{
 PlotDiversity(
   conga_clones_file = "./clones_file.txt",
-  OutputFile = "./diversity_output.csv",
+  outputFile = "./diversity_output.csv",
   order1 = 1,
   order2 = 200
 )
@@ -14,7 +14,7 @@ PlotDiversity(
 \arguments{
 \item{conga_clones_file}{The output clones file from CoNGA (named clones_file.txt).}
 
-\item{OutputFile}{The output file containing the data used for generating diversity profiles.}
+\item{outputFile}{The output file containing the data used for generating diversity profiles.}
 
 \item{order1}{The minimum order for calculating the generalized Simpson entropy.}
 
@@ -26,7 +26,7 @@ Plot a diversity profile for each library in the data
 \examples{
 \dontrun{
   PlotDiversity(conga_clones_file = "./clones_file.txt",
-                OutputFile = "./diversity_output.csv", 
+                outputFile = "./diversity_output.csv", 
                 order1 = 1, order2 = 200)
 }
 }
