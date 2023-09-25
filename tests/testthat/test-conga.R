@@ -51,4 +51,33 @@ test_that("RunConga works", {
   testthat::expect_true(1 %in% congaSeuratObj@meta.data[,"conga_clusters_gex"])
   unlink("./tmpoutput", recursive = TRUE)
 })
+
+test_that("PlotDiversity works", {
+  if (!reticulate::py_module_available('tcrdist')) {
+    print('tcrdist3 module not found, debugging:')
+    print(reticulate::py_list_packages())
+    if ('tcrdist' %in% reticulate::py_list_packages()$package) {
+      tryCatch({
+        reticulate::import('tcrdist')
+      }, error = function(e){
+        print("Error with reticulate::import('tcrdist')")
+        print(conditionMessage(e))
+        traceback()
+      })
+    }
+    
+    warning('The python tcrdist3 module has not been installed!')
+    return()
+  }
   
+  PlotDiversity(conga_clones_file = "../testdata/clones_file.txt",
+                outputFile = "../testdata/tmpoutput/diversity_output.csv",
+                order1 = 1,
+                order2 = 200)
+  #test that the output file exists (i.e that PlotDiversity worked).
+  testthat::expect_true(file.exists("../testdata/tmpoutput/diversity_output.csv"))
+  df <- read.csv("../testdata/tmpoutput/diversity_output.csv")
+  #test that the output file has correct number of rows.
+  testthat::expect_equal(nrow(df), 199)
+  unlink("./tmpoutput", recursive = TRUE)
+})

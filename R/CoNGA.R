@@ -182,7 +182,7 @@ SeuratToCoNGA <- function(seuratObj,
 #' @export
 
 PlotDiversity <- function(conga_clones_file = "./clones_file.txt",
-                     outputFile = "./diversity_output.csv", 
+                     outputFile, 
                      order1 = 1,
                      order2 = 200) {
   #check python requirements
@@ -191,7 +191,7 @@ PlotDiversity <- function(conga_clones_file = "./clones_file.txt",
   }
   
   if (!reticulate::py_module_available('tcrdist')) {
-    stop('The conga python package has not been installed! If you believe it has been installed, run reticulate::import("tcrdist") to get more information and debug')
+    stop('The tcrdist3 python package has not been installed! If you believe it has been installed, run reticulate::import("tcrdist") to get more information and debug')
   }
   
   if (is.null(conga_clones_file)){
