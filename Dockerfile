@@ -63,9 +63,7 @@ RUN echo "local({r <- getOption('repos') ;r['CRAN'] = 'https://packagemanager.rs
     && mkdir /BiocFileCache && chmod 777 /BiocFileCache \
     # See: https://jmarchini.org/software/
     && wget -O /bin/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1 \
-    && chmod +x /bin/sda_static_linux \
-    # TODO: drop this once main CRAN repo contains version 0.2.1:
-    && Rscript -e "install.packages('aplot', repos = 'https://cran.wustl.edu/')"
+    && chmod +x /bin/sda_static_linux
 
 ENV RETICULATE_PYTHON=/usr/bin/python3
 
