@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from tcrdist.diversity import generalized_simpsons_entropy
 
-def calculate_Diversity(conga_clones_file, OutputFile, order1, order2):
+def calculate_Diversity(conga_clones_file, outputFile, order1, order2):
   df = pd.read_csv(conga_clones_file, sep="\t")
   df = df.rename(columns={"va_gene": "v_a_gene", "vb_gene": "v_b_gene", "cdr3a": "cdr3_a_aa", "cdr3b": "cdr3_b_aa"})
   df["newcol"] = df.clone_id
@@ -16,4 +16,4 @@ def calculate_Diversity(conga_clones_file, OutputFile, order1, order2):
     div = generalized_simpsons_entropy(df.loc[df['libID'] == libID, 'clone_size'], orders=np.arange(order1, order2))
     div = div.add_suffix("_" + libID)
     temp = temp.join(div)
-  temp.to_csv(OutputFile, na_rep="NA")
+  temp.to_csv(outputFile, na_rep="NA")
