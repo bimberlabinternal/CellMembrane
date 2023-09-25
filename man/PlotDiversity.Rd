@@ -6,7 +6,7 @@
 \usage{
 PlotDiversity(
   conga_clones_file = "./clones_file.txt",
-  outputFile = "./diversity_output.csv",
+  outputFile,
   order1 = 1,
   order2 = 200
 )
