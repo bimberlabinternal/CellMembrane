@@ -2,6 +2,7 @@
 
 export(AddNewMetaColumn)
 export(AppendCiteSeq)
+export(AppendCloneProperties)
 export(AppendPerCellSaturation)
 export(AppendPerCellSaturationInBulk)
 export(AvgExpression)
