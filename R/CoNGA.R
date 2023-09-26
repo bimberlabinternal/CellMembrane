@@ -171,7 +171,7 @@ SeuratToCoNGA <- function(seuratObj,
 #' @param tcrClonesFile The 10x clonotypes file for this Seurat object. Single lanes can use the CellRanger/Vloupe contigs CSV file. Merged lanes need to merge these files and modify them to create unique cellbarcodes and clonotype names, such as the code from Rdiscvr::CreateMergedTcrClonotypeFile().
 #' @description A function to append clone properties to a Seurat object
 #' @export
-AppendCloneProperties <- function(seuratObj, tcrClonesFile) {
+QuantifyTcrClones <- function(seuratObj, tcrClonesFile) {
   
   # Append clonotypeID to seuratObj metadata
   df <- read.csv(tcrClonesFile) |> select(barcode, raw_clonotype_id) |> unique()
