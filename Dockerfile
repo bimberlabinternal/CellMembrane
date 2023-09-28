@@ -29,7 +29,7 @@ RUN apt-get update -y \
     && pip3 install git+https://github.com/broadinstitute/CellBender.git \
     && mkdir /conga \
     && cd /conga \
-    && git clone -b rhesus https://github.com/phbradley/conga.git \
+    && git clone https://github.com/phbradley/conga.git \
     && cd conga/tcrdist_cpp \
     && make \
     && cd ../ \
@@ -62,9 +62,7 @@ RUN echo "local({r <- getOption('repos') ;r['CRAN'] = 'https://packagemanager.rs
     && mkdir /BiocFileCache && chmod 777 /BiocFileCache \
     # See: https://jmarchini.org/software/
     && wget -O /bin/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1 \
-    && chmod +x /bin/sda_static_linux \
-    # TODO: drop this once main CRAN repo contains version 0.2.1:
-    && Rscript -e "install.packages('aplot', repos = 'https://cran.wustl.edu/')"
+    && chmod +x /bin/sda_static_linux
 
 ENV RETICULATE_PYTHON=/usr/bin/python3
 
@@ -79,8 +77,6 @@ RUN cd /CellMembrane \
     && if [ "${GH_PAT}" != 'NOT_SET' ];then echo 'Setting GITHUB_PAT'; export GITHUB_PAT="${GH_PAT}";fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
-    # NOTE: Related to: https://github.com/satijalab/seurat/issues/7328. Should revert to a release once patched.
-    && Rscript -e "remotes::install_github('satijalab/seurat', ref='443ab86684253d9a7290c3d38c2bc1d8db021776');" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
