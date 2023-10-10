@@ -41,6 +41,10 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
         max_percent_mito=0.1,
         outfile_prefix_for_qc_plots = outfile_prefix_for_qc_plots
     )
+    
+    # print out number of cells in adata
+    print('Total cells in adata object: ' + str(adata.shape[0]))
+    
     #create a second adata object that stores one representative clone per clonotype (specifically for gene expression analysis)
     adata2 = conga.preprocess.reduce_to_single_cell_per_clone(adata)
     adata2 = conga.preprocess.cluster_and_tsne_and_umap( adata2 )
