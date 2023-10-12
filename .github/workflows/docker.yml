@@ -21,6 +21,14 @@ jobs:
           repository: bimberlabinternal/Rdiscvr
           event-type: docker
 
+      - name: Remove unnecessary files
+        run: |
+          df . -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+          df . -h
+
       - name: Docker meta
         id: docker_meta
         uses: docker/metadata-action@v4
