@@ -48,8 +48,7 @@ jobs:
 
       - name: Setup CoNGA
         run: |
-          # NOTE: this specific branch is currently needed for conga
-          python3 -m pip install --user scanpy[leiden]
+          python3 -m pip install --user scanpy
           cd ../
           git clone https://github.com/phbradley/conga.git conga
           cd conga/tcrdist_cpp
