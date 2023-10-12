@@ -48,7 +48,7 @@ jobs:
 
       - name: Setup CoNGA
         run: |
-          python3 -m pip install --user scanpy
+          python3 -m pip install --user scanpy fastcluster
           cd ../
           git clone https://github.com/phbradley/conga.git conga
           cd conga/tcrdist_cpp
