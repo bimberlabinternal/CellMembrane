@@ -24,7 +24,8 @@ RUN apt-get update -y \
         wget \
         git \
     && python3 -m pip install --upgrade pip \
-    && pip3 install umap-learn phate scanpy fastcluster  \
+    # NOTE: seaborn added for: https://github.com/scverse/scanpy/issues/2680
+    && pip3 install umap-learn phate scanpy fastcluster seaborn==0.12.2 \
     && pip3 install git+https://github.com/broadinstitute/CellBender.git \
     && mkdir /conga \
     && cd /conga \

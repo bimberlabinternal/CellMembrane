@@ -48,7 +48,8 @@ jobs:
 
       - name: Setup CoNGA
         run: |
-          python3 -m pip install --user scanpy fastcluster
+          # NOTE: seaborn added for: https://github.com/scverse/scanpy/issues/2680
+          python3 -m pip install --user scanpy fastcluster seaborn==0.12.2
           cd ../
           git clone https://github.com/phbradley/conga.git conga
           cd conga/tcrdist_cpp
