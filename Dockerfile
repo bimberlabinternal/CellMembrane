@@ -13,7 +13,6 @@ RUN /bin/sh -c /rocker_scripts/install_R_source.sh \
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
 # NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb
-# NOTE: the conga rhesus branch should eventually merge, so we'll need to remove -b rhesus. The cd commands downstream are necessary to compile the reimplementation of tcrdist within conga.
 RUN apt-get update -y \
 	&& apt-get upgrade -y \
 	&& apt-get install -y \
@@ -25,7 +24,8 @@ RUN apt-get update -y \
         wget \
         git \
     && python3 -m pip install --upgrade pip \
-    && pip3 install umap-learn phate scanpy[leiden] \
+    # NOTE: seaborn added for: https://github.com/scverse/scanpy/issues/2680
+    && pip3 install umap-learn phate scanpy fastcluster seaborn==0.12.2 \
     && pip3 install git+https://github.com/broadinstitute/CellBender.git \
     && mkdir /conga \
     && cd /conga \
