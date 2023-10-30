@@ -11,7 +11,8 @@ LazyData: true
 Depends:
     R (>= 4.1.0)
 Imports:
-    Seurat,
+    Seurat (<= 4.4.0),
+    SeuratObject (<= 4.1.4),
     tidyr,
     dplyr,
     naturalsort,
