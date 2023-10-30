@@ -23,7 +23,7 @@ test_that("PHATE works as expected", {
     }
 
     set.seed(CellMembrane::GetSeed())
-    seuratObj <- readRDS('../testdata/seuratOutput.rds')
+    seuratObj <- Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds'))
 
     seuratObj <- RunPHATE(seuratObj)
     testthat::expect_equal(ncol(seuratObj), 1557)

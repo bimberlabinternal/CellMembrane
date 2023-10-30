@@ -117,7 +117,7 @@ test_that("Serat processing works as expected", {
 })
 
 test_that("Serat SCTransform works as expected", {
-  seuratObj <- readRDS('../testdata/seuratOutput.rds')
+  seuratObj <- Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds'))
   seuratObjSCT <- CreateSeuratObj(seuratData = seuratObj@assays$RNA@counts, datasetId = '1234', datasetName = 'Set1')
 
   seuratObjSCT <- NormalizeAndScale(seuratObjSCT, useSCTransform = T)

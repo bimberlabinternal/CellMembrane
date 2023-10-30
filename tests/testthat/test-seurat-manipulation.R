@@ -3,7 +3,7 @@ context("scRNAseq")
 test_that("Seurat-manipulation works as expected", {
   set.seed(CellMembrane::GetSeed())
 
-  seuratObj <- readRDS('../testdata/seuratOutput.rds')
+  seuratObj <- Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds'))
 
   seuratObj2 <- DownsampleSeurat(seuratObj, targetCells = 500)
   expect_equal(500, ncol(seuratObj2))
@@ -84,7 +84,7 @@ test_that("Seurat-saturation works as expected", {
 test_that("ScaleFeaturesIfNeeded works as expected", {
   set.seed(CellMembrane::GetSeed())
   
-  seuratObj <- readRDS('../testdata/seuratOutput.rds')
+  seuratObj <- Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds'))
   
   seuratObj <- NormalizeAndScale(seuratObj, nVariableFeatures = 100)
 

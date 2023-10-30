@@ -19,7 +19,7 @@ test_that("CD genes translation works", {
 # This primarily serves to demonstrate the code runs without overt errors
 test_that("DotPlot works", {
 	set.seed(CellMembrane::GetSeed())
-	seuratObj <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj <- Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds'))
 
 	seuratObj$XField <- sample(LETTERS[1:3], size = nrow(seuratObj@meta.data), replace = TRUE)
 	seuratObj$YField <- sample(LETTERS[4:8], size = nrow(seuratObj@meta.data), replace = TRUE)
