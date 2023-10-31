@@ -77,6 +77,9 @@ RUN cd /CellMembrane \
     && if [ "${GH_PAT}" != 'NOT_SET' ];then echo 'Setting GITHUB_PAT'; export GITHUB_PAT="${GH_PAT}";fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
+    # Force 4.x for both Seurat and SeuratObject
+    && Rscript -e "devtools::install_version('SeuratObject', version = '4.1.4', ask = FALSE)" \
+    && Rscript -e "devtools::install_version('Seurat', version = '4.4.0', ask = FALSE)" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
