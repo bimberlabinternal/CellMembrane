@@ -3,7 +3,7 @@ context("scRNAseq")
 test_that("Doublet detection works as expected", {
   set.seed(CellMembrane::GetSeed())
 
-  seuratObj <- Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds'))
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 
   fn <- 'doublets.txt'
   seuratObj <- FindDoublets(seuratObj, rawResultFile = fn)

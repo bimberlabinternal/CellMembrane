@@ -827,6 +827,7 @@ GetChiDF <- function(seuratObj, field1, field2, plot = FALSE) {
 #' @param formulavector vector of formulas, e.g.: c(Tcell_NaiveToEffector > 10 ~ "Effector", Tcell_NaiveToEffector < 5 ~ "Naive")
 #' @param defaultname The default value applied when none of the formulas in formulavec are TRUE
 #' @param enforceFunctionalFormulae Boolean determining whether or not to sanity check that all defined formulae in formulavector labeled at least one cell in the Seurat Object.
+#' @importFrom rlang :=
 #' @return Updated Seurat object
 #' @export
 AddNewMetaColumn <- function(seuratObj, varname, formulavector, defaultname, enforceFunctionalFormulae = TRUE) {

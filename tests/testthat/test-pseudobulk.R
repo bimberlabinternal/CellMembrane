@@ -1,7 +1,7 @@
 context("scRNAseq")
 
 test_that("Pseudobulk works", {
-  seuratObj <- Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds'))
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   
   pseudo <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.2)), nrow(pseudo@meta.data))
@@ -36,7 +36,7 @@ test_that("Pseudobulk-based differential expression works", {
 })
 
 test_that("Logic gate study design works", {
-  seuratObj <- Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds'))
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   testthat::expect_equal(ncol(seuratObj), expected = 1557) #check that test seuratObj doesn't change
   #add fabricated study metadata
   seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))

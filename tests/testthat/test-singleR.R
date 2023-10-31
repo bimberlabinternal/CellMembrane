@@ -3,7 +3,7 @@ context("scRNAseq")
 test_that("SingleR works as expected", {
     set.seed(CellMembrane::GetSeed())
 
-    seuratObj <- Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds'))
+    seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 
     results <- 'singleR.txt'
     rawDataFile <- 'singleR.results.txt'
