@@ -19,7 +19,7 @@ test_that("RunConga works", {
   }
 
   #read data
-  seuratObj <- readRDS("../testdata/seuratOutput.rds")
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS("../testdata/seuratOutput.rds")))
   tcr_df <- read.table("../testdata/tcr_df.csv", header = T, sep = ",") #this is spoofed TCR data from 438-21
   
   #The tcr_df was originally downloaded via Rdiscvr, but altered like so:

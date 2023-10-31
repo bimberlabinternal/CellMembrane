@@ -47,13 +47,13 @@ test_that("Seurat-merge works as expected", {
 
 
 test_that("seurat barcode duplicate code works as expected", {
-	seuratObj1 <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj1 <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj1 <- Seurat::DietSeurat(seuratObj1)
 	seuratObj1$DatasetId <- 12345
 	seuratObj1$BarcodePrefix <- 12345
 	seuratObj1 <- Seurat::RenameCells(object = seuratObj1, add.cell.id = 12345)
 	
-	seuratObj2 <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj2 <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj2 <- Seurat::DietSeurat(seuratObj2)
 	seuratObj2$DatasetId <- 23456
 	seuratObj2$BarcodePrefix <- 23456
@@ -69,10 +69,10 @@ test_that("seurat barcode duplicate code works as expected", {
 	expect_equal(ncol(sm), ncol(seuratObj1) +  ncol(seuratObj2) - 20)	
 	
 	# Repeat where barcode prefix added by merge:
-	seuratObj1 <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj1 <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj1 <- Seurat::DietSeurat(seuratObj1)
 
-	seuratObj2 <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj2 <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj2 <- Seurat::DietSeurat(seuratObj2)
 
 	toMerge <- list('12345' = seuratObj1, '23456' = seuratObj2)

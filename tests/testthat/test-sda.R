@@ -2,7 +2,7 @@ context("scRNAseq")
 library(Seurat)
 
 test_that("SDA works as expected", {
-    seuratObj <- readRDS('../testdata/seuratOutput.rds')
+    seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 
     outputFolder <- paste0(tempdir(), '/sda')
     if (dir.exists(outputFolder)) {

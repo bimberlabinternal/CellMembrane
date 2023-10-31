@@ -8,7 +8,7 @@ test_that("Cite-Seq Normalization Works", {
 	df <- data.frame(cellbarcode = colnames(mat), count = colSums(as.matrix(mat@counts)))
 	df <- dplyr::arrange(df, desc(count))
 	
-	seuratObj <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	sc <- seuratObj@assays$RNA@counts[,1:1000]
 	colnames(sc) <- df$cellbarcode[1:1000]
 	seuratObj <- Seurat::CreateSeuratObject(counts = sc)
@@ -19,7 +19,7 @@ test_that("Cite-Seq Normalization Works", {
 
 test_that("Cite-Seq Append Works", {
 	#Reduce size, touch up data:
-	seuratObj <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj <- seuratObj[1:1000,1:100]
 	
 	set.seed(1234)
@@ -101,7 +101,7 @@ test_that("Cite-Seq Append Works", {
 
 test_that("ADT Rename Works", {
 	#Reduce size, touch up data:
-	seuratObj <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj <- seuratObj[1:1000,1:100]
 	
 	set.seed(1234)

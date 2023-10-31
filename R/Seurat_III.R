@@ -24,6 +24,7 @@ utils::globalVariables(
 #' @param previouslyFilteredMatrix An optional filepath to a pre-filtered count matrix in h5 format. If non-null, this file will be read instead of dataDir. Empty drops and/or soupX will be skipped.
 #' @param useSoupX If true, SoupX will be run against the run input data, instead of emptyDrops
 #' @return A Seurat object.
+#' @importFrom magrittr %>%
 #' @export
 #' @importFrom Seurat Read10X
 ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, emptyDropsFdrThreshold = 0.001, storeGeneIds=TRUE, emptyDropsLower = 100, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000, useSoupX = FALSE, previouslyFilteredMatrix = NULL) {

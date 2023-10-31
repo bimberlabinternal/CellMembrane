@@ -1,7 +1,7 @@
 context("spatialRNAseq")
 
 test_that("Q3 normalization works", {
-  seuratObj <- readRDS('../testdata/seuratOutput.rds')
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   
   testthat::expect_no_error(seuratObj[["RNA"]])
   seuratObj<- RUVg_Housekeeping_Normalization(seuratObj)
