@@ -80,6 +80,9 @@ RUN cd /CellMembrane \
     # Force 4.x for both Seurat and SeuratObject
     && Rscript -e "devtools::install_version('Seurat', version = '4.4.0', ask = FALSE, upgrade = 'never')" \
     && Rscript -e "devtools::install_version('SeuratObject', version = '4.1.4', ask = FALSE, upgrade = 'never')" \
+    # See: https://stackoverflow.com/questions/77370659/error-failed-to-collect-lazy-table-caused-by-error-in-db-collect-using
+    # Updating to BiocFileCache 2.10.1 should ultimately fix this
+    && Rscript -e "devtools::install_version('dbplyr', version = '2.3.4')" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
