@@ -77,9 +77,8 @@ RUN cd /CellMembrane \
     && if [ "${GH_PAT}" != 'NOT_SET' ];then echo 'Setting GITHUB_PAT'; export GITHUB_PAT="${GH_PAT}";fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
-    # Force 4.x for both Seurat and SeuratObject
+    # Force 4.x for both Seurat
     && Rscript -e "devtools::install_version('Seurat', version = '4.4.0', ask = FALSE, upgrade = 'never')" \
-    && Rscript -e "devtools::install_version('SeuratObject', version = '4.1.4', ask = FALSE, upgrade = 'never')" \
     # See: https://stackoverflow.com/questions/77370659/error-failed-to-collect-lazy-table-caused-by-error-in-db-collect-using
     # Updating to BiocFileCache 2.10.1 should ultimately fix this
     && Rscript -e "devtools::install_version('dbplyr', version = '2.3.4')" \
