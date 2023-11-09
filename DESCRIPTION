@@ -9,7 +9,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-    R (>= 4.2.0)
+    R (>= 4.3.0)
 Imports:
     Seurat (<= 4.4.0),
     SeuratObject,
@@ -89,7 +89,7 @@ BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
     niaid/dsb,
     YosefLab/VISION,
-    bimberlabinternal/RIRA,
+    bimberlabinternal/RIRA@UCell_2.6,
     marchinilab/SDAtools,
     marchinilab/dropsim,
     drisso/RUVSeq
