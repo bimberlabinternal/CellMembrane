@@ -6,6 +6,7 @@ ARG GH_PAT='NOT_SET'
 ## Redo the R installation, since we need a base image using focal, but updated R version:
 # This should be removed in favor of choosing a better base image once Exacloud supports jammy
 ENV R_VERSION=4.3.1
+ENV R_BIOC_VERSION=3.18
 ENV CRAN=https://packagemanager.posit.co/cran/__linux__/focal/latest
 RUN /bin/sh -c /rocker_scripts/install_R_source.sh \
   && /bin/sh -c /rocker_scripts/setup_R.sh
@@ -37,7 +38,7 @@ RUN apt-get update -y \
     ##  Add Bioconductor system dependencies
     && mkdir /bioconductor && cd /bioconductor \
     && wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/master/bioc_scripts/install_bioc_sysdeps.sh \
-    && bash ./install_bioc_sysdeps.sh 3.17 \
+    && bash ./install_bioc_sysdeps.sh $R_BIOC_VERSION \
     && cd / \
     && rm -Rf /bioconductor \
     && apt-get clean \
@@ -79,8 +80,6 @@ RUN cd /CellMembrane \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
     # Force 4.x for Seurat
     && Rscript -e "devtools::install_version('Seurat', version = '4.4.0', ask = FALSE, upgrade = 'never')" \
-    # TODO: eventually remove. Related to: https://github.com/mojaveazure/seurat-object/issues/166
-    && Rscript -e "devtools::install_version('Matrix', version = '1.6-1.1', ask = FALSE, upgrade = 'never')" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
