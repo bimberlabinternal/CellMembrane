@@ -120,6 +120,8 @@ jobs:
           if (Sys.getenv("R_BIOC_VERSION") < '3.18') { devtools::install_version("dbplyr", version = "2.3.4") }
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
+          # Due to Matrix/SeuratObject: https://github.com/mojaveazure/seurat-object/issues/166
+          install.packages('SeuratObject', ask = FALSE, force = TRUE, type = 'source', repos = 'https://cloud.r-project.org')
         shell: Rscript {0}
 
       - name: Session info
