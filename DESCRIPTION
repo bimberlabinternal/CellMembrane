@@ -89,7 +89,7 @@ BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
     niaid/dsb,
     YosefLab/VISION,
-    bimberlabinternal/RIRA@UCell_2.6,
+    bimberlabinternal/RIRA,
     marchinilab/SDAtools,
     marchinilab/dropsim,
     drisso/RUVSeq
