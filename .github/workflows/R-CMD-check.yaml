@@ -112,9 +112,9 @@ jobs:
         run: |
           getOption('repos');
           print(paste0("R_BIOC_VERSION: ", Sys.getenv("R_BIOC_VERSION")));
-          remotes::install_deps(dependencies = TRUE, upgrade = "always")
           # Force 4.x for Seurat           
           devtools::install_version('Seurat', version = '4.4.0', ask = FALSE, upgrade = 'never')
+          remotes::install_deps(dependencies = TRUE)
           # See: https://stackoverflow.com/questions/77370659/error-failed-to-collect-lazy-table-caused-by-error-in-db-collect-using
           # TODO: Updating to BiocFileCache 2.10.1 should ultimately fix this. This manifests in SingleR
           if (Sys.getenv("R_BIOC_VERSION") < '3.18') { devtools::install_version("dbplyr", version = "2.3.4") }
