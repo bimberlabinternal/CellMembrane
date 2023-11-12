@@ -41,7 +41,7 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           # NOTE: libsodium-dev installed for VISION
-          sudo apt-get update && sudo apt-get install -yq libcurl-dev python3-pip libsodium-dev
+          sudo apt-get update && sudo apt-get install -yq libcurl4-openssl-dev python3-pip libsodium-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
           python3 -m pip install --user umap-learn phate
