@@ -125,8 +125,6 @@ jobs:
           remotes::install_cran("rcmdcheck")
           # Due to Matrix/SeuratObject: https://github.com/mojaveazure/seurat-object/issues/166
           install.packages('SeuratObject', ask = FALSE, force = TRUE, type = 'source', repos = 'https://cloud.r-project.org')
-          # Force rebuild of scDblFinder to fix pattern where it spits out string of numbers:
-          install.packages('irlba', type = 'source', force = TRUE)
         shell: Rscript {0}
 
       - name: Session info
