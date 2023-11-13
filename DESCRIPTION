@@ -50,7 +50,7 @@ Imports:
     VISION,
     rentrez,
     RIRA,
-    UCell,
+    UCell (>= 2.6.0),
     grid,
     ggplotify,
     phateR,
@@ -92,7 +92,8 @@ Remotes:
     bimberlabinternal/RIRA,
     marchinilab/SDAtools,
     marchinilab/dropsim,
-    drisso/RUVSeq
+    drisso/RUVSeq,
+    carmonalab/UCell
 Config/reticulate:
   list(
     packages = list(
