@@ -695,7 +695,7 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
 	})
 
 	#Restore original state:
-	Idents(seuratObj) <- seuratObj[["origClusterID"]]
+	Idents(seuratObj) <- as.factor(seuratObj[["origClusterID"]])
 	DefaultAssay(seuratObj) <- origAssay
 	seuratObj[["origClusterID"]] <- NULL
 
