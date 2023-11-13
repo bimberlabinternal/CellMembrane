@@ -117,14 +117,14 @@ jobs:
           devtools::install_github(repo = 'bimberlabinternal/RIRA', ref = 'master', dependencies = TRUE, upgrade = 'always')
           remotes::install_deps(dependencies = TRUE, upgrade = 'never')
           # Force 4.x for Seurat           
-          devtools::install_version('Seurat', version = '4.4.0', ask = FALSE, upgrade = 'never')
+          devtools::install_version('Seurat', version = '4.4.0', ask = FALSE, upgrade = 'never', type = 'source', repos = 'https://cloud.r-project.org')
           # See: https://stackoverflow.com/questions/77370659/error-failed-to-collect-lazy-table-caused-by-error-in-db-collect-using
           # TODO: Updating to BiocFileCache 2.10.1 should ultimately fix this. This manifests in SingleR
           if (Sys.getenv("R_BIOC_VERSION") < '3.18') { devtools::install_version("dbplyr", version = "2.3.4") }
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
           # Due to Matrix/SeuratObject: https://github.com/mojaveazure/seurat-object/issues/166
-          install.packages('SeuratObject', ask = FALSE, force = TRUE, type = 'source', repos = 'https://cloud.r-project.org')
+          install.packages(c('irlba, 'SeuratObject'), ask = FALSE, force = TRUE, type = 'source', repos = 'https://cloud.r-project.org')
         shell: Rscript {0}
 
       - name: Session info
