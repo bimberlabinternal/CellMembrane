@@ -113,8 +113,8 @@ jobs:
         run: |
           getOption('repos');
           print(paste0("R_BIOC_VERSION: ", Sys.getenv("R_BIOC_VERSION")));
-          # Force 4.x for Seurat           
-          devtools::install_version('Seurat', version = '4.4.0', ask = FALSE, upgrade = 'never')
+          # NOTE: install RIRA first, since it depends on seurat 4.4 and the upgrade would otherwise force-update it: 
+          devtools::install_github(repo = 'bimberlabinternal/RIRA', ref = 'master', dependencies = TRUE, upgrade = 'always')
           remotes::install_deps(dependencies = TRUE, upgrade = 'never')
           # Force 4.x for Seurat           
           devtools::install_version('Seurat', version = '4.4.0', ask = FALSE, upgrade = 'never')
