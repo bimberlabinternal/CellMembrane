@@ -8,7 +8,8 @@ PseudobulkSeurat(
   seuratObj,
   groupFields,
   assays = NULL,
-  additionalFieldsToAggregate = NULL
+  additionalFieldsToAggregate = NULL,
+  metaFieldCollapseCharacter = "|"
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ PseudobulkSeurat(
 \item{assays}{The assays to aggregate}
 
 \item{additionalFieldsToAggregate}{An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.}
+
+\item{metaFieldCollapseCharacter}{The character to use when concatenating metadata fields together to form the sample key field}
 }
 \value{
 An aggregated Seurat object.

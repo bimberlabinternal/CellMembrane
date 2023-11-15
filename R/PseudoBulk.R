@@ -16,17 +16,19 @@ utils::globalVariables(
 #' @param groupFields The set of fields on which to group
 #' @param assays The assays to aggregate
 #' @param additionalFieldsToAggregate An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.
+#' @param metaFieldCollapseCharacter The character to use when concatenating metadata fields together to form the sample key field
 #' @return An aggregated Seurat object.
 #' @export
-PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFieldsToAggregate = NULL) {
+PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFieldsToAggregate = NULL, metaFieldCollapseCharacter = '|') {
   if (!all(groupFields %in% names(seuratObj@meta.data))) {
     stop('All fields from groupFields must be in seuratObj@meta.data')
   }
   
   # TODO: perhaps filtering on saturation, min.counts or other features??
-  seuratObj$KeyField <- apply(seuratObj@meta.data[,groupFields,drop = FALSE], 1, function(y){
-    return(paste0(y, collapse = '_'))
-  })
+  seuratObj$KeyField <- unname(apply(seuratObj@meta.data[,groupFields,drop = FALSE], 1, function(y){
+    # NOTE: AverageExpression will convert underscores to hyphens in the sample names anyway, so proactively do this here
+    return(paste0(gsub(y, pattern = '_', replacement = '_', collapse = metaFieldCollapseCharacter)))
+  }))
   
   Seurat::Idents(seuratObj) <- seuratObj$KeyField
   
@@ -40,7 +42,11 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFi
     x <- sort(metaGrouped$KeyField[sel])
     y <- sort(colnames(a)[sel])
 
-    stop(paste0('The keyField and AverageExpression object keys to do not match. Key fields: ', paste0(x, collapse = ';'), '. Seurat columns: ', paste0(y, collapse = ';')))
+    warn('The keyField and AverageExpression object keys to do not match. Key fields:')
+    warn(paste0(x, collapse = ';'))
+    warn('Seurat colnames:')
+    warn(paste0(y, collapse = ';'))
+    stop('The keyField and AverageExpression object keys to do not match')
   }
 
   metaGrouped <- metaGrouped[,names(metaGrouped) != 'KeyField',drop = FALSE]
