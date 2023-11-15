@@ -132,7 +132,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       allFields <- c(allFields, fn)
       seuratObj[[fn]] <- toAdd
 
-      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn]][[fn]]))
+      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn, drop = TRUE]]))
       ComplexHeatmap::Heatmap(log10(tab+10),
                               column_title = dataset,
                               col = Seurat::BlueAndRed(10),
@@ -170,7 +170,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       allFields <- c(allFields, fn2)
       seuratObj[[fn2]] <- toAdd
 
-      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn2]][[fn2]]))
+      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn2, drop = TRUE]]))
       ComplexHeatmap::Heatmap(log10(tab+10),
                               column_title = paste0(dataset, ': Fine Labels'),
                               col = Seurat::BlueAndRed(10),
@@ -258,7 +258,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         xlab("")
       )
 
-      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[['SingleRConsensus']][['SingleRConsensus']]))
+      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[['SingleRConsensus', drop = TRUE]]))
       ComplexHeatmap::Heatmap(log10(tab+10),
                               column_title = 'SingleR Consensus',
                               col = Seurat::BlueAndRed(10),
@@ -276,7 +276,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 .FilterLowCalls <- function(seuratObj, label, minFraction) {
   if (!is.null(minFraction)){
     print(paste0('Filtering ', label, ' below: ', minFraction))
-    d <- data.frame(table(Label = unlist(seuratObj[[label]])))
+    d <- data.frame(table(Label = unlist(seuratObj[[label, drop = TRUE]])))
     names(d) <- c('Label', 'Count')
     d$Fraction <- d$Count / sum(d$Count)
 
@@ -288,14 +288,14 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     }
 
     if (length(toRemove) > 0) {
-      l <- unlist(seuratObj[[label]])
+      l <- unlist(seuratObj[[label, drop = TRUE]])
       names(l) <- colnames(seuratObj)
       l[l %in% toRemove] <- 'Unknown'
       seuratObj[[label]] <- l
     }
 
     print('After filter:')
-    d <- data.frame(table(Label = unlist(seuratObj[[label]])))
+    d <- data.frame(table(Label = unlist(seuratObj[[label, drop = TRUE]])))
     names(d) <- c('Label', 'Count')
     print(d)
   }

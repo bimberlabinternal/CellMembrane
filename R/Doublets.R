@@ -48,7 +48,7 @@ FindDoublets <- function(seuratObj, assay = 'RNA', rawResultFile = NULL, doPlot 
 	}
 
 	if (dropDoublets) {
-		nDoublet <- sum(seuratObj[['scDblFinder.class']] == 'doublet')
+		nDoublet <- sum(seuratObj[['scDblFinder.class', drop = TRUE]] == 'doublet')
 		print(paste0('Dropping ', nDoublet, ' doublets'))
 		seuratObj <- subset(seuratObj, subset = scDblFinder.class != 'doublet')
 	}
