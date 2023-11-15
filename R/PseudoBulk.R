@@ -27,7 +27,7 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFi
   # TODO: perhaps filtering on saturation, min.counts or other features??
   seuratObj$KeyField <- unname(apply(seuratObj@meta.data[,groupFields,drop = FALSE], 1, function(y){
     # NOTE: AverageExpression will convert underscores to hyphens in the sample names anyway, so proactively do this here
-    return(paste0(gsub(y, pattern = '_', replacement = '_', collapse = metaFieldCollapseCharacter)))
+    return(paste0(make.names(y), collapse = metaFieldCollapseCharacter))
   }))
   
   Seurat::Idents(seuratObj) <- seuratObj$KeyField
