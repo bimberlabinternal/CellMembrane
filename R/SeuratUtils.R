@@ -288,10 +288,10 @@ GetXYAesthetics <- function(plot, geom = 'GeomPoint', plot.first = TRUE) {
 #' @export
 #' @import ggplot2
 HighlightCellsOnSeuratPlot <- function(seuratObj, seuratPlot, cellSelectField = 'CloneNames', colorLegendLabel = 'Clone', colorField = NA, dotColor = NA, pt.size = 1, shapeField = NA, dotShapes = NA, horizontalLegend = TRUE, resetLegendSize = TRUE, maxAllowableShapeValues = 6) {
-	cellNames <- colnames(seuratObj)[!is.na(seuratObj[[cellSelectField]])]
+	cellNames <- colnames(seuratObj)[!is.na(seuratObj[[cellSelectField, drop = TRUE]])]
 	plot.data <- GetXYDataFromPlot(seuratPlot, cellNames)
-	plot.data$Clone <- seuratObj[[cellSelectField]][!is.na(seuratObj[[cellSelectField]])]
-	cellsWithData <- !is.na(seuratObj[[cellSelectField]])
+	plot.data$Clone <- seuratObj[[cellSelectField, drop = TRUE]][!is.na(seuratObj[[cellSelectField, drop = TRUE]])]
+	cellsWithData <- !is.na(seuratObj[[cellSelectField, drop = TRUE]])
 
 	seuratPlot <- seuratPlot + ggnewscale::new_scale_color()
 
@@ -300,7 +300,7 @@ HighlightCellsOnSeuratPlot <- function(seuratObj, seuratPlot, cellSelectField = 
 	}
 
 	if (!is.na(colorField)) {
-		plot.data$Color <- naturalsort::naturalfactor(seuratObj[[colorField]][cellsWithData])
+		plot.data$Color <- naturalsort::naturalfactor(seuratObj[[colorField, drop = TRUE]][cellsWithData])
 
 		seuratPlot <- seuratPlot + geom_point(
 			mapping = aes(x = x, y = y, color = Color),
@@ -322,7 +322,7 @@ HighlightCellsOnSeuratPlot <- function(seuratObj, seuratPlot, cellSelectField = 
 
 	# If shape field is not provided, but dotShape is, add a dummy field and assume all are the same value
 	if (!is.na(shapeField)) {
-		plot.data$ShapeField <- as.factor(seuratObj[[shapeField]][cellsWithData])
+		plot.data$ShapeField <- as.factor(seuratObj[[shapeField, drop = TRUE]][cellsWithData])
 	} else if (!is.na(dotShapes)) {
 		plot.data$ShapeField <- 1
 	}
@@ -397,7 +397,7 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 		}
 	}
 
-	libraryMetrics <- as.data.frame(t(as.matrix(table(seuratObj[[groupField]]))))
+	libraryMetrics <- as.data.frame(t(as.matrix(table(seuratObj[[groupField, drop = TRUE]]))))
 	libraryMetrics$feature <- 'TotalCells'
 	libraryMetrics$assay <- 'ExperimentMetrics'
 	libraryMetrics <- libraryMetrics[unique(c('assay', 'feature', colnames(libraryMetrics)))]
@@ -534,7 +534,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	toMerge <- df$Saturation
 	names(toMerge) <- df$cellbarcode
 
-	d <- seuratObj[[targetField]][[1]]
+	d <- seuratObj[[targetField, drop = TRUE]][[1]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
 	seuratObj <- Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetField)
@@ -542,7 +542,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	toMerge <- df$CountsPerCell
 	names(toMerge) <- df$cellbarcode
 
-	d <- seuratObj[[targetFieldReads]][[1]]
+	d <- seuratObj[[targetFieldReads, drop = TRUE]][[1]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
 	seuratObj <- Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetFieldReads)
