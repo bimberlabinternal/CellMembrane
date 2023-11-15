@@ -534,7 +534,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	toMerge <- df$Saturation
 	names(toMerge) <- df$cellbarcode
 
-	d <- seuratObj[[targetField, drop = TRUE]][[1]]
+	d <- seuratObj[[targetField, drop = TRUE]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
 	seuratObj <- Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetField)
@@ -542,7 +542,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	toMerge <- df$CountsPerCell
 	names(toMerge) <- df$cellbarcode
 
-	d <- seuratObj[[targetFieldReads, drop = TRUE]][[1]]
+	d <- seuratObj[[targetFieldReads, drop = TRUE]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
 	seuratObj <- Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetFieldReads)
