@@ -64,8 +64,9 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFi
       }
       
       totals <- as.data.frame(seuratObj@meta.data %>% dplyr::group_by(KeyField) %>% dplyr::summarise(Mean = mean(!!sym(fn))))
-      names(totals) <- c('keyField', paste0(fn, '_mean'))
+      names(totals) <- c('KeyField', paste0(fn, '_mean'))
       rownames(totals) <- totals$KeyField
+      totals <- totals[,names(totals) != 'KeyField',drop = FALSE]
       a <- Seurat::AddMetaData(a, totals[,paste0(fn, '_mean'),drop = FALSE])
     }
   }
