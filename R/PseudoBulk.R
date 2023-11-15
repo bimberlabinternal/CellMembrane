@@ -40,7 +40,7 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFi
     x <- sort(metaGrouped$KeyField[sel])
     y <- sort(colnames(a)[sel])
 
-    stop(paste0('The keyField and AverageExpression object keys to do match. Key fields: ', paste0(x, collapse = ';'), '. Seurat columns: ', paste0(y, collapse = ';')))
+    stop(paste0('The keyField and AverageExpression object keys to do not match. Key fields: ', paste0(x, collapse = ';'), '. Seurat columns: ', paste0(y, collapse = ';')))
   }
 
   metaGrouped <- metaGrouped[,names(metaGrouped) != 'KeyField',drop = FALSE]
