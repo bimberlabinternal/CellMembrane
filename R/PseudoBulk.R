@@ -36,6 +36,13 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFi
   metaGrouped <- unique(seuratObj@meta.data[,c('KeyField', groupFields),drop = FALSE])
   rownames(metaGrouped) <- metaGrouped$KeyField
   metaGrouped <- metaGrouped[,names(metaGrouped) != 'KeyField',drop = FALSE]
+  if (any(metaGrouped$KeyField != colnames(a))) {
+    x <- metaGrouped$KeyField[metaGrouped$KeyField != colnames(a)]
+    y <- colnames(a)[metaGrouped$KeyField != colnames(a)]
+
+    stop(paste0('The keyField and AverageExpression object keys to do match. Key fields: ', paste0(x, collapse = ';'), '. Seurat columns: ', paste0(y, collapse = ';')))
+  }
+
   a <- Seurat::AddMetaData(a, metaGrouped)
   
   totals <- as.data.frame(seuratObj@meta.data %>% dplyr::group_by(KeyField) %>% dplyr::summarise(TotalCells = n()))
