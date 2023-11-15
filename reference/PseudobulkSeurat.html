@@ -54,7 +54,8 @@
 <span>  <span class="va">seuratObj</span>,</span>
 <span>  <span class="va">groupFields</span>,</span>
 <span>  assays <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  additionalFieldsToAggregate <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  additionalFieldsToAggregate <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  metaFieldCollapseCharacter <span class="op">=</span> <span class="st">"|"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -74,6 +75,10 @@
 
 <dt>additionalFieldsToAggregate</dt>
 <dd><p>An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.</p></dd>
+
+
+<dt>metaFieldCollapseCharacter</dt>
+<dd><p>The character to use when concatenating metadata fields together to form the sample key field</p></dd>
 
 </dl></div>
     <div id="value">
