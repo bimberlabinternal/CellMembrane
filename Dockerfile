@@ -70,6 +70,7 @@ ENV RETICULATE_PYTHON=/usr/bin/python3
 # Create location for BioConductor AnnotationHub/ExperimentHub caches:
 ENV ANNOTATION_HUB_CACHE=/BiocFileCache
 ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
+ENV BFC_CACHE=/BiocFileCache
 
 # This should not be cached if the files change
 ADD . /CellMembrane
