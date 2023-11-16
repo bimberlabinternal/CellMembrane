@@ -72,7 +72,6 @@ ENV RETICULATE_PYTHON=/usr/bin/python3
 ENV ANNOTATION_HUB_CACHE=/BiocFileCache
 ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
 ENV BFC_CACHE=/BiocFileCache
-ENV HOME=/dockerHomeDir
 
 # This should not be cached if the files change
 ADD . /CellMembrane
