@@ -61,6 +61,7 @@ RUN echo "local({r <- getOption('repos') ;r['CRAN'] = 'https://packagemanager.rs
     && Rscript -e "print(version)" \
 	&& rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
     && mkdir /BiocFileCache && chmod 777 /BiocFileCache \
+    && mkdir /dockerHomeDir && chmod 777 /dockerHomeDir \
     # See: https://jmarchini.org/software/
     && wget -O /bin/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1 \
     && chmod +x /bin/sda_static_linux
@@ -71,6 +72,7 @@ ENV RETICULATE_PYTHON=/usr/bin/python3
 ENV ANNOTATION_HUB_CACHE=/BiocFileCache
 ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
 ENV BFC_CACHE=/BiocFileCache
+ENV HOME=/dockerHomeDir
 
 # This should not be cached if the files change
 ADD . /CellMembrane
