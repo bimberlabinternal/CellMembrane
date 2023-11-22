@@ -540,4 +540,119 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
 #logic gates to be used with FilterPseudobulkContrasts()
 nand <- function(x,y){ !(x&y) } 
 nor <- function(x,y){ !(x|y) } 
-xnor <- function(x,y){(x == y)} 
+xnor <- function(x,y){(x == y)}
+
+#' @title FitRegularizedClassificationGlm 
+#'
+#' @description Treating gene expression like a classification problem, this function trains a penalized model to classify a metadata feature. 
+#' @param metadataVariableForClassification The metadata feature to be classified. If non-binary, then multinomial regression will automatically be performed. 
+#' @param rescale The feature selection will optimize for "heatmap-interpretable genes" so the features are intended to be scaled. If TRUE, this will rescale the variable features.
+#' @param numberOfVariableFeatures A parameter to select how many features should be selected as variable for scaling, by default, all genes will be used. 
+#' @param assay Seurat Object's assay
+#' @param slot Slot within the Seurat object assay. Recommended to be "scale.data".
+#' @param devianceCutoff Tolerance for model error when deciding how much regularization should be performed. 1 = no tolerance for error, 0 = intercept only, no genes used for prediction.
+#' @param split the option to provide a previous model's training/testing set. This is necessary if you're performing multiple iterations of model fitting. 
+#' @param returnModelAndSplits A boolean option to return a list containing the fitted model and training/testing splits in addition to the useful features. 
+#' @return A vector of genes useful for classification and, optionally, the model and training/testing sets.
+#' @export
+
+FitRegularizedClassificationGlm <- function(seuratObj,
+                                            metadataVariableForClassification = NULL,
+                                            rescale = TRUE,
+                                            numberOfVariableFeatures = 3000,
+                                            assay = "RNA",
+                                            slot = "scale.data",
+                                            devianceCutoff = 0.8,
+                                            split = NULL, 
+                                            returnModelAndSplits = F) {
+  #sanity check arguments
+  if (is.null(metadataVariableForClassification)){
+    stop("Please supply a column of the seurat object's metadata to classify.")
+  }
+  if (!(metadataVariableForClassification %in% colnames(seuratObj@meta.data))){
+    stop("Supplied metadataVariableForClassification not found in the seurat object's metadata. Please ensure your metadata column is spelled correctly and exists in seuratObj@meta.data.")
+  }
+  # rescale the input data (in case of an upstream subset since it was last rescaled).
+  if (rescale) {
+    if (is.null(numberOfVariableFeatures)) {
+      seuratObj <- CellMembrane::NormalizeAndScale(seuratObj, 
+                                                   nVariableFeatures = length(rownames(seuratObj)),
+                                                   variableGenesBlacklist = RIRA::GetGeneSet("VariableGenes_Exclusion.2"),
+                                                   scoreCellCycle=F
+      )
+    } else {
+      seuratObj <- CellMembrane::NormalizeAndScale(seuratObj, 
+                                                   nVariableFeatures = numberOfVariableFeatures,
+                                                   variableGenesBlacklist = RIRA::GetGeneSet("VariableGenes_Exclusion.2"),
+                                                   scoreCellCycle=F
+      )
+    }
+  }
+  #convert the scale.data matrix to include a labeled classification column
+  target_labeled_data <-
+    #merge the seuratObj's requested slot (converted to dense just in case a non-scale.data slot was used)
+    merge(
+      Matrix::t(as.matrix(Seurat::GetAssayData(
+        seuratObj,
+        assay = assay,
+        slot = slot
+      ))),
+      seuratObj@meta.data |>
+        dplyr::select(dplyr::all_of(metadataVariableForClassification)),
+      by = 0) |>
+    #drop rownames column
+    dplyr::select(-dplyr::all_of("Row.names")) 
+  
+  #fix gene names like MAMU-A with an easily replaceable "dash" and "leadingNumber"
+  colnames(target_labeled_data) <-
+    gsub("-", "dash", colnames(target_labeled_data))
+  colnames(target_labeled_data) <-
+    gsub("^[0-9]", "leadingNumber", colnames(target_labeled_data))
+  
+  ##set up task
+  task_metadata_classification <- mlr3::as_task_classif(target_labeled_data,
+                                                        target = metadataVariableForClassification,
+                                                        id = "metadata_classification")
+  #if a training set wasn't provided, create one, otherwise use the supplied split.
+  if (is.null(split)){
+    split <- mlr3::partition(task_metadata_classification)
+  }
+  #cv_glmnet to parameter scan regularization
+  learner <- mlr3::lrn("classif.cv_glmnet") 
+  learner$train(task = task_metadata_classification, row_ids = split$train)
+  #find %deviance over parameter scan
+  deviance_vector <-
+    round(1 - (deviance(learner$model$glmnet.fit) / learner$model$glmnet.fit$nulldev), 2) 
+  #select minimum lambda value above deviance cutoff
+  deviance_cutoff_index <- min(which(deviance_vector > devianceCutoff)) 
+  
+  #iterate through the classes of beta coefficients in the case of multinomial regression and collect useful features (genes) from each class
+  classification_features <- c()
+  for (class in names(learner$model$glmnet.fit$beta)) {
+    #apply deviance cutoff to select lambda value
+    class_weights_vector <-
+      learner$model$glmnet.fit$beta[[class]][, deviance_cutoff_index]
+    #harvest genes with non-zero beta coefficients
+    classification_features_for_class <-
+      names(class_weights_vector[abs(class_weights_vector) > 0])
+    #store selected genes
+    classification_features <- c(classification_features,
+                                 classification_features_for_class)
+  }
+  
+  #put the dashes back in the feature names and delete the "leadingNumber" prefix
+  classification_features <- gsub("dash", "-", classification_features)
+  classification_features <- gsub("leadingNumber", "", classification_features)
+  
+  #return either a vector of genes or both a model and vector of genes.
+  if (!returnModelAndSplits) {
+    return(classification_features)
+  } else {
+    return(list(
+      classification_features = classification_features,
+      model = learner$model, 
+      split = split
+    ))
+  }
+  
+}
