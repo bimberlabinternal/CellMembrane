@@ -622,7 +622,7 @@ FitRegularizedClassificationGlm <- function(seuratObj,
   learner$train(task = task_metadata_classification, row_ids = split$train)
   #find %deviance over parameter scan
   deviance_vector <-
-    round(1 - (deviance(learner$model$glmnet.fit) / learner$model$glmnet.fit$nulldev), 2) 
+    round(1 - (stats::deviance(learner$model$glmnet.fit) / learner$model$glmnet.fit$nulldev), 2) 
   #select minimum lambda value above deviance cutoff
   deviance_cutoff_index <- min(which(deviance_vector > devianceCutoff)) 
   
