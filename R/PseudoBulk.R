@@ -555,6 +555,7 @@ xnor <- function(x,y){(x == y)}
 #' @param split the option to provide a previous model's training/testing set. This is necessary if you're performing multiple iterations of model fitting. 
 #' @param returnModelAndSplits A boolean option to return a list containing the fitted model and training/testing splits in addition to the useful features. 
 #' @return A vector of genes useful for classification and, optionally, the model and training/testing sets.
+#' @import mlr3learners
 #' @export
 
 FitRegularizedClassificationGlm <- function(seuratObj,
