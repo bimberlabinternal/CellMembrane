@@ -17,6 +17,8 @@ FitRegularizedClassificationGlm(
 )
 }
 \arguments{
+\item{seuratObj}{a Seurat object}
+
 \item{metadataVariableForClassification}{The metadata feature to be classified. If non-binary, then multinomial regression will automatically be performed.}
 
 \item{rescale}{The feature selection will optimize for "heatmap-interpretable genes" so the features are intended to be scaled. If TRUE, this will rescale the variable features.}

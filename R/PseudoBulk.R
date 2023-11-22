@@ -545,6 +545,7 @@ xnor <- function(x,y){(x == y)}
 #' @title FitRegularizedClassificationGlm 
 #'
 #' @description Treating gene expression like a classification problem, this function trains a penalized model to classify a metadata feature. 
+#' @param seuratObj a Seurat object
 #' @param metadataVariableForClassification The metadata feature to be classified. If non-binary, then multinomial regression will automatically be performed. 
 #' @param rescale The feature selection will optimize for "heatmap-interpretable genes" so the features are intended to be scaled. If TRUE, this will rescale the variable features.
 #' @param numberOfVariableFeatures A parameter to select how many features should be selected as variable for scaling, by default, all genes will be used. 
