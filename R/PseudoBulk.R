@@ -612,12 +612,12 @@ FitRegularizedClassificationGlm <- function(seuratObj,
     gsub("^[0-9]", "leadingNumber", colnames(target_labeled_data))
   
   ##set up task
-  task_metadata_classification <- mlr3::as_task_classif(target_labeled_data,
+  task_metadata_classification <- as_task_classif(target_labeled_data,
                                                         target = metadataVariableForClassification,
                                                         id = "metadata_classification")
   #if a training set wasn't provided, create one, otherwise use the supplied split.
   if (is.null(split)){
-    split <- mlr3::partition(task_metadata_classification)
+    split <- partition(task_metadata_classification)
   }
   #cv_glmnet to parameter scan regularization
   learner <- lrn("classif.cv_glmnet") 
