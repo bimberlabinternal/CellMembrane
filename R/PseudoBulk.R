@@ -617,10 +617,10 @@ FitRegularizedClassificationGlm <- function(seuratObj,
                                                         id = "metadata_classification")
   #if a training set wasn't provided, create one, otherwise use the supplied split.
   if (is.null(split)){
-    split <- partition(task_metadata_classification)
+    split <- mlr3::partition(task_metadata_classification)
   }
   #cv_glmnet to parameter scan regularization
-  learner <- lrn("classif.cv_glmnet") 
+  learner <- mlr3::lrn("classif.cv_glmnet")
   learner$train(task = task_metadata_classification, row_ids = split$train)
   #find %deviance over parameter scan
   deviance_vector <-
