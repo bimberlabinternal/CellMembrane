@@ -556,6 +556,7 @@ xnor <- function(x,y){(x == y)}
 #' @param returnModelAndSplits A boolean option to return a list containing the fitted model and training/testing splits in addition to the useful features. 
 #' @return A vector of genes useful for classification and, optionally, the model and training/testing sets.
 #' @import mlr3verse
+#' @importFrom mlr3 as_task_classif lrn partition
 #' @export
 
 FitRegularizedClassificationGlm <- function(seuratObj,
