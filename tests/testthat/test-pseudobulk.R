@@ -77,3 +77,22 @@ test_that("Logic gate study design works", {
   #test that timepoints are always equal
   testthat::expect_true(all(filtered_contrasts_require_identical[,"positive_contrast_timepoint"] == filtered_contrasts_require_identical[,"negative_contrast_timepoint"]))
 })
+
+test_that("Feature Selection by GLM works", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  testthat::expect_equal(ncol(seuratObj), expected = 1557) #check that test seuratObj doesn't change
+  #add fabricated study metadata
+  seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy", "day4"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"subject"] <- c(base::rep(1, length.out = 1000), base::rep(2, length.out = 557))
+  #set up pseudobulking
+  pbulk <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint","subject"))
+  
+  classification_results <- suppressWarnings(FitRegularizedClassificationGlm(pbulk, 
+                                                          metadataVariableForClassification = "vaccine_cohort", 
+                                                          returnModelAndSplits = T, 
+                                                          rescale = F
+                                                          ))
+  #ensure a glmnet specific parameter exists in the fitted model, showing that it trained successfully
+  expect_true("lambda.min" %in% names(classification_results$model))
+})

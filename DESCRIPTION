@@ -72,7 +72,10 @@ Imports:
     parallel,
     text2vec, 
     tibble, 
-    readr
+    readr, 
+    mlr3verse,
+    mlr3,
+    glmnet
 Suggests:
     devtools,
     testthat (>= 2.1.0),
