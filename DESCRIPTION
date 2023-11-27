@@ -74,6 +74,7 @@ Imports:
     tibble, 
     readr, 
     mlr3verse,
+    mlr3,
     glmnet
 Suggests:
     devtools,
