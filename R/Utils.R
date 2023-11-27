@@ -355,7 +355,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
   normalizedMat <- NULL
 
   for (groupName in groups) {
-    cells <- colnames(seuratObj)[seuratObj@meta.data[[groupingVar]] == groupName]
+    cells <- colnames(seuratObj)[!is.na(seuratObj@meta.data[[groupingVar]]) & seuratObj@meta.data[[groupingVar]] == groupName]
     print(paste0('Processing group: ', groupName, ' with ', length(cells), ' cells'))
     ad <- subset(seuratObj@assays[[sourceAssay]], cells = cells)
     if (ncol(ad) != length(cells)) {
