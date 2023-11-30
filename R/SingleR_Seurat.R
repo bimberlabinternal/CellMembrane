@@ -20,7 +20,6 @@ utils::globalVariables(
 #' @return The modified seurat object
 #' @import Seurat
 #' @import SingleR
-#' @import celldex
 #' @export
 #' @importFrom scuttle logNormCounts
 RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco', 'immgen'), assay = NULL, resultTableFile = NULL, rawDataFile = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000, nThreads = NULL, createConsensus = TRUE){
@@ -47,20 +46,20 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
   for (dataset in datasets) {
     print(paste0('Adding dataset: ', dataset))
     if (dataset == 'hpca'){
-        ref <- celldex::HumanPrimaryCellAtlasData()
+        ref <- SingleR::HumanPrimaryCellAtlasData()
 		} else if (dataset == 'immgen') {
-      ref <- celldex::ImmGenData()
+      ref <- SingleR::ImmGenData()
       rownames(ref) <- toupper(rownames(ref))
     } else if (dataset == 'blueprint') {
-      ref <- celldex::BlueprintEncodeData()
+      ref <- SingleR::BlueprintEncodeData()
     } else if (dataset == 'dice') {
-      ref <- celldex::DatabaseImmuneCellExpressionData()
+      ref <- SingleR::DatabaseImmuneCellExpressionData()
     } else if (dataset == 'monaco') {
-      ref <- celldex::MonacoImmuneData()
+      ref <- SingleR::MonacoImmuneData()
     } else {
       ref <- NULL
       tryCatch({
-        ref <- get(dataset, envir = rlang::pkg_env('celldex'))
+        ref <- get(dataset, envir = rlang::pkg_env('SingleR'))
       }, error = function(x){
         # Ignore
       })

@@ -31,7 +31,6 @@ Imports:
     scDblFinder,
     pheatmap,
     ComplexHeatmap,
-    celldex,
     methods,
     egg,
     scuttle,
