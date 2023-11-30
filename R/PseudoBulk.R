@@ -42,10 +42,10 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFi
     x <- sort(metaGrouped$KeyField[sel])
     y <- sort(colnames(a)[sel])
 
-    warn('The keyField and AverageExpression object keys to do not match. Key fields:')
-    warn(paste0(x, collapse = ';'))
-    warn('Seurat colnames:')
-    warn(paste0(y, collapse = ';'))
+    warning('The keyField and AverageExpression object keys to do not match. Key fields:')
+    warning(paste0(x, collapse = ';'))
+    warning('Seurat colnames:')
+    warning(paste0(y, collapse = ';'))
     stop('The keyField and AverageExpression object keys to do not match')
   }
 
