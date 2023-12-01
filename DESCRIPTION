@@ -25,6 +25,7 @@ Imports:
     reshape2,
     DropletUtils,
     SingleR,
+    celldex,
     DESeq2,
     MAST,
     SummarizedExperiment,

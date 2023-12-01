@@ -20,7 +20,7 @@ RunSingleR(
 \arguments{
 \item{seuratObj}{A Seurat object}
 
-\item{datasets}{One or more datasets to use as a reference. Allowable values are: hpca, blueprint, dice, monaco, and immgen. See cellDex package for available datasets.}
+\item{datasets}{One or more datasets to use as a reference. Allowable values are: hpca, blueprint, dice, monaco, and immgen. See celldex package for available datasets.}
 
 \item{assay}{The assay in the seurat object to use}
 

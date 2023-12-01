@@ -8,7 +8,7 @@ utils::globalVariables(
 #'
 #' @description Compute SingleR classification on a Seurat object
 #' @param seuratObj A Seurat object
-#' @param datasets One or more datasets to use as a reference. Allowable values are: hpca, blueprint, dice, monaco, and immgen. See cellDex package for available datasets.
+#' @param datasets One or more datasets to use as a reference. Allowable values are: hpca, blueprint, dice, monaco, and immgen. See celldex package for available datasets.
 #' @param assay The assay in the seurat object to use
 #' @param resultTableFile If provided, a table of results will be saved here
 #' @param rawDataFile If provided, the complete SingleR results will be saved to this file
