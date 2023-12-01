@@ -20,7 +20,6 @@ utils::globalVariables(
 #' @return The modified seurat object
 #' @import Seurat
 #' @import SingleR
-#' @import celldex
 #' @export
 #' @importFrom scuttle logNormCounts
 RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice', 'monaco', 'immgen'), assay = NULL, resultTableFile = NULL, rawDataFile = NULL, minFraction = 0.01, showHeatmap = TRUE, maxCellsForHeatmap = 20000, nThreads = NULL, createConsensus = TRUE){
@@ -57,6 +56,8 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       ref <- SingleR::DatabaseImmuneCellExpressionData()
     } else if (dataset == 'monaco') {
       ref <- SingleR::MonacoImmuneData()
+    } else if (dataset == 'MouseRNAseqData') {
+      ref <- SingleR::MouseRNAseqData()
     } else {
       ref <- NULL
       tryCatch({
