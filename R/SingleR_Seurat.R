@@ -59,9 +59,11 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     } else {
       ref <- NULL
       tryCatch({
-        ref <- get(dataset, envir = rlang::pkg_env('SingleR'))
+        library(celldex, quietly = TRUE)
+        ref <- get(dataset, envir = rlang::pkg_env('celldex'))
       }, error = function(x){
         # Ignore
+        print(x)
       })
 
       if (is.null(ref)) {
