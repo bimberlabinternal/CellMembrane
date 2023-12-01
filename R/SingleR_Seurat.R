@@ -56,11 +56,12 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       ref <- SingleR::DatabaseImmuneCellExpressionData()
     } else if (dataset == 'monaco') {
       ref <- SingleR::MonacoImmuneData()
+    } else if (dataset == 'MouseRNAseqData') {
+      ref <- SingleR::MouseRNAseqData()
     } else {
       ref <- NULL
       tryCatch({
-        library(celldex, quietly = TRUE)
-        ref <- get(dataset, envir = rlang::pkg_env('celldex'))
+        ref <- get(dataset)
       }, error = function(x){
         # Ignore
         print(x)
