@@ -123,3 +123,4 @@ Collate:
     'Spatial.R'
     'Vision.R'
     'data.R'
+    'sctour.R'
