@@ -359,7 +359,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
     print(paste0('Processing group: ', groupName, ' with ', length(cells), ' cells'))
     ad <- subset(seuratObj@assays[[sourceAssay]], cells = cells)
     if (ncol(ad) != length(cells)) {
-      stop(paste0('Incorrect assay subset. Expected: ', length(cells), ', actual: ', ncol(ad)))
+      stop(paste0('Incorrect assay subset for group: ', groupName, '. Expected: ', length(cells), ', actual: ', ncol(ad)))
     }
 
     if (!all(is.null(featureInclusionList))) {
