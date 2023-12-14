@@ -606,11 +606,12 @@ FitRegularizedClassificationGlm <- function(seuratObj,
     #drop rownames column
     dplyr::select(-dplyr::all_of("Row.names")) 
   
-  #fix gene names like MAMU-A with an easily replaceable "dash" and "leadingNumber"
+  #fix gene names like MAMU-A or UGT2B9*2 with an easily replaceable and uniquely mapping "dash", "leadingNumber", or "star".
   colnames(target_labeled_data) <-
     gsub("-", "dash", colnames(target_labeled_data))
   colnames(target_labeled_data) <-
     gsub("^[0-9]", "leadingNumber", colnames(target_labeled_data))
+  colnames(target_labeled_data) <- gsub("\\*", "star", colnames(target_labeled_data))
   
   ##set up task
   task_metadata_classification <- mlr3::as_task_classif(target_labeled_data,
@@ -643,9 +644,10 @@ FitRegularizedClassificationGlm <- function(seuratObj,
                                  classification_features_for_class)
   }
   
-  #put the dashes back in the feature names and delete the "leadingNumber" prefix
+  #put the dashes back in the feature names, delete the "leadingNumber" prefix, and replace "star" with asterisks.
   classification_features <- gsub("dash", "-", classification_features)
   classification_features <- gsub("leadingNumber", "", classification_features)
+  classification_features <- gsub("star", "*", classification_features)
   
   #return either a vector of genes or both a model and vector of genes.
   if (!returnModelAndSplits) {
