@@ -15,7 +15,7 @@ utils::globalVariables(
 #' @param exclusionJsonPath Filename for the file containing the gene exclusion list (.json extension)
 #' @param modelBasePath A directory that will store the resulting pytorch model after model training. 
 #' @param modelFileName The model's file name. The full name of the model will be modelFileName.pth 
-#' @param variablesGenesFile An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".
+#' @param variableGenesFile An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".
 #' @param embeddingOutFile The scTour model yields a dimensionally reduced space that a UMAP can be computed on. This file stores cell embeddings into this latent space, which are added as an "SCTOUR_" reduction into the input seurat object. 
 #' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training. 
 #' @return A seurat object with pseudotime and dimensional reductions computed by scTour
@@ -27,7 +27,7 @@ utils::globalVariables(
 #'                 modelFileName = "test_model",
 #'                 exclusionJsonPath = './exclusion_tempfile.json',
 #'                 ptimeOutFile = './ptime_out_file.csv',
-#'                 variablesGenesFile = './variable_genes_out_file.csv',
+#'                 variableGenesFile = './variable_genes_out_file.csv',
 #'                 assayName = "RNA",
 #'                 embeddingOutFile = "./embeddings.csv",
 #'                 cleanUpIntermediateFiles = T)
@@ -42,7 +42,7 @@ TrainSctourModel <- function(seuratObj = NULL,
                              modelBasePath = NULL,
                              modelFileName = NULL,
                              ptimeOutFile = NULL,
-                             variablesGenesFile = NULL,
+                             variableGenesFile = NULL,
                              embeddingOutFile = NULL, 
                              assayName = "RNA", 
                              cleanUpIntermediateFiles = T) {
@@ -66,7 +66,7 @@ TrainSctourModel <- function(seuratObj = NULL,
                    "', model_name = '", R.utils::getAbsolutePath(modelFileName, mustWork = FALSE),
                    "', embedding_out_file = '", R.utils::getAbsolutePath(embeddingOutFile, mustWork = FALSE),
                    "', ptime_out_file = '", R.utils::getAbsolutePath(ptimeOutFile, mustWork = FALSE),
-                   "', variable_genes_out_file = '", R.utils::getAbsolutePath(variablesGenesFile, mustWork = FALSE),
+                   "', variable_genes_out_file = '", R.utils::getAbsolutePath(variableGenesFile, mustWork = FALSE),
                    "')")
   readr::write_file(newstr, script, append = TRUE)
   readr::read_file(script)
@@ -107,7 +107,7 @@ TrainSctourModel <- function(seuratObj = NULL,
 #' @param GEXOutfile The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).
 #' @param assayName Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".
 #' @param modelFile A path pointing to a trained scTour model. 
-#' @param variablesGenesFile A path pointing to a trained scTour model's variable features. An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".
+#' @param variableGenesFile A path pointing to a trained scTour model's variable features. An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".
 #' @param embeddingOutFile The scTour model yields a dimensionally reduced space that a UMAP can be computed on. This file stores cell embeddings into this latent space, which are added as an "SCTOUR_" reduction into the input seurat object. 
 #' @param ptimeOutFile An output file that will contain a Nx2 csv where n is the number of cells in the seurat object, the first column is cell barcodes, and the second column is pseudotime as predicted by the model. 
 #' @param embeddingOutFile The scTour model will also compute cell embeddings and append them to the seurat object. These will be appended under the 'SCTOUR_" dimensional reduction. 
@@ -151,7 +151,7 @@ PredictScTourPseudotime <- function(seuratObj = NULL,
   
   newstr <- paste0("PredictPseudotime(GEXfile = '", GEXOutfile,
                    "', model_file = '", R.utils::getAbsolutePath(modelFile, mustWork = FALSE),
-                   "', variable_genes_file = '", R.utils::getAbsolutePath(variablesGenesFile, mustWork = FALSE), 
+                   "', variable_genes_file = '", R.utils::getAbsolutePath(variableGenesFile, mustWork = FALSE), 
                    "', ptime_out_file = '", R.utils::getAbsolutePath(ptimeOutFile, mustWork = FALSE),
                    "', embedding_out_file = '", R.utils::getAbsolutePath(embeddingOutFile, mustWork = FALSE),
                    "')")

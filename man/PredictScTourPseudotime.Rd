@@ -22,6 +22,8 @@ PredictScTourPseudotime(
 
 \item{modelFile}{A path pointing to a trained scTour model.}
 
+\item{variableGenesFile}{A path pointing to a trained scTour model's variable features. An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".}
+
 \item{ptimeOutFile}{An output file that will contain a Nx2 csv where n is the number of cells in the seurat object, the first column is cell barcodes, and the second column is pseudotime as predicted by the model.}
 
 \item{embeddingOutFile}{The scTour model will also compute cell embeddings and append them to the seurat object. These will be appended under the 'SCTOUR_" dimensional reduction.}
@@ -29,8 +31,6 @@ PredictScTourPseudotime(
 \item{assayName}{Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".}
 
 \item{cleanUpIntermediateFiles}{This boolean controls if GEXOutfile, embeddingOutFile, and ptimeOutFile should be deleted after model training.}
-
-\item{variablesGenesFile}{A path pointing to a trained scTour model's variable features. An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".}
 }
 \value{
 A Seurat Object with pseudotime from the supplied model written into its metadata.
