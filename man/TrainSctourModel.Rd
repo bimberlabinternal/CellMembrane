@@ -7,7 +7,8 @@
 TrainSctourModel(
   seuratObj = NULL,
   GEXOutfile = NULL,
-  exclusionList = NULL,
+  riraExclusionGeneSets = "VariableGenes_Exclusion.2",
+  exclusionBlacklist = c(),
   exclusionJsonPath = NULL,
   modelBasePath = NULL,
   modelFileName = NULL,
@@ -23,7 +24,9 @@ TrainSctourModel(
 
 \item{GEXOutfile}{The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).}
 
-\item{exclusionList}{List of genes to be excluded from variable genes in sctour. Usually a RIRA GeneSet.}
+\item{riraExclusionGeneSets}{RIRA Gene set names to be excluded from model training features.}
+
+\item{exclusionBlacklist}{A vector of gene names to be excluded from variable feature selection in model training. This can be combined with RIRA gene sets via the riraExclusionGeneSets argument.}
 
 \item{exclusionJsonPath}{Filename for the file containing the gene exclusion list (.json extension)}
 

@@ -26,9 +26,11 @@ test_that("TrainSctourModel works", {
                    GEXOutfile = './gex_tempfile.h5', 
                    modelBasePath =  './', 
                    modelFileName = "test_model",
+                   exclusionBlacklist = c(), 
+                   riraExclusionGeneSets = "VariableGenes_Exclusion.2",
                    exclusionJsonPath = './exclusion_tempfile.json',
                    ptimeOutFile = './ptime_out_file.csv',
-                   variablesGenesFile = './variable_genes_out_file.csv',
+                   variableGenesFile = './variable_genes_out_file.csv',
                    assayName = "RNA",
                    embeddingOutFile = "./embeddings.csv",
                    cleanUpIntermediateFiles = T
@@ -49,6 +51,7 @@ test_that("TrainSctourModel works", {
                                        ptimeOutFile ='./ptime_out_file.csv', 
                                        cleanUpIntermediateFiles = T)
   testthat::expect_true("pseudotime" %in% colnames(seuratObj@meta.data))
+  testthat::expect_true("sctour" %in% names(seuratObj@reductions))
   #file cleanup
   ##unlink(c("./sctour_model.pth", "./variableGenes.csv"))
 })

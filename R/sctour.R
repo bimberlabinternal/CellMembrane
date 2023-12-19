@@ -11,7 +11,8 @@ utils::globalVariables(
 #' @param seuratObj The Seurat object containing the data. 
 #' @param GEXOutfile The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).
 #' @param assayName Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".
-#' @param exclusionList List of genes to be excluded from variable genes in sctour. Usually a RIRA GeneSet.
+#' @param exclusionBlacklist A vector of gene names to be excluded from variable feature selection in model training. This can be combined with RIRA gene sets via the riraExclusionGeneSets argument.
+#' @param riraExclusionGeneSets RIRA Gene set names to be excluded from model training features. 
 #' @param exclusionJsonPath Filename for the file containing the gene exclusion list (.json extension)
 #' @param modelBasePath A directory that will store the resulting pytorch model after model training. 
 #' @param modelFileName The model's file name. The full name of the model will be modelFileName.pth 
@@ -20,12 +21,14 @@ utils::globalVariables(
 #' @param embeddingOutFile The scTour model yields a dimensionally reduced space that a UMAP can be computed on. This file stores cell embeddings into this latent space, which are added as an "SCTOUR_" reduction into the input seurat object. 
 #' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training. 
 #' @return A seurat object with pseudotime and dimensional reductions computed by scTour
+#' @importFrom jsonlite write_json
 #' @examples
 #' \dontrun{
 #' seuratObj <- TrainSctourModel(seuratObj = seuratObj, 
 #'                 GEXOutfile = './gex_tempfile.h5', 
 #'                 modelBasePath =  './', 
 #'                 modelFileName = "test_model",
+#'                 riraExclusionGeneSets = "VariableGenes_Exclusion.2", 
 #'                 exclusionJsonPath = './exclusion_tempfile.json',
 #'                 ptimeOutFile = './ptime_out_file.csv',
 #'                 variableGenesFile = './variable_genes_out_file.csv',
@@ -38,7 +41,8 @@ utils::globalVariables(
 
 TrainSctourModel <- function(seuratObj = NULL,
                              GEXOutfile = NULL,
-                             exclusionList = NULL,
+                             riraExclusionGeneSets = "VariableGenes_Exclusion.2", 
+                             exclusionBlacklist = c(), 
                              exclusionJsonPath = NULL,
                              modelBasePath = NULL,
                              modelFileName = NULL,
@@ -48,6 +52,14 @@ TrainSctourModel <- function(seuratObj = NULL,
                              assayName = "RNA", 
                              cleanUpIntermediateFiles = T) {
   #TODO: Sanitize inputs
+  
+  #iterate over supplied gene sets and construct a gene set exclusion list
+  exclusionList <- exclusionBlacklist
+  for (geneSet in riraExclusionGeneSets) {
+    exclusionList <- c(RIRA::GetGeneSet(geneSet), exclusionList)
+  }
+  #force the exclusion list to be unique.
+  exclusionList <- unique(exclusionList)
   
   # write out data for scTour 
   jsonlite::write_json(exclusionList, exclusionJsonPath)
