@@ -12,7 +12,7 @@ TrainSctourModel(
   modelBasePath = NULL,
   modelFileName = NULL,
   ptimeOutFile = NULL,
-  variablesGenesFile = NULL,
+  variableGenesFile = NULL,
   embeddingOutFile = NULL,
   assayName = "RNA",
   cleanUpIntermediateFiles = T
@@ -31,7 +31,7 @@ TrainSctourModel(
 
 \item{modelFileName}{The model's file name. The full name of the model will be modelFileName.pth}
 
-\item{variablesGenesFile}{An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".}
+\item{variableGenesFile}{An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".}
 
 \item{embeddingOutFile}{The scTour model yields a dimensionally reduced space that a UMAP can be computed on. This file stores cell embeddings into this latent space, which are added as an "SCTOUR_" reduction into the input seurat object.}
 
@@ -53,7 +53,7 @@ seuratObj <- TrainSctourModel(seuratObj = seuratObj,
                 modelFileName = "test_model",
                 exclusionJsonPath = './exclusion_tempfile.json',
                 ptimeOutFile = './ptime_out_file.csv',
-                variablesGenesFile = './variable_genes_out_file.csv',
+                variableGenesFile = './variable_genes_out_file.csv',
                 assayName = "RNA",
                 embeddingOutFile = "./embeddings.csv",
                 cleanUpIntermediateFiles = T)
