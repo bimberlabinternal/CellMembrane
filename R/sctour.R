@@ -15,6 +15,7 @@ utils::globalVariables(
 #' @param exclusionJsonPath Filename for the file containing the gene exclusion list (.json extension)
 #' @param modelBasePath A directory that will store the resulting pytorch model after model training. 
 #' @param modelFileName The model's file name. The full name of the model will be modelFileName.pth 
+#' @param ptimeOutFile An output file that will contain a Nx2 csv where n is the number of cells in the seurat object, the first column is cell barcodes, and the second column is pseudotime as predicted by the model. 
 #' @param variableGenesFile An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".
 #' @param embeddingOutFile The scTour model yields a dimensionally reduced space that a UMAP can be computed on. This file stores cell embeddings into this latent space, which are added as an "SCTOUR_" reduction into the input seurat object. 
 #' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training. 
