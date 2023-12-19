@@ -9,12 +9,16 @@ utils::globalVariables(
 #'
 #' @description Trains an sctour model on a Seurat object
 #' @param seuratObj The Seurat object containing the data. 
-#' @param GEX_outfile The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).
-#' @param meta_outfile The filename used for containing the seuratObj metadata.
+#' @param GEXOutfile The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).
 #' @param assayName Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".
 #' @param exclusionList List of genes to be excluded from variable genes in sctour. Usually a RIRA GeneSet.
-#' @param exclusion_JSON_path Filename for the file containing the gene exclusion list (.json extension)
-#' @return A sctour model (saved as a pytorch model). 
+#' @param exclusionJsonPath Filename for the file containing the gene exclusion list (.json extension)
+#' @param modelBasePath A directory that will store the resulting pytorch model after model training. 
+#' @param modelFileName The model's file name. The full name of the model will be modelFileName.pth 
+#' @param variablesGenesFile An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".
+#' @param embeddingOutFile The scTour model yields a dimensionally reduced space that a UMAP can be computed on. This file stores cell embeddings into this latent space, which are added as an "SCTOUR_" reduction into the input seurat object. 
+#' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training. 
+#' @return A seurat object with pseudotime and dimensional reductions computed by scTour
 #' @examples
 #' \dontrun{
 #' seuratObj <- TrainSctourModel(seuratObj = seuratObj, 
@@ -45,7 +49,7 @@ TrainSctourModel <- function(seuratObj = NULL,
   #TODO: Sanitize inputs
   
   # write out data for scTour 
-  jsonlite::write_json(exclusionList, exclusion_JSON_path)
+  jsonlite::write_json(exclusionList, exclusionJsonPath)
   DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts'), 
                                path = GEX_outfile,
                                overwrite = TRUE)
@@ -90,7 +94,7 @@ TrainSctourModel <- function(seuratObj = NULL,
   print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = 'sctour'))
   
   if(cleanUpIntermediateFiles){
-    unlink(c(GEXOutfile, ptimeOutFile, embeddingOutFile, exclusion_JSON_path))
+    unlink(c(GEXOutfile, ptimeOutFile, embeddingOutFile, exclusionJsonPath))
   }
   
   return(seuratObj)
@@ -100,9 +104,14 @@ TrainSctourModel <- function(seuratObj = NULL,
 #'
 #' @description Predicts pseudotime from a trained sctour model.
 #' @param seuratObj The Seurat object containing the data. 
-#' @param GEX_outfile The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).
-#' @param meta_outfile The filename used for containing the seuratObj metadata.
+#' @param GEXOutfile The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).
 #' @param assayName Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".
+#' @param modelFile A path pointing to a trained scTour model. 
+#' @param variablesGenesFile A path pointing to a trained scTour model's variable features. An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".
+#' @param embeddingOutFile The scTour model yields a dimensionally reduced space that a UMAP can be computed on. This file stores cell embeddings into this latent space, which are added as an "SCTOUR_" reduction into the input seurat object. 
+#' @param ptimeOutFile An output file that will contain a Nx2 csv where n is the number of cells in the seurat object, the first column is cell barcodes, and the second column is pseudotime as predicted by the model. 
+#' @param embeddingOutFile The scTour model will also compute cell embeddings and append them to the seurat object. These will be appended under the 'SCTOUR_" dimensional reduction. 
+#' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and ptimeOutFile should be deleted after model training. 
 #' @return A Seurat Object with pseudotime from the supplied model written into its metadata.  
 #' @examples
 #' \dontrun{
@@ -174,7 +183,7 @@ PredictScTourPseudotime <- function(seuratObj = NULL,
   print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = 'sctour'))
   
   if(cleanUpIntermediateFiles){
-    unlink(c(GEXOutfile, ptimeOutFile, embeddingOutFile, exclusion_JSON_path))
+    unlink(c(GEXOutfile, ptimeOutFile, embeddingOutFile))
   }
   
   return(seuratObj)
