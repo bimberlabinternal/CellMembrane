@@ -18,6 +18,14 @@ test_that("Pseudobulk works", {
   
   expect_equal(max(pseudo3$p.mito_mean, na.rm = T), 0.06488353)
   expect_equal(min(pseudo3$p.mito_mean, na.rm = T), 0.04050757)
+  
+  pseudo4 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'), identifyAndPseudobulkProliferativeCluster = T, useConditionalProliferatingBlacklist = F)
+  testthat::expect_true(pseudo@meta.data[pseudo$ClusterNames_0.2 == 1,"Proliferating"] == "ProliferatingCluster")
+  
+  pseudo5 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'), identifyAndPseudobulkProliferativeCluster = T, 
+                             useConditionalProliferatingBlacklist = T, 
+                             conditionalProliferatingBlacklistField = "ClusterNames_0.2", conditionalProliferatingBlacklistValues = 1)
+  testthat::expect_true(all(pseudo5$Proliferating == "NonProliferatingCluster"))
 })
 
 test_that("Pseudobulk-based differential expression works", {
