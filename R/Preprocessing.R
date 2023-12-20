@@ -294,3 +294,39 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 	stop(paste0('Unable to find matrix file in: ', dataDir, ' or ', dirWithFeatureMatrix))
 }
+
+#' @title LogNormalizeUsingAlternateAssay
+#'
+#' @param seuratObject The seurat object
+#' @param assayToNormalize The name of the assay to normalize
+#' @param assayForLibrarySize The name of the assay from which to derive library sizes. This will be added to the library size of assayToNormalize.
+#' @param scale.factor A scale factor to be applied in normalization
+#' @param maxLibrarySizeRatio This normalization relies on the assumption that the library size of the assay being normalized in negligible relative to the assayForLibrarySize. To verify this holds true, the method will error if librarySize(assayToNormalize)/librarySize(assayForLibrarySize) exceeds this value
+#' @export
+LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayForLibrarySize = 'RNA', scale.factor = 1e4, maxLibrarySizeRatio = 0.006) {
+	toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, slot = 'counts')
+	assayForLibrarySizeData <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, slot = 'counts')
+
+	if (any(colnames(toNormalize) != colnames(assayForLibrarySize))) {
+		stop(paste0('The assayToNormalize and assayForLibrarySize do not have the same cell names!'))
+	}
+
+	margin <- 2
+	ncells <- dim(x = toNormalize)[margin]
+
+	for (i in seq_len(length.out = ncells)) {
+		x <- toNormalize[, i]
+		librarySize <- sum(x) + sum(assayForLibrarySizeData[, i])
+
+		if ((sum(x) / librarySize) > maxLibrarySizeRatio) {
+			stop(paste0('The ratio of library sizes was above maxLibrarySizeRatio for cell: ', colnames(assayForLibrarySizeData)[i], '. was: ', (sum(x) / librarySize), ' (', sum(x), ' / ', librarySize, ')'))
+		}
+
+		xnorm <- log1p(x = x / librarySize * scale.factor)
+		toNormalize[, i] <- xnorm
+	}
+
+	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, slot = 'data', new.data = toNormalize)
+
+	return(seuratObj)
+}

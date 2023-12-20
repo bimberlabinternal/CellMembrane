@@ -1,4 +1,4 @@
-library(DropletUtils);
+library(DropletUtils)
 
 context("scRNAseq")
 
@@ -124,4 +124,22 @@ test_that("Serat SCTransform works as expected", {
 
   expect_equal(length(rownames(seuratObjSCT@assays$SCT@scale.data)), length(rownames(seuratObjSCT@assays$SCT@counts)))
   expect_equal(ncol(seuratObjSCT), ncol(seuratObj))
+})
+
+
+test_that("LogNormalizeUsingAlternateAssay works as expected", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+
+  assayToAdd <- Seurat::GetAssayData(seuratObj, assay = 'RNA', layer = 'counts')
+  assayToAdd <- assayToAdd[1:10,]
+  assayToAdd <- assayToAdd / 50
+  rownames(assayToAdd) <- paste0('Feature', LETTERS[1:10])
+
+  seuratObj[['Norm']] <- Seurat::CreateAssayObject(assayToAdd)
+
+  seuratObj <- LogNormalizeUsingAlternateAssay(seuratObj, assayToNormalize = 'Norm', assayForLibrarySize = 'RNA')
+
+  nd <- Seurat::GetAssayData(seuratObj, assay = 'Norm', layer = 'data')
+  expect_equal(max(nd[,2]), 0.3087937)
+  expect_equal(max(nd[,100]), 0.7821186)
 })
