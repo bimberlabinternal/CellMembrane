@@ -19,13 +19,12 @@ test_that("Pseudobulk works", {
   expect_equal(max(pseudo3$p.mito_mean, na.rm = T), 0.06488353)
   expect_equal(min(pseudo3$p.mito_mean, na.rm = T), 0.04050757)
   
-  pseudo4 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'), identifyAndPseudobulkProliferativeCluster = T, useConditionalProliferatingBlacklist = F)
-  testthat::expect_true(pseudo@meta.data[pseudo$ClusterNames_0.2 == 1,"Proliferating"] == "ProliferatingCluster")
+  pseudo4 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'), nCountRnaStratification = T, stratificationGroupingField = "ClusterNames_0.2")
+  testthat::expect_true(all(pseudo4$nCount_RNA_Stratification == "NormalRNACounts"))
   
-  pseudo5 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'), identifyAndPseudobulkProliferativeCluster = T, 
-                             useConditionalProliferatingBlacklist = T, 
-                             conditionalProliferatingBlacklistField = "ClusterNames_0.2", conditionalProliferatingBlacklistValues = 1)
-  testthat::expect_true(all(pseudo5$Proliferating == "NonProliferatingCluster"))
+  pseudo5 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_1.2'), nCountRnaStratification = T, stratificationGroupingField = "ClusterNames_1.2")
+  #cluster 8 has a low nCount_RNA distribution, which passes at 0.2 resolution (approximately cluster 4) but fails at 1.2.
+  testthat::expect_true(pseudo5@meta.data[pseudo5$ClusterNames_1.2 == 8, "nCount_RNA_Stratification"] == "AbnormalRNACounts")
 })
 
 test_that("Pseudobulk-based differential expression works", {

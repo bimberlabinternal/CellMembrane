@@ -17,65 +17,68 @@ utils::globalVariables(
 #' @param assays The assays to aggregate
 #' @param additionalFieldsToAggregate An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.
 #' @param metaFieldCollapseCharacter The character to use when concatenating metadata fields together to form the sample key field
-#' @param identifyAndPseudobulkProliferativeCluster A boolean determining whether or not automatic proliferative cluster detection should be attempted.
-#' @param proliferativeClusterGroupingVariable The metadata field containing groupings of cells to be specified as proliferating or not. 
-#' @param proliferativeMetadataColumn The metadata column where the "ProliferatingCluster" or "NonProliferatingCluster" will be stored in the seurat object's metadata.
-#' @param useConditionalProliferatingBlacklist Proliferating cell clusters are more common in lymphocytes, so it may be undesirable to perform this on myeloid cells. This boolean allows you to force cells to belong to a "NonProliferatingCluster" based on another metadata column.
-#' @param conditionalProliferatingBlacklistField The metadata column of the seurat object's metadata that stores the blacklist values to be corrected to "NonProliferatingCluster" regardless of cell phase. 
-#' @param conditionalProliferatingBlacklistValues The values of conditionalProliferatingBlacklistField that should be set to "NonProliferatingCluster" regardless of cell phase. 
+#' @param nCountRnaStratification A boolean determining whether or not automatic outlier detection of clusters with abnormal nCount_RNA should be detected.
+#' @param stratificationGroupingField The metadata field containing groupings of cells to be specified as having abnormal nCount_RNA distributions or not. 
 #' @return An aggregated Seurat object.
 #' @export
-PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFieldsToAggregate = NULL, metaFieldCollapseCharacter = '|', 
-                             identifyAndPseudobulkProliferativeCluster = F, 
-                             proliferativeClusterGroupingVariable = "ClusterNames_0.2", 
-                             proliferativeMetadataColumn = "Proliferating", 
-                             useConditionalProliferatingBlacklist = T, 
-                             conditionalProliferatingBlacklistField = "RIRA_Immune_v2.cellclass", 
-                             conditionalProliferatingBlacklistValues = "Myeloid") {
+PseudobulkSeurat <- function(seuratObj, 
+                             groupFields, 
+                             assays = NULL, 
+                             additionalFieldsToAggregate = NULL, 
+                             metaFieldCollapseCharacter = '|', 
+                             nCountRnaStratification = F, 
+                             stratificationGroupingField = "ClusterNames_0.2") {
   if (!all(groupFields %in% names(seuratObj@meta.data))) {
     stop('All fields from groupFields must be in seuratObj@meta.data')
   }
   
-  #identify a proliferative cell type cluster
-  if (identifyAndPseudobulkProliferativeCluster) {
-    #ensure phase and the grouping variable are defined
-    if (!("Phase" %in% colnames(seuratObj@meta.data))) {
-      stop("identifyAndPseudobulkProliferativeCluster was set to TRUE, but there is no Phase column in the input seurat object. Please ensure Cell Cycle Phase has been calculated.")
-    } else if (!(proliferativeClusterGroupingVariable %in% colnames(seuratObj@meta.data))) {
-      stop(paste0("Supplied proliferativeClusterGroupingVariable ", proliferativeClusterGroupingVariable, " is not present in the Seurat object's metadata. Please ensure your clustering metadata column is correct."))
-    } else {
-      #determine a proliferating cluster based on the proportion of cells in S phase. 
-      proliferative_cluster <- seuratObj@meta.data %>% 
-        dplyr::group_by(!!sym(proliferativeClusterGroupingVariable)) %>% 
-        mutate(cells_per_cluster = n()) %>% 
-        dplyr::group_by(Phase, !!sym(proliferativeClusterGroupingVariable)) %>% 
-        dplyr::reframe(cells_per_cluster_and_phase = n(), cluster_phase_proportion = cells_per_cluster_and_phase/cells_per_cluster) %>% 
-        filter(Phase == "S", cluster_phase_proportion == max(cluster_phase_proportion[Phase == "S"])) %>% 
-        select(!!sym(proliferativeClusterGroupingVariable)) %>% 
-        unique() %>% 
-        unlist() %>% 
-        as.character()
-      if (length(proliferative_cluster) > 1){
-        warning(paste0("There was a tie in the percentage of S phase cells per cluster. ", length(proliferative_cluster)," clusters in total will be set as Proliferating."))
-      }
-      #Set cells in the highest S phase proportion cluster as ProliferatingCluster
-      metadata <- seuratObj@meta.data %>% 
-        dplyr::mutate( !!proliferativeMetadataColumn :=  dplyr::case_when( !!sym(proliferativeClusterGroupingVariable) %in% proliferative_cluster ~ "ProliferatingCluster",
-                                                             !(!!sym(proliferativeClusterGroupingVariable)) %in% proliferative_cluster ~ "NonProliferatingCluster"))
-      
-      #if desired, set cells automatically to "NonProliferating" according to a second metadata column value. 
-      if (useConditionalProliferatingBlacklist) {
-        metadata <- metadata %>% 
-          mutate( !!proliferativeMetadataColumn :=  dplyr::case_when(!!sym(conditionalProliferatingBlacklistField) %in% conditionalProliferatingBlacklistValues ~ "NonProliferatingCluster", 
-                                                               !(!!sym(conditionalProliferatingBlacklistField) %in% conditionalProliferatingBlacklistValues) ~  !!sym(proliferativeMetadataColumn)))
-      }
-      #append proliferativeMetadataColumn to seurat object's metadata
-      seuratObj <- Seurat::AddMetaData(seuratObj, metadata[,c(proliferativeClusterGroupingVariable, proliferativeMetadataColumn)])
-      
+  #QC and pseudobulk based on nCount_RNA distributions
+  if (nCountRnaStratification) {
+    set.seed(GetSeed())
+    if (!is.integer(as.integer(as.character(seuratObj@meta.data[,stratificationGroupingField])))) {
+      stop("Only integer-based groups are capable of being stratified by nCount_RNA. Please specify a ClusterNames-type of grouping field or convert your desired grouping field to an integer.")
     }
-    #add the proliferative metadata column to groupFields for iteration.
-    groupFields <- c(groupFields, proliferativeMetadataColumn)
+    #coerce to a list of dataframes containing nCount_RNA (typically) based on a clustering algorithm
+    list_of_cluster_dataframes <- seuratObj@meta.data %>% 
+      tibble::rownames_to_column(var = "cellbarcode") %>% 
+      dplyr::select(!!sym(stratificationGroupingField), nCount_RNA) %>% 
+      dplyr::group_by(!!sym(stratificationGroupingField)) %>% 
+      dplyr::group_split()
+    
+    #determine the minimum cluster size (KL divergence requires equal sampling)
+    minimum_cluster_size <- min(unlist(lapply(list_of_cluster_dataframes, FUN = nrow)))
+    cluster_nCount_RNA_matrix <- matrix(nrow = minimum_cluster_size)
+    #construct matrix of samples from nCount_RNA distributions
+    for (cluster_dataframe in list_of_cluster_dataframes) {
+      cluster_nCount_RNA_matrix <- cbind(cluster_nCount_RNA_matrix, sample(cluster_dataframe$nCount_RNA, 
+                                                                           size = minimum_cluster_size, 
+                                                                           replace = F))
+    }
+    #drop NA column formed when initializing matrix
+    cluster_nCount_RNA_matrix <- cluster_nCount_RNA_matrix[,-1]
+    #compute KL divergences
+    KL_divergences <- flexmix::KLdiv(cluster_nCount_RNA_matrix)
+    
+    #perform rudimentary outlier detection on column sums of KL divergences assuming a half-normal distribution. 
+    abnormal_RNA_clusters_index <- which(colSums(KL_divergences) >= mean(colSums(KL_divergences)) + 2*sd(colSums(KL_divergences)))
+    
+    #We use 0 as a cluster index, and which() returns integer(0) if no clusters satisfy the check, so set these to NA to prevent accidental filtering.
+    #if they're not zero, then we need to zero index them (they're currently indexed as via the column indexing of KL_divergences, which starts at 1)
+    if (length(abnormal_RNA_clusters_index) == 0){
+      abnormal_RNA_clusters_index <- NA
+    } else {
+      abnormal_RNA_clusters_index <- abnormal_RNA_clusters_index - 1
+    }
+
+    
+    metadata <- seuratObj@meta.data %>% 
+      dplyr::mutate(nCount_RNA_Stratification = dplyr::case_when(!!sym(stratificationGroupingField) %in% abnormal_RNA_clusters_index ~ "AbnormalRNACounts",
+                                                                 !(!!sym(stratificationGroupingField) %in% abnormal_RNA_clusters_index) ~ "NormalRNACounts"))
+    seuratObj <- Seurat::AddMetaData(seuratObj, metadata = metadata)
+    groupFields <- c(groupFields, "nCount_RNA_Stratification")                                                             
   }
+  
+  
   
   # TODO: perhaps filtering on saturation, min.counts or other features??
   seuratObj$KeyField <- unname(apply(seuratObj@meta.data[,groupFields,drop = FALSE], 1, function(y){

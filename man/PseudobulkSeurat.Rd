@@ -10,12 +10,8 @@ PseudobulkSeurat(
   assays = NULL,
   additionalFieldsToAggregate = NULL,
   metaFieldCollapseCharacter = "|",
-  identifyAndPseudobulkProliferativeCluster = F,
-  proliferativeClusterGroupingVariable = "ClusterNames_0.2",
-  proliferativeMetadataColumn = "Proliferating",
-  useConditionalProliferatingBlacklist = T,
-  conditionalProliferatingBlacklistField = "RIRA_Immune_v2.cellclass",
-  conditionalProliferatingBlacklistValues = "Myeloid"
+  nCountRnaStratification = F,
+  stratificationGroupingField = "ClusterNames_0.2"
 )
 }
 \arguments{
@@ -29,17 +25,9 @@ PseudobulkSeurat(
 
 \item{metaFieldCollapseCharacter}{The character to use when concatenating metadata fields together to form the sample key field}
 
-\item{identifyAndPseudobulkProliferativeCluster}{A boolean determining whether or not automatic proliferative cluster detection should be attempted.}
+\item{nCountRnaStratification}{A boolean determining whether or not automatic outlier detection of clusters with abnormal nCount_RNA should be detected.}
 
-\item{proliferativeClusterGroupingVariable}{The metadata field containing groupings of cells to be specified as proliferating or not.}
-
-\item{proliferativeMetadataColumn}{The metadata column where the "ProliferatingCluster" or "NonProliferatingCluster" will be stored in the seurat object's metadata.}
-
-\item{useConditionalProliferatingBlacklist}{Proliferating cell clusters are more common in lymphocytes, so it may be undesirable to perform this on myeloid cells. This boolean allows you to force cells to belong to a "NonProliferatingCluster" based on another metadata column.}
-
-\item{conditionalProliferatingBlacklistField}{The metadata column of the seurat object's metadata that stores the blacklist values to be corrected to "NonProliferatingCluster" regardless of cell phase.}
-
-\item{conditionalProliferatingBlacklistValues}{The values of conditionalProliferatingBlacklistField that should be set to "NonProliferatingCluster" regardless of cell phase.}
+\item{stratificationGroupingField}{The metadata field containing groupings of cells to be specified as having abnormal nCount_RNA distributions or not.}
 }
 \value{
 An aggregated Seurat object.
