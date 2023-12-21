@@ -9,7 +9,7 @@ LogNormalizeUsingAlternateAssay(
   assayToNormalize,
   assayForLibrarySize = "RNA",
   scale.factor = 10000,
-  maxLibrarySizeRatio = 0.006
+  maxLibrarySizeRatio = 0.01
 )
 }
 \arguments{
