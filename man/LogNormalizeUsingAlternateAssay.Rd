@@ -13,6 +13,8 @@ LogNormalizeUsingAlternateAssay(
 )
 }
 \arguments{
+\item{seuratObj}{The seurat object}
+
 \item{assayToNormalize}{The name of the assay to normalize}
 
 \item{assayForLibrarySize}{The name of the assay from which to derive library sizes. This will be added to the library size of assayToNormalize.}
@@ -20,8 +22,6 @@ LogNormalizeUsingAlternateAssay(
 \item{scale.factor}{A scale factor to be applied in normalization}
 
 \item{maxLibrarySizeRatio}{This normalization relies on the assumption that the library size of the assay being normalized in negligible relative to the assayForLibrarySize. To verify this holds true, the method will error if librarySize(assayToNormalize)/librarySize(assayForLibrarySize) exceeds this value}
-
-\item{seuratObject}{The seurat object}
 }
 \description{
 LogNormalizeUsingAlternateAssay

@@ -297,7 +297,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 #' @title LogNormalizeUsingAlternateAssay
 #'
-#' @param seuratObject The seurat object
+#' @param seuratObj The seurat object
 #' @param assayToNormalize The name of the assay to normalize
 #' @param assayForLibrarySize The name of the assay from which to derive library sizes. This will be added to the library size of assayToNormalize.
 #' @param scale.factor A scale factor to be applied in normalization
