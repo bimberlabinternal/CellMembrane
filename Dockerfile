@@ -24,6 +24,8 @@ RUN apt-get update -y \
         locales-all \
         wget \
         git \
+        libxml2-dev \
+        libxslt-dev \
     && python3 -m pip install --upgrade pip \
     # NOTE: seaborn added for: https://github.com/scverse/scanpy/issues/2680
     && pip3 install umap-learn phate scanpy fastcluster seaborn==0.12.2 \
