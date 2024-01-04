@@ -18,7 +18,7 @@ utils::globalVariables(
 #' @param additionalFieldsToAggregate An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.
 #' @param metaFieldCollapseCharacter The character to use when concatenating metadata fields together to form the sample key field
 #' @param nCountRnaStratification A boolean determining whether or not automatic outlier detection of clusters with abnormal nCount_RNA should be detected.
-#' @param stratificationGroupingFields The metadata field containing groupings of cells to be specified as having abnormal nCount_RNA distributions or not. 
+#' @param stratificationGroupingFields The metadata fields containing groupings of cells to be specified as having abnormal nCount_RNA distributions or not. The "leftmost"/first argument that detects an outlier will break the looping and sequester cells at that value. It is recommended that this vector is arranged by a "least to most" specific hierarchy/progression.
 #' @return An aggregated Seurat object.
 #' @export
 PseudobulkSeurat <- function(seuratObj, 

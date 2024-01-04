@@ -28,7 +28,7 @@ PseudobulkSeurat(
 
 \item{nCountRnaStratification}{A boolean determining whether or not automatic outlier detection of clusters with abnormal nCount_RNA should be detected.}
 
-\item{stratificationGroupingFields}{The metadata field containing groupings of cells to be specified as having abnormal nCount_RNA distributions or not.}
+\item{stratificationGroupingFields}{The metadata fields containing groupings of cells to be specified as having abnormal nCount_RNA distributions or not. The "leftmost"/first argument that detects an outlier will break the looping and sequester cells at that value. It is recommended that this vector is arranged by a "least to most" specific hierarchy/progression.}
 }
 \value{
 An aggregated Seurat object.
