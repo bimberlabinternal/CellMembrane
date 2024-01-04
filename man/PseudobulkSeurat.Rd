@@ -11,7 +11,8 @@ PseudobulkSeurat(
   additionalFieldsToAggregate = NULL,
   metaFieldCollapseCharacter = "|",
   nCountRnaStratification = F,
-  stratificationGroupingField = "ClusterNames_0.2"
+  stratificationGroupingFields = c("ClusterNames_0.2", "ClusterNames_0.4",
+    "ClusterNames_0.6", "ClusterNames_0.8", "ClusterNames1.2")
 )
 }
 \arguments{
@@ -27,7 +28,7 @@ PseudobulkSeurat(
 
 \item{nCountRnaStratification}{A boolean determining whether or not automatic outlier detection of clusters with abnormal nCount_RNA should be detected.}
 
-\item{stratificationGroupingField}{The metadata field containing groupings of cells to be specified as having abnormal nCount_RNA distributions or not.}
+\item{stratificationGroupingFields}{The metadata field containing groupings of cells to be specified as having abnormal nCount_RNA distributions or not.}
 }
 \value{
 An aggregated Seurat object.
