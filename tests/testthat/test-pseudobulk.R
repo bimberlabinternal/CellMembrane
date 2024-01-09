@@ -18,6 +18,12 @@ test_that("Pseudobulk works", {
   
   expect_equal(max(pseudo3$p.mito_mean, na.rm = T), 0.06488353)
   expect_equal(min(pseudo3$p.mito_mean, na.rm = T), 0.04050757)
+  
+  pseudo4 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), nCountRnaStratification = T)
+  testthat::expect_false(all(pseudo4$nCount_RNA_Stratification == "NormalRNACounts"))
+  testthat::expect_true(pseudo4@meta.data[pseudo4$ClusterNames_0.4 == 5, "nCount_RNA_Stratification"] == "AbnormalRNACounts")
+  testthat::expect_warning(PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), nCountRnaStratification = T))
+
 })
 
 test_that("Pseudobulk-based differential expression works", {

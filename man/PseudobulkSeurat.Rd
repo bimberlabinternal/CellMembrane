@@ -9,7 +9,10 @@ PseudobulkSeurat(
   groupFields,
   assays = NULL,
   additionalFieldsToAggregate = NULL,
-  metaFieldCollapseCharacter = "|"
+  metaFieldCollapseCharacter = "|",
+  nCountRnaStratification = F,
+  stratificationGroupingFields = c("ClusterNames_0.2", "ClusterNames_0.4",
+    "ClusterNames_0.6", "ClusterNames_0.8", "ClusterNames1.2")
 )
 }
 \arguments{
@@ -22,6 +25,10 @@ PseudobulkSeurat(
 \item{additionalFieldsToAggregate}{An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.}
 
 \item{metaFieldCollapseCharacter}{The character to use when concatenating metadata fields together to form the sample key field}
+
+\item{nCountRnaStratification}{A boolean determining whether or not automatic outlier detection of clusters with abnormal nCount_RNA should be detected.}
+
+\item{stratificationGroupingFields}{The metadata fields containing groupings of cells to be specified as having abnormal nCount_RNA distributions or not. The "leftmost"/first argument that detects an outlier will break the looping and sequester cells at that value. It is recommended that this vector is arranged by a "least to most" specific hierarchy/progression.}
 }
 \value{
 An aggregated Seurat object.

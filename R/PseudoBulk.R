@@ -17,12 +17,75 @@ utils::globalVariables(
 #' @param assays The assays to aggregate
 #' @param additionalFieldsToAggregate An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.
 #' @param metaFieldCollapseCharacter The character to use when concatenating metadata fields together to form the sample key field
+#' @param nCountRnaStratification A boolean determining whether or not automatic outlier detection of clusters with abnormal nCount_RNA should be detected.
+#' @param stratificationGroupingFields The metadata fields containing groupings of cells to be specified as having abnormal nCount_RNA distributions or not. The "leftmost"/first argument that detects an outlier will break the looping and sequester cells at that value. It is recommended that this vector is arranged by a "least to most" specific hierarchy/progression.
 #' @return An aggregated Seurat object.
 #' @export
-PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFieldsToAggregate = NULL, metaFieldCollapseCharacter = '|') {
+PseudobulkSeurat <- function(seuratObj, 
+                             groupFields, 
+                             assays = NULL, 
+                             additionalFieldsToAggregate = NULL, 
+                             metaFieldCollapseCharacter = '|', 
+                             nCountRnaStratification = F, 
+                             stratificationGroupingFields = c("ClusterNames_0.2", "ClusterNames_0.4", "ClusterNames_0.6", "ClusterNames_0.8", "ClusterNames1.2")) {
   if (!all(groupFields %in% names(seuratObj@meta.data))) {
     stop('All fields from groupFields must be in seuratObj@meta.data')
   }
+  
+  #QC and pseudobulk based on nCount_RNA distributions
+  if (nCountRnaStratification) {
+    if (any(grepl("ClusterNames", groupFields)) & any(grepl("ClusterNames", stratificationGroupingFields))){
+      warning("It appears that you are pseudobulking on a ClusterNames field, and also specifying outlier removal using one or more ClusterNames fields. Please be aware that this will potentially split a low-resolution cluster groupField according to the nCount_RNA distributions at a higher resolution stratificationGroupingFields. At extreme levels, this can have unintented consequences (i.e. artificially inflating sample sizes) for downstream model fitting.")
+    }
+    set.seed(GetSeed())
+    for (stratificationGroupingField in stratificationGroupingFields) {
+      if (!is.integer(as.integer(as.character(seuratObj@meta.data[,stratificationGroupingField])))) {
+        stop("Only integer-based groups are capable of being stratified by nCount_RNA. Please specify a ClusterNames-type of grouping field or convert your desired grouping field to an integer.")
+      }
+      #coerce to a list of dataframes containing nCount_RNA (typically) based on a clustering algorithm
+      list_of_cluster_dataframes <- seuratObj@meta.data %>% 
+        tibble::rownames_to_column(var = "cellbarcode") %>% 
+        dplyr::select(!!sym(stratificationGroupingField), nCount_RNA) %>% 
+        dplyr::group_by(!!sym(stratificationGroupingField)) %>% 
+        dplyr::group_split()
+      
+      #determine the minimum cluster size (KL divergence requires equal sampling)
+      minimum_cluster_size <- min(unlist(lapply(list_of_cluster_dataframes, FUN = nrow)))
+      cluster_nCount_RNA_matrix <- matrix(nrow = minimum_cluster_size)
+      #construct matrix of samples from nCount_RNA distributions
+      for (cluster_dataframe in list_of_cluster_dataframes) {
+        cluster_nCount_RNA_matrix <- cbind(cluster_nCount_RNA_matrix, sample(cluster_dataframe$nCount_RNA, 
+                                                                             size = minimum_cluster_size, 
+                                                                             replace = F))
+      }
+      #drop NA column formed when initializing matrix
+      cluster_nCount_RNA_matrix <- cluster_nCount_RNA_matrix[,-1]
+      #compute KL divergences
+      KL_divergences <- flexmix::KLdiv(cluster_nCount_RNA_matrix)
+      
+      #perform rudimentary outlier detection on column sums of KL divergences assuming a half-normal distribution. 
+      abnormal_RNA_clusters_index <- which(colSums(KL_divergences) >= mean(colSums(KL_divergences)) + 2*sd(colSums(KL_divergences)))
+      
+      #We use 0 as a cluster index, and which() returns integer(0) if no clusters satisfy the check, so set these to NA to prevent accidental filtering.
+      #if they're not zero, then we need to zero index them (they're currently indexed as via the column indexing of KL_divergences, which starts at 1)
+      if (length(abnormal_RNA_clusters_index) == 0){
+        abnormal_RNA_clusters_index <- NA
+      } else {
+        abnormal_RNA_clusters_index <- abnormal_RNA_clusters_index - 1
+      
+      
+      
+      metadata <- seuratObj@meta.data %>% 
+        dplyr::mutate(nCount_RNA_Stratification = dplyr::case_when(!!sym(stratificationGroupingField) %in% abnormal_RNA_clusters_index ~ "AbnormalRNACounts",
+                                                                   !(!!sym(stratificationGroupingField) %in% abnormal_RNA_clusters_index) ~ "NormalRNACounts"))
+      seuratObj <- Seurat::AddMetaData(seuratObj, metadata = metadata)
+      groupFields <- c(groupFields, "nCount_RNA_Stratification")     
+      print(paste0("Abnormal RNA count distributions detected at grouping field ", stratificationGroupingField, ". Breaking. No further grouping fields will be evaluated."))
+      break
+      }
+    }
+  }
+  
   
   # TODO: perhaps filtering on saturation, min.counts or other features??
   seuratObj$KeyField <- unname(apply(seuratObj@meta.data[,groupFields,drop = FALSE], 1, function(y){
@@ -41,14 +104,14 @@ PseudobulkSeurat <- function(seuratObj, groupFields, assays = NULL, additionalFi
     sel <- sort(metaGrouped$KeyField) != sort(colnames(a))
     x <- sort(metaGrouped$KeyField[sel])
     y <- sort(colnames(a)[sel])
-
+    
     warning('The keyField and AverageExpression object keys to do not match. Key fields:')
     warning(paste0(x, collapse = ';'))
     warning('Seurat colnames:')
     warning(paste0(y, collapse = ';'))
     stop('The keyField and AverageExpression object keys to do not match')
   }
-
+  
   metaGrouped <- metaGrouped[,names(metaGrouped) != 'KeyField',drop = FALSE]
   a <- Seurat::AddMetaData(a, metaGrouped)
   
@@ -442,15 +505,15 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
   if (is.null(logic_list)){
     stop("Please supply a list that defines the logic gates used for filtering the contrasts. This list should have three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
   } else if (typeof(logic_list) != "list"){
-      stop("Please ensure that logic_list is a list composed of lists. Each sub-list should define a gate that will filter possible contrasts. This list should have three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
+    stop("Please ensure that logic_list is a list composed of lists. Each sub-list should define a gate that will filter possible contrasts. This list should have three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
   } else if (!(all(lengths(logic_list) == 3))){
-      stop("The lengths of all of the elements (i.e. logic gates) within logic_list are not equal to 3. Please ensure there are exactly three entries in each element of logic_list. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
+    stop("The lengths of all of the elements (i.e. logic gates) within logic_list are not equal to 3. Please ensure there are exactly three entries in each element of logic_list. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
   } else if (!(all(sapply(logic_list, "[[", 1) %in% contrast_columns))){
-      stop("There are elements (logic gates) within logic_list whose first element is not in the contrast_columns found within the design matrix. contrast_columns is the vector supplied to DesignModelMatrix() upstream of this function and holds the metadata field names of the pseudobulked Seurat object that comprise the contrasts. If you're seeing this, something has gone awry (like using an old design matrix or a typo in the logic_list), or you're trying to supply your own design/model matrix, which is currently not supported.")
+    stop("There are elements (logic gates) within logic_list whose first element is not in the contrast_columns found within the design matrix. contrast_columns is the vector supplied to DesignModelMatrix() upstream of this function and holds the metadata field names of the pseudobulked Seurat object that comprise the contrasts. If you're seeing this, something has gone awry (like using an old design matrix or a typo in the logic_list), or you're trying to supply your own design/model matrix, which is currently not supported.")
   } else if (any(sapply(logic_list, "[[", 2) %in% c("and", "AND", "or", "OR"))){
-      stop("Error in one of the logic gate specifications. For an AND gate, please use the function name 'all'. For an OR gate, please use the function name 'any'.")
+    stop("Error in one of the logic gate specifications. For an AND gate, please use the function name 'all'. For an OR gate, please use the function name 'any'.")
   } else if (!all(tolower(sapply(logic_list, "[[", 2)) %in% c("any", "all", "xor", "nand", "nor", "xnor"))){
-      stop("Error in one of the logic gate specifications. Please use one of: 'any', 'all', 'xor', 'nand', 'nor', 'xnor' to specify your logic gate.")
+    stop("Error in one of the logic gate specifications. Please use one of: 'any', 'all', 'xor', 'nand', 'nor', 'xnor' to specify your logic gate.")
   }
   
   #check require_identical fields arguments.
@@ -607,7 +670,7 @@ FitRegularizedClassificationGlm <- function(seuratObj,
     dplyr::select(-dplyr::all_of("Row.names")) 
   
   #fix gene names like MAMU-A or UGT2B9*2 with an easily replaceable and uniquely mapping "dash", "leadingNumber", or "star".
-
+  
   # Perform a test to ensure we wont get conflicts:
   for (token in c("dash", "leadingNumber", "star")) {
     if (any(grepl(colnames(target_labeled_data), pattern = token))) {

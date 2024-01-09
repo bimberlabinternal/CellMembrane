@@ -75,7 +75,8 @@ Imports:
     readr, 
     mlr3verse,
     mlr3,
-    glmnet
+    glmnet, 
+    flexmix
 Suggests:
     devtools,
     testthat (>= 2.1.0),
