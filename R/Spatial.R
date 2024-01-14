@@ -21,7 +21,7 @@ Q3_Normalization <- function(seuratObj, assay = "RNA", targetAssayName = "Q3"){
   #ii) second, multiply all the genes in all AOIs by a constant, defined as the geometric mean of Q3 counts for all AOIs.
   
   #calculate column (ROI) Q3s
-  counts <- as.matrix(seuratObj[[assay]]@counts)
+  counts <- as.matrix(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts'))
   Q3_Sample_Counts <- apply(counts,MARGIN = 2,FUN = quantile,prob=c(.75))
   #Ensure no downstream division by zero errors
   if(any(Q3_Sample_Counts == 0)){
@@ -52,7 +52,7 @@ RUVg_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", targetAssa
   housekeeping_genes <- c("ABCF1", "ACTB", "ALAS1", "B2M", "CLTC", "G6PD", "GAPDH", 
                           "GUSB", "HPRT1", "LDHA", "PGK1", "POLR1B", "POLR2A",
                           "RPL19", "RPLP0", "SDHA", "TBP", "TUBB")
-  counts <- as.matrix(seuratObj[[assay]]@counts)
+  counts <- as.matrix(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts'))
   rounded_counts <- round(as.matrix(counts))
   RUVg <- RUVSeq::RUVg(rounded_counts,
                        housekeeping_genes[housekeeping_genes %in% rownames(seuratObj)], 
@@ -78,7 +78,7 @@ NanoString_Housekeeping_Normalization <- function(seuratObj, assay = "RNA", targ
   #3. Divide this arithmetic mean by the geometric mean of each lane to generate a lane-specific normalization factor.
   #4. Multiply the counts for every gene by its lane-specific normalization factor.
   
-  counts <- as.matrix(seuratObj[[assay]]@counts) 
+  counts <- as.matrix(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts'))
   
   housekeeping_genes <- c("ABCF1", "ACTB", "ALAS1", "B2M", "CLTC", "G6PD", "GAPDH", 
                           "GUSB", "HPRT1", "LDHA", "PGK1", "POLR1B", "POLR2A",
@@ -178,7 +178,7 @@ RLE_Plot <- function(seuratObj, assay = "RNA", sampleIdentifier = "SegmentDispla
   metadata <- seuratObj@meta.data
   
   #Calculate a dataframe of relative log expression. 
-  deviations <- as.matrix(log2(seuratObj[[assay]]@counts+1)) - matrixStats::rowMedians(as.matrix(log2(seuratObj[[assay]]@counts+1)))
+  deviations <- as.matrix(log2(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts')+1)) - matrixStats::rowMedians(as.matrix(log2(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts')+1)))
   deviations <- dplyr::as_tibble(as.data.frame(deviations))
   deviations <- tidyr::gather(deviations)
   colnames(deviations) <- c("Sample", "RLE")

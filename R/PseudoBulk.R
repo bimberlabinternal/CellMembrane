@@ -204,7 +204,7 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
 #' @export
 PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1){
   #convert seurat object to SingleCellExperiment for edgeR
-  sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = seuratObj@assays[[assayName]]@counts), colData = seuratObj@meta.data)
+  sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')), colData = seuratObj@meta.data)
   
   #filter out lowly expressed genes
   if (!is.null(minCountsPerGene)) {

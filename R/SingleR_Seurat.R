@@ -31,10 +31,11 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     assay <- Seurat::DefaultAssay(seuratObj)
   }
 
-  if (length(seuratObj@assays[[assay]]@counts) == 0) {
+  if (length(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts')) == 0) {
     print('Selected assay has no count data, trying RNA')
     assay <- 'RNA'
-    if (length(seuratObj@assays[[assay]]@counts) == 0) {
+
+    if (length(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts')) == 0) {
       warning('Unable to find counts for the seurat object, aborting SingleR')
       return(seuratObj)
     }

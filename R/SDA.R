@@ -30,7 +30,7 @@ utils::globalVariables(
 #' @param storeGoEnrichment If true, SDA_GO_Enrichment will be performed and stored in the result list
 #' @export
 RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 2, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, save_freq = 1000, nThreads = 1, storeGoEnrichment = FALSE) {
-  SerObj.DGE <- seuratObj@assays[[assayName]]@counts
+  SerObj.DGE <- Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')
 
   n_cells <- ncol(SerObj.DGE)
   if (n_cells > 250000) {

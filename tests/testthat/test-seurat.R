@@ -72,9 +72,6 @@ test_that("Serat processing works as expected", {
   expect_equal(ncol(seuratObj), 487)
   expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 6)
 
-  # NOTE: we no longer expect this to be true:
-  #expect_equal(length(rownames(seuratObj@assays$RNA@scale.data)), length(rownames(seuratObj@assays$RNA@counts)))
-
   #Note: Seurat::PercentageFeatureSet returns 0-100.  our code is currently a fraction (0-1.0)
   expect_true(max(seuratObj$p.mito) < 1.0)
   expect_true(max(seuratObj$p.mito) > 0)
@@ -118,11 +115,10 @@ test_that("Serat processing works as expected", {
 
 test_that("Serat SCTransform works as expected", {
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
-  seuratObjSCT <- CreateSeuratObj(seuratData = seuratObj@assays$RNA@counts, datasetId = '1234', datasetName = 'Set1')
+  seuratObjSCT <- CreateSeuratObj(seuratData = Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'counts'), datasetId = '1234', datasetName = 'Set1')
 
   seuratObjSCT <- NormalizeAndScale(seuratObjSCT, useSCTransform = T)
-
-  expect_equal(length(rownames(seuratObjSCT@assays$SCT@scale.data)), length(rownames(seuratObjSCT@assays$SCT@counts)))
+  expect_equal(length(rownames(Seurat::GetAssayData(seuratObjSCT, assay = 'SCT', slot = 'scale.data'))), length(rownames(Seurat::GetAssayData(seuratObjSCT, assay = 'SCT', slot = 'counts'))))
   expect_equal(ncol(seuratObjSCT), ncol(seuratObj))
 })
 

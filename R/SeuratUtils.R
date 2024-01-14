@@ -776,13 +776,13 @@ InspectSeurat <- function(seuratObj, slotReportSize = 500000, commandReportSize 
 #' @param assayName The name of the assay to use.
 #' @export
 ScaleFeaturesIfNeeded <- function(seuratObj, toScale, assayName = 'RNA') {
-	notPresent <- toScale[!toScale %in% rownames(seuratObj@assays[[assayName]]@scale.data)]
+	notPresent <- toScale[!toScale %in% rownames(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data'))]
 	print(paste0('Total features to scale: ', length(notPresent), ' of ', length(toScale)))
 
 	scaled2 <- Seurat::ScaleData(seuratObj@assays[[assayName]], features = notPresent)
-	scaled2 <- rbind(seuratObj@assays[[assayName]]@scale.data, scaled2@scale.data)
-	seuratObj@assays[[assayName]]@scale.data <- scaled2
-	print(dim(seuratObj@assays[[assayName]]@scale.data))
+	scaled2 <- rbind(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data'), Seurat::GetAssayData(scaled2, slot = 'scale.data'))
+	Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data') <- scaled2
+	print(dim(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data')))
 
 	return(seuratObj)
 }
