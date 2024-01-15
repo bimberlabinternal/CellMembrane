@@ -781,7 +781,7 @@ ScaleFeaturesIfNeeded <- function(seuratObj, toScale, assayName = 'RNA') {
 
 	scaled2 <- Seurat::ScaleData(seuratObj@assays[[assayName]], features = notPresent)
 	scaled2 <- rbind(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data'), Seurat::GetAssayData(scaled2, slot = 'scale.data'))
-	Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data') <- scaled2
+	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayName, slot = 'scale.data', new.data = scaled2)
 	print(dim(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data')))
 
 	return(seuratObj)
