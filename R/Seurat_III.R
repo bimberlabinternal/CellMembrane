@@ -105,7 +105,7 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
 GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
 	ret <- NULL
 
-  featureMeta <- GetAssay(seuratObj)@meta.features
+  featureMeta <- Seurat::GetAssay(seuratObj, assay = Seurat::DefaultAssay(seuratObj))@meta.features
   if ('GeneId' %in% colnames(featureMeta)) {
     ret <- featureMeta$GeneId
     names(ret) <- rownames(seuratObj)
