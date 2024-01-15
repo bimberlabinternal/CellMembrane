@@ -81,7 +81,7 @@ ADD . /CellMembrane
 RUN cd /CellMembrane \
     && if [ "${GH_PAT}" != 'NOT_SET' ];then echo 'Setting GITHUB_PAT'; export GITHUB_PAT="${GH_PAT}";fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
-    && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'never');" \
+    && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
     # Due to Matrix/SeuratObject: https://github.com/mojaveazure/seurat-object/issues/166
     && Rscript -e "install.packages('SeuratObject', ask = FALSE, force = TRUE, type = 'source', repos = 'https://cloud.r-project.org')" \
     && R CMD build . \
