@@ -8,16 +8,22 @@ from conga import util
 import scipy
 import os
 import sys
+import anndata
 from conga.preprocess import retrieve_tcrs_from_adata
 from conga.preprocess import read_adata
 from conga.preprocess import normalize_and_log_the_raw_matrix
 from conga.tcrdist.tcr_distances import TcrDistCalculator
 
+def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefix,
+         gex_datatype, clones_file, outfile_prefix_for_qc_plots, working_directory, print_versions = True):
 
+    if print_versions:
+        print('conga version: ' + conga.__version__)
+        print('scanpy version: ' + sc.__version__)
+        print('scipy version: ' + scipy.__version__)
+        print('pandas version: ' + pd.__version__)
+        print('anndata version: ' + anndata.__version__)
 
-
-def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefix, 
-         gex_datatype, clones_file, outfile_prefix_for_qc_plots, working_directory):
     #set working directory (inherited from the R session)
     os.chdir(working_directory)
     tcrdist_calculator = TcrDistCalculator(organism)
