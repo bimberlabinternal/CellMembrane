@@ -350,25 +350,29 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		newnames <- gsub(x = newnames, pattern = '_', replacement = '-')
 	}
 
-	if (length(Seurat::GetAssayData(assayData, slot = 'counts'))) {
-		ad <- Seurat::GetAssayData(assayData, slot = 'counts')
-		rownames(ad) <- newnames
-		assayData <- Seurat::SetAssayData(assayData, slot = 'counts', new.data = ad)
+	if (class(assayData)[1] == 'Assay') {
+		for (slotName in c('counts', 'data', 'scaled.data')) {
+			if (slotName %in% slotNames(assayData)) {
+				print(paste0('Updating layer: ', slotName))
+				slot(assayData, slotName)@Dimnames[[1]] <- newnames
+
+				if (any(rownames(Seurat::GetAssayData(assayData, slot = slotName)) != newnames)) {
+					stop('Features were not updated!')
+				}
+			}
+		}
+
+		assayData@var.features <- character()
+		rownames(assayData@meta.features) <- newnames
+	} else if (class(assayData)[1] == 'Assay5') {
+		rownames(assayData) <- newnames
+	} else {
+		stop(paste0('Unknown assay class: ', class(assayData)[1]))
 	}
 
-	if (length(Seurat::GetAssayData(assayData, slot = 'data'))) {
-		ad <- Seurat::GetAssayData(assayData, slot = 'data')
-		rownames(ad) <- newnames
-		assayData <- Seurat::SetAssayData(assayData, slot = 'data', new.data = ad)
+	if (any(rownames(assayData) != newnames)) {
+		stop('Features were not updated!')
 	}
-
-	if (length(Seurat::GetAssayData(assayData, slot = 'scale.data'))) {
-		ad <- Seurat::GetAssayData(assayData, slot = 'scale.data')
-		rownames(ad) <- newnames
-		assayData <- Seurat::SetAssayData(assayData, slot = 'scale.data', new.data = ad)
-	}
-
-	rownames(assayData@meta.features) <- newnames
 
 	return(assayData)
 }
