@@ -109,7 +109,7 @@ GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
   featureMeta <- slot(assayData, GetAssayMetadataSlotName(assayData))
   if ('GeneId' %in% colnames(featureMeta)) {
     ret <- featureMeta$GeneId
-    names(ret) <- rownames(seuratObj)
+    names(ret) <- rownames(assayData)
     ret <- ret[geneNames]
   }
 
@@ -1073,6 +1073,10 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     stop('There are no VariableFeatures in this seurat object')
   }
   df <- slot(GetAssay(seuratObj, assay = DefaultAssay(seuratObj)), GetAssayMetadataSlotName(GetAssay(seuratObj, assay = DefaultAssay(seuratObj))))
+
+  # TODO: remove this
+  print(str(df))
+
   dat <- sort(df$vst.variance.standardized)
   dat <- dat[dat > 0]
   countAbove <-sapply(dat, function(x){
