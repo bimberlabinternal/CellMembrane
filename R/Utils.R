@@ -463,3 +463,19 @@ GetAssayMetadataSlotName <- function(assayObj) {
     stop(paste0('Unknown class: ', class(assayObj)[1]))
   }
 }
+
+# This is patterned after Seurat: https://github.com/satijalab/seurat/blob/41d19a8a55350bff444340d6ae7d7e03417d4173/R/utilities.R#L1455C1-L1470C4
+# Seurat's Pseudobulking converts numeric columns, like cluster names, with prefixes like this
+.CheckColnamesAreNumeric <- function(mat, prefix = "g") {
+  col.names <- colnames(mat)
+  if (any(!(grepl("^[a-zA-Z]|^\\.[^0-9]", col.names)))) {
+    col.names <- ifelse(
+      !(grepl("^[a-zA-Z]|^\\.[^0-9]", col.names)),
+      paste0(prefix, col.names),
+      col.names
+    )
+    colnames(mat) <- col.names
+  }
+
+  return(mat)
+}

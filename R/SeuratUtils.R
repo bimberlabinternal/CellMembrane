@@ -400,6 +400,7 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 	libraryMetrics <- as.data.frame(t(as.matrix(table(seuratObj[[groupField, drop = TRUE]]))))
 	libraryMetrics$feature <- 'TotalCells'
 	libraryMetrics$assay <- 'ExperimentMetrics'
+	libraryMetrics <- .CheckColnamesAreNumeric(libraryMetrics)
 	libraryMetrics <- libraryMetrics[unique(c('assay', 'feature', colnames(libraryMetrics)))]
 	df <- rbind(df, libraryMetrics)
 
@@ -417,6 +418,7 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 			toAdd[val] <- sum(Seurat::GetAssayData(dat, slot = slot))
 		}
 
+		toAdd <- .CheckColnamesAreNumeric(toAdd)
 		df <- rbind(df, toAdd[colnames(df)])
 	}
 

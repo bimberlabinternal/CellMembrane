@@ -26,7 +26,7 @@ test_that("Seurat-manipulation works as expected", {
   df <- AvgExpression(seuratObj, groupField = 'ClusterNames_0.4')
   expect_equal(ncol(df), 8)
   expect_equal(nrow(df), nrow(seuratObj) + 2)
-  expect_equal(max(df[df$feature == 'LibrarySize', colnames(df) %in% 0:5]), 939113)
+  expect_equal(max(df[df$feature == 'LibrarySize', colnames(df) %in% paste0('g', 0:5)]), 939113)
 
   seuratList <- SplitSeurat(seuratObj, splitField = 'ClusterNames_0.2', minCellsToKeep = 200)
   expect_equal(4, length(seuratList))
