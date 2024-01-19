@@ -94,3 +94,21 @@ test_that("ScaleFeaturesIfNeeded works as expected", {
   seuratObj2 <- ScaleFeaturesIfNeeded(seuratObj, toScale = toAdd)
   expect_equal(200, nrow(Seurat::GetAssayData(seuratObj2, assay = 'RNA', slot = 'scale.data')))
 })
+
+test_that("Assay meta.data works for Seurat 4 and 5", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  
+  assay <- Seurat::GetAssay(seuratObj)
+  assay5 <- SeuratObject::CreateAssay5Object(counts = assay@counts)
+  
+  assay@meta.features$Test <- 'Seurat4'
+  assay5@meta.data$Test <- 'Seurat5'
+  
+  slot(assay, GetAssayMetadataSlotName(assay))$NewCol <- 1
+  assay@meta.features$NewCol
+  expect_equal(unique(assay@meta.features$NewCol), 1)
+  
+  slot(assay5, GetAssayMetadataSlotName(assay5))$NewCol <- 2
+  assay5@meta.data$NewCol
+  expect_equal(unique(assay5@meta.data$NewCol), 2)
+})
