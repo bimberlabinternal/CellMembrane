@@ -47,18 +47,18 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
   for (dataset in datasets) {
     print(paste0('Adding dataset: ', dataset))
     if (dataset == 'hpca'){
-        ref <- SingleR::HumanPrimaryCellAtlasData()
+        ref <- celldex::HumanPrimaryCellAtlasData()
 		} else if (dataset == 'immgen') {
-      ref <- SingleR::ImmGenData()
+      ref <- celldex::ImmGenData()
       rownames(ref) <- toupper(rownames(ref))
     } else if (dataset == 'blueprint') {
-      ref <- SingleR::BlueprintEncodeData()
+      ref <- celldex::BlueprintEncodeData()
     } else if (dataset == 'dice') {
-      ref <- SingleR::DatabaseImmuneCellExpressionData()
+      ref <- celldex::DatabaseImmuneCellExpressionData()
     } else if (dataset == 'monaco') {
-      ref <- SingleR::MonacoImmuneData()
+      ref <- celldex::MonacoImmuneData()
     } else if (dataset == 'MouseRNAseqData') {
-      ref <- SingleR::MouseRNAseqData()
+      ref <- celldex::MouseRNAseqData()
     } else {
       ref <- NULL
       tryCatch({
