@@ -163,7 +163,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		assayData <- Seurat::SetAssayData(assayData, slot = 'scale.data', new.data = Seurat::GetAssayData(assayData, slot = 'scale.data')[featureWhitelist, ])
 	}
 
-	assayData@meta.features <- assayData@meta.features[featureWhitelist]
+	slot(assayData, GetAssayMetadataSlotName(assayData)) <- slot(assayData, GetAssayMetadataSlotName(assayData))[featureWhitelist]
 
 	return(assayData)
 }
@@ -218,7 +218,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	}
 
 	# Ensure metadata preserved:
-	replacementAssay@meta.features <- assayData@meta.features
+	slot(replacementAssay, GetAssayMetadataSlotName(replacementAssay)) <- slot(assayData, GetAssayMetadataSlotName(assayData))
 
 	return(replacementAssay)
 }

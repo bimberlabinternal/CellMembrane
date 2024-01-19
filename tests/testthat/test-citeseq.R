@@ -124,7 +124,9 @@ test_that("ADT Rename Works", {
 	
 	expect_equal(colnames(seuratObjCiteMeta@assays$ADT), colnames(seuratObj@assays$RNA))
 	expect_true('RenamedFeature' %in% rownames(seuratObjCiteMeta@assays$ADT))
-	expect_equal(Seurat::GetAssay(seuratObjCiteMeta, assay = 'ADT')@meta.features$otherfield, c('Value1', NA, NA, NA))
+
+	assayObj <- Seurat::GetAssay(seuratObjCiteMeta, assay = 'ADT')
+	expect_equal(slot(assayObj, GetAssayMetadataSlotName(assayObj))$otherfield, c('Value1', NA, NA, NA))
 
 	unlink(inputPath1, recursive = T)
 })

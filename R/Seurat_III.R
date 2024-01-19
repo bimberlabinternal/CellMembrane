@@ -103,9 +103,10 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
 #' @return A named vector of the gene IDs
 #' @export
 GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
-	ret <- NULL
+  ret <- NULL
 
-  featureMeta <- Seurat::GetAssay(seuratObj, assay = Seurat::DefaultAssay(seuratObj))@meta.features
+  assayData <- Seurat::GetAssay(seuratObj, assay = Seurat::DefaultAssay(seuratObj))
+  featureMeta <- slot(assayData, GetAssayMetadataSlotName(assayData))
   if ('GeneId' %in% colnames(featureMeta)) {
     ret <- featureMeta$GeneId
     names(ret) <- rownames(seuratObj)
@@ -113,7 +114,7 @@ GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
   }
 
   if (all(is.null(ret))) {
-  	stop('Expected gene IDs to be stored under GetAssay(seuratObj)@meta.features')
+  	stop('Expected gene IDs to be stored under GetAssay(seuratObj)@meta.data')
   }
 
   if (throwIfGenesNotFound & sum(is.na(ret)) > 0) {
@@ -1071,7 +1072,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   if (length(VariableFeatures(seuratObj)) == 0) {
     stop('There are no VariableFeatures in this seurat object')
   }
-  df <- seuratObj@assays[[DefaultAssay(seuratObj)]]@meta.features
+  df <- slot(GetAssay(seuratObj, assay = DefaultAssay(seuratObj)), GetAssayMetadataSlotName(GetAssay(seuratObj, assay = DefaultAssay(seuratObj))))
   dat <- sort(df$vst.variance.standardized)
   dat <- dat[dat > 0]
   countAbove <-sapply(dat, function(x){

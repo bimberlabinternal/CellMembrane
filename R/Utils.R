@@ -448,3 +448,18 @@ scale_rows <- function(x){
   s <- apply(x, 1, sd, na.rm = T)
   return((x - m) / s)
 }
+
+#' @title GetAssayMetadataSlotName
+#'
+#' @description Returns the slotname holding the assay metadata, compatible with seurat 4 and 5
+#' @param assayObj The assay object
+#' @export
+GetAssayMetadataSlotName <- function(assayObj) {
+  if (class(assayObj)[1] == 'Assay') {
+    return('meta.features')
+  } else if (class(assayObj)[1] == 'Assay5') {
+    return('meta.data')
+  } else {
+    stop(paste0('Unknown class: ', class(assayObj)[1]))
+  }
+}
