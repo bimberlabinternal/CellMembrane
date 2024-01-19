@@ -45,9 +45,11 @@ test_that("Seurat-saturation works as expected", {
 	df <- DropletUtils::get10xMolInfoStats(molInfoFile)
 	df <- data.frame(cellbarcode = df$cell, num.umis = df$num.umis, CountsPerCell = df$num.reads)
 	df <- df[df$CountsPerCell > 100,]
-	dat <- matrix(df$CountsPerCell, nrow = 1)
+
+    # NOTE: this is converted into two features b/c Assay5 objects do not allow single-feature data
+	dat <- Seurat::as.sparse(matrix(c(df$CountsPerCell, df$CountsPerCell), nrow = 2))
 	colnames(dat) <- df$cellbarcode
-	rownames(dat) <- c('Feat')
+	rownames(dat) <- c('Feat1', 'Feat2')
 	
 	seuratObj <- Seurat::CreateSeuratObject(dat)
 	seuratObj <- AppendPerCellSaturation(seuratObj, molInfoFile)
