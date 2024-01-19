@@ -1075,6 +1075,8 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   df <- slot(GetAssay(seuratObj, assay = DefaultAssay(seuratObj)), GetAssayMetadataSlotName(GetAssay(seuratObj, assay = DefaultAssay(seuratObj))))
 
   # TODO: remove this
+  print('.PlotVariableFeatures debug')
+  print(names(df))
   print(str(df))
 
   dat <- sort(df$vst.variance.standardized)
