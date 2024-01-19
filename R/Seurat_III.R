@@ -1074,19 +1074,28 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   }
   df <- slot(GetAssay(seuratObj, assay = DefaultAssay(seuratObj)), GetAssayMetadataSlotName(GetAssay(seuratObj, assay = DefaultAssay(seuratObj))))
 
-  # TODO: remove this
-  print('.PlotVariableFeatures debug')
-  print(names(df))
-  print(str(df))
+  varianceStandardizedField <- ifelse(class(seuratObj[[DefaultAssay(seuratObj)]])[1] == 'Assay5', yes = 'vf_vst_counts_variance.standardized', no = 'vst.variance.standardized')
+  if (!varianceStandardizedField %in% names(df)) {
+    print(paste0('Missing field ', varianceStandardizedField, ' in assay metadata. Found: ', paste0(names(df), collapse = ',')))
+  }
 
-  dat <- sort(df$vst.variance.standardized)
+  vstVariableField <- ifelse(class(seuratObj[[DefaultAssay(seuratObj)]])[1] == 'Assay5', yes = 'vf_vst_counts_variable', no = 'vst.variable')
+  if (!vstVariableField %in% names(df)) {
+    print(paste0('Missing field ', vstVariableField, ' in assay metadata. Found: ', paste0(names(df), collapse = ',')))
+  }
+
+  dat <- sort(df[[varianceStandardizedField]])
   dat <- dat[dat > 0]
-  countAbove <-sapply(dat, function(x){
+  if (length(dat) == 0) {
+    print('No features have vst.variance.standardized > 0')
+  }
+
+  countAbove <- sapply(dat, function(x){
     sum(dat >= x)
   })
 
   print(paste0('Total variable features: ', length(Seurat::VariableFeatures(seuratObj))))
-  minVal <- min(df$vst.variance.standardized[df$vst.variable])
+  minVal <- min(df[[varianceStandardizedField]][df[[vstVariableField]]])
 
   print(ggplot(data.frame(x = countAbove, y = dat), aes(x = x, y = y)) +
           geom_point() +

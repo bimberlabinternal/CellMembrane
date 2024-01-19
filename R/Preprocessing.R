@@ -85,7 +85,7 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 		feats <- c(feats, "p.mito")
 	}
 
-	print(VlnPlot(object = seuratObj, features = feats, ncol = length(feats)))
+	suppressWarnings(print(VlnPlot(object = seuratObj, features = feats, ncol = length(feats))))
 
 	if (totalPMito > 1) {
 		print(FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = "p.mito"))
@@ -95,7 +95,7 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 	print(FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = nFeatureField))
 
 	#10x-like plot
-	nUMI <- Matrix::colSums(GetAssayData(object = seuratObj, slot = "counts"))
+	nUMI <- Matrix::colSums(suppressWarnings(GetAssayData(object = seuratObj, slot = "counts")))
 	nUMI <- sort(nUMI)
 
 	countAbove <-sapply(nUMI, function(x){
