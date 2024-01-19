@@ -19,7 +19,7 @@ test_that("Seurat-merge using emptyDropsCellRanger works", {
   expect_equal(ncol(seuratObj), 3244, tolerance = 5)
 })
 
-test_that("Serat processing works as expected", {
+test_that("Seurat processing works as expected", {
   set.seed(CellMembrane::GetSeed())
 
   outDir <- './'
@@ -113,7 +113,7 @@ test_that("Serat processing works as expected", {
   #saveRDS(seuratObjSS, file = '../testdata/seuratOutputSS.rds')
 })
 
-test_that("Serat SCTransform works as expected", {
+test_that("Seurat SCTransform works as expected", {
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   seuratObjSCT <- CreateSeuratObj(seuratData = Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'counts'), datasetId = '1234', datasetName = 'Set1')
 
