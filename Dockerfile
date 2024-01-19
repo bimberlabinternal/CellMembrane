@@ -27,8 +27,7 @@ RUN apt-get update -y \
         libxml2-dev \
         libxslt-dev \
     && python3 -m pip install --upgrade pip \
-    # NOTE: seaborn added for: https://github.com/scverse/scanpy/issues/2680
-    && pip3 install umap-learn phate scanpy fastcluster seaborn==0.12.2 \
+    && pip3 install umap-learn phate scanpy \
     && pip3 install git+https://github.com/broadinstitute/CellBender.git \
     && mkdir /conga \
     && cd /conga \
@@ -82,8 +81,6 @@ RUN cd /CellMembrane \
     && if [ "${GH_PAT}" != 'NOT_SET' ];then echo 'Setting GITHUB_PAT'; export GITHUB_PAT="${GH_PAT}";fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
-    # Due to Matrix/SeuratObject: https://github.com/mojaveazure/seurat-object/issues/166
-    && Rscript -e "install.packages('SeuratObject', ask = FALSE, force = TRUE, type = 'source', repos = 'https://cloud.r-project.org')" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
