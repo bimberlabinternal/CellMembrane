@@ -31,6 +31,26 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
     #initializing clonotype file and kPCA
     conga.tcrdist.make_10x_clones_file.make_10x_clones_file( tcr_datafile, organism, clones_file)
     conga.preprocess.make_tcrdist_kernel_pcs_file_from_clones_file( clones_file, organism )
+
+    # TODO: this is for debugging:
+    adataTest = sc.read_10x_h5(gex_datafile, gex_only=True )
+    print(adataTest)
+    print('Index length: ' + str(len(adataTest.obs.index)))
+    print('Index unique length: ' + str(len(adataTest.obs.index.unique())))
+
+    adataTest.var_names_make_unique()
+    print(adataTest)
+    print('Index length after make_unique: ' + str(len(adataTest.obs.index)))
+    print('Index unique length after make_unique: ' + str(len(adataTest.obs.index.unique())))
+
+    x = np.repeat([True, False], 1556/2)
+    print('After subset')
+    adata2 = adataTest[x,:].copy()
+    print(adata2.obs.index.is_unique)
+    print(adata2)
+    print('Index length after make_unique: ' + str(len(adata2.obs.index)))
+    print('Index unique length after make_unique: ' + str(len(adata2.obs.index.unique())))
+
     adata = conga.preprocess.read_dataset(gex_datafile, gex_datatype, clones_file )
     genes_df = pd.read_csv(features_file, header=None)
     os.makedirs(os.path.dirname(os.path.join(os.getcwd(),outfile_prefix_for_qc_plots)), exist_ok=True)
