@@ -33,8 +33,11 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
     conga.preprocess.make_tcrdist_kernel_pcs_file_from_clones_file( clones_file, organism )
 
     # TODO: this is for debugging:
+    print('Test loading adata:')
     adataTest = sc.read_10x_h5(gex_datafile, gex_only=True )
     print(adataTest)
+    print('Raw:')
+    print(adataTest.raw)
     print('Index length: ' + str(len(adataTest.obs.index)))
     print('Index unique length: ' + str(len(adataTest.obs.index.unique())))
 
@@ -48,6 +51,7 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
     adata2 = adataTest[x,:].copy()
     print(adata2.obs.index.is_unique)
     print(adata2)
+    print(adata2.raw)
     print('Index length after make_unique: ' + str(len(adata2.obs.index)))
     print('Index unique length after make_unique: ' + str(len(adata2.obs.index.unique())))
 
