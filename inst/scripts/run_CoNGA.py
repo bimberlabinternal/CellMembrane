@@ -18,7 +18,6 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
          gex_datatype, clones_file, outfile_prefix_for_qc_plots, working_directory, print_versions = True):
 
     if print_versions:
-        print('conga version: ' + conga.__version__)
         print('scanpy version: ' + sc.__version__)
         print('scipy version: ' + scipy.__version__)
         print('pandas version: ' + pd.__version__)
