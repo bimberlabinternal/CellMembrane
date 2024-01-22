@@ -1,4 +1,4 @@
-![R Build and Checks](https://github.com/BimberLabInternal/CellMembrane/workflows/R%20Build%20and%20Checks/badge.svg)
+[![R Build and Checks](https://github.com/bimberlabinternal/CellMembrane/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bimberlabinternal/CellMembrane/actions/workflows/R-CMD-check.yaml)
 
 # CellMembrane
 An R package with wrappers and pipelines for single cell RNA-seq analysis
