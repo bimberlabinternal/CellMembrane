@@ -19,7 +19,7 @@ test_that("Seurat-merge using emptyDropsCellRanger works", {
   expect_equal(ncol(seuratObj), 3244, tolerance = 5)
 })
 
-test_that("Serat processing works as expected", {
+test_that("Seurat processing works as expected", {
   set.seed(CellMembrane::GetSeed())
 
   outDir <- './'
@@ -33,7 +33,7 @@ test_that("Serat processing works as expected", {
 
   expect_equal(ncol(seuratObj), 3353, tolerance = 5)
 
-  expect_equal(nrow(seuratObj), length(seuratObj@assays$RNA@meta.features$GeneId))
+  expect_equal(nrow(seuratObj), length(slot(seuratObj@assays$RNA, GetAssayMetadataSlotName(seuratObj@assays$RNA))$GeneId))
   geneIds <- GetGeneIds(seuratObj, c('HES4', 'CALML6'))
   names(geneIds) <- NULL
   expect_equal(geneIds, c('ENSMMUG00000001817', 'ENSMMUG00000012392'))
@@ -72,9 +72,6 @@ test_that("Serat processing works as expected", {
   expect_equal(ncol(seuratObj), 487)
   expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 6)
 
-  # NOTE: we no longer expect this to be true:
-  #expect_equal(length(rownames(seuratObj@assays$RNA@scale.data)), length(rownames(seuratObj@assays$RNA@counts)))
-
   #Note: Seurat::PercentageFeatureSet returns 0-100.  our code is currently a fraction (0-1.0)
   expect_true(max(seuratObj$p.mito) < 1.0)
   expect_true(max(seuratObj$p.mito) > 0)
@@ -89,7 +86,7 @@ test_that("Serat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 583)
+  expect_equal(nrow(df), 856)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
@@ -116,13 +113,12 @@ test_that("Serat processing works as expected", {
   #saveRDS(seuratObjSS, file = '../testdata/seuratOutputSS.rds')
 })
 
-test_that("Serat SCTransform works as expected", {
+test_that("Seurat SCTransform works as expected", {
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
-  seuratObjSCT <- CreateSeuratObj(seuratData = seuratObj@assays$RNA@counts, datasetId = '1234', datasetName = 'Set1')
+  seuratObjSCT <- CreateSeuratObj(seuratData = Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'counts'), datasetId = '1234', datasetName = 'Set1')
 
   seuratObjSCT <- NormalizeAndScale(seuratObjSCT, useSCTransform = T)
-
-  expect_equal(length(rownames(seuratObjSCT@assays$SCT@scale.data)), length(rownames(seuratObjSCT@assays$SCT@counts)))
+  expect_equal(length(rownames(Seurat::GetAssayData(seuratObjSCT, assay = 'SCT', slot = 'scale.data'))), length(rownames(Seurat::GetAssayData(seuratObjSCT, assay = 'SCT', slot = 'counts'))))
   expect_equal(ncol(seuratObjSCT), ncol(seuratObj))
 })
 

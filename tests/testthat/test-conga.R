@@ -21,6 +21,11 @@ test_that("RunConga works", {
   #read data
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS("../testdata/seuratOutput.rds")))
   tcr_df <- read.table("../testdata/tcr_df.csv", header = T, sep = ",") #this is spoofed TCR data from 438-21
+
+  # limit to cells present in the TCR data:
+  hasBothChains <- intersect(tcr_df$barcode[tcr_df$chain == 'TRA' & tcr_df$is_cell == 'true'], tcr_df$barcode[tcr_df$chain == 'TRB' & tcr_df$is_cell == 'true'])
+  seuratObj <- subset(seuratObj, cells = hasBothChains)
+  print(seuratObj)
   
   #The tcr_df was originally downloaded via Rdiscvr, but altered like so:
   #iterate through the colnames of the seurat object, replacing the values of tcr_df$barcodes and then drop the rest (the goal is to fake the tcr data using the gex barcodes)

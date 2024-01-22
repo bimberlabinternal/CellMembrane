@@ -197,24 +197,21 @@ UpdateMacaqueMmul10NcbiGeneSymbols <- function(seuratObj, verbose = T){
   }
   for (assay in names(seuratObj@assays)){
     for (slot in names(attributes(seuratObj@assays[[assay]]))){
-      if(verbose){
+      if (verbose){
         print(paste("Updating Gene Names in Assay:", assay, "Slot:", slot))
       }
+
       #updating common gene expression slots
-      # @data could be either S4 or a matrix depending on normalization of @counts
       if (any(grepl(slot, c("counts", "data", "scale.data")))){
-        if (typeof(attr(x = seuratObj@assays[[assay]], which = slot)) == "S4"){
-          attr(x = seuratObj@assays[[assay]], which = slot)@Dimnames[[1]] <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot)@Dimnames[[1]])
-        }
-        if (typeof(attr(x = seuratObj@assays[[assay]], which = slot)) == "double" | typeof(attr(x = seuratObj@assays[[assay]], which = slot)) == "integer"){
-          rownames(attr(x = seuratObj@assays[[assay]], which = slot)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = slot)))
-        }
-        
+        ad <- Seurat::GetAssayData(seuratObj, assay = assay, slot = slot)
+        rownames(ad) <- .UpdateGeneModel(rownames(ad))
       }
+
       #updating variable features (expected to be a vector)
       if (slot == "var.features"){
         attr(x = seuratObj@assays[[assay]], which = slot) <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot))
       }
+
       #updating meta.features (expected to be a matrix)
       if (slot == "meta.features"){
         rownames(attr(x = seuratObj@assays[[assay]], which = slot)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = slot)))
@@ -346,7 +343,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
 
   sourceAssay <- assayName
   if (!is.na(targetAssayName) && !is.null(targetAssayName)) {
-    seuratObj@assays[[targetAssayName]] <- Seurat::CreateAssayObject(seuratObj@assays[[sourceAssay]]@counts)
+    seuratObj@assays[[targetAssayName]] <- Seurat::CreateAssayObject(Seurat::GetAssayData(seuratObj, assay = sourceAssay, slot = 'counts'))
     seuratObj@assays[[targetAssayName]]@key <- paste0(tolower(targetAssayName), '_')
     sourceAssay <- targetAssayName
   }
@@ -393,7 +390,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
     }
 
     if (doAsinhTransform) {
-      dat <- ad@counts
+      dat <- Seurat::GetAssayData(ad, slot = 'counts')
       # based on flowCore module: https://github.com/RGLab/flowCore/blob/1dee3931c7ac922052b74fcdf6ba037fe1313892/R/AllClasses.R#L5030
       # and ADTnorm: https://github.com/yezhengSTAT/ADTnorm/blob/d5d08d9cc075d1300d0ff1038ff2a3efae780b15/R/arcsinh_transform.R
       a <- 1
@@ -402,20 +399,20 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       dat <- asinh(a+b*dat) + c
 
       dat <- Seurat::NormalizeData(dat, normalization.method = 'CLR', margin = margin, verbose = FALSE)
-      ad@data <- Seurat::as.sparse(dat)
+      ad <- Seurat::SetAssayData(ad, slot = 'data', new.data = Seurat::as.sparse(dat))
     } else {
       ad <- Seurat::NormalizeData(ad, normalization.method = 'CLR', margin = margin, verbose = FALSE)
     }
 
     if (all(is.null(normalizedMat))) {
-      normalizedMat <- ad@data
+      normalizedMat <- Seurat::GetAssayData(ad, slot = 'data')
     } else {
-      normalizedMat <- cbind(normalizedMat, ad@data)
+      normalizedMat <- cbind(normalizedMat, Seurat::GetAssayData(ad, slot = 'data'))
     }
   }
 
   normalizedMat <- normalizedMat[,colnames(seuratObj)]
-  seuratObj@assays[[sourceAssay]]@data <- as.sparse(normalizedMat)
+  seuratObj <- Seurat::SetAssayData(seuratObj, assay = sourceAssay, slot = 'data', new.data = as.sparse(normalizedMat))
   seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = sourceAssay)
 
   if (calculatePerFeatureUCell) {
@@ -450,4 +447,35 @@ scale_rows <- function(x){
   m <- apply(x, 1, mean, na.rm = T)
   s <- apply(x, 1, sd, na.rm = T)
   return((x - m) / s)
+}
+
+#' @title GetAssayMetadataSlotName
+#'
+#' @description Returns the slotname holding the assay metadata, compatible with seurat 4 and 5
+#' @param assayObj The assay object
+#' @export
+GetAssayMetadataSlotName <- function(assayObj) {
+  if (class(assayObj)[1] == 'Assay') {
+    return('meta.features')
+  } else if (class(assayObj)[1] == 'Assay5') {
+    return('meta.data')
+  } else {
+    stop(paste0('Unknown class: ', class(assayObj)[1]))
+  }
+}
+
+# This is patterned after Seurat: https://github.com/satijalab/seurat/blob/41d19a8a55350bff444340d6ae7d7e03417d4173/R/utilities.R#L1455C1-L1470C4
+# Seurat's Pseudobulking converts numeric columns, like cluster names, with prefixes like this
+.CheckColnamesAreNumeric <- function(mat, prefix = "g") {
+  col.names <- colnames(mat)
+  if (any(!(grepl("^[a-zA-Z]|^\\.[^0-9]", col.names)))) {
+    col.names <- ifelse(
+      !(grepl("^[a-zA-Z]|^\\.[^0-9]", col.names)),
+      paste0(prefix, col.names),
+      col.names
+    )
+    colnames(mat) <- col.names
+  }
+
+  return(mat)
 }

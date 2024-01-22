@@ -26,7 +26,7 @@ test_that("Seurat-manipulation works as expected", {
   df <- AvgExpression(seuratObj, groupField = 'ClusterNames_0.4')
   expect_equal(ncol(df), 8)
   expect_equal(nrow(df), nrow(seuratObj) + 2)
-  expect_equal(max(df[df$feature == 'LibrarySize', colnames(df) %in% 0:5]), 939113)
+  expect_equal(max(df[df$feature == 'LibrarySize', colnames(df) %in% paste0('g', 0:5)]), 939113)
 
   seuratList <- SplitSeurat(seuratObj, splitField = 'ClusterNames_0.2', minCellsToKeep = 200)
   expect_equal(4, length(seuratList))
@@ -45,9 +45,11 @@ test_that("Seurat-saturation works as expected", {
 	df <- DropletUtils::get10xMolInfoStats(molInfoFile)
 	df <- data.frame(cellbarcode = df$cell, num.umis = df$num.umis, CountsPerCell = df$num.reads)
 	df <- df[df$CountsPerCell > 100,]
-	dat <- matrix(df$CountsPerCell, nrow = 1)
+
+    # NOTE: this is converted into two features b/c Assay5 objects do not allow single-feature data
+	dat <- Seurat::as.sparse(matrix(c(df$CountsPerCell, df$CountsPerCell), nrow = 2))
 	colnames(dat) <- df$cellbarcode
-	rownames(dat) <- c('Feat')
+	rownames(dat) <- c('Feat1', 'Feat2')
 	
 	seuratObj <- Seurat::CreateSeuratObject(dat)
 	seuratObj <- AppendPerCellSaturation(seuratObj, molInfoFile)
@@ -88,9 +90,27 @@ test_that("ScaleFeaturesIfNeeded works as expected", {
   
   seuratObj <- NormalizeAndScale(seuratObj, nVariableFeatures = 100)
 
-  toAdd <- rownames(seuratObj@assays$RNA)[!rownames(seuratObj@assays$RNA) %in% rownames(seuratObj@assays$RNA@scale.data)][1:10]
-  toAdd <- c(toAdd, rownames(seuratObj@assays$RNA@scale.data)[1:10])
+  toAdd <- rownames(seuratObj@assays$RNA)[!rownames(seuratObj@assays$RNA) %in% rownames(Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'scale.data'))][1:10]
+  toAdd <- c(toAdd, rownames(Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'scale.data'))[1:10])
   
   seuratObj2 <- ScaleFeaturesIfNeeded(seuratObj, toScale = toAdd)
-  expect_equal(200, nrow(seuratObj2@assays$RNA@scale.data))
+  expect_equal(200, nrow(Seurat::GetAssayData(seuratObj2, assay = 'RNA', slot = 'scale.data')))
+})
+
+test_that("Assay meta.data works for Seurat 4 and 5", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  
+  assay <- Seurat::GetAssay(seuratObj)
+  assay5 <- SeuratObject::CreateAssay5Object(counts = assay@counts)
+  
+  assay@meta.features$Test <- 'Seurat4'
+  assay5@meta.data$Test <- 'Seurat5'
+  
+  slot(assay, GetAssayMetadataSlotName(assay))$NewCol <- 1
+  assay@meta.features$NewCol
+  expect_equal(unique(assay@meta.features$NewCol), 1)
+  
+  slot(assay5, GetAssayMetadataSlotName(assay5))$NewCol <- 2
+  assay5@meta.data$NewCol
+  expect_equal(unique(assay5@meta.data$NewCol), 2)
 })

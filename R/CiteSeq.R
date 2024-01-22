@@ -56,7 +56,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 
 	# TODO: we might want to return the unfiltered results and keep all cell matching GEX?
 	if (runCellBender) {
-		updatedCounts <- RunCellBender(rawFeatureMatrix = assayData@counts, fpr = 0.05)
+		updatedCounts <- RunCellBender(rawFeatureMatrix = Seurat::GetAssayData(assayData, slot = 'counts'), fpr = 0.05)
 		assayData <- Seurat::CreateAssayObject(counts = updatedCounts)
 	}
 
@@ -151,14 +151,19 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		stop("Feature set does not match, cannot reorder")
 	}
 
-	if (length(assayData@counts))
-		assayData@counts <- assayData@counts[featureWhitelist, ]
-	if (length(assayData@data))
-		assayData@data <- assayData@data[featureWhitelist, ]
-	if (length(assayData@scale.data))
-		assayData@scale.data <- assayData@scale.data[featureWhitelist, ]
+	if (length(Seurat::GetAssayData(assayData, slot = 'counts'))) {
+		assayData <- Seurat::SetAssayData(assayData, slot = 'counts', new.data = Seurat::GetAssayData(assayData, slot = 'counts')[featureWhitelist, ])
+	}
 
-	assayData@meta.features <- assayData@meta.features[featureWhitelist]
+	if (length(Seurat::GetAssayData(assayData, slot = 'data'))) {
+		assayData <- Seurat::SetAssayData(assayData, slot = 'data', new.data = Seurat::GetAssayData(assayData, slot = 'data')[featureWhitelist, ])
+	}
+
+	if (length(Seurat::GetAssayData(assayData, slot = 'scale.data'))) {
+		assayData <- Seurat::SetAssayData(assayData, slot = 'scale.data', new.data = Seurat::GetAssayData(assayData, slot = 'scale.data')[featureWhitelist, ])
+	}
+
+	slot(assayData, GetAssayMetadataSlotName(assayData)) <- slot(assayData, GetAssayMetadataSlotName(assayData))[featureWhitelist]
 
 	return(assayData)
 }
@@ -168,12 +173,17 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		stop("Cell list does not match, cannot reorder")
 	}
 
-	if (length(assayData@counts))
-		assayData@counts <- assayData@counts[, cellWhitelist]
-	if (length(assayData@data))
-		assayData@data <- assayData@data[, cellWhitelist]
-	if (length(assayData@scale.data))
-		assayData@scale.data <- assayData@scale.data[, cellWhitelist]
+	if (length(Seurat::GetAssayData(assayData, slot = 'counts'))) {
+		assayData <- Seurat::SetAssayData(assayData, slot = 'counts', new.data = Seurat::GetAssayData(assayData, slot = 'counts')[, cellWhitelist])
+	}
+
+	if (length(Seurat::GetAssayData(assayData, slot = 'data'))) {
+		assayData <- Seurat::SetAssayData(assayData, slot = 'data', new.data = Seurat::GetAssayData(assayData, slot = 'data')[, cellWhitelist])
+	}
+
+	if (length(Seurat::GetAssayData(assayData, slot = 'scale.data'))) {
+		assayData <- Seurat::SetAssayData(assayData, slot = 'scale.data', new.data = Seurat::GetAssayData(assayData, slot = 'scale.data')[, cellWhitelist])
+	}
 
 	return(assayData)
 }
@@ -208,7 +218,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	}
 
 	# Ensure metadata preserved:
-	replacementAssay@meta.features <- assayData@meta.features
+	slot(replacementAssay, GetAssayMetadataSlotName(replacementAssay)) <- slot(assayData, GetAssayMetadataSlotName(assayData))
 
 	return(replacementAssay)
 }
@@ -340,14 +350,29 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		newnames <- gsub(x = newnames, pattern = '_', replacement = '-')
 	}
 
-	if (length(assayData@counts))
-		assayData@counts@Dimnames[[1]] <- newnames
-	if (length(assayData@data))
-		assayData@data@Dimnames[[1]] <- newnames
-	if (length(assayData@scale.data))
-		assayData@scale.data@Dimnames[[1]] <- newnames
+	if (class(assayData)[1] == 'Assay') {
+		for (slotName in c('counts', 'data', 'scaled.data')) {
+			if (slotName %in% slotNames(assayData)) {
+				print(paste0('Updating layer: ', slotName))
+				slot(assayData, slotName)@Dimnames[[1]] <- newnames
 
-	rownames(assayData@meta.features) <- newnames
+				if (any(rownames(Seurat::GetAssayData(assayData, slot = slotName)) != newnames)) {
+					stop('Features were not updated!')
+				}
+			}
+		}
+
+		assayData@var.features <- character()
+		rownames(assayData@meta.features) <- newnames
+	} else if (class(assayData)[1] == 'Assay5') {
+		rownames(assayData) <- newnames
+	} else {
+		stop(paste0('Unknown assay class: ', class(assayData)[1]))
+	}
+
+	if (any(rownames(assayData) != newnames)) {
+		stop('Features were not updated!')
+	}
 
 	return(assayData)
 }
@@ -512,7 +537,7 @@ CiteSeqDimRedux.Dist <- function(seuratObj, assayName = 'ADT', dist.method = "eu
 
 	if (performClrNormalization) {
 		seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
-	} else if (is.null(seuratObj[[assayName]]@data) || length(seuratObj[[assayName]]@data) == 0){
+	} else if (is.null(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) || length(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) == 0){
 		stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
 	} else {
 		print('Using pre-existing normalization')
@@ -622,7 +647,7 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
 
 		if (performClrNormalization) {
 			seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
-		} else if (is.null(seuratObj[[assayName]]@data) || length(seuratObj[[assayName]]@data) == 0){
+		} else if (is.null(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) || length(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) == 0){
 			stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
 		} else {
 			print('Using pre-existing normalization')

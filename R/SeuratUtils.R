@@ -400,6 +400,7 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 	libraryMetrics <- as.data.frame(t(as.matrix(table(seuratObj[[groupField, drop = TRUE]]))))
 	libraryMetrics$feature <- 'TotalCells'
 	libraryMetrics$assay <- 'ExperimentMetrics'
+	libraryMetrics <- .CheckColnamesAreNumeric(libraryMetrics)
 	libraryMetrics <- libraryMetrics[unique(c('assay', 'feature', colnames(libraryMetrics)))]
 	df <- rbind(df, libraryMetrics)
 
@@ -417,6 +418,7 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 			toAdd[val] <- sum(Seurat::GetAssayData(dat, slot = slot))
 		}
 
+		toAdd <- .CheckColnamesAreNumeric(toAdd)
 		df <- rbind(df, toAdd[colnames(df)])
 	}
 
@@ -776,13 +778,13 @@ InspectSeurat <- function(seuratObj, slotReportSize = 500000, commandReportSize 
 #' @param assayName The name of the assay to use.
 #' @export
 ScaleFeaturesIfNeeded <- function(seuratObj, toScale, assayName = 'RNA') {
-	notPresent <- toScale[!toScale %in% rownames(seuratObj@assays[[assayName]]@scale.data)]
+	notPresent <- toScale[!toScale %in% rownames(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data'))]
 	print(paste0('Total features to scale: ', length(notPresent), ' of ', length(toScale)))
 
 	scaled2 <- Seurat::ScaleData(seuratObj@assays[[assayName]], features = notPresent)
-	scaled2 <- rbind(seuratObj@assays[[assayName]]@scale.data, scaled2@scale.data)
-	seuratObj@assays[[assayName]]@scale.data <- scaled2
-	print(dim(seuratObj@assays[[assayName]]@scale.data))
+	scaled2 <- rbind(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data'), Seurat::GetAssayData(scaled2, slot = 'scale.data'))
+	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayName, slot = 'scale.data', new.data = scaled2)
+	print(dim(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data')))
 
 	return(seuratObj)
 }
