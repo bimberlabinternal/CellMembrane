@@ -52,7 +52,7 @@ jobs:
         run: |
           python3 -m pip install --user scanpy
           cd ../
-          git clone -b debug https://github.com/bbimber/conga.git conga
+          git clone https://github.com/phbradley/conga.git conga
           cd conga/tcrdist_cpp
           make
           cd ../../
