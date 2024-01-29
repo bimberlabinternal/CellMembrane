@@ -64,7 +64,7 @@ TrainSctourModel <- function(seuratObj = NULL,
   # write out data for scTour 
   jsonlite::write_json(exclusionList, exclusionJsonPath)
   DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts'), 
-                               path = GEX_outfile,
+                               path = GEXOutfile,
                                overwrite = TRUE)
   
   #copy run_scTour.py in inst/scripts and supply custom arguments 
@@ -154,7 +154,7 @@ PredictScTourPseudotime <- function(seuratObj = NULL,
   DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, 
                                                         assay = assayName, 
                                                         layer = 'counts'), 
-                               path = GEX_outfile,
+                               path = GEXOutfile,
                                overwrite = TRUE)
   
   #copy run_scTour.py in inst/scripts and supply custom arguments 
