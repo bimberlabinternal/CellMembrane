@@ -96,14 +96,14 @@ TrainSctourModel <- function(seuratObj = NULL,
   
   #basic nearest neighbors graph construction to get a UMAP. Note: the embedding is five dimensaional from sctour . 
   seuratObj <- Seurat::FindNeighbors(seuratObj, reduction = 'sctour', dims = 1:5, k.param = 20)
-  seuratObj <- Seurat::RunUMAP(seuratObj, dims = 1:2, reduction = "sctour")
+  seuratObj <- Seurat::RunUMAP(seuratObj, dims = 1:2, reduction = "sctour", reduction.name = "sctour_umap")
   
   #Add ptime to seurat metadata
   pseudotimeOutputVector <- pseudotimeOutputDf[,"ptime"]
   names(pseudotimeOutputVector) <- pseudotimeOutputDf[,"X"]
   seuratObj <- Seurat::AddMetaData(seuratObj, metadata = pseudotimeOutputVector, col.name = "pseudotime")
   #Plot pseudotime
-  print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = 'umap'))
+  print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = 'sctour_umap'))
   print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = 'sctour'))
   
   if(cleanUpIntermediateFiles){
