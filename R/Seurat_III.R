@@ -1072,11 +1072,16 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   if (length(VariableFeatures(seuratObj)) == 0) {
     stop('There are no VariableFeatures in this seurat object')
   }
-  df <- slot(GetAssay(seuratObj, assay = DefaultAssay(seuratObj)), GetAssayMetadataSlotName(GetAssay(seuratObj, assay = DefaultAssay(seuratObj))))
 
-  varianceStandardizedField <- ifelse(class(seuratObj[[DefaultAssay(seuratObj)]])[1] == 'Assay5', yes = 'vf_vst_counts_variance.standardized', no = 'vst.variance.standardized')
+  cn <- class(seuratObj[[DefaultAssay(seuratObj)]])[1]
+  df <- slot(GetAssay(seuratObj, assay = DefaultAssay(seuratObj)), GetAssayMetadataSlotName(GetAssay(seuratObj, assay = DefaultAssay(seuratObj))))
+  if (all(is.null(df))) {
+    stop(paste0('Unable to find assay metadata for assay: ', DefaultAssay(seuratObj), ' with class: ', cn, ', expected slot: ', GetAssayMetadataSlotName(GetAssay(seuratObj, assay = DefaultAssay(seuratObj)))))
+  }
+
+  varianceStandardizedField <- ifelse(cn == 'Assay5', yes = 'vf_vst_counts_variance.standardized', no = 'vst.variance.standardized')
   if (!varianceStandardizedField %in% names(df)) {
-    print(paste0('Missing field ', varianceStandardizedField, ' in assay metadata. Found: ', paste0(names(df), collapse = ',')))
+    stop(paste0('Missing field ', varianceStandardizedField, ' in assay metadata (assay class: ', cn, '). Found: ', paste0(names(df), collapse = ',')))
   }
 
   vstVariableField <- ifelse(class(seuratObj[[DefaultAssay(seuratObj)]])[1] == 'Assay5', yes = 'vf_vst_counts_variable', no = 'vst.variable')
