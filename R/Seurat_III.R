@@ -1079,14 +1079,24 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     stop(paste0('Unable to find assay metadata for assay: ', DefaultAssay(seuratObj), ' with class: ', cn, ', expected slot: ', GetAssayMetadataSlotName(GetAssay(seuratObj, assay = DefaultAssay(seuratObj)))))
   }
 
-  varianceStandardizedField <- ifelse(cn == 'Assay5', yes = 'vf_vst_counts_variance.standardized', no = 'vst.variance.standardized')
-  if (!varianceStandardizedField %in% names(df)) {
-    stop(paste0('Missing field ', varianceStandardizedField, ' in assay metadata (assay class: ', cn, '). Found: ', paste0(names(df), collapse = ',')))
+  varianceStandardizedFields <- c('vf_vst_counts_variance.standardized', 'vst.variance.standardized')
+  vstVariableFields <- c('vf_vst_counts_variable', 'vst.variable')
+
+  varianceStandardizedField <- NULL
+  vstVariableField <- NULL
+  for (idx in 1:length(varianceStandardizedFields)) {
+    fn1 <- varianceStandardizedFields[idx]
+    fn2 <- vstVariableFields[idx]
+    if (fn1 %in% names(df) && fn2 %in% names(df)) {
+      varianceStandardizedField <- fn1
+      vstVariableField <- fn2
+
+      break
+    }
   }
 
-  vstVariableField <- ifelse(class(seuratObj[[DefaultAssay(seuratObj)]])[1] == 'Assay5', yes = 'vf_vst_counts_variable', no = 'vst.variable')
-  if (!vstVariableField %in% names(df)) {
-    print(paste0('Missing field ', vstVariableField, ' in assay metadata. Found: ', paste0(names(df), collapse = ',')))
+  if (is.null(varianceStandardizedField)) {
+    stop(paste0('Unable to find variance fields, expected one of: ', paste0(varianceStandardizedFields, collapse = ','), ' in assay metadata (assay class: ', cn, '). Found: ', paste0(names(df), collapse = ',')))
   }
 
   dat <- sort(df[[varianceStandardizedField]])
