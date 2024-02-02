@@ -239,7 +239,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 				names(geneIds2) <- rownames(seuratObjs[[datasetId]][[assayName]])
 			}
 
-			# NOTE: if collapse = TRUE is every supported, we should use this.
+			# NOTE: if collapse = TRUE is ever supported, we should use this.
 			seuratObj <- merge(x = seuratObj, y = seuratObjs[[datasetId]], project = projectName, merge.data = merge.data)
 
 			# NOTE: in Seurat 5.x, the default is to rename layers (i.e. counts.1 and counts.2). Collapse=TRUE avoids this.
