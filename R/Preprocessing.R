@@ -244,7 +244,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 			# NOTE: in Seurat 5.x, the default is to rename layers (i.e. counts.1 and counts.2). Collapse=TRUE avoids this.
 			for (assayName in Seurat::Assays(seuratObj)) {
-				assayObj <- Seurat::GetAssayData(seuratObj, assay = assayName)
+				assayObj <- seuratObj[[assayName]]
 				if (inherits(assayObj, 'Assay5')) {
 					seuratObj[[assayName]] <- SeuratObject::JoinLayers(assayObj)
 				}
