@@ -80,3 +80,25 @@ test_that("seurat barcode duplicate code works as expected", {
 	sm <- MergeSeuratObjs(toMerge, projectName = 'TestMerge')
 	expect_equal(ncol(sm), ncol(seuratObj1) +  ncol(seuratObj2))	
 })
+
+test_that("Assumptions about Seurat layers are true", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+
+  assayA <- SeuratObject::CreateAssayObject(Seurat::GetAssayData(seuratObj[['RNA']], layer = 'counts'))
+  colnames(assayA) <- paste0('A_', colnames(assayA))
+
+  assayB <- SeuratObject::CreateAssayObject(Seurat::GetAssayData(seuratObj[['RNA']], layer = 'counts'))
+  colnames(assayA) <- paste0('B_', colnames(assayB))
+
+  assay5A <- SeuratObject::CreateAssay5Object(Seurat::GetAssayData(assayA, layer = 'counts'))
+  assay5B <- SeuratObject::CreateAssay5Object(Seurat::GetAssayData(assayB, layer = 'counts'))
+
+  merge1 <- merge(assayA, assayB)
+  expect_equal(c('counts', 'data'), SeuratObject::Layers(merge1))
+
+
+  merge5 <- merge(assay5A, assay5B, collapse = FALSE)
+  expect_equal(c('counts.1', 'counts.2'), SeuratObject::Layers(merge5))
+  merge5 <- SeuratObject::JoinLayers(merge5)
+  expect_equal(c('counts'), SeuratObject::Layers(merge5))
+})

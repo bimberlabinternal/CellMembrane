@@ -243,7 +243,9 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 			if (utils::packageVersion("SeuratObject") < '5.0.0') {
 				seuratObj <- merge(x = seuratObj, y = seuratObjs[[datasetId]], project = projectName, merge.data = merge.data)
 			} else {
-				seuratObj <- merge(x = seuratObj, y = seuratObjs[[datasetId]], project = projectName, merge.data = merge.data, collapse = TRUE)
+				# NOTE: if collapse = TRUE is every supported, we should use this.
+				seuratObj <- merge(x = seuratObj, y = seuratObjs[[datasetId]], project = projectName, merge.data = merge.data)
+				seuratObj <- SeuratObject::JoinLayers(seuratObj)
 			}
 
 			seuratObjs[[datasetId]] <- NULL
