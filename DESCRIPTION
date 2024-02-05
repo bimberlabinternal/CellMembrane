@@ -76,7 +76,8 @@ Imports:
     mlr3verse,
     mlr3,
     glmnet, 
-    flexmix
+    flexmix,
+    scMetabolism
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -97,7 +98,8 @@ Remotes:
     marchinilab/SDAtools,
     marchinilab/dropsim,
     drisso/RUVSeq,
-    carmonalab/UCell
+    carmonalab/UCell,
+    wu-yc/scMetabolism
 Config/reticulate:
   list(
     packages = list(
@@ -123,3 +125,4 @@ Collate:
     'Spatial.R'
     'Vision.R'
     'data.R'
+    'scMetabolism.R'
