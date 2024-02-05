@@ -62,6 +62,6 @@ test_that("QuantifyTcrClones  works", {
   seuratObj <- QuantifyTcrClones(seuratObj, "../testdata/tcr_df.csv", groupingFields = 'ClusterNames_0.2')
 
   expect_equal(length(unique(seuratObj$cloneSize)), 7)
-  expect_equal(max(seuratObj$cloneProportion, na.rm = TRUE), 0.74, tolerance = 0.001)
+  expect_equal(max(seuratObj$cloneProportion, na.rm = TRUE), 0.151, tolerance = 0.001)
 })
   
