@@ -24,6 +24,7 @@ utils::globalVariables(
 #' @param previouslyFilteredMatrix An optional filepath to a pre-filtered count matrix in h5 format. If non-null, this file will be read instead of dataDir. Empty drops and/or soupX will be skipped.
 #' @param useSoupX If true, SoupX will be run against the run input data, instead of emptyDrops
 #' @return A Seurat object.
+#' @importFrom magrittr %>%
 #' @export
 #' @importFrom Seurat Read10X
 ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDropNIters=10000, emptyDropsFdrThreshold = 0.001, storeGeneIds=TRUE, emptyDropsLower = 100, useEmptyDropsCellRanger = FALSE, nExpectedCells = 8000, useSoupX = FALSE, previouslyFilteredMatrix = NULL) {
@@ -102,17 +103,18 @@ ReadAndFilter10xData <- function(dataDir, datasetId, datasetName = NULL, emptyDr
 #' @return A named vector of the gene IDs
 #' @export
 GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
-	ret <- NULL
+  ret <- NULL
 
-  featureMeta <- GetAssay(seuratObj)@meta.features
+  assayData <- Seurat::GetAssay(seuratObj, assay = Seurat::DefaultAssay(seuratObj))
+  featureMeta <- slot(assayData, GetAssayMetadataSlotName(assayData))
   if ('GeneId' %in% colnames(featureMeta)) {
     ret <- featureMeta$GeneId
-    names(ret) <- rownames(seuratObj)
+    names(ret) <- rownames(assayData)
     ret <- ret[geneNames]
   }
 
   if (all(is.null(ret))) {
-  	stop('Expected gene IDs to be stored under GetAssay(seuratObj)@meta.features')
+  	stop('Expected gene IDs to be stored under GetAssay(seuratObj)@meta.data')
   }
 
   if (throwIfGenesNotFound & sum(is.na(ret)) > 0) {
@@ -1070,15 +1072,45 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   if (length(VariableFeatures(seuratObj)) == 0) {
     stop('There are no VariableFeatures in this seurat object')
   }
-  df <- seuratObj@assays[[DefaultAssay(seuratObj)]]@meta.features
-  dat <- sort(df$vst.variance.standardized)
+
+  cn <- class(seuratObj[[DefaultAssay(seuratObj)]])[1]
+  df <- slot(GetAssay(seuratObj, assay = DefaultAssay(seuratObj)), GetAssayMetadataSlotName(GetAssay(seuratObj, assay = DefaultAssay(seuratObj))))
+  if (all(is.null(df))) {
+    stop(paste0('Unable to find assay metadata for assay: ', DefaultAssay(seuratObj), ' with class: ', cn, ', expected slot: ', GetAssayMetadataSlotName(GetAssay(seuratObj, assay = DefaultAssay(seuratObj)))))
+  }
+
+  varianceStandardizedFields <- c('vf_vst_counts_variance.standardized', 'vst.variance.standardized')
+  vstVariableFields <- c('vf_vst_counts_variable', 'vst.variable')
+
+  varianceStandardizedField <- NULL
+  vstVariableField <- NULL
+  for (idx in 1:length(varianceStandardizedFields)) {
+    fn1 <- varianceStandardizedFields[idx]
+    fn2 <- vstVariableFields[idx]
+    if (fn1 %in% names(df) && fn2 %in% names(df)) {
+      varianceStandardizedField <- fn1
+      vstVariableField <- fn2
+
+      break
+    }
+  }
+
+  if (is.null(varianceStandardizedField)) {
+    stop(paste0('Unable to find variance fields, expected one of: ', paste0(varianceStandardizedFields, collapse = ','), ' in assay metadata (assay class: ', cn, '). Found: ', paste0(names(df), collapse = ',')))
+  }
+
+  dat <- sort(df[[varianceStandardizedField]])
   dat <- dat[dat > 0]
-  countAbove <-sapply(dat, function(x){
+  if (length(dat) == 0) {
+    print('No features have vst.variance.standardized > 0')
+  }
+
+  countAbove <- sapply(dat, function(x){
     sum(dat >= x)
   })
 
   print(paste0('Total variable features: ', length(Seurat::VariableFeatures(seuratObj))))
-  minVal <- min(df$vst.variance.standardized[df$vst.variable])
+  minVal <- min(df[[varianceStandardizedField]][df[[vstVariableField]]])
 
   print(ggplot(data.frame(x = countAbove, y = dat), aes(x = x, y = y)) +
           geom_point() +

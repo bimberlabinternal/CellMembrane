@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Trigger Rdiscvr Docker
         uses: peter-evans/repository-dispatch@v2
@@ -20,6 +20,14 @@ jobs:
           token: ${{ secrets.PAT }}
           repository: bimberlabinternal/Rdiscvr
           event-type: docker
+
+      - name: Remove unnecessary files
+        run: |
+          df . -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+          df . -h
 
       - name: Docker meta
         id: docker_meta

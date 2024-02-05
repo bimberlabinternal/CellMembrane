@@ -6,6 +6,7 @@ ARG GH_PAT='NOT_SET'
 ## Redo the R installation, since we need a base image using focal, but updated R version:
 # This should be removed in favor of choosing a better base image once Exacloud supports jammy
 ENV R_VERSION=4.3.1
+ENV R_BIOC_VERSION=3.18
 ENV CRAN=https://packagemanager.posit.co/cran/__linux__/focal/latest
 RUN /bin/sh -c /rocker_scripts/install_R_source.sh \
   && /bin/sh -c /rocker_scripts/setup_R.sh
@@ -13,7 +14,6 @@ RUN /bin/sh -c /rocker_scripts/install_R_source.sh \
 # NOTE: if anything breaks the dockerhub build cache, you will probably need to build locally and push to dockerhub.
 # After the cache is in place, builds from github commits should be fast.
 # NOTE: locales / locales-all added due to errors with install_deps() and special characters in the DESCRIPTION file for niaid/dsb
-# NOTE: the conga rhesus branch should eventually merge, so we'll need to remove -b rhesus. The cd commands downstream are necessary to compile the reimplementation of tcrdist within conga.
 RUN apt-get update -y \
 	&& apt-get upgrade -y \
 	&& apt-get install -y \
@@ -24,8 +24,10 @@ RUN apt-get update -y \
         locales-all \
         wget \
         git \
+        libxml2-dev \
+        libxslt-dev \
     && python3 -m pip install --upgrade pip \
-    && pip3 install umap-learn phate scanpy[leiden] \
+    && pip3 install umap-learn phate scanpy \
     && pip3 install git+https://github.com/broadinstitute/CellBender.git \
     && python3 -m pip install --user git+https://github.com/kmayerb/tcrdist3.git@0.2.2 \
     && mkdir /conga \
@@ -38,7 +40,7 @@ RUN apt-get update -y \
     ##  Add Bioconductor system dependencies
     && mkdir /bioconductor && cd /bioconductor \
     && wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/master/bioc_scripts/install_bioc_sysdeps.sh \
-    && bash ./install_bioc_sysdeps.sh 3.17 \
+    && bash ./install_bioc_sysdeps.sh $R_BIOC_VERSION \
     && cd / \
     && rm -Rf /bioconductor \
     && apt-get clean \
@@ -61,6 +63,7 @@ RUN echo "local({r <- getOption('repos') ;r['CRAN'] = 'https://packagemanager.rs
     && Rscript -e "print(version)" \
 	&& rm -rf /tmp/downloaded_packages/ /tmp/*.rds \
     && mkdir /BiocFileCache && chmod 777 /BiocFileCache \
+    && mkdir /dockerHomeDir && chmod 777 /dockerHomeDir \
     # See: https://jmarchini.org/software/
     && wget -O /bin/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1 \
     && chmod +x /bin/sda_static_linux
@@ -70,6 +73,7 @@ ENV RETICULATE_PYTHON=/usr/bin/python3
 # Create location for BioConductor AnnotationHub/ExperimentHub caches:
 ENV ANNOTATION_HUB_CACHE=/BiocFileCache
 ENV EXPERIMENT_HUB_CACHE=/BiocFileCache
+ENV BFC_CACHE=/BiocFileCache
 
 # This should not be cached if the files change
 ADD . /CellMembrane
@@ -78,8 +82,6 @@ RUN cd /CellMembrane \
     && if [ "${GH_PAT}" != 'NOT_SET' ];then echo 'Setting GITHUB_PAT'; export GITHUB_PAT="${GH_PAT}";fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
-    # NOTE: Related to: https://github.com/satijalab/seurat/issues/7328. Should revert to a release once patched.
-    && Rscript -e "remotes::install_github('satijalab/seurat', ref='443ab86684253d9a7290c3d38c2bc1d8db021776');" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \

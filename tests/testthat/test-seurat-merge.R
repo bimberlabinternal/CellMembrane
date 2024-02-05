@@ -26,7 +26,8 @@ test_that("Seurat-merge works as expected", {
   expect_equal("RNA", Seurat::DefaultAssay(seuratObj))
 
   #Gene IDs preserved:
-  expect_equal(nrow(seuratObj), length(seuratObj@assays$RNA@meta.features$GeneId))
+  assayObj <- GetAssay(seuratObj, assay = 'RNA')
+  expect_equal(nrow(seuratObj), length(slot(assayObj, GetAssayMetadataSlotName(assayObj))$GeneId))
   geneIds <- GetGeneIds(seuratObj, c('HES4', 'CALML6'))
   names(geneIds) <- NULL
   expect_equal(geneIds, c('ENSMMUG00000001817', 'ENSMMUG00000012392'))
@@ -47,13 +48,13 @@ test_that("Seurat-merge works as expected", {
 
 
 test_that("seurat barcode duplicate code works as expected", {
-	seuratObj1 <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj1 <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj1 <- Seurat::DietSeurat(seuratObj1)
 	seuratObj1$DatasetId <- 12345
 	seuratObj1$BarcodePrefix <- 12345
 	seuratObj1 <- Seurat::RenameCells(object = seuratObj1, add.cell.id = 12345)
 	
-	seuratObj2 <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj2 <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj2 <- Seurat::DietSeurat(seuratObj2)
 	seuratObj2$DatasetId <- 23456
 	seuratObj2$BarcodePrefix <- 23456
@@ -69,13 +70,42 @@ test_that("seurat barcode duplicate code works as expected", {
 	expect_equal(ncol(sm), ncol(seuratObj1) +  ncol(seuratObj2) - 20)	
 	
 	# Repeat where barcode prefix added by merge:
-	seuratObj1 <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj1 <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj1 <- Seurat::DietSeurat(seuratObj1)
 
-	seuratObj2 <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj2 <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj2 <- Seurat::DietSeurat(seuratObj2)
 
 	toMerge <- list('12345' = seuratObj1, '23456' = seuratObj2)
 	sm <- MergeSeuratObjs(toMerge, projectName = 'TestMerge')
 	expect_equal(ncol(sm), ncol(seuratObj1) +  ncol(seuratObj2))	
+})
+
+test_that("Assumptions about Seurat layers are true", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+
+  assayA <- SeuratObject::CreateAssayObject(Seurat::GetAssayData(seuratObj[['RNA']], layer = 'counts'))
+  colnames(assayA) <- paste0('A_', colnames(assayA))
+  expect_true(inherits(assayA, 'Assay'))
+  expect_false(inherits(assayA, 'Assay5'))
+
+  assayB <- SeuratObject::CreateAssayObject(Seurat::GetAssayData(seuratObj[['RNA']], layer = 'counts'))
+  colnames(assayA) <- paste0('B_', colnames(assayB))
+
+  assay5A <- SeuratObject::CreateAssay5Object(Seurat::GetAssayData(assayA, layer = 'counts'))
+  assay5B <- SeuratObject::CreateAssay5Object(Seurat::GetAssayData(assayB, layer = 'counts'))
+  expect_true(inherits(assay5A, 'Assay5'))
+  expect_false(inherits(assay5A, 'Assay'))
+  
+  merge1 <- merge(assayA, assayB)
+  expect_equal(c('counts', 'data'), SeuratObject::Layers(merge1))
+  expect_true(inherits(merge1, 'Assay'))
+  expect_false(inherits(merge1, 'Assay5'))
+  
+  merge5 <- merge(assay5A, assay5B, collapse = FALSE)
+  expect_equal(c('counts.1', 'counts.2'), SeuratObject::Layers(merge5))
+  merge5 <- SeuratObject::JoinLayers(merge5)
+  expect_equal(c('counts'), SeuratObject::Layers(merge5))
+  expect_true(inherits(merge5, 'Assay5'))
+  expect_false(inherits(merge5, 'Assay'))
 })

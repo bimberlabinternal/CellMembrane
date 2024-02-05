@@ -85,7 +85,7 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 		feats <- c(feats, "p.mito")
 	}
 
-	print(VlnPlot(object = seuratObj, features = feats, ncol = length(feats)))
+	suppressWarnings(print(VlnPlot(object = seuratObj, features = feats, ncol = length(feats))))
 
 	if (totalPMito > 1) {
 		print(FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = "p.mito"))
@@ -95,7 +95,7 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 	print(FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = nFeatureField))
 
 	#10x-like plot
-	nUMI <- Matrix::colSums(GetAssayData(object = seuratObj, slot = "counts"))
+	nUMI <- Matrix::colSums(suppressWarnings(GetAssayData(object = seuratObj, slot = "counts")))
 	nUMI <- sort(nUMI)
 
 	countAbove <-sapply(nUMI, function(x){
@@ -205,7 +205,8 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 			assayName <- DefaultAssay(seuratObj)
 			DefaultAssay(seuratObjs[[datasetId]]) <- assayName
 
-			hasGeneId <- 'GeneId' %in% names(GetAssay(seuratObjs[[datasetId]], assay = assayName)@meta.features)
+			assayObj <- GetAssay(seuratObjs[[datasetId]], assay = assayName)
+			hasGeneId <- 'GeneId' %in% names(slot(assayObj, GetAssayMetadataSlotName(assayObj)))
 
 			if (any(rownames(seuratObj[[assayName]]) != rownames(seuratObjs[[datasetId]][[assayName]]))) {
 				missing <- rownames(seuratObj[[assayName]])[!(rownames(seuratObj[[assayName]]) %in% rownames(seuratObjs[[datasetId]][[assayName]]))]
@@ -224,19 +225,31 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 			}
 
 			if (hasGeneId) {
+				assayObj <- Seurat::GetAssay(seuratObj, assay = assayName)
+
 				# This can occur if the first object lacks GeneId but the second has it.
-				if (!'GeneId' %in% names(GetAssay(seuratObj, assay = assayName)@meta.features)) {
+				if (!'GeneId' %in% names(slot(assayObj, GetAssayMetadataSlotName(assayObj)))) {
 					message('GeneId was present in the second merged object, but not the first. Adding NAs')
-					seuratObj@assays[[assayName]]@meta.features$GeneId <- NA
+					slot(assayObj, GetAssayMetadataSlotName(assayObj))$GeneId <- NA
 				}
 
-				geneIds1 <- GetAssay(seuratObj, assay = assayName)@meta.features$GeneId
-				geneIds2 <- GetAssay(seuratObjs[[datasetId]], assay = assayName)@meta.features$GeneId
+				geneIds1 <- slot(assayObj, GetAssayMetadataSlotName(assayObj))$GeneId
+				geneIds2 <- slot(assayObj, GetAssayMetadataSlotName(assayObj))$GeneId
 				names(geneIds1) <- rownames(seuratObj[[assayName]])
 				names(geneIds2) <- rownames(seuratObjs[[datasetId]][[assayName]])
 			}
 
+			# NOTE: if collapse = TRUE is ever supported, we should use this.
 			seuratObj <- merge(x = seuratObj, y = seuratObjs[[datasetId]], project = projectName, merge.data = merge.data)
+
+			# NOTE: in Seurat 5.x, the default is to rename layers (i.e. counts.1 and counts.2). Collapse=TRUE avoids this.
+			for (assayName in Seurat::Assays(seuratObj)) {
+				assayObj <- seuratObj[[assayName]]
+				if (inherits(assayObj, 'Assay5')) {
+					seuratObj[[assayName]] <- SeuratObject::JoinLayers(assayObj)
+				}
+			}
+
 			seuratObjs[[datasetId]] <- NULL
 			if (doGC) {
 				gc()
@@ -293,4 +306,40 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 	}
 
 	stop(paste0('Unable to find matrix file in: ', dataDir, ' or ', dirWithFeatureMatrix))
+}
+
+#' @title LogNormalizeUsingAlternateAssay
+#'
+#' @param seuratObj The seurat object
+#' @param assayToNormalize The name of the assay to normalize
+#' @param assayForLibrarySize The name of the assay from which to derive library sizes. This will be added to the library size of assayToNormalize.
+#' @param scale.factor A scale factor to be applied in normalization
+#' @param maxLibrarySizeRatio This normalization relies on the assumption that the library size of the assay being normalized in negligible relative to the assayForLibrarySize. To verify this holds true, the method will error if librarySize(assayToNormalize)/librarySize(assayForLibrarySize) exceeds this value
+#' @export
+LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayForLibrarySize = 'RNA', scale.factor = 1e4, maxLibrarySizeRatio = 0.01) {
+	toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, slot = 'counts')
+	assayForLibrarySizeData <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, slot = 'counts')
+
+	if (any(colnames(toNormalize) != colnames(assayForLibrarySize))) {
+		stop(paste0('The assayToNormalize and assayForLibrarySize do not have the same cell names!'))
+	}
+
+	margin <- 2
+	ncells <- dim(x = toNormalize)[margin]
+
+	for (i in seq_len(length.out = ncells)) {
+		x <- toNormalize[, i]
+		librarySize <- sum(x) + sum(assayForLibrarySizeData[, i])
+
+		if ((sum(x) / librarySize) > maxLibrarySizeRatio) {
+			stop(paste0('The ratio of library sizes was above maxLibrarySizeRatio for cell: ', colnames(assayForLibrarySizeData)[i], '. was: ', (sum(x) / librarySize), ' (', sum(x), ' / ', librarySize, ')'))
+		}
+
+		xnorm <- log1p(x = x / librarySize * scale.factor)
+		toNormalize[, i] <- xnorm
+	}
+
+	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, slot = 'data', new.data = toNormalize)
+
+	return(seuratObj)
 }

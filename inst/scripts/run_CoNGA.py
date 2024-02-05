@@ -4,20 +4,20 @@ import conga
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from conga import util
 import scipy
 import os
-import sys
-from conga.preprocess import retrieve_tcrs_from_adata
-from conga.preprocess import read_adata
-from conga.preprocess import normalize_and_log_the_raw_matrix
+import anndata
 from conga.tcrdist.tcr_distances import TcrDistCalculator
 
+def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefix,
+         gex_datatype, clones_file, outfile_prefix_for_qc_plots, working_directory, print_versions = True):
 
+    if print_versions:
+        print('scanpy version: ' + sc.__version__)
+        print('scipy version: ' + scipy.__version__)
+        print('pandas version: ' + pd.__version__)
+        print('anndata version: ' + anndata.__version__)
 
-
-def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefix, 
-         gex_datatype, clones_file, outfile_prefix_for_qc_plots, working_directory):
     #set working directory (inherited from the R session)
     os.chdir(working_directory)
     tcrdist_calculator = TcrDistCalculator(organism)
@@ -26,6 +26,7 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
     #initializing clonotype file and kPCA
     conga.tcrdist.make_10x_clones_file.make_10x_clones_file( tcr_datafile, organism, clones_file)
     conga.preprocess.make_tcrdist_kernel_pcs_file_from_clones_file( clones_file, organism )
+
     adata = conga.preprocess.read_dataset(gex_datafile, gex_datatype, clones_file )
     genes_df = pd.read_csv(features_file, header=None)
     os.makedirs(os.path.dirname(os.path.join(os.getcwd(),outfile_prefix_for_qc_plots)), exist_ok=True)
@@ -41,6 +42,10 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
         max_percent_mito=0.1,
         outfile_prefix_for_qc_plots = outfile_prefix_for_qc_plots
     )
+    
+    # print out number of cells in adata
+    print('Total cells in adata object: ' + str(adata.shape[0]))
+    
     #create a second adata object that stores one representative clone per clonotype (specifically for gene expression analysis)
     adata2 = conga.preprocess.reduce_to_single_cell_per_clone(adata)
     adata2 = conga.preprocess.cluster_and_tsne_and_umap( adata2 )

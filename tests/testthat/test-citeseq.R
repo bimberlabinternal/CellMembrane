@@ -3,23 +3,23 @@ context("scRNAseq")
 test_that("Cite-Seq Normalization Works", {
 	adts <- read.table('../testdata/raw_feature_bc_matrix/validADTS.32851.metadata.txt', sep = '\t', header = T, fill = TRUE)
 	adts$rowname <- adts$tagname
-	mat <- CellMembrane:::.LoadCiteSeqData('../testdata/raw_feature_bc_matrix', adtWhitelist = adts$tagname, featureMetadata = adts)
-	
-	df <- data.frame(cellbarcode = colnames(mat), count = colSums(as.matrix(mat@counts)))
+	mat <- .LoadCiteSeqData('../testdata/raw_feature_bc_matrix', adtWhitelist = adts$tagname, featureMetadata = adts)
+
+	df <- data.frame(cellbarcode = colnames(mat), count = colSums(as.matrix(Seurat::GetAssayData(mat, slot = 'counts'))))
 	df <- dplyr::arrange(df, desc(count))
 	
-	seuratObj <- readRDS('../testdata/seuratOutput.rds')
-	sc <- seuratObj@assays$RNA@counts[,1:1000]
+	seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+	sc <- Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'counts')[,1:1000]
 	colnames(sc) <- df$cellbarcode[1:1000]
 	seuratObj <- Seurat::CreateSeuratObject(counts = sc)
 	
-	ret <- CellMembrane:::.NormalizeDsbWithEmptyDrops(seuratObj, unfilteredAdtAssay = mat, emptyDropNIters = 1000)
-	expect_equal(nrow(ret@counts), nrow(adts))
+	ret <- .NormalizeDsbWithEmptyDrops(seuratObj, unfilteredAdtAssay = mat, emptyDropNIters = 1000)
+	expect_equal(nrow(Seurat::GetAssayData(ret, slot = 'counts')), nrow(adts))
 })
 
 test_that("Cite-Seq Append Works", {
 	#Reduce size, touch up data:
-	seuratObj <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj <- seuratObj[1:1000,1:100]
 	
 	set.seed(1234)
@@ -101,7 +101,7 @@ test_that("Cite-Seq Append Works", {
 
 test_that("ADT Rename Works", {
 	#Reduce size, touch up data:
-	seuratObj <- readRDS('../testdata/seuratOutput.rds')
+	seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 	seuratObj <- seuratObj[1:1000,1:100]
 	
 	set.seed(1234)
@@ -124,7 +124,9 @@ test_that("ADT Rename Works", {
 	
 	expect_equal(colnames(seuratObjCiteMeta@assays$ADT), colnames(seuratObj@assays$RNA))
 	expect_true('RenamedFeature' %in% rownames(seuratObjCiteMeta@assays$ADT))
-	expect_equal(Seurat::GetAssay(seuratObjCiteMeta, assay = 'ADT')@meta.features$otherfield, c('Value1', NA, NA, NA))
+
+	assayObj <- Seurat::GetAssay(seuratObjCiteMeta, assay = 'ADT')
+	expect_equal(slot(assayObj, GetAssayMetadataSlotName(assayObj))$otherfield, c('Value1', NA, NA, NA))
 
 	unlink(inputPath1, recursive = T)
 })

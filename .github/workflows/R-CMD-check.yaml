@@ -18,16 +18,16 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: 22.04, r: 'next', bioc: 'devel'}
+          - {os: 22.04, r: 'devel', bioc: 'devel'}
+          - {os: 22.04, r: '4.3', bioc: '3.18'}
           - {os: 22.04, r: '4.3', bioc: '3.17', pkgdown: "true"}
-          - {os: 22.04, r: '4.2', bioc: '3.16'}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: r-lib/actions/setup-r@v2
         with:
@@ -39,8 +39,10 @@ jobs:
 
       - name: Install packages
         if: runner.os != 'Windows'
+        # libharfbuzz-dev libfribidi-dev are added to fix textshaping install error
         run: |
-          sudo apt-get update && sudo apt-get install -yq python3-pip
+          # NOTE: libsodium-dev installed for VISION
+          sudo apt-get update && sudo apt-get install -yq libharfbuzz-dev libfribidi-dev python3 python3-pip libsodium-dev libcurl4-openssl-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
           python3 -m pip install --user umap-learn phate
@@ -49,8 +51,7 @@ jobs:
 
       - name: Setup CoNGA
         run: |
-          # NOTE: this specific branch is currently needed for conga
-          python3 -m pip install --user scanpy[leiden]
+          python3 -m pip install --user scanpy
           cd ../
           git clone https://github.com/phbradley/conga.git conga
           cd conga/tcrdist_cpp
@@ -87,7 +88,7 @@ jobs:
 
       - name: Cache R packages
         if: runner.os != 'Windows'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.R_LIBS_USER }}
           key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-${{ matrix.config.bioc }}-${{ secrets.CACHE_VERSION || 1 }}-${{ hashFiles('.github/depends.Rds') }}
@@ -108,13 +109,14 @@ jobs:
             eval sudo $cmd
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "${{ matrix.config.os }}"))')
 
-      # TODO: seurat is related to: https://github.com/satijalab/seurat/issues/7328. Should revert to a release once patched.
       - name: Install dependencies
         run: |
           getOption('repos');
           print(paste0("R_BIOC_VERSION: ", Sys.getenv("R_BIOC_VERSION")));
-          remotes::install_deps(dependencies = TRUE, upgrade = "always")
-          remotes::install_github('satijalab/seurat', ref='443ab86684253d9a7290c3d38c2bc1d8db021776')
+          remotes::install_deps(dependencies = TRUE, upgrade = 'always')
+          # See: https://stackoverflow.com/questions/77370659/error-failed-to-collect-lazy-table-caused-by-error-in-db-collect-using
+          # TODO: Updating to BiocFileCache 2.10.1 should ultimately fix this. This manifests in SingleR
+          if (Sys.getenv("R_BIOC_VERSION") < '3.18') { devtools::install_version("dbplyr", version = "2.3.4") }
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
@@ -133,7 +135,6 @@ jobs:
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_: false
-        # TODO: consider adding: "--as-cran",
         run: rcmdcheck::rcmdcheck(args = c("--no-manual"), error_on = "warning", check_dir = "check")
         shell: Rscript {0}
 
@@ -146,7 +147,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@main
         with:
-          name: ${{ runner.os }}-r${{ matrix.config.r }}-results
+          name: ${{ runner.os }}-r${{ matrix.config.r }}-bioc${{ matrix.config.bioc }}-results
           path: check
 
       - name: Install package

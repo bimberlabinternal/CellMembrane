@@ -290,10 +290,10 @@ GetXYAesthetics <- function(plot, geom = 'GeomPoint', plot.first = TRUE) {
 #' @export
 #' @import ggplot2
 HighlightCellsOnSeuratPlot <- function(seuratObj, seuratPlot, cellSelectField = 'CloneNames', colorLegendLabel = 'Clone', colorField = NA, dotColor = NA, pt.size = 1, shapeField = NA, dotShapes = NA, horizontalLegend = TRUE, resetLegendSize = TRUE, maxAllowableShapeValues = 6) {
-	cellNames <- colnames(seuratObj)[!is.na(seuratObj[[cellSelectField]])]
+	cellNames <- colnames(seuratObj)[!is.na(seuratObj[[cellSelectField, drop = TRUE]])]
 	plot.data <- GetXYDataFromPlot(seuratPlot, cellNames)
-	plot.data$Clone <- seuratObj[[cellSelectField]][!is.na(seuratObj[[cellSelectField]])]
-	cellsWithData <- !is.na(seuratObj[[cellSelectField]])
+	plot.data$Clone <- seuratObj[[cellSelectField, drop = TRUE]][!is.na(seuratObj[[cellSelectField, drop = TRUE]])]
+	cellsWithData <- !is.na(seuratObj[[cellSelectField, drop = TRUE]])
 
 	seuratPlot <- seuratPlot + ggnewscale::new_scale_color()
 
@@ -302,7 +302,7 @@ HighlightCellsOnSeuratPlot <- function(seuratObj, seuratPlot, cellSelectField = 
 	}
 
 	if (!is.na(colorField)) {
-		plot.data$Color <- naturalsort::naturalfactor(seuratObj[[colorField]][cellsWithData])
+		plot.data$Color <- naturalsort::naturalfactor(seuratObj[[colorField, drop = TRUE]][cellsWithData])
 
 		seuratPlot <- seuratPlot + geom_point(
 			mapping = aes(x = x, y = y, color = Color),
@@ -324,7 +324,7 @@ HighlightCellsOnSeuratPlot <- function(seuratObj, seuratPlot, cellSelectField = 
 
 	# If shape field is not provided, but dotShape is, add a dummy field and assume all are the same value
 	if (!is.na(shapeField)) {
-		plot.data$ShapeField <- as.factor(seuratObj[[shapeField]][cellsWithData])
+		plot.data$ShapeField <- as.factor(seuratObj[[shapeField, drop = TRUE]][cellsWithData])
 	} else if (!is.na(dotShapes)) {
 		plot.data$ShapeField <- 1
 	}
@@ -399,9 +399,10 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 		}
 	}
 
-	libraryMetrics <- as.data.frame(t(as.matrix(table(seuratObj[[groupField]]))))
+	libraryMetrics <- as.data.frame(t(as.matrix(table(seuratObj[[groupField, drop = TRUE]]))))
 	libraryMetrics$feature <- 'TotalCells'
 	libraryMetrics$assay <- 'ExperimentMetrics'
+	libraryMetrics <- .CheckColnamesAreNumeric(libraryMetrics)
 	libraryMetrics <- libraryMetrics[unique(c('assay', 'feature', colnames(libraryMetrics)))]
 	df <- rbind(df, libraryMetrics)
 
@@ -419,6 +420,7 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 			toAdd[val] <- sum(Seurat::GetAssayData(dat, slot = slot))
 		}
 
+		toAdd <- .CheckColnamesAreNumeric(toAdd)
 		df <- rbind(df, toAdd[colnames(df)])
 	}
 
@@ -536,7 +538,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	toMerge <- df$Saturation
 	names(toMerge) <- df$cellbarcode
 
-	d <- seuratObj[[targetField]][[1]]
+	d <- seuratObj[[targetField, drop = TRUE]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
 	seuratObj <- Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetField)
@@ -544,7 +546,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	toMerge <- df$CountsPerCell
 	names(toMerge) <- df$cellbarcode
 
-	d <- seuratObj[[targetFieldReads]][[1]]
+	d <- seuratObj[[targetFieldReads, drop = TRUE]]
 	names(d) <- colnames(seuratObj)
 	d[names(toMerge)] <- toMerge
 	seuratObj <- Seurat::AddMetaData(seuratObj, metadata = d, col.name = targetFieldReads)
@@ -778,13 +780,13 @@ InspectSeurat <- function(seuratObj, slotReportSize = 500000, commandReportSize 
 #' @param assayName The name of the assay to use.
 #' @export
 ScaleFeaturesIfNeeded <- function(seuratObj, toScale, assayName = 'RNA') {
-	notPresent <- toScale[!toScale %in% rownames(seuratObj@assays[[assayName]]@scale.data)]
+	notPresent <- toScale[!toScale %in% rownames(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data'))]
 	print(paste0('Total features to scale: ', length(notPresent), ' of ', length(toScale)))
 
 	scaled2 <- Seurat::ScaleData(seuratObj@assays[[assayName]], features = notPresent)
-	scaled2 <- rbind(seuratObj@assays[[assayName]]@scale.data, scaled2@scale.data)
-	seuratObj@assays[[assayName]]@scale.data <- scaled2
-	print(dim(seuratObj@assays[[assayName]]@scale.data))
+	scaled2 <- rbind(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data'), Seurat::GetAssayData(scaled2, slot = 'scale.data'))
+	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayName, slot = 'scale.data', new.data = scaled2)
+	print(dim(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data')))
 
 	return(seuratObj)
 }
@@ -829,6 +831,7 @@ GetChiDF <- function(seuratObj, field1, field2, plot = FALSE) {
 #' @param formulavector vector of formulas, e.g.: c(Tcell_NaiveToEffector > 10 ~ "Effector", Tcell_NaiveToEffector < 5 ~ "Naive")
 #' @param defaultname The default value applied when none of the formulas in formulavec are TRUE
 #' @param enforceFunctionalFormulae Boolean determining whether or not to sanity check that all defined formulae in formulavector labeled at least one cell in the Seurat Object.
+#' @importFrom rlang :=
 #' @return Updated Seurat object
 #' @export
 AddNewMetaColumn <- function(seuratObj, varname, formulavector, defaultname, enforceFunctionalFormulae = TRUE) {

@@ -8,7 +8,7 @@ utils::globalVariables(
 #'
 #' @description Compute SingleR classification on a Seurat object
 #' @param seuratObj A Seurat object
-#' @param datasets One or more datasets to use as a reference. Allowable values are: hpca, blueprint, dice, monaco, and immgen. See cellDex package for available datasets.
+#' @param datasets One or more datasets to use as a reference. Allowable values are: hpca, blueprint, dice, monaco, and immgen. See celldex package for available datasets.
 #' @param assay The assay in the seurat object to use
 #' @param resultTableFile If provided, a table of results will be saved here
 #' @param rawDataFile If provided, the complete SingleR results will be saved to this file
@@ -31,10 +31,11 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     assay <- Seurat::DefaultAssay(seuratObj)
   }
 
-  if (length(seuratObj@assays[[assay]]@counts) == 0) {
+  if (length(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts')) == 0) {
     print('Selected assay has no count data, trying RNA')
     assay <- 'RNA'
-    if (length(seuratObj@assays[[assay]]@counts) == 0) {
+
+    if (length(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts')) == 0) {
       warning('Unable to find counts for the seurat object, aborting SingleR')
       return(seuratObj)
     }
@@ -56,12 +57,15 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       ref <- celldex::DatabaseImmuneCellExpressionData()
     } else if (dataset == 'monaco') {
       ref <- celldex::MonacoImmuneData()
+    } else if (dataset == 'MouseRNAseqData') {
+      ref <- celldex::MouseRNAseqData()
     } else {
       ref <- NULL
       tryCatch({
-        ref <- get(dataset, envir = rlang::pkg_env('celldex'))
+        ref <- get(dataset)
       }, error = function(x){
         # Ignore
+        print(x)
       })
 
       if (is.null(ref)) {
@@ -132,7 +136,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       allFields <- c(allFields, fn)
       seuratObj[[fn]] <- toAdd
 
-      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn]][[fn]]))
+      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn, drop = TRUE]]))
       ComplexHeatmap::Heatmap(log10(tab+10),
                               column_title = dataset,
                               col = Seurat::BlueAndRed(10),
@@ -170,7 +174,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       allFields <- c(allFields, fn2)
       seuratObj[[fn2]] <- toAdd
 
-      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn2]][[fn2]]))
+      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn2, drop = TRUE]]))
       ComplexHeatmap::Heatmap(log10(tab+10),
                               column_title = paste0(dataset, ': Fine Labels'),
                               col = Seurat::BlueAndRed(10),
@@ -258,7 +262,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         xlab("")
       )
 
-      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[['SingleRConsensus']][['SingleRConsensus']]))
+      tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[['SingleRConsensus', drop = TRUE]]))
       ComplexHeatmap::Heatmap(log10(tab+10),
                               column_title = 'SingleR Consensus',
                               col = Seurat::BlueAndRed(10),
@@ -276,7 +280,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 .FilterLowCalls <- function(seuratObj, label, minFraction) {
   if (!is.null(minFraction)){
     print(paste0('Filtering ', label, ' below: ', minFraction))
-    d <- data.frame(table(Label = unlist(seuratObj[[label]])))
+    d <- data.frame(table(Label = unlist(seuratObj[[label, drop = TRUE]])))
     names(d) <- c('Label', 'Count')
     d$Fraction <- d$Count / sum(d$Count)
 
@@ -288,14 +292,14 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     }
 
     if (length(toRemove) > 0) {
-      l <- unlist(seuratObj[[label]])
+      l <- unlist(seuratObj[[label, drop = TRUE]])
       names(l) <- colnames(seuratObj)
       l[l %in% toRemove] <- 'Unknown'
       seuratObj[[label]] <- l
     }
 
     print('After filter:')
-    d <- data.frame(table(Label = unlist(seuratObj[[label]])))
+    d <- data.frame(table(Label = unlist(seuratObj[[label, drop = TRUE]])))
     names(d) <- c('Label', 'Count')
     print(d)
   }

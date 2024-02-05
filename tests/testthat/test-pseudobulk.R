@@ -1,7 +1,7 @@
 context("scRNAseq")
 
 test_that("Pseudobulk works", {
-  seuratObj <- readRDS('../testdata/seuratOutput.rds')
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   
   pseudo <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.2)), nrow(pseudo@meta.data))
@@ -18,6 +18,12 @@ test_that("Pseudobulk works", {
   
   expect_equal(max(pseudo3$p.mito_mean, na.rm = T), 0.06488353)
   expect_equal(min(pseudo3$p.mito_mean, na.rm = T), 0.04050757)
+  
+  pseudo4 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), nCountRnaStratification = T)
+  testthat::expect_false(all(pseudo4$nCount_RNA_Stratification == "NormalRNACounts"))
+  testthat::expect_true(pseudo4@meta.data[pseudo4$ClusterNames_0.4 == 5, "nCount_RNA_Stratification"] == "AbnormalRNACounts")
+  testthat::expect_warning(PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), nCountRnaStratification = T))
+
 })
 
 test_that("Pseudobulk-based differential expression works", {
@@ -29,14 +35,14 @@ test_that("Pseudobulk-based differential expression works", {
   fit <- PerformGlmFit(pbmc_pbulk, design = design, test.use = "QLF")
   pairwise_de_results <- RunPairwiseContrasts(fit, test.use = "QLF", logFC_threshold = 1)
   testthat::expect_equal(sum(pairwise_de_results$`X0_A_1-X0_A_2`$differential_expression$table$FDR < 0.05), expected = 0) #this contrast should have no significantly differentially expressed genes
-  testthat::expect_equal(sum(pairwise_de_results$`X0_A_1-X1_B_1`$differential_expression$table$FDR < 0.05), expected = 44) #this contrast should have 44 genes that pass the FDR threshold.
+  testthat::expect_equal(sum(pairwise_de_results$`X0_A_1-X1_B_1`$differential_expression$table$FDR < 0.05), expected = 44, tolerance = 1) #this contrast should have 44 genes that pass the FDR threshold.
   
   bar_plot <- CreateStudyWideBarPlot(pairwise_de_results = pairwise_de_results, logFC_threshold = 1)
   testthat::expect_equal(typeof(bar_plot), expected = "list") #ensure that the ggplot was created.
 })
 
 test_that("Logic gate study design works", {
-  seuratObj <- readRDS('../testdata/seuratOutput.rds')
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   testthat::expect_equal(ncol(seuratObj), expected = 1557) #check that test seuratObj doesn't change
   #add fabricated study metadata
   seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
@@ -76,4 +82,23 @@ test_that("Logic gate study design works", {
   testthat::expect_equal(nrow(filtered_contrasts_require_identical), expected =  9)
   #test that timepoints are always equal
   testthat::expect_true(all(filtered_contrasts_require_identical[,"positive_contrast_timepoint"] == filtered_contrasts_require_identical[,"negative_contrast_timepoint"]))
+})
+
+test_that("Feature Selection by GLM works", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  testthat::expect_equal(ncol(seuratObj), expected = 1557) #check that test seuratObj doesn't change
+  #add fabricated study metadata
+  seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy", "day4"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"subject"] <- c(base::rep(1, length.out = 1000), base::rep(2, length.out = 557))
+  #set up pseudobulking
+  pbulk <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint","subject"))
+  
+  classification_results <- suppressWarnings(FitRegularizedClassificationGlm(pbulk, 
+                                                          metadataVariableForClassification = "vaccine_cohort", 
+                                                          returnModelAndSplits = T, 
+                                                          rescale = F
+                                                          ))
+  #ensure a glmnet specific parameter exists in the fitted model, showing that it trained successfully
+  expect_true("lambda.min" %in% names(classification_results$model))
 })

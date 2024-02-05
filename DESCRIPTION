@@ -9,9 +9,10 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-    R (>= 4.1.0)
+    R (>= 4.3.0)
 Imports:
     Seurat,
+    SeuratObject,
     tidyr,
     dplyr,
     naturalsort,
@@ -24,13 +25,13 @@ Imports:
     reshape2,
     DropletUtils,
     SingleR,
+    celldex,
     DESeq2,
     MAST,
     SummarizedExperiment,
     scDblFinder,
     pheatmap,
     ComplexHeatmap,
-    celldex,
     methods,
     egg,
     scuttle,
@@ -49,7 +50,7 @@ Imports:
     VISION,
     rentrez,
     RIRA,
-    UCell,
+    UCell (>= 2.6.0),
     grid,
     ggplotify,
     phateR,
@@ -72,6 +73,10 @@ Imports:
     text2vec, 
     tibble, 
     readr, 
+    mlr3verse,
+    mlr3,
+    glmnet, 
+    flexmix,
     data.table
 Suggests:
     devtools,
@@ -92,7 +97,8 @@ Remotes:
     bimberlabinternal/RIRA,
     marchinilab/SDAtools,
     marchinilab/dropsim,
-    drisso/RUVSeq
+    drisso/RUVSeq,
+    carmonalab/UCell
 Config/reticulate:
   list(
     packages = list(
