@@ -1,6 +1,6 @@
 
 utils::globalVariables(
-  names = c('barcode', 'clusters_gex', 'clusters_tcr', 'nndists_gex', 'nndists_tcr', 'is_invariant', 'conga_scores', 'conga_fdr_values'),
+  names = c('barcode', 'clusters_gex', 'clusters_tcr', 'nndists_gex', 'nndists_tcr', 'is_invariant', 'conga_scores', 'conga_fdr_values', 'raw_clonotype_id'),
   package = 'CellMembrane',
   add = TRUE
 )
