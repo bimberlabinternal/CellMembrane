@@ -18,7 +18,7 @@ RunScMetabolism <- function(seuratObj, method = 'AUCell', doImputation = FALSE, 
   seuratObj@misc[[paste0('METABOLISM.', metabolismType)]] <- pathwayData
 
   input.pathways <- intersect(rownames(pathwayData), c("Glycolysis / Gluconeogenesis", "Oxidative phosphorylation", "Citrate cycle (TCA cycle)"))
-  if (length(input.pathway) > 0) {
+  if (length(input.pathways) > 0) {
     for (pv in plotVariables) {
       print(scMetabolism::DotPlot.metabolism(obj = seuratObj, pathway = input.pathways, phenotype = pv, norm = "y"))
     }
