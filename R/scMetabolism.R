@@ -15,7 +15,7 @@ RunScMetabolism <- function(seuratObj, method = 'AUCell', doImputation = FALSE, 
 
   # NOTE: the way they store these results as a non-valid assay could be a problem down the line. Consider a different method, such as @misc.
   pathwayData <- seuratObj@assays$METABOLISM$score
-  #seuratObj@misc[[paste0('METABOLISM.', metabolismType)]] <- pathwayData
+  seuratObj@misc[[paste0('METABOLISM.', metabolismType)]] <- pathwayData
 
   input.pathways <- intersect(rownames(pathwayData), c("Glycolysis / Gluconeogenesis", "Oxidative phosphorylation", "Citrate cycle (TCA cycle)"))
   if (length(input.pathway) > 0) {
