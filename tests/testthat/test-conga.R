@@ -56,4 +56,12 @@ test_that("RunConga works", {
   testthat::expect_true(1 %in% congaSeuratObj@meta.data[,"conga_clusters_gex"])
   unlink("./tmpoutput", recursive = TRUE)
 })
+
+test_that("QuantifyTcrClones  works", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS("../testdata/seuratOutput.rds")))
+  seuratObj <- QuantifyTcrClones(seuratObj, "../testdata/tcr_df.csv", groupingFields = 'ClusterNames_0.2')
+
+  expect_equal(length(unique(seuratObj$cloneSize)), 7)
+  expect_equal(max(seuratObj$cloneProportion, na.rm = TRUE), 0.151, tolerance = 0.001)
+})
   
