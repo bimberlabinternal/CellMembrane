@@ -9,61 +9,43 @@ utils::globalVariables(
 #'
 #' @description Trains an sctour model on a Seurat object
 #' @param seuratObj The Seurat object containing the data. 
-#' @param GEXOutfile The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).
+#' @param featureExclusionList A vector of gene names to be excluded from variable feature selection in model training. This supports RIRA's ExpandGeneList
 #' @param assayName Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".
-#' @param exclusionBlacklist A vector of gene names to be excluded from variable feature selection in model training. This can be combined with RIRA gene sets via the riraExclusionGeneSets argument.
-#' @param riraExclusionGeneSets RIRA Gene set names to be excluded from model training features. 
-#' @param exclusionJsonPath Filename for the file containing the gene exclusion list (.json extension)
+#' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training.
+
 #' @param modelBasePath A directory that will store the resulting pytorch model after model training. 
 #' @param modelFileName The model's file name. The full name of the model will be modelFileName.pth 
+#' @param GEXOutfile The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).
+#' @param exclusionJsonPath Filename for the file containing the gene exclusion list (.json extension)
 #' @param ptimeOutFile An output file that will contain a Nx2 csv where n is the number of cells in the seurat object, the first column is cell barcodes, and the second column is pseudotime as predicted by the model. 
 #' @param variableGenesFile An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".
-#' @param embeddingOutFile The scTour model yields a dimensionally reduced space that a UMAP can be computed on. This file stores cell embeddings into this latent space, which are added as an "SCTOUR_" reduction into the input seurat object. 
-#' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training. 
+#' @param embeddingOutFile The scTour model yields a dimensionally reduced space that a UMAP can be computed on. This file stores cell embeddings into this latent space, which are added as an "SCTOUR_" reduction into the input seurat object.
+#' @param outputReductionName The assay name in which to store the results
 #' @return A seurat object with pseudotime and dimensional reductions computed by scTour
 #' @importFrom jsonlite write_json
-#' @examples
-#' \dontrun{
-#' seuratObj <- TrainSctourModel(seuratObj = seuratObj, 
-#'                 GEXOutfile = './gex_tempfile.h5', 
-#'                 modelBasePath =  './', 
-#'                 modelFileName = "test_model",
-#'                 riraExclusionGeneSets = "VariableGenes_Exclusion.2", 
-#'                 exclusionJsonPath = './exclusion_tempfile.json',
-#'                 ptimeOutFile = './ptime_out_file.csv',
-#'                 variableGenesFile = './variable_genes_out_file.csv',
-#'                 assayName = "RNA",
-#'                 embeddingOutFile = "./embeddings.csv",
-#'                 cleanUpIntermediateFiles = T)
-#'
-#' }
 #' @export
-
-TrainSctourModel <- function(seuratObj = NULL,
-                             GEXOutfile = NULL,
-                             riraExclusionGeneSets = "VariableGenes_Exclusion.2", 
-                             exclusionBlacklist = c(), 
-                             exclusionJsonPath = NULL,
-                             modelBasePath = NULL,
-                             modelFileName = NULL,
+TrainSctourModel <- function(seuratObj,
+                             modelFileName,
+                             featureExclusionList = 'VariableGenes_Exclusion.2',
+                             modelBasePath = './',
                              ptimeOutFile = NULL,
-                             variableGenesFile = NULL,
-                             embeddingOutFile = NULL, 
-                             assayName = "RNA", 
-                             cleanUpIntermediateFiles = T) {
-  #TODO: Sanitize inputs
-  
-  #iterate over supplied gene sets and construct a gene set exclusion list
-  exclusionList <- exclusionBlacklist
-  for (geneSet in riraExclusionGeneSets) {
-    exclusionList <- c(RIRA::GetGeneSet(geneSet), exclusionList)
+                             assayName = "RNA",
+                             cleanUpIntermediateFiles = T,
+                             outputReductionName = 'sctour') {
+
+  if (!reticulate::py_available(initialize = TRUE)) {
+    stop(paste0('Python/reticulate not configured. Run "reticulate::py_config()" to initialize python'))
   }
-  #force the exclusion list to be unique.
-  exclusionList <- unique(exclusionList)
-  
-  # write out data for scTour 
+
+  #iterate over supplied gene sets and construct a gene set exclusion list
+  exclusionList <- RIRA::ExpandGeneList(featureExclusionList)
+
+  # write out data for scTour
+  exclusionJsonPath <- R.utils::getAbsolutePath(paste0(modelBasePath, '/exclusionList.json'), mustWork = FALSE)
   jsonlite::write_json(exclusionList, exclusionJsonPath)
-  DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts'), 
+
+  GEXOutfile <- R.utils::getAbsolutePath(paste0(modelBasePath, '/gex.h5'), mustWork = FALSE)
+  DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts'),
                                path = GEXOutfile,
                                overwrite = TRUE)
   
@@ -72,14 +54,18 @@ TrainSctourModel <- function(seuratObj = NULL,
   script <- tempfile()
   readr::write_file(str, script)
 
+  ptimeOutFile <- R.utils::getAbsolutePath(paste0(modelBasePath, '/ptime.csv'), mustWork = FALSE)
+  embeddingOutFile <- R.utils::getAbsolutePath(paste0(modelBasePath, '/embeddings.csv'), mustWork = FALSE)
+  variableGenesFile <- R.utils::getAbsolutePath(paste0(modelBasePath, '/variableGenes.csv'), mustWork = FALSE)
+
   #train and write the model file and accessory variable genes
-  newstr <- paste0("TrainScTourModel(GEXfile = '", R.utils::getAbsolutePath(GEXOutfile, mustWork = FALSE),
-                   "', exclusion_json_path = '", R.utils::getAbsolutePath(exclusionJsonPath, mustWork = FALSE),
+  newstr <- paste0("TrainScTourModel(GEXfile = '", GEXOutfile,
+                   "', exclusion_json_path = '", exclusionJsonPath,
                    "', model_path_basedir = '", R.utils::getAbsolutePath(modelBasePath, mustWork = FALSE),
-                   "', model_name = '", R.utils::getAbsolutePath(modelFileName, mustWork = FALSE),
-                   "', embedding_out_file = '", R.utils::getAbsolutePath(embeddingOutFile, mustWork = FALSE),
-                   "', ptime_out_file = '", R.utils::getAbsolutePath(ptimeOutFile, mustWork = FALSE),
-                   "', variable_genes_out_file = '", R.utils::getAbsolutePath(variableGenesFile, mustWork = FALSE),
+                   "', model_name = '", modelFileName,
+                   "', embedding_out_file = '", embeddingOutFile,
+                   "', ptime_out_file = '", ptimeOutFile,
+                   "', variable_genes_out_file = '", variableGenesFile,
                    "')")
   readr::write_file(newstr, script, append = TRUE)
   readr::read_file(script)
@@ -88,25 +74,28 @@ TrainSctourModel <- function(seuratObj = NULL,
   ## Add ScTour Dimensional Reduction
   #read the embeddings from the sctour training
   embeddings <- as.matrix(read.csv(embeddingOutFile, header = F))
+
   #get the cell ordering from the pseudotime output file
   pseudotimeOutputDf <- read.csv(ptimeOutFile)
   cellbarcodes <- pseudotimeOutputDf[,"X"]
   rownames(embeddings) <- cellbarcodes
-  seuratObj[['sctour']] <- CreateDimReducObject(embeddings = embeddings, key = "SCTOUR_", assay = assayName)
+
+  seuratObj[[outputReductionName]] <- Seurat::CreateDimReducObject(embeddings = embeddings, key = paste0(outputReductionName, "_"), assay = assayName)
   
-  #basic nearest neighbors graph construction to get a UMAP. Note: the embedding is five dimensaional from sctour . 
-  seuratObj <- Seurat::FindNeighbors(seuratObj, reduction = 'sctour', dims = 1:5, k.param = 20)
-  seuratObj <- Seurat::RunUMAP(seuratObj, dims = 1:2, reduction = "sctour", reduction.name = "sctour_umap")
+  # Basic nearest neighbors graph construction to get a UMAP. Note: the embedding is five dimensaional from sctour .
+  seuratObj <- Seurat::FindNeighbors(seuratObj, reduction = outputReductionName, dims = 1:5, k.param = 20)
+  seuratObj <- Seurat::RunUMAP(seuratObj, dims = 1:2, reduction = outputReductionName, reduction.name = paste0(outputReductionName, "_umap"))
   
   #Add ptime to seurat metadata
   pseudotimeOutputVector <- pseudotimeOutputDf[,"ptime"]
   names(pseudotimeOutputVector) <- pseudotimeOutputDf[,"X"]
   seuratObj <- Seurat::AddMetaData(seuratObj, metadata = pseudotimeOutputVector, col.name = "pseudotime")
+
   #Plot pseudotime
-  print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = 'sctour_umap'))
-  print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = 'sctour'))
+  print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = paste0(outputReductionName, "_umap")))
+  print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = outputReductionName))
   
-  if(cleanUpIntermediateFiles){
+  if (cleanUpIntermediateFiles){
     unlink(c(GEXOutfile, ptimeOutFile, embeddingOutFile, exclusionJsonPath))
   }
   
@@ -151,11 +140,7 @@ PredictScTourPseudotime <- function(seuratObj = NULL,
   #TODO: Sanitize inputs
   
   # write out data for scTour 
-  DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, 
-                                                        assay = assayName, 
-                                                        layer = 'counts'), 
-                               path = GEXOutfile,
-                               overwrite = TRUE)
+  DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts'), path = GEXOutfile, overwrite = TRUE)
   
   #copy run_scTour.py in inst/scripts and supply custom arguments 
   str <- readr::read_file(system.file("scripts/PredictScTourPseudotime.py", package = "CellMembrane"))
