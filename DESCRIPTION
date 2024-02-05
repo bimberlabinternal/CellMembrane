@@ -76,7 +76,8 @@ Imports:
     mlr3verse,
     mlr3,
     glmnet, 
-    flexmix
+    flexmix,
+    data.table
 Suggests:
     devtools,
     testthat (>= 2.1.0),
