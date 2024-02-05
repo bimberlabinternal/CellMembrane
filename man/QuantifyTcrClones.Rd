@@ -4,12 +4,14 @@
 \alias{QuantifyTcrClones}
 \title{Append Clone Properties}
 \usage{
-QuantifyTcrClones(seuratObj, tcrClonesFile)
+QuantifyTcrClones(seuratObj, tcrClonesFile, groupingFields = "cDNA_ID")
 }
 \arguments{
 \item{seuratObj}{The Seurat object to append clone properties to}
 
 \item{tcrClonesFile}{The 10x clonotypes file for this Seurat object. Single lanes can use the CellRanger/Vloupe contigs CSV file. Merged lanes need to merge these files and modify them to create unique cellbarcodes and clonotype names, such as the code from Rdiscvr::CreateMergedTcrClonotypeFile().}
+
+\item{groupingFields}{A list of fields used to group cells by sample, which establishes librarySize}
 }
 \description{
 A function to append clone properties to a Seurat object
