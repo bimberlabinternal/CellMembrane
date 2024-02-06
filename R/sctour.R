@@ -133,7 +133,10 @@ PredictScTourPseudotime <- function(seuratObj,
   str <- readr::read_file(system.file("scripts/PredictScTourPseudotime.py", package = "CellMembrane"))
   script <- tempfile()
   readr::write_file(str, script)
-  
+
+  ptimeOutFile <- R.utils::getAbsolutePath(paste0(outputBasePath, 'ptime.csv'), mustWork = FALSE)
+  embeddingOutFile <- R.utils::getAbsolutePath(paste0(outputBasePath, 'embeddings.csv'), mustWork = FALSE)
+
   newstr <- paste0("PredictPseudotime(GEXfile = '", GEXOutfile,
                    "', model_file = '", R.utils::getAbsolutePath(modelFile, mustWork = FALSE),
                    "', ptime_out_file = '", R.utils::getAbsolutePath(ptimeOutFile, mustWork = FALSE),
