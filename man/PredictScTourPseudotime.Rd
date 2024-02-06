@@ -7,6 +7,7 @@
 PredictScTourPseudotime(
   seuratObj,
   modelFile,
+  outputBasePath = tempdir(),
   outputReductionName = "sctour",
   assayName = "RNA",
   cleanUpIntermediateFiles = TRUE
@@ -16,6 +17,8 @@ PredictScTourPseudotime(
 \item{seuratObj}{The Seurat object containing the data.}
 
 \item{modelFile}{A path pointing to a trained scTour model.}
+
+\item{outputBasePath}{The directory where the embeddings and pseudotime will be written. These are deleted unless cleanUpIntermediateFiles=TRUE}
 
 \item{outputReductionName}{The assay name in which to store the results}
 

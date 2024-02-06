@@ -34,6 +34,8 @@ TrainSctourModel <- function(seuratObj,
     stop('The sctour python package has not been installed!')
   }
 
+  # Adjust for windows paths:
+  outputBasePath <- gsub(outputBasePath, pattern = '\\\\', replacement = '/')
   if (!endsWith(outputBasePath, '/')) {
     outputBasePath <- paste0(outputBasePath, '/')
   }
@@ -71,7 +73,7 @@ TrainSctourModel <- function(seuratObj,
   readr::read_file(script)
   system2(reticulate::py_exe(), script)
 
-  seuratObj <- .AppendScTourAsReduction(seuratObj, embeddingOutFile, pseudotimeOutputDf, outputReductionName, assayName)
+  seuratObj <- .AppendScTourAsReduction(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName)
   
   if (cleanUpIntermediateFiles){
     unlink(c(GEXOutfile, ptimeOutFile, embeddingOutFile, exclusionJsonPath))
@@ -80,7 +82,7 @@ TrainSctourModel <- function(seuratObj,
   return(seuratObj)
 }
 
-.AppendScTourAsReduction <- function(seuratObj, embeddingOutFile, pseudotimeOutputDf, outputReductionName, assayName) {
+.AppendScTourAsReduction <- function(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName) {
   ## Add ScTour Dimensional Reduction
   #read the embeddings from the sctour training
   embeddings <- as.matrix(read.csv(embeddingOutFile, header = F))
@@ -113,6 +115,7 @@ TrainSctourModel <- function(seuratObj,
 #' @description Predicts pseudotime from a trained sctour model.
 #' @param seuratObj The Seurat object containing the data. 
 #' @param modelFile A path pointing to a trained scTour model.
+#' @param outputBasePath The directory where the embeddings and pseudotime will be written. These are deleted unless cleanUpIntermediateFiles=TRUE
 #' @param outputReductionName The assay name in which to store the results
 #' @param assayName Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".
 #' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training.
@@ -120,13 +123,27 @@ TrainSctourModel <- function(seuratObj,
 #' @export
 PredictScTourPseudotime <- function(seuratObj,
                                     modelFile,
+                                    outputBasePath = tempdir(),
                                     outputReductionName = "sctour",
                                     assayName = "RNA",
                                     cleanUpIntermediateFiles = TRUE) {
-  
+
+  if (!reticulate::py_available(initialize = TRUE)) {
+    stop(paste0('Python/reticulate not configured. Run "reticulate::py_config()" to initialize python'))
+  }
+
+  if (!reticulate::py_module_available('sctour')) {
+    stop('The sctour python package has not been installed!')
+  }
+
+  # Adjust for windows paths:
+  outputBasePath <- gsub(outputBasePath, pattern = '\\\\', replacement = '/')
+  if (!endsWith(outputBasePath, '/')) {
+    outputBasePath <- paste0(outputBasePath, '/')
+  }
 
   # write out data for scTour
-  GEXfile <- ''
+  GEXOutfile <- R.utils::getAbsolutePath(paste0(outputBasePath, 'gex.h5'), mustWork = FALSE)
   DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts'), path = GEXOutfile, overwrite = TRUE)
   
   #copy run_scTour.py in inst/scripts and supply custom arguments 
@@ -139,15 +156,15 @@ PredictScTourPseudotime <- function(seuratObj,
 
   newstr <- paste0("PredictPseudotime(GEXfile = '", GEXOutfile,
                    "', model_file = '", R.utils::getAbsolutePath(modelFile, mustWork = FALSE),
-                   "', ptime_out_file = '", R.utils::getAbsolutePath(ptimeOutFile, mustWork = FALSE),
-                   "', embedding_out_file = '", R.utils::getAbsolutePath(embeddingOutFile, mustWork = FALSE),
+                   "', ptime_out_file = '", ptimeOutFile,
+                   "', embedding_out_file = '", embeddingOutFile,
                    "')")
   
   #write the new arguments into the script and execute
   readr::write_file(newstr, script, append = TRUE)
   system2(reticulate::py_exe(), script)
 
-  seuratObj <- .AppendScTourAsReduction(seuratObj, embeddingOutFile, pseudotimeOutputDf, outputReductionName, assayName)
+  seuratObj <- .AppendScTourAsReduction(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName)
 
   if (cleanUpIntermediateFiles){
     unlink(c(GEXOutfile, ptimeOutFile, embeddingOutFile))
