@@ -404,8 +404,8 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       c <- 0
       dat <- asinh(a+b*dat) + c
 
-      dat <- Seurat::NormalizeData(dat, normalization.method = 'CLR', margin = margin, verbose = FALSE)
-      ad <- Seurat::SetAssayData(ad, slot = 'data', new.data = Seurat::as.sparse(dat))
+      dat <- Seurat::NormalizeData(Seurat::as.sparse(dat), normalization.method = 'CLR', margin = margin, verbose = FALSE)
+      ad <- Seurat::SetAssayData(ad, slot = 'data', new.data = dat)
     } else {
       ad <- Seurat::NormalizeData(ad, normalization.method = 'CLR', margin = margin, verbose = FALSE)
     }
