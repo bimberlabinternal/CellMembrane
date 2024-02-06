@@ -35,7 +35,7 @@ TrainSctourModel <- function(seuratObj,
   }
 
   # Adjust for windows paths:
-  outputBasePath <- gsub(outputBasePath, pattern = '\\\\', replacement = '/')
+  outputBasePath <- gsub(R.utils::getAbsolutePath(outputBasePath), pattern = '\\\\', replacement = '/')
   if (!endsWith(outputBasePath, '/')) {
     outputBasePath <- paste0(outputBasePath, '/')
   }
@@ -63,14 +63,17 @@ TrainSctourModel <- function(seuratObj,
   #train and write the model file and accessory variable genes
   newstr <- paste0("TrainScTourModel(GEXfile = '", GEXOutfile,
                    "', exclusion_json_path = '", exclusionJsonPath,
-                   "', model_path_basedir = '", R.utils::getAbsolutePath(outputBasePath, mustWork = FALSE),
+                   "', model_path_basedir = '", outputBasePath,
                    "', model_name = '", modelFileName,
                    "', embedding_out_file = '", embeddingOutFile,
                    "', ptime_out_file = '", ptimeOutFile,
                    "', random_state = '", GetSeed(),
                    "')")
   readr::write_file(newstr, script, append = TRUE)
-  readr::read_file(script)
+
+  # TODO: REMOVE THIS:
+  print(newstr)
+
   system2(reticulate::py_exe(), script)
 
   seuratObj <- .AppendScTourAsReduction(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName)
@@ -137,7 +140,7 @@ PredictScTourPseudotime <- function(seuratObj,
   }
 
   # Adjust for windows paths:
-  outputBasePath <- gsub(outputBasePath, pattern = '\\\\', replacement = '/')
+  outputBasePath <- gsub(R.utils::getAbsolutePath(outputBasePath), pattern = '\\\\', replacement = '/')
   if (!endsWith(outputBasePath, '/')) {
     outputBasePath <- paste0(outputBasePath, '/')
   }
@@ -159,7 +162,10 @@ PredictScTourPseudotime <- function(seuratObj,
                    "', ptime_out_file = '", ptimeOutFile,
                    "', embedding_out_file = '", embeddingOutFile,
                    "')")
-  
+
+  # TODO: REMOVE THIS:
+  print(newstr)
+
   #write the new arguments into the script and execute
   readr::write_file(newstr, script, append = TRUE)
   system2(reticulate::py_exe(), script)

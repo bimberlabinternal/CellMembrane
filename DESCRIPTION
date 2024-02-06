@@ -105,7 +105,8 @@ Config/reticulate:
   list(
     packages = list(
       list(package = "cellbender"),
-      list(package = "phate")
+      list(package = "phate"),
+      list(package = "sctour")
     )
   )
 Collate: 

@@ -12,6 +12,7 @@ def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     checkpoint = torch.load(model_file, map_location=torch.device('cpu'))
     model_adata = checkpoint['adata']
 
+    # TODO
     print('REMOVE THIS')
     print(model_adata)
     print(model_adata.var_names)

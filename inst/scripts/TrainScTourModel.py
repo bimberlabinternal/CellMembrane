@@ -6,6 +6,8 @@ import json
 
 
 def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_name, embedding_out_file, ptime_out_file, random_state = 0):
+    print('Running scTour to train model')
+
     #read gene expression matrix and exclusion list
     adataObj = sc.read_10x_h5(GEXfile)
 
