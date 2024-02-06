@@ -69,10 +69,9 @@ TrainSctourModel <- function(seuratObj,
                    "', ptime_out_file = '", ptimeOutFile,
                    "', random_state = '", GetSeed(),
                    "')")
-  readr::write_file(newstr, script, append = TRUE)
 
-  # TODO: REMOVE THIS:
-  print(newstr)
+  readr::write_file('\n', script, append = TRUE)
+  readr::write_file(newstr, script, append = TRUE)
 
   system2(reticulate::py_exe(), script)
 
