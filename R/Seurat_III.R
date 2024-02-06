@@ -503,8 +503,8 @@ ScoreCellCycle <- function(seuratObj, min.genes = 10, useAlternateG2M = false) {
 	print('Scoring cell cycle:')
 
   # We can segregate this list into markers of G2/M phase and markers of S-phase
-  s.genes <- .GetSPhaseGenes(useAlternateG2M)
-  g2m.genes <- .GetG2MGenes()
+  s.genes <- .GetSPhaseGenes()
+  g2m.genes <- .GetG2MGenes(useAlternateG2M)
 
   s.genes <- s.genes[which(s.genes %in% rownames(seuratObj))]
   g2m.genes <- g2m.genes[which(g2m.genes %in% rownames(seuratObj))]
