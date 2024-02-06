@@ -209,9 +209,10 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
 #' @param useSCTransform If true, SCTransform will be used in place of the standard Seurat workflow (NormalizeData, ScaleData, FindVariableFeatures)
 #' @param additionalFindVariableFeatureArgList A list of arguments passed directly to FindVariableFeatures
 #' @param scoreCellCycle If true, ScoreCellCycle will be run to compute Phase, which is stored in meta.data. If a field named Phase already exists, this will be skipped.
+#' @param useAlternateG2M If true, this will use a smaller set of G2M genes, defined from: https://raw.githubusercontent.com/hbc/tinyatlas/master/cell_cycle/Homo_sapiens.csv
 #' @return A modified Seurat object.
 #' @export
-NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c(paste0("nCount_", Seurat::DefaultAssay(seuratObj))), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE, useSCTransform = FALSE, additionalFindVariableFeatureArgList = NULL, scoreCellCycle = TRUE){
+NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 1000, variableGenesWhitelist = NULL, variableGenesBlacklist = NULL, featuresToRegress = c(paste0("nCount_", Seurat::DefaultAssay(seuratObj))), scaleVariableFeaturesOnly = TRUE, includeCellCycleGenesInScaleData = TRUE, useSCTransform = FALSE, additionalFindVariableFeatureArgList = NULL, scoreCellCycle = TRUE, useAlternateG2M = FALSE){
   if (!is.null(featuresToRegress)) {
     if ('p.mito' %in% featuresToRegress) {
       if ('p.mito' %in% names(seuratObj@meta.data)) {
@@ -255,7 +256,7 @@ NormalizeAndScale <- function(seuratObj, nVariableFeatures = NULL, block.size = 
     if ('Phase' %in% names(seuratObj@meta.data)) {
       print('Phase column already present, will not re-score cell cycle')
     } else {
-      seuratObj <- ScoreCellCycle(seuratObj)
+      seuratObj <- ScoreCellCycle(seuratObj, useAlternateG2M = useAlternateG2M)
     }
 
   } else {
@@ -495,13 +496,14 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
 #' @title Score Cell Cycle
 #' @param seuratObj The seurat object
 #' @param min.genes If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.
+#' @param useAlternateG2M If true, this will use a smaller set of G2M genes, defined from: https://raw.githubusercontent.com/hbc/tinyatlas/master/cell_cycle/Homo_sapiens.csv
 #' @export
 #' @return A modified Seurat object.
-ScoreCellCycle <- function(seuratObj, min.genes = 10) {
+ScoreCellCycle <- function(seuratObj, min.genes = 10, useAlternateG2M = false) {
 	print('Scoring cell cycle:')
 
   # We can segregate this list into markers of G2/M phase and markers of S-phase
-  s.genes <- .GetSPhaseGenes()
+  s.genes <- .GetSPhaseGenes(useAlternateG2M)
   g2m.genes <- .GetG2MGenes()
 
   s.genes <- s.genes[which(s.genes %in% rownames(seuratObj))]

@@ -27,7 +27,13 @@ set.seed(pkg.env$RANDOM_SEED)
   return (.GetCCGenes()[1:43])
 }
 
-.GetG2MGenes <- function() {
+.GetG2MGenes <- function(alternateGenes = FALSE) {
+  if (alternateGenes) {
+    # based on: https://hbctraining.github.io/scRNA-seq_online/lessons/cell_cycle_scoring.html
+    # https://raw.githubusercontent.com/hbc/tinyatlas/master/cell_cycle/Homo_sapiens.csv
+    return(c('ANLN','ANP32E','AURKA','AURKB','BIRC5','BUB1','CBX5','CCNB2','CDC20','CDC25C','CDCA2','CDCA3','CDCA8','CDK1','CENPA','CENPE','CENPF','CKAP2','CKAP2L','CKAP5','CKS1B','CKS2','CTCF','DLGAP5','ECT2','G2E3','GAS2L3','GTSE1','HJURP','HMGB2','HMMR','JPT1','KIF11','KIF20B','KIF23','KIF2C','LBR','MKI67','NCAPD2','NDC80','NEK2','NUF2','NUSAP1','PIMREG','PSRC1','RANGAP1','SMC4','TACC3','TMPO','TOP2A','TPX2','TTK','TUBB4B','UBE2C'))
+  }
+
   return(unique(c(g2m.genes.orig, .GetCCGenes()[44:97])))
 }
 
