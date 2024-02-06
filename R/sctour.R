@@ -11,7 +11,7 @@ utils::globalVariables(
 #' @param seuratObj The Seurat object containing the data. 
 #' @param modelFileName The model's file name. The full name of the model will be modelFileName.pth
 #' @param featureExclusionList A vector of gene names to be excluded from variable feature selection in model training. This supports RIRA's ExpandGeneList
-#' @param modelBasePath A directory that will store the resulting pytorch model after model training.
+#' @param outputBasePath A directory that will store the resulting pytorch model after model training.
 #' @param assayName Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".
 #' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training.
 #' @param outputReductionName The assay name in which to store the results
@@ -21,7 +21,7 @@ utils::globalVariables(
 TrainSctourModel <- function(seuratObj,
                              modelFileName,
                              featureExclusionList = 'VariableGenes_Exclusion.2',
-                             modelBasePath = './',
+                             outputBasePath = './',
                              assayName = "RNA",
                              cleanUpIntermediateFiles = TRUE,
                              outputReductionName = 'sctour') {
@@ -30,14 +30,22 @@ TrainSctourModel <- function(seuratObj,
     stop(paste0('Python/reticulate not configured. Run "reticulate::py_config()" to initialize python'))
   }
 
+  if (!reticulate::py_module_available('sctour')) {
+    stop('The sctour python package has not been installed!')
+  }
+
+  if (!endsWith(outputBasePath, '/')) {
+    outputBasePath <- paste0(outputBasePath, '/')
+  }
+
   #iterate over supplied gene sets and construct a gene set exclusion list
   exclusionList <- RIRA::ExpandGeneList(featureExclusionList)
 
   # write out data for scTour
-  exclusionJsonPath <- R.utils::getAbsolutePath(paste0(modelBasePath, '/exclusionList.json'), mustWork = FALSE)
+  exclusionJsonPath <- R.utils::getAbsolutePath(paste0(outputBasePath, 'exclusionList.json'), mustWork = FALSE)
   jsonlite::write_json(exclusionList, exclusionJsonPath)
 
-  GEXOutfile <- R.utils::getAbsolutePath(paste0(modelBasePath, '/gex.h5'), mustWork = FALSE)
+  GEXOutfile <- R.utils::getAbsolutePath(paste0(outputBasePath, 'gex.h5'), mustWork = FALSE)
   DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts'),
                                path = GEXOutfile,
                                overwrite = TRUE)
@@ -47,13 +55,13 @@ TrainSctourModel <- function(seuratObj,
   script <- tempfile()
   readr::write_file(str, script)
 
-  ptimeOutFile <- R.utils::getAbsolutePath(paste0(modelBasePath, '/ptime.csv'), mustWork = FALSE)
-  embeddingOutFile <- R.utils::getAbsolutePath(paste0(modelBasePath, '/embeddings.csv'), mustWork = FALSE)
+  ptimeOutFile <- R.utils::getAbsolutePath(paste0(outputBasePath, 'ptime.csv'), mustWork = FALSE)
+  embeddingOutFile <- R.utils::getAbsolutePath(paste0(outputBasePath, 'embeddings.csv'), mustWork = FALSE)
 
   #train and write the model file and accessory variable genes
   newstr <- paste0("TrainScTourModel(GEXfile = '", GEXOutfile,
                    "', exclusion_json_path = '", exclusionJsonPath,
-                   "', model_path_basedir = '", R.utils::getAbsolutePath(modelBasePath, mustWork = FALSE),
+                   "', model_path_basedir = '", R.utils::getAbsolutePath(outputBasePath, mustWork = FALSE),
                    "', model_name = '", modelFileName,
                    "', embedding_out_file = '", embeddingOutFile,
                    "', ptime_out_file = '", ptimeOutFile,

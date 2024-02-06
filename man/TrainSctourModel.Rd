@@ -8,7 +8,7 @@ TrainSctourModel(
   seuratObj,
   modelFileName,
   featureExclusionList = "VariableGenes_Exclusion.2",
-  modelBasePath = "./",
+  outputBasePath = "./",
   assayName = "RNA",
   cleanUpIntermediateFiles = TRUE,
   outputReductionName = "sctour"
@@ -21,7 +21,7 @@ TrainSctourModel(
 
 \item{featureExclusionList}{A vector of gene names to be excluded from variable feature selection in model training. This supports RIRA's ExpandGeneList}
 
-\item{modelBasePath}{A directory that will store the resulting pytorch model after model training.}
+\item{outputBasePath}{A directory that will store the resulting pytorch model after model training.}
 
 \item{assayName}{Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".}
 

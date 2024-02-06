@@ -27,7 +27,7 @@ RUN apt-get update -y \
         libxml2-dev \
         libxslt-dev \
     && python3 -m pip install --upgrade pip \
-    && pip3 install umap-learn phate scanpy \
+    && pip3 install umap-learn phate scanpy sctour \
     && pip3 install git+https://github.com/broadinstitute/CellBender.git \
     && mkdir /conga \
     && cd /conga \

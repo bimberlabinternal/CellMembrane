@@ -13,45 +13,27 @@ test_that("TrainSctourModel works", {
         traceback()
       })
     }
-    
-    warning('The python sctour module has not been installed!')
-    return()
+
+    stop('The python sctour module has not been installed!')
   }
   
   #read data
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS("../testdata/seuratOutput.rds")))
-  
-  
+
   TrainSctourModel(seuratObj = seuratObj, 
-                   GEXOutfile = './gex_tempfile.h5', 
-                   modelBasePath =  './', 
                    modelFileName = "test_model",
-                   exclusionBlacklist = c(), 
-                   riraExclusionGeneSets = "VariableGenes_Exclusion.2",
-                   exclusionJsonPath = './exclusion_tempfile.json',
-                   ptimeOutFile = './ptime_out_file.csv',
-                   variableGenesFile = './variable_genes_out_file.csv',
-                   assayName = "RNA",
-                   embeddingOutFile = "./embeddings.csv",
-                   cleanUpIntermediateFiles = T
+                   outputBasePath =  './'
   )
   
   
   #test that a model file was written by sctour
   testthat::expect_true(file.exists("./test_model.pth"))
-  #test the model's associated gene space was also written
-  testthat::expect_true(file.exists("./variable_genes_out_file.csv"))
   
-  
-  seuratObj <- PredictScTourPseudotime(seuratObj,
-                                       GEXOutfile = './gex_tempfile.h5',
-                                       modelFile = "./test_model.pth",
-                                       variableGenesFile = './variable_genes_out_file.csv',
-                                       embeddingOutFile = "./embeddings.csv",
-                                       ptimeOutFile ='./ptime_out_file.csv', 
-                                       cleanUpIntermediateFiles = T)
+  seuratObj <- PredictScTourPseudotime(seuratObj, modelFile = "./test_model.pth")
+
   testthat::expect_true("pseudotime" %in% colnames(seuratObj@meta.data))
   testthat::expect_true("sctour" %in% names(seuratObj@reductions))
+
   #file cleanup
-  ##unlink(c("./sctour_model.pth", "./variableGenes.csv"))
+  unlink("./sctour_model.pth")
 })
