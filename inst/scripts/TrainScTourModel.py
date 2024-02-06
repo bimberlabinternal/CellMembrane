@@ -19,7 +19,14 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
             exclusionList = json.load(f)
 
         #apply exclusion list
-        adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))]
+        print('Before subset: ')
+        print(adataObj)
+
+        toKeep = list(set(adataObj.var_names) - set(exclusionList))
+        print('Genes to keep: ' + str(len(toKeep)))
+        adataObj = adataObj[:, toKeep]
+        print('After subset: ')
+        print(adataObj)
 
     #basic preprocessing to population metadata fields that scTour expects
     sc.pp.calculate_qc_metrics(adataObj, percent_top=None, log1p=False, inplace=True)
