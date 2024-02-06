@@ -89,7 +89,7 @@ TrainSctourModel <- function(seuratObj,
 .AppendScTourAsReduction <- function(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName) {
   for (fn in c(embeddingOutFile, ptimeOutFile)) {
     if (!file.exists(fn)) {
-      stop('Missing file: ', fn, '. Found: ', paste0(list.files(dirname(dn)), collapse = ';'))
+      stop('Missing file: ', fn, '. Found: ', paste0(list.files(dirname(fn)), collapse = ';'))
     }
   }
 
