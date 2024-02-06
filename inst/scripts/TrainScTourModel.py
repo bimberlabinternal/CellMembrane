@@ -11,6 +11,9 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
     #read gene expression matrix and exclusion list
     adataObj = sc.read_10x_h5(GEXfile)
 
+    #ensure expression matrix is integers
+    adataObj.X = round(adataObj.X).astype(np.float32)
+
     if exclusion_json_path != None:
         with open(exclusion_json_path) as f:
             exclusionList = json.load(f)
@@ -18,9 +21,6 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
         #apply exclusion list
         adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))]
 
-    #ensure expression matrix is integers
-    adataObj.X = round(adataObj.X).astype(np.float32)
-    
     #basic preprocessing to population metadata fields that scTour expects
     sc.pp.calculate_qc_metrics(adataObj, percent_top=None, log1p=False, inplace=True)
     sc.pp.filter_genes(adataObj, min_cells=20)
