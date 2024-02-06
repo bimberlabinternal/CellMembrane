@@ -15,7 +15,8 @@ NormalizeAndScale(
   includeCellCycleGenesInScaleData = TRUE,
   useSCTransform = FALSE,
   additionalFindVariableFeatureArgList = NULL,
-  scoreCellCycle = TRUE
+  scoreCellCycle = TRUE,
+  useAlternateG2M = FALSE
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ NormalizeAndScale(
 \item{additionalFindVariableFeatureArgList}{A list of arguments passed directly to FindVariableFeatures}
 
 \item{scoreCellCycle}{If true, ScoreCellCycle will be run to compute Phase, which is stored in meta.data. If a field named Phase already exists, this will be skipped.}
+
+\item{useAlternateG2M}{If true, this will use a smaller set of G2M genes, defined from: https://raw.githubusercontent.com/hbc/tinyatlas/master/cell_cycle/Homo_sapiens.csv}
 }
 \value{
 A modified Seurat object.
