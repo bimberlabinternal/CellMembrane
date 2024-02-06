@@ -67,8 +67,8 @@ TrainSctourModel <- function(seuratObj,
                    "', model_name = '", modelFileName,
                    "', embedding_out_file = '", embeddingOutFile,
                    "', ptime_out_file = '", ptimeOutFile,
-                   "', random_state = '", GetSeed(),
-                   "')")
+                   "', random_state = ", GetSeed(),
+                   ")")
 
   readr::write_file('\n', script, append = TRUE)
   readr::write_file(newstr, script, append = TRUE)
@@ -167,9 +167,6 @@ PredictScTourPseudotime <- function(seuratObj,
                    "', ptime_out_file = '", ptimeOutFile,
                    "', embedding_out_file = '", embeddingOutFile,
                    "')")
-
-  # TODO: REMOVE THIS:
-  print(newstr)
 
   #write the new arguments into the script and execute
   readr::write_file(newstr, script, append = TRUE)
