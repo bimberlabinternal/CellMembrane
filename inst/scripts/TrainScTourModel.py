@@ -9,11 +9,12 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
     #read gene expression matrix and exclusion list
     adataObj = sc.read_10x_h5(GEXfile)
 
-    with open(exclusion_json_path) as f:
-      exclusionList = json.load(f)
+    if exclusion_json_path != None:
+        with open(exclusion_json_path) as f:
+            exclusionList = json.load(f)
 
-    #apply exclusion list
-    adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))]
+        #apply exclusion list
+        adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))]
 
     #ensure expression matrix is integers
     adataObj.X = round(adataObj.X).astype(np.float32)
