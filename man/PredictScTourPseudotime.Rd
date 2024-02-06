@@ -9,7 +9,7 @@ PredictScTourPseudotime(
   modelFile,
   outputReductionName = "sctour",
   assayName = "RNA",
-  cleanUpIntermediateFiles = T
+  cleanUpIntermediateFiles = TRUE
 )
 }
 \arguments{
@@ -20,6 +20,8 @@ PredictScTourPseudotime(
 \item{outputReductionName}{The assay name in which to store the results}
 
 \item{assayName}{Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".}
+
+\item{cleanUpIntermediateFiles}{This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training.}
 }
 \value{
 A Seurat Object with pseudotime from the supplied model written into its metadata.

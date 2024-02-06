@@ -9,9 +9,8 @@ TrainSctourModel(
   modelFileName,
   featureExclusionList = "VariableGenes_Exclusion.2",
   modelBasePath = "./",
-  ptimeOutFile = NULL,
   assayName = "RNA",
-  cleanUpIntermediateFiles = T,
+  cleanUpIntermediateFiles = TRUE,
   outputReductionName = "sctour"
 )
 }
@@ -24,21 +23,11 @@ TrainSctourModel(
 
 \item{modelBasePath}{A directory that will store the resulting pytorch model after model training.}
 
-\item{ptimeOutFile}{An output file that will contain a Nx2 csv where n is the number of cells in the seurat object, the first column is cell barcodes, and the second column is pseudotime as predicted by the model.}
-
 \item{assayName}{Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".}
 
 \item{cleanUpIntermediateFiles}{This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training.}
 
 \item{outputReductionName}{The assay name in which to store the results}
-
-\item{GEXOutfile}{The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).}
-
-\item{exclusionJsonPath}{Filename for the file containing the gene exclusion list (.json extension)}
-
-\item{variableGenesFile}{An scTour model requires both the trained model and feature space of the training data. This file stores the training data's feature space as a (N+1)x1 csv where N is the number of variable genes after exclusion list subtraction and the first row notes the column name "gene_ids".}
-
-\item{embeddingOutFile}{The scTour model yields a dimensionally reduced space that a UMAP can be computed on. This file stores cell embeddings into this latent space, which are added as an "SCTOUR_" reduction into the input seurat object.}
 }
 \value{
 A seurat object with pseudotime and dimensional reductions computed by scTour
