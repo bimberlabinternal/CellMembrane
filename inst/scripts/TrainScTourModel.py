@@ -1,16 +1,20 @@
-from pathlib import Path
 import sctour as sct
 import scanpy as sc
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import json
 
-def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_name, embedding_out_file, ptime_out_file, variable_genes_out_file):
+
+def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_name, embedding_out_file, ptime_out_file, random_state = 0):
     #read gene expression matrix and exclusion list
     adataObj = sc.read_10x_h5(GEXfile)
+
     with open(exclusion_json_path) as f:
       exclusionList = json.load(f)
+
+    #apply exclusion list
+    adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))]
+
     #ensure expression matrix is integers
     adataObj.X = round(adataObj.X).astype(np.float32)
     
@@ -18,10 +22,9 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
     sc.pp.calculate_qc_metrics(adataObj, percent_top=None, log1p=False, inplace=True)
     sc.pp.filter_genes(adataObj, min_cells=20)
     sc.pp.highly_variable_genes(adataObj, flavor='seurat_v3', n_top_genes=2000, subset=True, inplace=False)
-    #apply exclusion list
-    adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))]
+
     #train model
-    tnode = sct.train.Trainer(adataObj)
+    tnode = sct.train.Trainer(adataObj, random_state = random_state)
     tnode.train()
 
     #apply model to get pseudotime (ptime)
@@ -29,14 +32,15 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
     mix_zs, zs, pred_zs = tnode.get_latentsp(alpha_z=0.2, alpha_predz=0.8)
     #obtain latent space for dimensional reduction in R/Seurat
     adataObj.obsm['X_TNODE'] = mix_zs
+
     #save model (note, it is necessary to save the model AFTER tnode.get_time())
     tnode.save_model(model_path_basedir, model_name)
-    #save model features (these are essential if you want to reuse the model)
-    adataObj.var['gene_ids'].to_csv(variable_genes_out_file, index = False)
 
     #write embeddings
     np.savetxt(embedding_out_file, adataObj.obsm['X_TNODE'] , delimiter=",")
+
     #write pseudotime to be appended to the seurat object
     df = pd.DataFrame(adataObj.obs['ptime'])
     df.to_csv(ptime_out_file)
+
     return adataObj

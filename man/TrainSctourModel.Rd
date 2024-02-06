@@ -11,7 +11,8 @@ TrainSctourModel(
   modelBasePath = "./",
   ptimeOutFile = NULL,
   assayName = "RNA",
-  cleanUpIntermediateFiles = T
+  cleanUpIntermediateFiles = T,
+  outputReductionName = "sctour"
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ TrainSctourModel(
 
 \item{cleanUpIntermediateFiles}{This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training.}
 
+\item{outputReductionName}{The assay name in which to store the results}
+
 \item{GEXOutfile}{The GEX filename used for output of DropletUtils::write10xCounts (.h5 extension).}
 
 \item{exclusionJsonPath}{Filename for the file containing the gene exclusion list (.json extension)}
@@ -42,16 +45,4 @@ A seurat object with pseudotime and dimensional reductions computed by scTour
 }
 \description{
 Trains an sctour model on a Seurat object
-}
-\examples{
-\dontrun{
-seuratObj <- TrainSctourModel(seuratObj = seuratObj, 
-                modelBasePath =  './',
-                modelFileName = "test_model",
-                riraExclusionGeneSets = "VariableGenes_Exclusion.2", 
-                ptimeOutFile = './ptime_out_file.csv',
-                assayName = "RNA",
-                cleanUpIntermediateFiles = T)
-
-}
 }
