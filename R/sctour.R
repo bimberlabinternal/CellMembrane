@@ -85,8 +85,14 @@ TrainSctourModel <- function(seuratObj,
   return(seuratObj)
 }
 
+## Add ScTour Dimensional Reduction
 .AppendScTourAsReduction <- function(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName) {
-  ## Add ScTour Dimensional Reduction
+  for (fn in c(embeddingOutFile, ptimeOutFile)) {
+    if (!file.exists(fn)) {
+      stop('Missing file: ', fn, '. Found: ', paste0(list.files(dirname(dn)), collapse = ';'))
+    }
+  }
+
   #read the embeddings from the sctour training
   embeddings <- as.matrix(read.csv(embeddingOutFile, header = F))
 
