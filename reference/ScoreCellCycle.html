@@ -50,7 +50,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ScoreCellCycle</span><span class="op">(</span><span class="va">seuratObj</span>, min.genes <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ScoreCellCycle</span><span class="op">(</span><span class="va">seuratObj</span>, min.genes <span class="op">=</span> <span class="fl">10</span>, useAlternateG2M <span class="op">=</span> <span class="va">false</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -61,6 +61,10 @@
 
 <dt>min.genes</dt>
 <dd><p>If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.</p></dd>
+
+
+<dt>useAlternateG2M</dt>
+<dd><p>If true, this will use a smaller set of G2M genes, defined from: https://raw.githubusercontent.com/hbc/tinyatlas/master/cell_cycle/Homo_sapiens.csv</p></dd>
 
 </dl></div>
     <div id="value">

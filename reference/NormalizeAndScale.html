@@ -61,7 +61,8 @@
 <span>  includeCellCycleGenesInScaleData <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  useSCTransform <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  additionalFindVariableFeatureArgList <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  scoreCellCycle <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  scoreCellCycle <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  useAlternateG2M <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -109,6 +110,10 @@
 
 <dt>scoreCellCycle</dt>
 <dd><p>If true, ScoreCellCycle will be run to compute Phase, which is stored in meta.data. If a field named Phase already exists, this will be skipped.</p></dd>
+
+
+<dt>useAlternateG2M</dt>
+<dd><p>If true, this will use a smaller set of G2M genes, defined from: https://raw.githubusercontent.com/hbc/tinyatlas/master/cell_cycle/Homo_sapiens.csv</p></dd>
 
 </dl></div>
     <div id="value">
