@@ -97,6 +97,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		assayData <- .PossiblyExpandAssay(seuratObj, assayData)
 	}
 
+	seuratObj[[assayName]] <- NULL  # Reset this first to avoid warning
 	seuratObj[[assayName]] <- assayData
 	.PlotMarkerQc(seuratObj, assayName = assayName)
 

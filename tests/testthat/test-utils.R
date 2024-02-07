@@ -1,14 +1,16 @@
 context("scRNAseq")
 
 test_that("ClrNormalizeByGroup works as expected", {
-    set.seed(CellMembrane::GetSeed())
+  set.seed(CellMembrane::GetSeed())
 
-    seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 
-    # This is primarily to ensure it runs w/o error:
-    seuratObj <- ClrNormalizeByGroup(seuratObj, groupingVar = 'ClusterNames_0.2', assayName = 'RNA', targetAssayName = 'ADT2')
-    expect_equal(7.258214, max(Seurat::GetAssayData(seuratObj, assay = 'ADT2', slot = 'data')), tolerance = 0.001)
+  # This is primarily to ensure it runs w/o error:
+  seuratObj <- ClrNormalizeByGroup(seuratObj, groupingVar = 'ClusterNames_0.2', assayName = 'RNA', targetAssayName = 'ADT2')
+  expect_equal(7.258214, max(Seurat::GetAssayData(seuratObj, assay = 'ADT2', slot = 'data')), tolerance = 0.001)
 
+  seuratObj <- ClrNormalizeByGroup(seuratObj, groupingVar = 'ClusterNames_0.2', assayName = 'RNA', targetAssayName = 'ADT2', featureInclusionList = c())
+  expect_equal(7.258214, max(Seurat::GetAssayData(seuratObj, assay = 'ADT2', slot = 'data')), tolerance = 0.001)
 })
 
 test_that("AddNewMetaColumn works as expected", {
