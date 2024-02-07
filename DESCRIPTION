@@ -77,6 +77,7 @@ Imports:
     mlr3,
     glmnet, 
     flexmix,
+    jsonlite,
     scMetabolism
 Suggests:
     devtools,
@@ -104,7 +105,8 @@ Config/reticulate:
   list(
     packages = list(
       list(package = "cellbender"),
-      list(package = "phate")
+      list(package = "phate"),
+      list(package = "sctour")
     )
   )
 Collate: 
@@ -126,3 +128,4 @@ Collate:
     'Vision.R'
     'data.R'
     'scMetabolism.R'
+    'sctour.R'
