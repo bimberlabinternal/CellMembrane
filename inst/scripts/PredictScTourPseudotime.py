@@ -3,7 +3,6 @@ import scanpy as sc
 import numpy as np
 import pandas as pd
 import torch
-import itertools
 
 def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     #read count data and variable genes
