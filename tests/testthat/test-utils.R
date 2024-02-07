@@ -9,8 +9,8 @@ test_that("ClrNormalizeByGroup works as expected", {
   seuratObj <- ClrNormalizeByGroup(seuratObj, groupingVar = 'ClusterNames_0.2', assayName = 'RNA', targetAssayName = 'ADT2')
   expect_equal(7.258214, max(Seurat::GetAssayData(seuratObj, assay = 'ADT2', slot = 'data')), tolerance = 0.001)
 
-  seuratObj <- ClrNormalizeByGroup(seuratObj, groupingVar = 'ClusterNames_0.2', assayName = 'RNA', targetAssayName = 'ADT2', featureInclusionList = c())
-  expect_equal(7.258214, max(Seurat::GetAssayData(seuratObj, assay = 'ADT2', slot = 'data')), tolerance = 0.001)
+  seuratObj <- ClrNormalizeByGroup(seuratObj, groupingVar = 'ClusterNames_0.2', assayName = 'RNA', targetAssayName = 'ADT2', featureInclusionList = c(rownames(seuratObj@assays$RNA)[1:20]))
+  expect_equal(3.135941, max(Seurat::GetAssayData(seuratObj, assay = 'ADT2', slot = 'data')), tolerance = 0.001)
 })
 
 test_that("AddNewMetaColumn works as expected", {
