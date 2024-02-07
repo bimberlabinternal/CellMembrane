@@ -418,7 +418,17 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
   }
 
   normalizedMat <- normalizedMat[,colnames(seuratObj)]
-  seuratObj <- Seurat::SetAssayData(seuratObj, assay = sourceAssay, slot = 'data', new.data = as.sparse(normalizedMat))
+
+  assayObj <- Seurat::GetAssay(seuratObj, assay = sourceAssay)
+  if (nrow(assayObj) != nrow(normalizedMat) || any(rownames(assayObj)  != rownames(normalizedMat))) {
+    rawCounts <- Seurat::GetAssayData(assayObj, slot = 'counts')
+    rawCounts <- rawCounts[rownames(normalizedMat),]
+    assayObj <- Seurat::CreateAssayObject(counts = rawCounts)
+  }
+
+  assayObj <- Seurat::SetAssayData(assayObj, slot = 'data', new.data = as.sparse(normalizedMat))
+  seuratObj[[sourceAssay]] <- NULL  # Reset this first to avoid warning
+  seuratObj[[sourceAssay]] <- assayObj
   seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = sourceAssay)
 
   if (calculatePerFeatureUCell) {

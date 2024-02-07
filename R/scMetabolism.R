@@ -11,7 +11,8 @@
 RunScMetabolism <- function(seuratObj, method = 'AUCell', doImputation = FALSE, metabolismType = 'KEGG', plotVariables = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6')) {
   seuratObj <- scMetabolism::sc.metabolism.Seurat(obj = seuratObj, method = method, imputation = doImputation, metabolism.type = metabolismType)
 
-  print(scMetabolism::DimPlot.metabolism(obj = seuratObj, pathway = "Glycolysis / Gluconeogenesis", dimention.reduction.type = "umap", dimention.reduction.run = F))
+  # TODO: switch back to built-in function once this is resolved:  https://github.com/wu-yc/scMetabolism/pull/28
+  print(.MakeDimPlot(obj = seuratObj, pathway = "Glycolysis / Gluconeogenesis", dimention.reduction.type = "umap", dimention.reduction.run = F))
 
   # NOTE: the way they store these results as a non-valid assay could be a problem down the line. Consider a different method, such as @misc.
   pathwayData <- seuratObj@assays$METABOLISM$score
@@ -25,4 +26,21 @@ RunScMetabolism <- function(seuratObj, method = 'AUCell', doImputation = FALSE, 
   }
 
   return(seuratObj)
+}
+
+.MakeDimPlot <- function(obj, pathway, dimention.reduction.type = "umap", dimention.reduction.run = F, size = 1) {
+  umap.loc<-obj@reductions$umap@cell.embeddings
+  colnames(umap.loc) <- c('UMAP_1', 'UMAP_2')
+  row.names(umap.loc) <- colnames(obj)
+  signature_exp<-obj@assays$METABOLISM$score
+  input.pathway <- pathway
+  signature_ggplot<-data.frame(umap.loc, t(signature_exp[pathway,]))
+
+  ggplot(data=signature_ggplot, aes(x=UMAP_1, y=UMAP_2, color = signature_ggplot[,3])) +  #this plot is great
+    geom_point(size = size) +
+    labs(color = input.pathway) +
+    xlab("UMAP 1") +ylab("UMAP 2") +
+    theme(aspect.ratio=1)+
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), axis.line = element_line(colour = "black"))
 }
