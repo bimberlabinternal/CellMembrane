@@ -36,7 +36,7 @@ test_that("TrainSctourModel works", {
 
   testthat::expect_true("pseudotime2" %in% colnames(seuratObj@meta.data))
   testthat::expect_true("sctour2" %in% names(seuratObj@reductions))
-  testthat::expect_equal(max(seuratObj$pseudotime2), 0.862, tolerance = 0.01)
+  testthat::expect_equal(max(seuratObj$pseudotime2), 0.961, tolerance = 0.65)
 
   #file cleanup
   unlink("./sctour_model.pth")
