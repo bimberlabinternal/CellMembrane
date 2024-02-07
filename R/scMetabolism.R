@@ -21,13 +21,20 @@ RunScMetabolism <- function(seuratObj, method = 'AUCell', doImputation = FALSE, 
   input.pathways <- intersect(rownames(pathwayData), c("Glycolysis / Gluconeogenesis", "Oxidative phosphorylation", "Citrate cycle (TCA cycle)"))
   if (length(input.pathways) > 0) {
     for (pv in plotVariables) {
-      print(scMetabolism::DotPlot.metabolism(obj = seuratObj, pathway = input.pathways, phenotype = pv, norm = "y"))
+      tryCatch({
+        print(scMetabolism::DotPlot.metabolism(obj = seuratObj, pathway = input.pathways, phenotype = pv, norm = "y"))
+      }, error = function(e){
+        print("Error running scMetabolism::DotPlot.metabolism")
+        print(conditionMessage(e))
+        traceback()
+      })
     }
   }
 
   return(seuratObj)
 }
 
+#' @import ggplot2
 .MakeDimPlot <- function(obj, pathway, dimention.reduction.type = "umap", dimention.reduction.run = F, size = 1) {
   umap.loc<-obj@reductions$umap@cell.embeddings
   colnames(umap.loc) <- c('UMAP_1', 'UMAP_2')
