@@ -11,7 +11,8 @@ TrainSctourModel(
   outputBasePath = "./",
   assayName = "RNA",
   cleanUpIntermediateFiles = TRUE,
-  outputReductionName = "sctour"
+  outputReductionName = "sctour",
+  metadataColName = "pseudotime"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ TrainSctourModel(
 \item{cleanUpIntermediateFiles}{This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training.}
 
 \item{outputReductionName}{The assay name in which to store the results}
+
+\item{metadataColName}{The name of the meta.data column to store the resulting pseudotime}
 }
 \value{
 A seurat object with pseudotime and dimensional reductions computed by scTour

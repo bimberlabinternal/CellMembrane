@@ -15,6 +15,7 @@ utils::globalVariables(
 #' @param assayName Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".
 #' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training.
 #' @param outputReductionName The assay name in which to store the results
+#' @param metadataColName The name of the meta.data column to store the resulting pseudotime
 #' @return A seurat object with pseudotime and dimensional reductions computed by scTour
 #' @importFrom jsonlite write_json
 #' @export
@@ -24,7 +25,8 @@ TrainSctourModel <- function(seuratObj,
                              outputBasePath = './',
                              assayName = "RNA",
                              cleanUpIntermediateFiles = TRUE,
-                             outputReductionName = 'sctour') {
+                             outputReductionName = 'sctour',
+                             metadataColName = "pseudotime") {
 
   if (!reticulate::py_available(initialize = TRUE)) {
     stop(paste0('Python/reticulate not configured. Run "reticulate::py_config()" to initialize python'))
@@ -75,7 +77,7 @@ TrainSctourModel <- function(seuratObj,
 
   system2(reticulate::py_exe(), script)
 
-  seuratObj <- .AppendScTourAsReduction(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName)
+  seuratObj <- .AppendScTourAsReduction(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName, metadataColName)
   
   if (cleanUpIntermediateFiles){
     unlink(c(GEXOutfile, ptimeOutFile, embeddingOutFile, exclusionJsonPath))
@@ -85,7 +87,7 @@ TrainSctourModel <- function(seuratObj,
 }
 
 ## Add ScTour Dimensional Reduction
-.AppendScTourAsReduction <- function(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName) {
+.AppendScTourAsReduction <- function(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName, metadataColName) {
   for (fn in c(embeddingOutFile, ptimeOutFile)) {
     if (!file.exists(fn)) {
       stop('Missing file: ', fn, '. Found: ', paste0(list.files(dirname(fn)), collapse = ';'))
@@ -109,11 +111,11 @@ TrainSctourModel <- function(seuratObj,
   #Add ptime to seurat metadata
   pseudotimeOutputVector <- pseudotimeOutputDf[,"ptime"]
   names(pseudotimeOutputVector) <- pseudotimeOutputDf[,"X"]
-  seuratObj <- Seurat::AddMetaData(seuratObj, metadata = pseudotimeOutputVector, col.name = "pseudotime")
+  seuratObj <- Seurat::AddMetaData(seuratObj, metadata = pseudotimeOutputVector, col.name = metadataColName)
 
   #Plot pseudotime
-  print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = paste0(outputReductionName, "_umap")))
-  print(FeaturePlot(seuratObj, features = 'pseudotime', reduction = outputReductionName))
+  print(FeaturePlot(seuratObj, features = metadataColName, reduction = paste0(outputReductionName, "_umap")))
+  print(FeaturePlot(seuratObj, features = metadataColName, reduction = outputReductionName))
 
   return(seuratObj)
 }
@@ -125,6 +127,7 @@ TrainSctourModel <- function(seuratObj,
 #' @param modelFile A path pointing to a trained scTour model.
 #' @param outputBasePath The directory where the embeddings and pseudotime will be written. These are deleted unless cleanUpIntermediateFiles=TRUE
 #' @param outputReductionName The assay name in which to store the results
+#' @param metadataColName The name of the meta.data column to store the resulting pseudotime
 #' @param assayName Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".
 #' @param cleanUpIntermediateFiles This boolean controls if GEXOutfile, embeddingOutFile, and exclusionJsonPath should be deleted after model training.
 #' @return A Seurat Object with pseudotime from the supplied model written into its metadata.
@@ -133,6 +136,7 @@ PredictScTourPseudotime <- function(seuratObj,
                                     modelFile,
                                     outputBasePath = tempdir(),
                                     outputReductionName = "sctour",
+                                    metadataColName = "pseudotime",
                                     assayName = "RNA",
                                     cleanUpIntermediateFiles = TRUE) {
 
@@ -172,7 +176,7 @@ PredictScTourPseudotime <- function(seuratObj,
   readr::write_file(newstr, script, append = TRUE)
   system2(reticulate::py_exe(), script)
 
-  seuratObj <- .AppendScTourAsReduction(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName)
+  seuratObj <- .AppendScTourAsReduction(seuratObj, embeddingOutFile, ptimeOutFile, outputReductionName, assayName, metadataColName)
 
   if (cleanUpIntermediateFiles){
     unlink(c(GEXOutfile, ptimeOutFile, embeddingOutFile))

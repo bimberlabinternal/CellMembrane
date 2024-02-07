@@ -9,6 +9,7 @@ PredictScTourPseudotime(
   modelFile,
   outputBasePath = tempdir(),
   outputReductionName = "sctour",
+  metadataColName = "pseudotime",
   assayName = "RNA",
   cleanUpIntermediateFiles = TRUE
 )
@@ -21,6 +22,8 @@ PredictScTourPseudotime(
 \item{outputBasePath}{The directory where the embeddings and pseudotime will be written. These are deleted unless cleanUpIntermediateFiles=TRUE}
 
 \item{outputReductionName}{The assay name in which to store the results}
+
+\item{metadataColName}{The name of the meta.data column to store the resulting pseudotime}
 
 \item{assayName}{Assay whose data is to be written out with DropletUtils::write10xCounts. Should be "RNA".}
 

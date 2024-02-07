@@ -13,9 +13,7 @@ def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     model_adata = checkpoint['adata']
 
     genes_in_model = model_adata.var.index.values.tolist()
-    print('GENES IN MODEL:')
-    print(genes_in_model)
-    
+
     #basic preprocessing
     sc.pp.calculate_qc_metrics(adataObj, percent_top=None, log1p=False, inplace=True)
     sc.pp.filter_genes(adataObj, min_cells=20)
