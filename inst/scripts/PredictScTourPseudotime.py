@@ -8,20 +8,16 @@ import itertools
 def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     #read count data and variable genes
     adataObj = sc.read_10x_h5(GEXfile)
+    adataObj.X = round(adataObj.X).astype(np.float32)
 
     checkpoint = torch.load(model_file, map_location=torch.device('cpu'))
     model_adata = checkpoint['adata']
 
-    # TODO
-    print('REMOVE THIS')
-    print(model_adata)
-    print(model_adata.var_names)
-
-    genes_in_model = model_adata.var_names
-    genes_in_model = list(itertools.chain.from_iterable(genes_in_model.values.tolist()))
+    genes_in_model = model_adata.var.index.values.tolist()
+    print('GENES IN MODEL:')
+    print(genes_in_model)
     
     #basic preprocessing
-    adataObj.X = round(adataObj.X).astype(np.float32)
     sc.pp.calculate_qc_metrics(adataObj, percent_top=None, log1p=False, inplace=True)
     sc.pp.filter_genes(adataObj, min_cells=20)
     sc.pp.highly_variable_genes(adataObj, flavor='seurat_v3', n_top_genes=2000, subset=True, inplace=False)
