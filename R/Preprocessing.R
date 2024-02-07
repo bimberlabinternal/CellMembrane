@@ -257,15 +257,27 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 			if (hasGeneId) {
 				if (any(is.na(geneIds1)) & !any(is.na(geneIds2))) {
+					if (length(geneIds2) != nrow(seuratObj[[assayName]])) {
+						stop(paste0('Adding geneIds2 of length that differs from assay: ', length(geneIds2), ' vs. ', nrow(seuratObj[[assayName]])))
+					}
+					names(geneIds2) <- rownames(seuratObj[[assayName]])
 					seuratObj[[assayName]] <- AddMetaData(seuratObj[[assayName]], metadata = geneIds2, col.name = 'GeneId')
 				} else if (!any(is.na(geneIds1)) & any(is.na(geneIds2))) {
+					if (length(geneIds1) != nrow(seuratObj[[assayName]])) {
+						stop(paste0('Adding geneIds1 of length that differs from assay: ', length(geneIds1), ' vs. ', nrow(seuratObj[[assayName]])))
+					}
+					names(geneIds1) <- rownames(seuratObj[[assayName]])
+
 					seuratObj[[assayName]] <- AddMetaData(seuratObj[[assayName]], metadata = geneIds1, col.name = 'GeneId')
 				} else if (!any(is.na(geneIds1)) & !any(is.na(geneIds2))) {
 					if (any(geneIds1 != geneIds2)) {
 						stop('Gene IDs did not match between seurat objects!')
 					}
+
+					names(geneIds1) <- rownames(seuratObj[[assayName]])
 					seuratObj[[assayName]] <- AddMetaData(seuratObj[[assayName]], metadata = geneIds1, col.name = 'GeneId')
 				} else {
+					names(geneIds1) <- rownames(seuratObj[[assayName]])
 					seuratObj[[assayName]] <- AddMetaData(seuratObj[[assayName]], metadata = geneIds1, col.name = 'GeneId')
 				}
 			}
