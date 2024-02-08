@@ -117,6 +117,7 @@ Collate:
     'CiteSeq.R'
     'CoNGA.R'
     'Doublets.R'
+    'GeneSetAnalysis.R'
     'LDA.R'
     'Phate.R'
     'PseudoBulk.R'
