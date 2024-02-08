@@ -85,7 +85,8 @@ Imports:
     WGCNA,
     escape (>= 1.99.0),
     GSVA (>= 1.51.5),
-    dynamicTreeCut
+    dynamicTreeCut,
+    hdWGCNA
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -111,7 +112,8 @@ Remotes:
     davidcsterratt/geometry/pkg,
     ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
-    rcastelo/GSVA
+    rcastelo/GSVA,
+    smorabit/hdWGCNA
 Config/reticulate:
   list(
     packages = list(
