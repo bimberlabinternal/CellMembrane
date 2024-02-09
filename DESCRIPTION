@@ -79,8 +79,8 @@ Imports:
     flexmix,
     jsonlite,
     scMetabolism,
-    msigdbr,
     presto,
+    msigdbr,
     fgsea
 Suggests:
     devtools,
