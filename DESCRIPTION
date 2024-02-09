@@ -78,7 +78,10 @@ Imports:
     glmnet, 
     flexmix,
     jsonlite,
-    scMetabolism
+    scMetabolism,
+    msigdbr,
+    presto,
+    fgsea
 Suggests:
     devtools,
     testthat (>= 2.1.0),
