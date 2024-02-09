@@ -79,6 +79,9 @@ Imports:
     flexmix,
     jsonlite,
     scMetabolism
+    msigdbr
+    presto
+    fgsea
 Suggests:
     devtools,
     testthat (>= 2.1.0),
