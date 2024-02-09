@@ -103,7 +103,8 @@ Remotes:
     marchinilab/dropsim,
     drisso/RUVSeq,
     carmonalab/UCell,
-    wu-yc/scMetabolism
+    wu-yc/scMetabolism,
+    immunogenomics/presto
 Config/reticulate:
   list(
     packages = list(
