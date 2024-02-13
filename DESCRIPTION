@@ -103,7 +103,7 @@ Remotes:
     drisso/RUVSeq,
     carmonalab/UCell,
     wu-yc/scMetabolism,
-    davidcsterratt/geometry
+    davidcsterratt/geometry/pkg
 Config/reticulate:
   list(
     packages = list(
