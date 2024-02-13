@@ -202,4 +202,93 @@ RLE_Plot <- function(seuratObj, assay = "RNA", sampleIdentifier = "SegmentDispla
   return(plot)
 }
 
+#CosMx Functions 
+
+#' @title DetectCellStructuresBasedOnCellType
+#'
+#' @description A DBSCAN-based spatial cluster detection method to find dense cellular structures within spatial data. This function is currently implemented with FOV-based, iterative, classification in mind, but is technically extendable to global analysis of a single frame. 
+#' @param seuratObjectMetadata Metadata dataframe storing, at minimum, a cell type or "transcriptomic clustering" type field, a field denoting FOV, and two spatial coordinates. 
+#' @param cellTypeField A character field storing cell type annotations, but could be any discrete cell clustering assignment. 
+#' @param minimumClusterSizeCoefficient The percentage of the input data (after cell type splitting) to be considered as a feasible minimum cluster size. Determines how many "noise data points" will be added by DBSCAN.  
+#' @param fovField the metadata column that stores the Field of View information.
+#' @param fovWhitelist An optional whitelist of FOVs. By default, the function will loop over all FOVs, which could be time consuming. 
+#' @param cellTypeConstituentRegex A regular expression used to include cell types that will contribute to the cellular structure of interest. 
+#' @param xCoordinateField The metadata column that stores the x coordinate information within the Field of View. 
+#' @param yCoordinateField The metadata column that stores the y coordinate information within the Field of View. 
+#' @param substructureMetaDataFieldName An annotation that will be concatenated during the results. "Local" FOV information will be concatenated using "fov + substructureMetaDataFieldName + a substructure index" within the columns of the metadata. 
+#' @param summarizeLocalResults An optional boolean that will wrap up the various substructureMetaDataFieldName columns into two single columns. One, which determines if a cell is within ANY of the defined substructures, stored in the output column "Within_Local + substructureMetaDataFieldName". The second is a metadata column that displays which of the local substructures the cell belongs in, concatenated as "Local + substructureMetaDataFieldName". "Local + substructureMetaDataFieldName + 0" is always the noise designation. 
+#' @return Returns a dataframe containing columns related to the substructures found within the images at varying scopes. With summarizeLocalResults = FALSE, (number of FOVs) x (number of subtructures + 1) columns will be added. summarizeLocalResults rolls these high resolution results into two additional columns relative to the fovField. 
+#' @export
+DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata, 
+                                               cellTypeField = "cell_type", 
+                                               minimumClusterSizeCoefficient = 0.05,
+                                               fovField = "fov",
+                                               fovWhitelist = NULL,
+                                               cellTypeConstituentRegex = "Bcell|B_cell|BCell|B_Cell|B\\.cell|B\\.Cell",
+                                               xCoordinateField = "x_FOV_px", 
+                                               yCoordinateField = "y_FOV_px", 
+                                               substructureMetaDataFieldName = "Within_BCF",
+                                               summarizeLocalResults = TRUE
+){
+  #determine FOVs to loop over
+  if(is.null(fovWhitelist)){
+    fovs <- unique(seuratObjectMetadata[,fovField])
+  } else if (!fovWhitelist %in% unique(seuratObjectMetadata[,fovField])){
+    stop(paste0("The FOVs listed in whitelist are not detected in fovField: ", fovField, ". Please ensure the fovField is formatted as you expect (specifically: ensure integer vs character typing)."))
+  } else {
+    fovs <- fovWhitelist
+  }
+  #Detect substructures within each FOV
+  for (fov in fovs) {
+    fov_seuratObjectMetadata <- seuratObjectMetadata[seuratObjectMetadata[fovField] == fov,]
+    coordinateDataFrameOfCellsOfInterest <- fov_seuratObjectMetadata[grepl(cellTypeConstituentRegex, fov_seuratObjectMetadata[,cellTypeField]), c(xCoordinateField, yCoordinateField)]
+    #cluster cells
+    clusters <- dbscan::hdbscan(coordinateDataFrameOfCellsOfInterest, 
+                                minPts = nrow(coordinateDataFrameOfCellsOfInterest) * minimumClusterSizeCoefficient)
+    #store cluster assignments for cells within the cell type of interest
+    fov_seuratObjectMetadata[grepl(cellTypeConstituentRegex, fov_seuratObjectMetadata[,cellTypeField]), "dbscan_cluster"] <- clusters$cluster
+    #iterate over clusters (e.g. dense structures of cell types)
+    for (cluster_index in unique(fov_seuratObjectMetadata$dbscan_cluster)){
+      #cluster 0 is the "noise cluster" from DBSCAN
+      if(cluster_index != 0 & !is.na(cluster_index)){
+        print(cluster_index)
+        #isolate cells from the current cluster/substructure
+        coordinateDataFrameOfSubStructure <- fov_seuratObjectMetadata[
+          grepl(cellTypeConstituentRegex, fov_seuratObjectMetadata[,cellTypeField]) & 
+            fov_seuratObjectMetadata$dbscan_cluster == cluster_index, 
+          c(xCoordinateField, yCoordinateField)]
+        #form convex hull around substructure
+        convexHull <- geometry::convhulln(coordinateDataFrameOfSubStructure, output.options = TRUE)
+        #compare each cell and classify them as internal or external to the convex hull (in or out of the structure)
+        mat <- as.matrix(fov_seuratObjectMetadata[, c(xCoordinateField, yCoordinateField)])
+        #inhulln is picky about the formatting of the input matrix, so we need to null the rownames.
+        colnames(mat) <- NULL
+        rownames(mat) <- NULL
+        #inhull_yes_no is a boolean vector determining if the point (cell centroid) is internal to the substructure or not. 
+        inhull_yes_no <- geometry::inhulln(ch = convexHull, 
+                                           p = cbind(as.double(mat[,1]), 
+                                                     as.double(mat[,2])))
+        
+        #instantiate field as NULL
+        seuratObjectMetadata[,paste0(fov, "_", substructureMetaDataFieldName, "_", cluster_index)] <- NULL
+        #store results of hull detection 
+        seuratObjectMetadata[seuratObjectMetadata[, fovField] == fov,
+                             paste0(fov, "_", substructureMetaDataFieldName, "_", cluster_index)] <- inhull_yes_no
+      }
+    }
+    if (summarizeLocalResults){
+      seuratObjectMetadata[,paste0("Local_", substructureMetaDataFieldName)] <- FALSE
+      #if any of the values in the "fov_substructureMetaDataFieldName_cluster" columns are true (i.e. the cell is within any substructure) set to TRUE. 
+      cells_within_structure <- apply(seuratObjectMetadata[,grepl(paste0(fov, "_", substructureMetaDataFieldName), colnames(seuratObjectMetadata))], FUN = any, MARGIN = 1)
+      
+      seuratObjectMetadata[seuratObjectMetadata[,fovField] == fov & 
+                             cells_within_structure,
+                           paste0("Within_Local_", substructureMetaDataFieldName)] <- TRUE
+      seuratObjectMetadata[seuratObjectMetadata[,fovField] == fov & 
+                             cells_within_structure,
+                           paste0("Local_", substructureMetaDataFieldName)] <- apply(seuratObjectMetadata[seuratObjectMetadata[,fovField] == fov & cells_within_structure, grepl(paste0(fov, "_", substructureMetaDataFieldName), colnames(seuratObjectMetadata))], FUN = which.max, MARGIN = 1 )
+    }
+  }
+  return(seuratObjectMetadata) 
+}
 
