@@ -9,7 +9,8 @@ RunScMetabolism(
   method = "AUCell",
   doImputation = FALSE,
   metabolismType = "KEGG",
-  plotVariables = c("ClusterNames_0.2", "ClusterNames_0.4", "ClusterNames_0.6")
+  plotVariables = c("ClusterNames_0.2", "ClusterNames_0.4", "ClusterNames_0.6"),
+  dropPathwaysFromAssays = TRUE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ RunScMetabolism(
 \item{metabolismType}{Either KEGG (85 pathways) or REACTOME (82 pathways)}
 
 \item{plotVariables}{A list of variables used for grouping when generating a DotPlot}
+
+\item{dropPathwaysFromAssays}{If true}
 }
 \value{
 The modified seurat object
