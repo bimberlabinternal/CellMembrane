@@ -39,7 +39,7 @@ RunScMetabolism <- function(seuratObj, method = 'AUCell', doImputation = FALSE, 
 
   # This is not a valid assay object...
   if (dropPathwaysFromAssays) {
-    seuratObj@assays$METABOLISM <- NULL
+    seuratObj['METABOLISM'] <- NULL
   }
 
   return(seuratObj)
