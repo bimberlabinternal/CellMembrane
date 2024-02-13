@@ -79,7 +79,8 @@ Imports:
     flexmix,
     jsonlite,
     scMetabolism, 
-    dbscan
+    dbscan, 
+    geometry
 Suggests:
     devtools,
     testthat (>= 2.1.0),
