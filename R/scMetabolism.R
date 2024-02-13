@@ -1,3 +1,10 @@
+utils::globalVariables(
+  names = c('UMAP_1', 'UMAP_2'),
+  package = 'CellMembrane',
+  add = TRUE
+)
+
+
 #' @title Run scMetabolism
 #'
 #' @description Runs scMetabolism on a seurat object
