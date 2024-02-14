@@ -1,3 +1,10 @@
+utils::globalVariables(
+  names = c('UMAP_1', 'UMAP_2'),
+  package = 'CellMembrane',
+  add = TRUE
+)
+
+
 #' @title Run scMetabolism
 #'
 #' @description Runs scMetabolism on a seurat object
@@ -39,7 +46,8 @@ RunScMetabolism <- function(seuratObj, method = 'AUCell', doImputation = FALSE, 
 
   # This is not a valid assay object...
   if (dropPathwaysFromAssays) {
-    seuratObj@assays$METABOLISM <- NULL
+    print('Removing scMetabolism data from assay slot')
+    seuratObj[['METABOLISM']] <- NULL
   }
 
   return(seuratObj)
