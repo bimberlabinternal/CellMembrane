@@ -46,7 +46,8 @@ RunScMetabolism <- function(seuratObj, method = 'AUCell', doImputation = FALSE, 
 
   # This is not a valid assay object...
   if (dropPathwaysFromAssays) {
-    seuratObj['METABOLISM'] <- NULL
+    print('Removing scMetabolism data from assay slot')
+    seuratObj[['METABOLISM']] <- NULL
   }
 
   return(seuratObj)
