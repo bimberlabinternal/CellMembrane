@@ -275,7 +275,7 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
 ){
   #check that inputs exist and summarizeLocalResults is a boolean. 
   if (!(all(c(cellTypeField, fovField, xCoordinateField, yCoordinateField)))) {
-    missingColumn <- which(!(c(cellTypeField, fovField, xCoordinateField, yCoordinateField)) %in% colnames(seuratObjectMetadata))
+    missingColumn <- which(!(c(cellTypeField, fovField, xCoordinateField, yCoordinateField) %in% colnames(seuratObjectMetadata)))
     stop(paste0("Error: ", missingColumn , " was not found in the supplied metadata's column names. Please add ", missingColumn, "to the metadata."))
   } else if (!rlang::is_bool(summarizeLocalResults)) {
     stop("Please set summarizeLocalResults to either TRUE or FALSE.")
