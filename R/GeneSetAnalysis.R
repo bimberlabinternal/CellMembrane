@@ -54,7 +54,7 @@ PathwayEnrichment <- function(seuratObj,
   msigdb_df <- msigdbr::msigdbr(species = msigdbSpecies,
                                 category = msigdbCategory,
                                 subcategory = msigdbSubcategory) %>%
-    dplyr::select(gs_name, entrez_gene, gene_symbol) %>%
+    dplyr::select(gs_name, gene_symbol) %>%
     dplyr::distinct()
   
   if (!is.null(selectedPathways)) {
@@ -70,11 +70,7 @@ PathwayEnrichment <- function(seuratObj,
   
   if (gseaPackage == "fgsea") {
     fgsea_sets <- msigdb_df %>% split(x = .$gene_symbol, f = .$gs_name)
-  } else if (gseaPackage == "clusterProfiler") {
-    msigdb_df <- msigdb_df %>%
-      dplyr::select(gs_name, entrez_gene) %>%
-      dplyr::distinct()
-  }
+  } 
   
   for (groupName in unique(seuratObj@meta.data[, groupField])) {
     group_genes <- gene_ranks %>%
@@ -92,15 +88,8 @@ PathwayEnrichment <- function(seuratObj,
         dplyr::select(-pval, -size, -leadingEdge)
       
     } else if (gseaPackage == "clusterProfiler") {
-      ortholog_genes <-
-        babelgene::orthologs(names(ranks), species = msigdbSpecies, human = FALSE)
-      group_genes <-
-        group_genes %>% 
-        left_join(ortholog_genes, by = c("feature" = "symbol")) %>% 
-        filter(!is.na(entrez))
-      
       geneList <- group_genes[, "auc"]
-      names(geneList) <- as.character(group_genes[, "entrez"])
+      names(geneList) <- as.character(group_genes[, "feature"])
       geneList <- sort(geneList, decreasing = TRUE)
       
       temp_result <-
