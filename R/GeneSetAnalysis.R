@@ -4,14 +4,15 @@
 #' @title PathwayEnrichment
 #'
 #' @description Runs GSEA analysis on a seurat object
-#' @param seuratObj The Seurat object containing the data. 
+#' @param seuratObj The Seurat object containing the data.
 #' @param groupField Field on which to group to calculate AUC
 #' @param msigdbSpecies MSigDBSpecies name to retrieve gene sets from. Run msigdbr_species() to see available species.
 #' @param msigdbCategory MSigDB collection abbreviation, such as H or C1. Run msigdbr_collections() to see available collections.
 #' @param scoreType This parameter defines the GSEA score type.Possible options are("std","pos", "neg")
 #' @param selectedPathways A set of pathways to test.
+#' @param gseaPackage This parameter specifies the R package to utilize for conducting GSEA analysis.Possible options are("clusterProfiler", "fgsea")
 #' @param msigdbSubcategory MSigDB sub-collection abbreviation, such as CGP or BP
-#' @return A seurat object with NES values for each pathway appended to each cell 
+#' @return A seurat object with NES values for each pathway appended to each cell
 #' @export
 
 PathwayEnrichment <- function(seuratObj,
@@ -34,6 +35,7 @@ PathwayEnrichment <- function(seuratObj,
                                 "HALLMARK_UNFOLDED_PROTEIN_RESPONSE",
                                 "HALLMARK_TNFA_SIGNALING_VIA_NFKB"
                               ),
+                              gseaPackage = "clusterProfiler",
                               msigdbSubcategory = NULL) {
   gene_ranks <- presto::wilcoxauc(seuratObj, group_by = groupField)
   
@@ -44,33 +46,67 @@ PathwayEnrichment <- function(seuratObj,
     dplyr::distinct()
   
   if (!is.null(selectedPathways)) {
-    msigdb_df <- msigdb_df %>% dplyr::filter(gs_name %in% selectedPathways)
+    msigdb_df <-
+      msigdb_df %>% dplyr::filter(gs_name %in% selectedPathways)
   }
-  
-  fgsea_sets <- msigdb_df %>% split(x = .$gene_symbol, f = .$gs_name)
   
   gsea_result <- data.frame()
   
-  for (path in unique(msigdb_df$gs_name)) {
-    for (groupName in unique(seuratObj@meta.data[, groupField])) {
-      group_genes <- gene_ranks %>%
-        dplyr::filter(group == groupName) %>%
-        dplyr::arrange(desc(auc)) %>%
-        dplyr::select(feature, auc)
+  if (gseaPackage == "fgsea") {
+    fgsea_sets <- msigdb_df %>% split(x = .$gene_symbol, f = .$gs_name)
+  } else{
+    msigdb_df <- msigdb_df %>%
+      dplyr::select(gs_name, entrez_gene) %>%
+      dplyr::distinct()
+  }
+  
+  for (groupName in unique(seuratObj@meta.data[, groupField])) {
+    group_genes <- gene_ranks %>%
+      dplyr::filter(group == groupName) %>%
+      dplyr::arrange(desc(auc)) %>%
+      dplyr::select(feature, auc)
+    
+    ranks <- tibble::deframe(group_genes)
+    
+    if (gseaPackage == "fgsea") {
+      temp_result <-
+        fgsea::fgsea(fgsea_sets, stats = ranks, scoreType = scoreType) %>%
+        mutate(pvalue = pval,
+               setSize = size) %>%
+        dplyr::select(-pval, -size)
       
-      ranks <- tibble::deframe(group_genes)
+    } else{
+      ortholog_genes <-
+        babelgene::orthologs(names(ranks), species = msigdbSpecies, human = FALSE)
+      group_genes <-
+        group_genes %>% left_join(ortholog_genes, by = c("feature" = "symbol")) %>% filter(!is.na(entrez))
       
-      fgsea_result <-
-        fgsea::fgsea(fgsea_sets, stats = ranks, scoreType = scoreType)
+      geneList <- group_genes[, "auc"]
+      names(geneList) <- as.character(group_genes[, "entrez"])
+      geneList <- sort(geneList, decreasing = TRUE)
       
-      fgsea_result <- fgsea_result %>%
-        tibble::as_tibble() %>%
-        dplyr::filter(pathway == path) %>%
-        dplyr::mutate(groupName = groupName)
-      
-      gsea_result <-
-        rbind(gsea_result, fgsea_result) %>%  dplyr::arrange(desc(NES))
+      temp_result <-
+        clusterProfiler::GSEA(
+          geneList,
+          TERM2GENE = msigdb_df,
+          scoreType = 'pos',
+          pvalueCutoff = 1
+        )
+      temp_result <- temp_result@result %>%
+        dplyr::mutate(pathway = ID,
+                      ES = enrichmentScore,
+                      padj = p.adjust) %>%
+        dplyr::select(-ID, -Description,-enrichmentScore,-p.adjust)
     }
+    
+    temp_result <- temp_result %>%
+      tibble::as_tibble() %>%
+      dplyr::mutate(groupName = groupName)
+    
+    gsea_result <-
+      rbind(gsea_result, temp_result) %>%
+      dplyr::group_by(pathway) %>%
+      dplyr::arrange(desc(NES), .by_group = TRUE)
   }
   
   return(gsea_result)

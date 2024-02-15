@@ -81,7 +81,9 @@ Imports:
     scMetabolism,
     presto,
     msigdbr,
-    fgsea
+    fgsea,
+    clusterProfiler,
+    babelgene
 Suggests:
     devtools,
     testthat (>= 2.1.0),
