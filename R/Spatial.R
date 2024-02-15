@@ -273,14 +273,23 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
                                                substructureMetaDataFieldName = "BCF",
                                                summarizeLocalResults = TRUE
 ){
+  #check that inputs exist and summarizeLocalResults is a boolean. 
+  if (!(all(c(cellTypeField, fovField, xCoordinateField, yCoordinateField)))) {
+    missingColumn <- which(!(c(cellTypeField, fovField, xCoordinateField, yCoordinateField)) %in% colnames(seuratObjectMetadata))
+    stop(paste0("Error: ", missingColumn , " was not found in the supplied metadata's column names. Please add ", missingColumn, "to the metadata."))
+  } else if (!rlang::is_bool(summarizeLocalResults)) {
+    stop("Please set summarizeLocalResults to either TRUE or FALSE.")
+  }
+  
   #determine FOVs to loop over
-  if(is.null(fovWhitelist)){
+  if (is.null(fovWhitelist)) {
     fovs <- unique(seuratObjectMetadata[,fovField])
   } else if (!fovWhitelist %in% unique(seuratObjectMetadata[,fovField])){
     stop(paste0("The FOVs listed in whitelist are not detected in fovField: ", fovField, ". Please ensure the fovField is formatted as you expect (specifically: ensure integer vs character typing)."))
   } else {
     fovs <- fovWhitelist
   }
+
   #Detect substructures within each FOV
   for (fov in fovs) {
     fov_seuratObjectMetadata <- seuratObjectMetadata[seuratObjectMetadata[fovField] == fov,]
@@ -291,9 +300,9 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
     #store cluster assignments for cells within the cell type of interest
     fov_seuratObjectMetadata[grepl(cellTypeConstituentRegex, fov_seuratObjectMetadata[,cellTypeField]), "dbscan_cluster"] <- clusters$cluster
     #iterate over clusters (e.g. dense structures of cell types)
-    for (cluster_index in unique(fov_seuratObjectMetadata$dbscan_cluster)){
+    for (cluster_index in unique(fov_seuratObjectMetadata$dbscan_cluster)) {
       #cluster 0 is the "noise cluster" from DBSCAN
-      if(cluster_index != 0 & !is.na(cluster_index)){
+      if (cluster_index != 0 & !is.na(cluster_index)) {
         print(paste0("Identifying substructure ", cluster_index, " in FOV:", fov))
         #isolate cells from the current cluster/substructure
         coordinateDataFrameOfSubStructure <- fov_seuratObjectMetadata[
@@ -304,7 +313,7 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
         convexHull <- geometry::convhulln(coordinateDataFrameOfSubStructure, output.options = TRUE)
         #compare each cell and classify them as internal or external to the convex hull (in or out of the structure)
         mat <- as.matrix(fov_seuratObjectMetadata[, c(xCoordinateField, yCoordinateField)])
-        #inhulln is picky about the formatting of the input matrix, so we need to null the rownames.
+        #inhulln is picky about the formatting of the input matrix, so we need to null the col/rownames.
         colnames(mat) <- NULL
         rownames(mat) <- NULL
         #inhull_yes_no is a boolean vector determining if the point (cell centroid) is internal to the substructure or not. 
@@ -319,7 +328,7 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
                              paste0(fov, "_", substructureMetaDataFieldName, "_", cluster_index)] <- inhull_yes_no
       }
     }
-    if (summarizeLocalResults){
+    if (summarizeLocalResults) {
       seuratObjectMetadata[,paste0("Local_", substructureMetaDataFieldName)] <- FALSE
       #if any of the values in the "fov_substructureMetaDataFieldName_cluster" columns are true (i.e. the cell is within any substructure) set to TRUE. 
       cells_within_structure <- apply(seuratObjectMetadata[,grepl(paste0(fov, "_", substructureMetaDataFieldName), colnames(seuratObjectMetadata))], FUN = any, MARGIN = 1)
@@ -327,6 +336,7 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
       seuratObjectMetadata[seuratObjectMetadata[,fovField] == fov & 
                              cells_within_structure,
                            paste0("Within_Local_", substructureMetaDataFieldName)] <- TRUE
+      #Similarly, figure out which of the substructures the cell is in. (H)DBSCAN yields unique cluster assignment, so which.max() across the boolean cluster columns is sufficient to determine identity. 
       seuratObjectMetadata[seuratObjectMetadata[,fovField] == fov & 
                              cells_within_structure,
                            paste0("Local_", substructureMetaDataFieldName)] <- apply(seuratObjectMetadata[seuratObjectMetadata[,fovField] == fov & cells_within_structure, grepl(paste0(fov, "_", substructureMetaDataFieldName), colnames(seuratObjectMetadata))], FUN = which.max, MARGIN = 1 )
