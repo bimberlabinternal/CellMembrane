@@ -12,7 +12,7 @@
 #' @param selectedPathways A set of pathways to test.
 #' @param gseaPackage This parameter specifies the R package to utilize for conducting GSEA analysis.Possible options are("clusterProfiler", "fgsea")
 #' @param msigdbSubcategory MSigDB sub-collection abbreviation, such as CGP or BP
-#' @return A seurat object with NES values for each pathway appended to each cell
+#' @return A Seurat object with the result of the GSEA analysis stored in the 'Misc' slot under 'NES_' followed by gseaPackage.
 #' @export
 
 PathwayEnrichment <- function(seuratObj,
@@ -121,5 +121,7 @@ PathwayEnrichment <- function(seuratObj,
       dplyr::arrange(desc(NES), .by_group = TRUE)
   }
   
-  return(gsea_result)
+  Misc(seuratObj, slot = paste("NES", gseaPackage, sep = "_")) <- gsea_result
+  return(seuratObj)
+  
 }
