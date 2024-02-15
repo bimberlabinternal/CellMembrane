@@ -270,7 +270,7 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
                                                cellTypeConstituentRegex = "Bcell|B_cell|BCell|B_Cell|B\\.cell|B\\.Cell",
                                                xCoordinateField = "x_FOV_px", 
                                                yCoordinateField = "y_FOV_px", 
-                                               substructureMetaDataFieldName = "Within_BCF",
+                                               substructureMetaDataFieldName = "BCF",
                                                summarizeLocalResults = TRUE
 ){
   #determine FOVs to loop over
