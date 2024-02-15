@@ -16,7 +16,9 @@ PathwayEnrichment(
     "HALLMARK_INTERFERON_GAMMA_RESPONSE", "HALLMARK_DNA_REPAIR", "HALLMARK_APOPTOSIS",
     "HALLMARK_IL6_JAK_STAT3_SIGNALING", "HALLMARK_OXIDATIVE_PHOSPHORYLATION",
     "HALLMARK_UNFOLDED_PROTEIN_RESPONSE", "HALLMARK_TNFA_SIGNALING_VIA_NFKB"),
-  msigdbSubcategory = NULL
+  gseaPackage = "clusterProfiler",
+  msigdbSubcategory = NULL,
+  genesToExclude = NULL
 )
 }
 \arguments{
@@ -32,10 +34,14 @@ PathwayEnrichment(
 
 \item{selectedPathways}{A set of pathways to test.}
 
+\item{gseaPackage}{This parameter specifies the R package to utilize for conducting GSEA analysis.Possible options are("clusterProfiler", "fgsea")}
+
 \item{msigdbSubcategory}{MSigDB sub-collection abbreviation, such as CGP or BP}
+
+\item{genesToExclude}{A vector of genes to exclude from the pathway gene sets.}
 }
 \value{
-A seurat object with NES values for each pathway appended to each cell
+A Seurat object with the result of the GSEA analysis stored in the 'Misc' slot under 'NES_' followed by gseaPackage.
 }
 \description{
 Runs GSEA analysis on a seurat object
