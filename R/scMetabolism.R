@@ -25,6 +25,13 @@ RunScMetabolism <- function(seuratObj, method = 'AUCell', doImputation = FALSE, 
 
   if (!'umap' %in% names(seuratObj@reductions)) {
     print('No UMAP reduction found, skipping plots')
+
+    # This is not a valid assay object...
+    if (dropPathwaysFromAssays) {
+      print('Removing scMetabolism data from assay slot')
+      seuratObj[['METABOLISM']] <- NULL
+    }
+
     return(seuratObj)
   }
 
