@@ -251,7 +251,7 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
     for (cluster_index in unique(fov_seuratObjectMetadata$dbscan_cluster)){
       #cluster 0 is the "noise cluster" from DBSCAN
       if(cluster_index != 0 & !is.na(cluster_index)){
-        print(cluster_index)
+        print(paste0("Identifying substructure ", cluster_index, " in FOV:", fov))
         #isolate cells from the current cluster/substructure
         coordinateDataFrameOfSubStructure <- fov_seuratObjectMetadata[
           grepl(cellTypeConstituentRegex, fov_seuratObjectMetadata[,cellTypeField]) & 
