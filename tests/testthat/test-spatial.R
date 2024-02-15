@@ -42,6 +42,14 @@ test_that("Spatial cell substructure detection works", {
                                       substructureMetaDataFieldName = "BCF", 
                                       summarizeLocalResults = TRUE
                                       )
+  #ensure metadata field detection errors
+  testthat::expect_error(DetectCellStructuresBasedOnCellType(seuratObjectMetadata = seuratObj@meta.data, 
+                                                             cellTypeField = "cell_type",
+                                                             fovField =  "aFieldThatDoesNotExist", 
+                                                             cellTypeConstituentRegex = "Bcell", 
+                                                             substructureMetaDataFieldName = "BCF", 
+                                                             summarizeLocalResults = TRUE)
+                         )
   
   #lax test to make sure the code ran at all
   testthat::expect_true(c("Within_Local_BCF" %in% colnames(metadata)))
