@@ -121,6 +121,38 @@ PathwayEnrichment <- function(seuratObj,
       dplyr::arrange(desc(NES), .by_group = TRUE)
   }
   
+  # Plot NES for each pathway - Lollipop plots
+  
+  for (path in unique(gsea_result$pathway)) {
+    nes_data <-
+      gsea_result %>% 
+      filter(pathway == path) %>% 
+      arrange(desc(NES))
+    
+    p <- ggplot(nes_data, aes(reorder(groupName, NES), NES)) +
+      geom_segment(aes(
+        y = -Inf,
+        yend = NES,
+        x = reorder(groupName, NES),
+        xend = reorder(groupName, NES)
+      )) +
+      geom_point(aes(
+        y = NES,
+        x = reorder(groupName, NES),
+        fill = -log10(pvalue)
+      ),
+      shape = 21,
+      size = 5) +
+      coord_flip() +
+      labs(x = "Group", y = "Normalized Enrichment Score",
+           title = path) +
+      scale_fill_gradientn(colors = c("white", "red")) +
+      egg::theme_presentation(base_size = 12) +
+      theme(axis.ticks.y = element_blank())
+    
+    print(p) 
+  }
+  
   Misc(seuratObj, slot = paste("NES", gseaPackage, sep = "_")) <- gsea_result
   return(seuratObj)
   
