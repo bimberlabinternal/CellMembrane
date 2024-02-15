@@ -37,6 +37,16 @@ PathwayEnrichment <- function(seuratObj,
                               ),
                               gseaPackage = "clusterProfiler",
                               msigdbSubcategory = NULL) {
+  
+  if (gseaPackage %in% c("fgsea", "clusterProfiler")) {
+    print(paste("Using", gseaPackage, "R package to run GSEA analysis"))
+  
+    } else{
+    stop(
+      "Invalid value for gseaPackage parameter. Please choose from: ",
+      paste(c("fgsea", "clusterProfiler"), collapse = ", ")
+    )
+  }
   gene_ranks <- presto::wilcoxauc(seuratObj, group_by = groupField)
   
   msigdb_df <- msigdbr::msigdbr(species = msigdbSpecies,
@@ -54,7 +64,7 @@ PathwayEnrichment <- function(seuratObj,
   
   if (gseaPackage == "fgsea") {
     fgsea_sets <- msigdb_df %>% split(x = .$gene_symbol, f = .$gs_name)
-  } else{
+  } else if (gseaPackage == "clusterProfiler") {
     msigdb_df <- msigdb_df %>%
       dplyr::select(gs_name, entrez_gene) %>%
       dplyr::distinct()
@@ -73,13 +83,15 @@ PathwayEnrichment <- function(seuratObj,
         fgsea::fgsea(fgsea_sets, stats = ranks, scoreType = scoreType) %>%
         mutate(pvalue = pval,
                setSize = size) %>%
-        dplyr::select(-pval, -size)
+        dplyr::select(-pval, -size, -leadingEdge)
       
-    } else{
+    } else if (gseaPackage == "clusterProfiler") {
       ortholog_genes <-
         babelgene::orthologs(names(ranks), species = msigdbSpecies, human = FALSE)
       group_genes <-
-        group_genes %>% left_join(ortholog_genes, by = c("feature" = "symbol")) %>% filter(!is.na(entrez))
+        group_genes %>% 
+        left_join(ortholog_genes, by = c("feature" = "symbol")) %>% 
+        filter(!is.na(entrez))
       
       geneList <- group_genes[, "auc"]
       names(geneList) <- as.character(group_genes[, "entrez"])
