@@ -38,7 +38,7 @@ test_that("Spatial cell substructure detection works", {
   metadata <- DetectCellStructuresBasedOnCellType(seuratObjectMetadata = seuratObj@meta.data, 
                                       cellTypeField = "cell_type",
                                       fovField =  "fov", 
-                                      cellTypeConstituentRegex = "Bcell", 
+                                      cellTypeWhiteList = "Bcell", 
                                       substructureMetaDataFieldName = "BCF", 
                                       summarizeLocalResults = TRUE
                                       )
@@ -46,10 +46,18 @@ test_that("Spatial cell substructure detection works", {
   testthat::expect_error(DetectCellStructuresBasedOnCellType(seuratObjectMetadata = seuratObj@meta.data, 
                                                              cellTypeField = "cell_type",
                                                              fovField =  "aFieldThatDoesNotExist", 
-                                                             cellTypeConstituentRegex = "Bcell", 
+                                                             cellTypeWhiteList = "Bcell", 
                                                              substructureMetaDataFieldName = "BCF", 
                                                              summarizeLocalResults = TRUE)
                          )
+  #test that cell type regex
+  testthat::expect_warning(DetectCellStructuresBasedOnCellType(seuratObjectMetadata = seuratObj@meta.data, 
+                                                               cellTypeField = "cell_type",
+                                                               fovField =  "fov", 
+                                                               cellTypeWhiteList = "aCellTypeThatDoesn'tExist", 
+                                                               substructureMetaDataFieldName = "BCF", 
+                                                               summarizeLocalResults = TRUE)
+                           )
   
   #lax test to make sure the code ran at all
   testthat::expect_true(c("Within_Local_BCF" %in% colnames(metadata)))
