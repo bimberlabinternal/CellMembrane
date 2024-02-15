@@ -88,6 +88,19 @@ PathwayEnrichment <- function(seuratObj,
         dplyr::select(-pval, -size, -leadingEdge)
       
     } else if (gseaPackage == "clusterProfiler") {
+      ensembl_genes <- names(ranks)[grepl("ENS", names(ranks)) & nchar(names(ranks)) == 18]
+      
+      gene_symbols <-  names(ranks)[!(grepl("ENS", names(ranks)) & nchar(names(ranks)) == 18)]
+      
+      ortholog_genes_ensembl <-
+        babelgene::orthologs(ensembl_genes, species = msigdbSpecies, human = FALSE)
+      ortholog_genes_symbols <- babelgene::orthologs(gene_symbols, species = msigdbSpecies, human = FALSE)
+      
+      group_genes <-
+        group_genes %>% 
+        left_join(rbind(ortholog_genes_ensembl,ortholog_genes_symbols), by = c("feature" = "symbol")) %>% 
+        filter(!is.na(entrez))
+      
       geneList <- group_genes[, "auc"]
       names(geneList) <- as.character(group_genes[, "feature"])
       geneList <- sort(geneList, decreasing = TRUE)
