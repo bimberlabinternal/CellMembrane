@@ -499,7 +499,7 @@ FilterRawCounts <- function(seuratObj, nCount_RNA.high = 20000, nCount_RNA.low =
 #' @param useAlternateG2M If true, this will use a smaller set of G2M genes, defined from: https://raw.githubusercontent.com/hbc/tinyatlas/master/cell_cycle/Homo_sapiens.csv
 #' @export
 #' @return A modified Seurat object.
-ScoreCellCycle <- function(seuratObj, min.genes = 10, useAlternateG2M = false) {
+ScoreCellCycle <- function(seuratObj, min.genes = 10, useAlternateG2M = FALSE) {
 	print('Scoring cell cycle:')
 
   # We can segregate this list into markers of G2/M phase and markers of S-phase
