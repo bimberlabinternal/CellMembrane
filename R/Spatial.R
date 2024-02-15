@@ -212,7 +212,7 @@ RLE_Plot <- function(seuratObj, assay = "RNA", sampleIdentifier = "SegmentDispla
 #' @param minimumClusterSizeCoefficient The percentage of the input data (after cell type splitting) to be considered as a feasible minimum cluster size. Determines how many "noise data points" will be added by DBSCAN.  
 #' @param fovField the metadata column that stores the Field of View information.
 #' @param fovWhitelist An optional whitelist of FOVs. By default, the function will loop over all FOVs, which could be time consuming. 
-#' @param cellTypeConstituentRegex A regular expression used to include cell types that will contribute to the cellular structure of interest. 
+#' @param cellTypeWhitelist A vector of genes that constitute your substructure (e.g. c("Bcell", "BCell") for B cell follicles).
 #' @param xCoordinateField The metadata column that stores the x coordinate information within the Field of View. 
 #' @param yCoordinateField The metadata column that stores the y coordinate information within the Field of View. 
 #' @param substructureMetaDataFieldName An annotation that will be concatenated during the results. "Local" FOV information will be concatenated using "fov + substructureMetaDataFieldName + a substructure index" within the columns of the metadata. 

@@ -36,7 +36,7 @@ DetectCellStructuresBasedOnCellType(
 
 \item{summarizeLocalResults}{An optional boolean that will wrap up the various substructureMetaDataFieldName columns into two single columns. One, which determines if a cell is within ANY of the defined substructures, stored in the output column "Within_Local + substructureMetaDataFieldName". The second is a metadata column that displays which of the local substructures the cell belongs in, concatenated as "Local + substructureMetaDataFieldName". "Local + substructureMetaDataFieldName + 0" is always the noise designation.}
 
-\item{cellTypeConstituentRegex}{A regular expression used to include cell types that will contribute to the cellular structure of interest.}
+\item{cellTypeWhitelist}{A vector of genes that constitute your substructure (e.g. c("Bcell", "BCell") for B cell follicles).}
 }
 \value{
 Returns a dataframe containing columns related to the substructures found within the images at varying scopes. With summarizeLocalResults = FALSE, (number of FOVs) x (number of subtructures + 1) columns will be added. summarizeLocalResults rolls these high resolution results into two additional columns relative to the fovField.
