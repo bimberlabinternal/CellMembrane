@@ -275,7 +275,16 @@ ResolveLocGenes <- function(geneIds, maxBatchSize = 100, useBabelGene = FALSE) {
       batchNum <- batchNum + 1
       print(paste0('Querying batch ', batchNum, ' of ', length(genesBatched)))
       
-      results <- rentrez::entrez_summary(db="gene", id = gsub(geneBatch, pattern = '^LOC', replacement = ''))
+      batchIDs <- gsub(geneBatch, pattern = '^LOC', replacement = '')
+      results <- rentrez::entrez_summary(db="gene", id = batchIDs)
+      
+      if(length(batchIDs) == 1){
+        temp_results <- list()
+        temp_results[[results$uid]] <- results
+        results <- temp_results
+        rm(temp_results)
+      }
+      
       df <- do.call(rbind, lapply(results, FUN = function(x){
         return(data.frame(Name = x$name, Description = x$description, Aliases = x$otheraliases))
       }))
