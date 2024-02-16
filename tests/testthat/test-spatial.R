@@ -50,8 +50,8 @@ test_that("Spatial cell substructure detection works", {
                                                              substructureMetaDataFieldName = "BCF", 
                                                              summarizeLocalResults = TRUE)
                          )
-  #test that cell type regex
-  testthat::expect_warning(DetectCellStructuresBasedOnCellType(seuratObjectMetadata = seuratObj@meta.data, 
+  #test that cell types exist
+  testthat::expect_error(DetectCellStructuresBasedOnCellType(seuratObjectMetadata = seuratObj@meta.data, 
                                                                cellTypeField = "cell_type",
                                                                fovField =  "fov", 
                                                                cellTypeWhiteList = "aCellTypeThatDoesn'tExist", 

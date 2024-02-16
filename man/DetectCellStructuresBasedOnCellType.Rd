@@ -10,10 +10,10 @@ DetectCellStructuresBasedOnCellType(
   minimumClusterSizeCoefficient = 0.05,
   fovField = "fov",
   fovWhitelist = NULL,
-  cellTypeWhiteList = c("Bcell", "B_cell", "B.cell"),
+  cellTypeWhiteList = NULL,
   xCoordinateField = "x_FOV_px",
   yCoordinateField = "y_FOV_px",
-  substructureMetaDataFieldName = "BCF",
+  substructureMetaDataFieldName = "Substructure",
   summarizeLocalResults = TRUE
 )
 }

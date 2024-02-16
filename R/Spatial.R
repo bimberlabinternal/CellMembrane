@@ -267,12 +267,13 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
                                                 minimumClusterSizeCoefficient = 0.05,
                                                 fovField = "fov",
                                                 fovWhitelist = NULL,
-                                                cellTypeWhiteList = c("Bcell", "B_cell", "B.cell"),
+                                                cellTypeWhiteList = NULL,
                                                 xCoordinateField = "x_FOV_px", 
                                                 yCoordinateField = "y_FOV_px", 
-                                                substructureMetaDataFieldName = "BCF",
+                                                substructureMetaDataFieldName = "Substructure",
                                                 summarizeLocalResults = TRUE
 ){
+  
   #check that inputs exist and summarizeLocalResults is a boolean. 
   if (!(all(c(cellTypeField, fovField, xCoordinateField, yCoordinateField) %in% colnames(seuratObjectMetadata)))) {
     missingColumn <- c(cellTypeField, fovField, xCoordinateField, yCoordinateField)[which(!(c(cellTypeField, fovField, xCoordinateField, yCoordinateField) %in% colnames(seuratObjectMetadata)))]
@@ -294,6 +295,14 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
   #escape special characters in cell types
   escapedCellTypes <- gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", cellTypeWhiteList)
   cellTypeConstituentRegex <- paste0(escapedCellTypes, collapse = "|")
+  
+  #determine cell types to loop over & ensure valid cell types
+  if (is.null(cellTypeWhiteList)) {
+    #if not supplied, use all cell types
+    cellTypeWhiteList <- unique(seuratObjectMetadata[, cellTypeField])
+  } else if (!(any(grepl(cellTypeConstituentRegex, seuratObjectMetadata[,cellTypeField])))) {
+    stop(paste0("None of the specified cell types in cellTypeWhiteList were detected in the cellTypeField: ", cellTypeField, ". Please ensure the cellTypeField is correctly specified and the cell types within cellTypeWhiteList are spelled correctly."))
+  } 
   
   #Detect substructures within each FOV
   for (fov in fovs) {
