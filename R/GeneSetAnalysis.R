@@ -39,11 +39,10 @@ PathwayEnrichment <- function(seuratObj,
                               gseaPackage = "clusterProfiler",
                               msigdbSubcategory = NULL,
                               genesToExclude = NULL) {
-  
   if (gseaPackage %in% c("fgsea", "clusterProfiler")) {
     print(paste("Using", gseaPackage, "R package to run GSEA analysis"))
-  
-    } else{
+    
+  } else{
     stop(
       "Invalid value for gseaPackage parameter. Please choose from: ",
       paste(c("fgsea", "clusterProfiler"), collapse = ", ")
@@ -63,14 +62,15 @@ PathwayEnrichment <- function(seuratObj,
   }
   
   if (!is.null(genesToExclude)) {
-    msigdb_df <- msigdb_df %>% dplyr::filter(!gene_symbol %in% genesToExclude)
+    msigdb_df <-
+      msigdb_df %>% dplyr::filter(!gene_symbol %in% genesToExclude)
   }
   
   gsea_result <- data.frame()
   
   if (gseaPackage == "fgsea") {
     fgsea_sets <- msigdb_df %>% split(x = .$gene_symbol, f = .$gs_name)
-  } 
+  }
   
   for (groupName in unique(seuratObj@meta.data[, groupField])) {
     group_genes <- gene_ranks %>%
@@ -88,18 +88,38 @@ PathwayEnrichment <- function(seuratObj,
         dplyr::select(-pval, -size, -leadingEdge)
       
     } else if (gseaPackage == "clusterProfiler") {
-      ensembl_genes <- names(ranks)[grepl("ENS", names(ranks)) & nchar(names(ranks)) == 18]
       
-      gene_symbols <-  names(ranks)[!(grepl("ENS", names(ranks)) & nchar(names(ranks)) == 18)]
+      ensembl_genes <-
+        names(ranks)[grepl("ENS", names(ranks)) &
+                       nchar(names(ranks)) == 18]
       
-      ortholog_genes_ensembl <-
-        babelgene::orthologs(ensembl_genes, species = msigdbSpecies, human = FALSE)
-      ortholog_genes_symbols <- babelgene::orthologs(gene_symbols, species = msigdbSpecies, human = FALSE)
-      
-      group_genes <-
-        group_genes %>% 
-        left_join(rbind(ortholog_genes_ensembl,ortholog_genes_symbols), by = c("feature" = "symbol")) %>% 
-        filter(!is.na(entrez))
+      if (!is.null(ensembl_genes) & !length(ensembl_genes) == 0) {
+        group_genes_ensembl <-
+          group_genes %>% filter(feature %in% ensembl_genes)
+        
+        ortholog_genes_ensembl <-
+          babelgene::orthologs(ensembl_genes, species = msigdbSpecies, human = FALSE)
+        
+        group_genes_ensembl <-
+          group_genes_ensembl %>%
+          inner_join(ortholog_genes_ensembl, by = c("feature" = "ensembl")) %>%
+          mutate(feature = symbol) %>%
+          select(feature, auc)
+        
+        gene_symbols <-
+          names(ranks)[!(grepl("ENS", names(ranks)) &
+                           nchar(names(ranks)) == 18)]
+        
+        if (!is.null(gene_symbols) & !length(gene_symbols) == 0) {
+          group_genes_symbols <-
+            group_genes %>% filter(feature %in% gene_symbols)
+          group_genes <-
+            rbind(group_genes_symbols, group_genes_ensembl)
+        } else {
+          group_genes <- group_genes_ensembl
+        }
+        
+      }
       
       geneList <- group_genes[, "auc"]
       names(geneList) <- as.character(group_genes[, "feature"])
@@ -109,14 +129,14 @@ PathwayEnrichment <- function(seuratObj,
         clusterProfiler::GSEA(
           geneList,
           TERM2GENE = msigdb_df,
-          scoreType = 'pos',
+          scoreType = scoreType,
           pvalueCutoff = 1
         )
       temp_result <- temp_result@result %>%
         dplyr::mutate(pathway = ID,
                       ES = enrichmentScore,
                       padj = p.adjust) %>%
-        dplyr::select(-ID, -Description,-enrichmentScore,-p.adjust)
+        dplyr::select(-ID, -Description, -enrichmentScore, -p.adjust)
     }
     
     temp_result <- temp_result %>%
@@ -133,8 +153,8 @@ PathwayEnrichment <- function(seuratObj,
   
   for (path in unique(gsea_result$pathway)) {
     nes_data <-
-      gsea_result %>% 
-      filter(pathway == path) %>% 
+      gsea_result %>%
+      filter(pathway == path) %>%
       arrange(desc(NES))
     
     p <- ggplot(nes_data, aes(reorder(groupName, NES), NES)) +
@@ -158,10 +178,11 @@ PathwayEnrichment <- function(seuratObj,
       egg::theme_presentation(base_size = 12) +
       theme(axis.ticks.y = element_blank())
     
-    print(p) 
+    print(p)
   }
   
-  Misc(seuratObj, slot = paste("NES", gseaPackage, sep = "_")) <- gsea_result
+  Misc(seuratObj, slot = paste("NES", gseaPackage, sep = "_")) <-
+    gsea_result
   return(seuratObj)
   
 }
