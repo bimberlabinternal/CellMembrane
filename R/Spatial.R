@@ -290,13 +290,14 @@ DetectCellStructuresBasedOnCellType <- function(seuratObjectMetadata,
     fovs <- fovWhitelist
   }
   
+  #convert cellTypeWhitelist to regex
+  #escape special characters in cell types
+  escapedCellTypes <- gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", cellTypeWhiteList)
+  cellTypeConstituentRegex <- paste0(escapedCellTypes, collapse = "|")
+  
   #Detect substructures within each FOV
   for (fov in fovs) {
     fov_seuratObjectMetadata <- seuratObjectMetadata[seuratObjectMetadata[fovField] == fov,]
-    #escape special characters in cell types
-    escapedCellTypes <- gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", cellTypeWhiteList)
-    #convert to regex
-    cellTypeConstituentRegex <- paste0(escapedCellTypes, collapse = "|")
     #use regex to subset to the whitelisted cell type for substructure clustering
     coordinateDataFrameOfCellsOfInterest <- fov_seuratObjectMetadata[grepl(cellTypeConstituentRegex, fov_seuratObjectMetadata[,cellTypeField]), c(xCoordinateField, yCoordinateField)]
     #test to ensure regex matched cells within the current FOV. 
