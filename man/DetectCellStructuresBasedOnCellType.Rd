@@ -28,6 +28,8 @@ DetectCellStructuresBasedOnCellType(
 
 \item{fovWhitelist}{An optional whitelist of FOVs. By default, the function will loop over all FOVs, which could be time consuming.}
 
+\item{cellTypeWhiteList}{A vector of genes that constitute your substructure (e.g. c("Bcell", "BCell") for B cell follicles).}
+
 \item{xCoordinateField}{The metadata column that stores the x coordinate information within the Field of View.}
 
 \item{yCoordinateField}{The metadata column that stores the y coordinate information within the Field of View.}
@@ -35,8 +37,6 @@ DetectCellStructuresBasedOnCellType(
 \item{substructureMetaDataFieldName}{An annotation that will be concatenated during the results. "Local" FOV information will be concatenated using "fov + substructureMetaDataFieldName + a substructure index" within the columns of the metadata.}
 
 \item{summarizeLocalResults}{An optional boolean that will wrap up the various substructureMetaDataFieldName columns into two single columns. One, which determines if a cell is within ANY of the defined substructures, stored in the output column "Within_Local + substructureMetaDataFieldName". The second is a metadata column that displays which of the local substructures the cell belongs in, concatenated as "Local + substructureMetaDataFieldName". "Local + substructureMetaDataFieldName + 0" is always the noise designation.}
-
-\item{cellTypeWhitelist}{A vector of genes that constitute your substructure (e.g. c("Bcell", "BCell") for B cell follicles).}
 }
 \value{
 Returns a dataframe containing columns related to the substructures found within the images at varying scopes. With summarizeLocalResults = FALSE, (number of FOVs) x (number of subtructures + 1) columns will be added. summarizeLocalResults rolls these high resolution results into two additional columns relative to the fovField.
