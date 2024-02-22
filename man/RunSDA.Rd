@@ -21,7 +21,8 @@ RunSDA(
   max_iter = 10000,
   save_freq = 1000,
   nThreads = 1,
-  storeGoEnrichment = FALSE
+  storeGoEnrichment = FALSE,
+  sdaDebug = FALSE
 )
 }
 \arguments{
@@ -58,6 +59,8 @@ RunSDA(
 \item{nThreads}{Passed to SDAtools::run_SDA() num_openmp_threads}
 
 \item{storeGoEnrichment}{If true, SDA_GO_Enrichment will be performed and stored in the result list}
+
+\item{sdaDebug}{This is passed directly to SDAtools::run_SDA()}
 }
 \description{
 This will run SDA on the target assay
