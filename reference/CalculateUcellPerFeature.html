@@ -54,7 +54,8 @@
 <span>  <span class="va">seuratObj</span>,</span>
 <span>  columnPrefix <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  assayName <span class="op">=</span> <span class="st">"ADT"</span>,</span>
-<span>  ncores <span class="op">=</span> <span class="fl">1</span></span>
+<span>  ncores <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  ignoreCachedRanks <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -74,6 +75,10 @@
 
 <dt>ncores</dt>
 <dd><p>Passed directly to AddModuleScore_UCell</p></dd>
+
+
+<dt>ignoreCachedRanks</dt>
+<dd><p>If true, any previously cached ranked from UCell will be ignored</p></dd>
 
 </dl></div>
     <div id="value">
