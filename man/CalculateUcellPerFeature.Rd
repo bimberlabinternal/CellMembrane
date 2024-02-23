@@ -8,7 +8,8 @@ CalculateUcellPerFeature(
   seuratObj,
   columnPrefix = NULL,
   assayName = "ADT",
-  ncores = 1
+  ncores = 1,
+  ignoreCachedRanks = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ CalculateUcellPerFeature(
 \item{assayName}{The name of the assay}
 
 \item{ncores}{Passed directly to AddModuleScore_UCell}
+
+\item{ignoreCachedRanks}{If true, any previously cached ranked from UCell will be ignored}
 }
 \value{
 A modified Seurat object.

@@ -865,9 +865,10 @@ PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 
 #' @param columnPrefix An optional prefix to be applied to the resulting column (which is otherwise the feature name)
 #' @param assayName The name of the assay
 #' @param ncores Passed directly to AddModuleScore_UCell
+#' @param ignoreCachedRanks If true, any previously cached ranked from UCell will be ignored
 #' @export
 #' @return A modified Seurat object.
-CalculateUcellPerFeature <- function(seuratObj, columnPrefix = NULL, assayName = 'ADT', ncores = 1) {
+CalculateUcellPerFeature <- function(seuratObj, columnPrefix = NULL, assayName = 'ADT', ncores = 1, ignoreCachedRanks = TRUE) {
 	print('Calculating per-feature UCell scores')
 	feats <- rownames(seuratObj@assays[[assayName]])
 	toCalculate <- list()
@@ -880,8 +881,21 @@ CalculateUcellPerFeature <- function(seuratObj, columnPrefix = NULL, assayName =
 		toCalculate[[cn]] <- feat
 	}
 
+	# Using stored ranks could be a problem if they are based on RNA and we are using a different assay here
+	hasCachedRanks <- FALSE
+	if (ignoreCachedRanks && 'UCellRanks' %in% names(seuratObj@assays)) {
+		print('Storing cached ranks')
+		cachedRanks <- seuratObj[['UCellRanks']]
+		seuratObj[['UCellRanks']] <- NULL
+		hasCachedRanks <- TRUE
+	}
+
 	BPPARAM <- .InferBpParam(ncores, defaultValue = NULL)
-	seuratObj <- UCell::AddModuleScore_UCell(seuratObj, assay = assayName, features = toCalculate, BPPARAM = BPPARAM)
+	seuratObj <- UCell::AddModuleScore_UCell(seuratObj, assay = assayName, features = toCalculate, BPPARAM = BPPARAM, storeRanks = FALSE)
+
+	if (hasCachedRanks) {
+		seuratObj[['UCellRanks']] <- cachedRanks
+	}
 
 	return(seuratObj)
 }
