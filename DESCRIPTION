@@ -78,7 +78,9 @@ Imports:
     glmnet, 
     flexmix,
     jsonlite,
-    scMetabolism
+    scMetabolism, 
+    dbscan, 
+    geometry
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -100,7 +102,8 @@ Remotes:
     marchinilab/dropsim,
     drisso/RUVSeq,
     carmonalab/UCell,
-    wu-yc/scMetabolism
+    wu-yc/scMetabolism,
+    davidcsterratt/geometry/pkg
 Config/reticulate:
   list(
     packages = list(
