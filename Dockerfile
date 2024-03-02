@@ -37,8 +37,9 @@ RUN apt-get update -y \
     && cd ../ \
     && pip3 install -e . \
     ##  Add Bioconductor system dependencies
+    && export BC_BRANCH=`echo $R_BIOC_VERSION | sed 's/\./_/'` \
     && mkdir /bioconductor && cd /bioconductor \
-    && wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/master/bioc_scripts/install_bioc_sysdeps.sh \
+    && wget -O install_bioc_sysdeps.sh https://raw.githubusercontent.com/Bioconductor/bioconductor_docker/${BC_BRANCH}/bioc_scripts/install_bioc_sysdeps.sh \
     && bash ./install_bioc_sysdeps.sh $R_BIOC_VERSION \
     && cd / \
     && rm -Rf /bioconductor \
