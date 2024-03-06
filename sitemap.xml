@@ -94,7 +94,13 @@
     <loc>/reference/GetChiDF.html</loc>
   </url>
   <url>
+    <loc>/reference/GetG2MGenes.html</loc>
+  </url>
+  <url>
     <loc>/reference/GetGeneIds.html</loc>
+  </url>
+  <url>
+    <loc>/reference/GetSPhaseGenes.html</loc>
   </url>
   <url>
     <loc>/reference/GetSeed.html</loc>

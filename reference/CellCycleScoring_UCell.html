@@ -52,10 +52,13 @@
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">CellCycleScoring_UCell</span><span class="op">(</span></span>
 <span>  <span class="va">seuratObj</span>,</span>
-<span>  <span class="va">s.features</span>,</span>
-<span>  <span class="va">g2m.features</span>,</span>
-<span>  set.ident <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  outputFieldName <span class="op">=</span> <span class="st">"Phase"</span>,</span>
+<span>  min.genes <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  s.genes <span class="op">=</span> <span class="fu"><a href="GetSPhaseGenes.html">GetSPhaseGenes</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  g2m.genes <span class="op">=</span> <span class="fu"><a href="GetG2MGenes.html">GetG2MGenes</a></span><span class="op">(</span><span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  assayName <span class="op">=</span> <span class="st">"RNA"</span>,</span>
+<span>  min.score.G2M <span class="op">=</span> <span class="fl">0.02</span>,</span>
+<span>  min.score.S <span class="op">=</span> <span class="fl">0.02</span>,</span>
 <span>  facetField <span class="op">=</span> <span class="st">"ClusterNames_0.2"</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -67,20 +70,32 @@
 <dd><p>The seurat object</p></dd>
 
 
-<dt>s.features</dt>
+<dt>outputFieldName</dt>
+<dd><p>The name of the meta.data field to store results</p></dd>
+
+
+<dt>min.genes</dt>
+<dd><p>If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.</p></dd>
+
+
+<dt>s.genes</dt>
 <dd><p>A vector of features associated with S phase</p></dd>
 
 
-<dt>g2m.features</dt>
+<dt>g2m.genes</dt>
 <dd><p>A vector of features associated with G2M phase</p></dd>
-
-
-<dt>set.ident</dt>
-<dd><p>If true, sets identity to phase assignments</p></dd>
 
 
 <dt>assayName</dt>
 <dd><p>The name of the assay</p></dd>
+
+
+<dt>min.score.G2M</dt>
+<dd><p>The minimum UCell score needed to consider a cell positive for G2M</p></dd>
+
+
+<dt>min.score.S</dt>
+<dd><p>The minimum UCell score needed to consider a cell positive for S</p></dd>
 
 
 <dt>facetField</dt>
