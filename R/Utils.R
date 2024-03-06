@@ -23,11 +23,18 @@ set.seed(pkg.env$RANDOM_SEED)
   return(cc.genes)
 }
 
-.GetSPhaseGenes <- function(){
+#' @title Get S Phase Genes
+#' @export
+#' @return The default list of S phase genes
+GetSPhaseGenes <- function(){
   return (.GetCCGenes()[1:43])
 }
 
-.GetG2MGenes <- function(alternateGenes = FALSE) {
+#' @title Get G2M Phase Genes
+#' @param alternateGenes If true, the genes will be based on: https://hbctraining.github.io/scRNA-seq_online/lessons/cell_cycle_scoring.html
+#' @export
+#' @return The default list of G2M phase genes
+GetG2MGenes <- function(alternateGenes = FALSE) {
   if (alternateGenes) {
     # based on: https://hbctraining.github.io/scRNA-seq_online/lessons/cell_cycle_scoring.html
     # https://raw.githubusercontent.com/hbc/tinyatlas/master/cell_cycle/Homo_sapiens.csv

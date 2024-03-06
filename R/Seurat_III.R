@@ -503,8 +503,8 @@ ScoreCellCycle <- function(seuratObj, min.genes = 10, useAlternateG2M = FALSE) {
 	print('Scoring cell cycle:')
 
   # We can segregate this list into markers of G2/M phase and markers of S-phase
-  s.genes <- .GetSPhaseGenes()
-  g2m.genes <- .GetG2MGenes(useAlternateG2M)
+  s.genes <- GetSPhaseGenes()
+  g2m.genes <- GetG2MGenes(useAlternateG2M)
 
   s.genes <- s.genes[which(s.genes %in% rownames(seuratObj))]
   g2m.genes <- g2m.genes[which(g2m.genes %in% rownames(seuratObj))]
@@ -512,7 +512,7 @@ ScoreCellCycle <- function(seuratObj, min.genes = 10, useAlternateG2M = FALSE) {
   print(paste0("Genes present in seurat object: g2m (", length(g2m.genes), ") and s (", length(s.genes), ")"))
 
   if (length(g2m.genes) < min.genes || length(s.genes) < min.genes) {
-    print("Error, the number of g2m and/or s genes < 5, aborting...")
+    print(paste0("Error, the number of g2m and/or s genes < ", min.genes, ", aborting..."))
     return(seuratObj)
   }
 
@@ -523,23 +523,23 @@ ScoreCellCycle <- function(seuratObj, min.genes = 10, useAlternateG2M = FALSE) {
   seuratObj <- CellCycleScoring(object = seuratObj,
     s.features = s.genes,
     g2m.features = g2m.genes,
-    set.ident = TRUE
+    set.ident = FALSE
   )
 
   print(
-    DimPlot(object = seuratObj, reduction = "cc.pca", dims = c(1, 2)) +
-    DimPlot(object = seuratObj, reduction = "cc.pca", dims = c(2, 3)) +
-    DimPlot(object = seuratObj, reduction = "cc.pca", dims = c(3, 4)) +
-    DimPlot(object = seuratObj, reduction = "cc.pca", dims = c(4, 5)) +
+    DimPlot(object = seuratObj, group.by = 'Phase', reduction = "cc.pca", dims = c(1, 2)) +
+    DimPlot(object = seuratObj, group.by = 'Phase', reduction = "cc.pca", dims = c(2, 3)) +
+    DimPlot(object = seuratObj, group.by = 'Phase', reduction = "cc.pca", dims = c(3, 4)) +
+    DimPlot(object = seuratObj, group.by = 'Phase', reduction = "cc.pca", dims = c(4, 5)) +
     patchwork::plot_layout(ncol = 2)
   )
 
-	# Discard un-necessary data:
-	seuratObj@reductions[['cc.pca']] <- NULL
+  # Discard unnecessary data:
+  seuratObj@reductions[['cc.pca']] <- NULL
 
   print(table(seuratObj$Phase))
 
-	return(seuratObj)
+  return(seuratObj)
 }
 
 #' @title Regress Cell Cycle
@@ -1222,34 +1222,53 @@ PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFea
 #' @title CellCycleScoring_UCell
 #' @description Similar to Seurat's CellCycleScoring, except using UCell AddModuleScore_UCell instead of Seurat's AddModuleScore
 #' @param seuratObj The seurat object
-#' @param s.features A vector of features associated with S phase
-#' @param g2m.features A vector of features associated with G2M phase
-#' @param set.ident If true, sets identity to phase assignments
+#' @param outputFieldName The name of the meta.data field to store results
+#' @param min.genes If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.
+#' @param s.genes A vector of features associated with S phase
+#' @param g2m.genes A vector of features associated with G2M phase
 #' @param assayName The name of the assay
+#' @param min.score.G2M The minimum UCell score needed to consider a cell positive for G2M
+#' @param min.score.S The minimum UCell score needed to consider a cell positive for S
 #' @param facetField If not NA, a plot will be produced summarizing S.Core and G2M.Score, faceted by this value.
 #' @param ncores Passed directly to AddModuleScore_UCell
 #' @export
 #' @return A modified Seurat object.
-CellCycleScoring_UCell <- function(seuratObj, s.features, g2m.features, set.ident = FALSE, assayName = 'RNA', facetField = 'ClusterNames_0.2', ncores = 1) {
+CellCycleScoring_UCell <- function(seuratObj, outputFieldName = 'Phase', min.genes = 10, s.genes = GetSPhaseGenes(), g2m.genes = GetG2MGenes(TRUE), assayName = 'RNA', min.score.G2M = 0.02, min.score.S = 0.02, facetField = 'ClusterNames_0.2', ncores = 1) {
   BPPARAM <- .InferBpParam(ncores, defaultValue = NULL)
 
+  s.genes <- s.genes[which(s.genes %in% rownames(seuratObj))]
+  g2m.genes <- g2m.genes[which(g2m.genes %in% rownames(seuratObj))]
+
+  print(paste0("Genes present in seurat object: g2m (", length(g2m.genes), ") and s (", length(s.genes), ")"))
+
+  if (length(g2m.genes) < min.genes || length(s.genes) < min.genes) {
+    print(paste0("Error, the number of g2m and/or s genes < ", min.genes, ", aborting..."))
+    return(seuratObj)
+  }
+
   seuratObj <- UCell::AddModuleScore_UCell(seuratObj, features = list(
-    S.Score = s.features,
-    G2M.Score = g2m.features
+    S.Score = s.genes,
+    G2M.Score = g2m.genes
   ), assay = assayName, BPPARAM = BPPARAM)
 
-  seuratObj$Phase <- apply(
+  seuratObj[[outputFieldName]] <- apply(
     X = seuratObj@meta.data,
     MARGIN = 1,
-    FUN = function(scores, first = 'S', second = 'G2M', nullLabel = 'G1', min.score.threshold = 0) {
+    FUN = function(scores, first = 'S', second = 'G2M', nullLabel = 'G1', threshS = min.score.S, threshG2M = min.score.G2M) {
       scores <- scores[c('S.Score_UCell', 'G2M.Score_UCell')]
       names(scores) <- c('S', 'G2M')
-      if (all(scores < min.score.threshold)) {
+
+      if (scores[['S']] < threshS && scores[['G2M']] < threshG2M) {
         return(nullLabel)
+      } else if (scores[['S']] >= threshS && scores[['G2M']] < threshG2M) {
+        return(first)
+      } else if (scores[['S']] < threshS && scores[['G2M']] >= threshG2M) {
+        return(second)
       } else {
         if (length(which(x = scores == max(scores))) > 1) {
           return('Undecided')
         } else {
+          # NOTE: this logic is not quite right, since we probably should not automatically take the highest score
           return(c(first, second)[which(x = scores == max(scores))])
         }
       }
@@ -1258,7 +1277,7 @@ CellCycleScoring_UCell <- function(seuratObj, s.features, g2m.features, set.iden
 
   if (!is.null(facetField)) {
     facets <- stats::as.formula(paste0('. ~ ', facetField))
-    P1 <- ggplot(seuratObj@meta.data, aes(x = S.Score_UCell, y = G2M.Score_UCell, color = Phase)) +
+    P1 <- ggplot(seuratObj@meta.data, aes(x = S.Score_UCell, y = G2M.Score_UCell, color = !!sym(outputFieldName))) +
       geom_point() +
       geom_hline(yintercept = min.score.threshold, color = 'red', linetype = 'dashed') +
       geom_vline(xintercept = min.score.threshold, color = 'red', linetype = 'dashed') +
@@ -1267,10 +1286,8 @@ CellCycleScoring_UCell <- function(seuratObj, s.features, g2m.features, set.iden
     print(P1)
   }
 
-  if (set.ident) {
-    seuratObj[['old.ident']] <- Idents(object = seuratObj)
-    Idents(object = seuratObj) <- 'Phase'
-  }
+  print(Seurat::RidgePlot(seuratObj, features = c('S.Score_UCell', 'G2M.Score_UCell'), ncol = 1, group.by = outputFieldName))
+  print(Seurat::FeatureScatter(seuratObj, feature1 = 'S.Score_UCell', feature2 = 'G2M.Score_UCell', group.by = outputFieldName) + geom_vline(xintercept = min.score.threshold) + geom_hline(yintercept = min.score.threshold))
 
   return(seuratObj)
 }
