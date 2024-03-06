@@ -3,7 +3,7 @@
 #' @import Seurat
 
 utils::globalVariables(
-  names = c('nCount_RNA', 'nFeature_RNA', 'p.mito', 'x', 'y', 'p_val_adj', 'avg_logFC', 'groupField', 'cluster', 'pct.1', 'pct.2', 'S.Score_UCell', 'G2M.Score_UCell', 'Phase', 'min.score.threshold', 'dims', 'stdev'),
+  names = c('nCount_RNA', 'nFeature_RNA', 'p.mito', 'x', 'y', 'p_val_adj', 'avg_logFC', 'groupField', 'cluster', 'pct.1', 'pct.2', 'S.Score_UCell', 'G2M.Score_UCell', 'Phase', 'S.Score_UCell', 'G2M.Score_UCell', 'dims', 'stdev'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -1279,15 +1279,17 @@ CellCycleScoring_UCell <- function(seuratObj, outputFieldName = 'Phase', min.gen
     facets <- stats::as.formula(paste0('. ~ ', facetField))
     P1 <- ggplot(seuratObj@meta.data, aes(x = S.Score_UCell, y = G2M.Score_UCell, color = !!sym(outputFieldName))) +
       geom_point() +
-      geom_hline(yintercept = min.score.threshold, color = 'red', linetype = 'dashed') +
-      geom_vline(xintercept = min.score.threshold, color = 'red', linetype = 'dashed') +
+      geom_hline(yintercept = min.score.G2M, color = 'red', linetype = 'dashed') +
+      geom_vline(xintercept = min.score.S, color = 'red', linetype = 'dashed') +
       facet_wrap(facets, ncol = 4)
 
     print(P1)
   }
 
   print(Seurat::RidgePlot(seuratObj, features = c('S.Score_UCell', 'G2M.Score_UCell'), ncol = 1, group.by = outputFieldName))
-  print(Seurat::FeatureScatter(seuratObj, feature1 = 'S.Score_UCell', feature2 = 'G2M.Score_UCell', group.by = outputFieldName) + geom_vline(xintercept = min.score.threshold) + geom_hline(yintercept = min.score.threshold))
+  print(Seurat::FeatureScatter(seuratObj, feature1 = 'S.Score_UCell', feature2 = 'G2M.Score_UCell', group.by = outputFieldName) +
+          geom_vline(xintercept = min.score.S) +
+          geom_hline(yintercept = min.score.G2M))
 
   return(seuratObj)
 }
