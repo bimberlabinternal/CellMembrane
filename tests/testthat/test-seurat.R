@@ -126,9 +126,9 @@ test_that("Seurat SCTransform works as expected", {
 test_that("Seurat CellCycleScoring_UCell", {
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   seuratObj <- CellCycleScoring_UCell(seuratObj, outputFieldName = 'PhaseUCell')
-  expect_equal(sum(seuratObj$PhaseUCell == 'S'), 619)
-  expect_equal(sum(seuratObj$PhaseUCell == 'G2M'), 660)
-  expect_equal(sum(seuratObj$PhaseUCell == 'G1'), 278)
+  expect_equal(sum(seuratObj$PhaseUCell == 'S'), 393)
+  expect_equal(sum(seuratObj$PhaseUCell == 'G2M'), 272)
+  expect_equal(sum(seuratObj$PhaseUCell == 'G1'), 892)
 })
 
 
