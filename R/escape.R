@@ -32,7 +32,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
   if (doPlot) {
     pathways <- rownames(seuratObj@assays[[outputAssayName]])
     for (fn in pathways) {
-      print(suppressWarnings(Seurat::FeaturePlot(so, features = fn, min.cutoff = 'q02', max.cutoff = 'q98')))
+      print(suppressWarnings(Seurat::FeaturePlot(seuratObj, features = fn, min.cutoff = 'q02', max.cutoff = 'q98')))
     }
   }
 

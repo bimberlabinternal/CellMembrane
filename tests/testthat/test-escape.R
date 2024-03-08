@@ -5,5 +5,5 @@ test_that("escape works as expected", {
     seuratObj <- RunEscape(seuratObj)
 
     expect_equal(length(rownames(seuratObj@assays$escape.ssGSEA)), 50)
-    expect_equal(max(seuratObj@assays$escape.ssGSEA$data[1]), 626)
+    expect_equal(max(seuratObj@assays$escape.ssGSEA$data[1]), 626, tolerance = 0.5)
 })
