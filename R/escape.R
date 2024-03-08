@@ -9,7 +9,7 @@
 RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FALSE) {
   GS.hallmark <- escape::getGeneSets(library = "H")
 
-  seuratObj <- runEscape(seuratObj,
+  seuratObj <- escape::runEscape(seuratObj,
                              method = "ssGSEA",
                              gene.sets = GS.hallmark,
                              groups = 5000,

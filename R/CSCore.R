@@ -30,7 +30,7 @@ RunCsCore <- function(seuratObj, genes_selected = Seurat::VariableFeatures(seura
   rownames(dissTOM) <- colnames(dissTOM) <- genes_selected
 
   # Run hierarchical clustering as in the WGCNA workflow
-  hclust_dist <- hclust(as.dist(dissTOM), method = "average")
+  hclust_dist <- stats::hclust(stats::as.dist(dissTOM), method = "average")
   memb <- dynamicTreeCut::cutreeDynamic(dendro = hclust_dist,
                                        distM = dissTOM,
                                        deepSplit = 2,
