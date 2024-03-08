@@ -57,8 +57,6 @@ RunHdWGCNA <- function(seuratObj, wgcna_name, groupName, groupBy, moduleConnecti
     tom_name = groupName
   )
 
-  tomFile <- paste0(groupName, '_TOM.rda')
-
   print(hdWGCNA::PlotDendrogram(seuratObj, main = paste0(groupName, ' hdWGCNA Dendrogram')))
 
   # need to run ScaleData first or else harmony throws an error:
@@ -100,7 +98,7 @@ RunHdWGCNA <- function(seuratObj, wgcna_name, groupName, groupBy, moduleConnecti
   # plot module correlagram
   print(hdWGCNA::ModuleCorrelogram(seuratObj))
 
-  unlink(tomFile)
+  unlink('TOM', recursive = TRUE)
 
   return(seuratObj)
 }
