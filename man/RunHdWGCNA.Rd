@@ -9,11 +9,13 @@ RunHdWGCNA(
   wgcna_name,
   groupName,
   groupBy,
+  moduleConnectivityGroupBy,
   sampleGroupingVariables = c("SubjectId", "CellType"),
   geneSelectionApproach = "fraction",
   fraction = 0.05,
   reductionName = "harmony",
-  assayName = "RNA"
+  assayName = "RNA",
+  soft_power = NULL
 )
 }
 \arguments{
@@ -25,6 +27,8 @@ RunHdWGCNA(
 
 \item{groupBy}{The metadata column containing the cell type info.}
 
+\item{moduleConnectivityGroupBy}{Passed directly to ModuleConnectivity() description}
+
 \item{sampleGroupingVariables}{Metadata variables on which to group cells for MetacellsByGroups()}
 
 \item{geneSelectionApproach}{The gene selection approach}
@@ -32,6 +36,8 @@ RunHdWGCNA(
 \item{fraction}{Fraction of cells that a gene needs to be expressed in order to be included}
 
 \item{reductionName}{Select the dimensionality reduction to perform KNN on}
+
+\item{soft_power}{Passed directly to hdWGCNA::ConstructNetwork}
 }
 \value{
 The modified seurat object
