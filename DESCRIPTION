@@ -84,7 +84,8 @@ Imports:
     CSCORE,
     WGCNA,
     escape (>= 1.99.1),
-    GSVA (>= 1.51.5)
+    GSVA (>= 1.51.5),
+    dynamicTreeCut
 Suggests:
     devtools,
     testthat (>= 2.1.0),
