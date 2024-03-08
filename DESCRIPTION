@@ -140,5 +140,6 @@ Collate:
     'Vision.R'
     'data.R'
     'escape.R'
+    'hdWGCNA.R'
     'scMetabolism.R'
     'sctour.R'
