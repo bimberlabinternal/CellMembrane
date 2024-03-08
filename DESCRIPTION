@@ -78,9 +78,13 @@ Imports:
     glmnet, 
     flexmix,
     jsonlite,
-    scMetabolism, 
-    dbscan, 
-    geometry
+    scMetabolism,
+    dbscan,
+    geometry,
+    CSCORE,
+    WGCNA,
+    escape (>= 1.99.1),
+    GSVA (>= 1.51.5)
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -103,7 +107,10 @@ Remotes:
     drisso/RUVSeq,
     carmonalab/UCell,
     wu-yc/scMetabolism,
-    davidcsterratt/geometry/pkg
+    davidcsterratt/geometry/pkg,
+    ChangSuBiostats/CS-CORE,
+    ncborcherding/escape,
+    rcastelo/GSVA
 Config/reticulate:
   list(
     packages = list(
@@ -114,6 +121,7 @@ Config/reticulate:
   )
 Collate: 
     'Analysis.R'
+    'CSCore.R'
     'CellBender.R'
     'Preprocessing.R'
     'Utils.R'
@@ -130,5 +138,6 @@ Collate:
     'Spatial.R'
     'Vision.R'
     'data.R'
+    'escape.R'
     'scMetabolism.R'
     'sctour.R'
