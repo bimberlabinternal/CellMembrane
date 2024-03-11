@@ -110,7 +110,7 @@ PseudobulkSeurat <- function(seuratObj,
     warning(paste0(x, collapse = ';'))
     warning('Seurat colnames:')
     warning(paste0(y, collapse = ';'))
-    stop('The keyField and AverageExpression object keys to do not match')
+    stop(paste0('The keyField and AverageExpression object keys to do not match. Metadata: ', paste0(head(x), collapse = ','), ', matrix: ', paste0(head(x), collapse = ',')))
   }
   
   metaGrouped <- metaGrouped[,names(metaGrouped) != 'KeyField',drop = FALSE]
