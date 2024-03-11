@@ -17,6 +17,8 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
     geneSets <- geneSets[geneSets != "GO:BP"]
     GS_GO_BP <- escape::getGeneSets(library = "C5", subcategory = "BP")
     GS <- c(escape::getGeneSets(library = geneSets), GS_GO_BP)
+  } else {
+    stop("geneSets is not one of: H, GO:BP",paste0(", C", 1:8), ". Please ensure your requested geneSet is listed, or contact members of the Bimber Lab to add a gene set.")
   }
   
   seuratObj <- escape::runEscape(seuratObj,
