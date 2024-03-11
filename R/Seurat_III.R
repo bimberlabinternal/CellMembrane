@@ -134,6 +134,7 @@ GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
 #' @param projectName The project name when creating the final seurat object
 #' @param merge.data Passed directly to Seurat::merge
 #' @param expectedDefaultAssay If not null, the DefaultAssay on the resulting seurat object will be set to this
+#' @param excludedAssays An optional list of assay names to drop prior to merge.
 #' @param enforceUniqueCells If true, all inputs must have unique cellbarcodes.
 #' @param errorOnBarcodeSuffix In certain cases, software appends a digit (i.e. -1) to the end of cellbarcodes. These can be a problem when trying to make string comparisons. If true, the method will error if these are encountered.
 #' @param doGC If true, in an attempt to save memory gc() will be run after each seurat object is merged
@@ -141,7 +142,7 @@ GetGeneIds <- function(seuratObj, geneNames, throwIfGenesNotFound = TRUE) {
 #' @return A modified Seurat object.
 #' @export
 #' @importFrom methods slot
-MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = 'RNA', enforceUniqueCells = TRUE, errorOnBarcodeSuffix = FALSE, doGC = FALSE, duplicateBarcodeMode = 'exclude-all'){
+MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expectedDefaultAssay = 'RNA', excludedAssays = c('UCellRanks'), enforceUniqueCells = TRUE, errorOnBarcodeSuffix = FALSE, doGC = FALSE, duplicateBarcodeMode = 'exclude-all'){
   nameList <- names(seuratObjs)
   if (is.null(nameList)) {
     stop('Must provide a named list of seurat objects')
@@ -167,6 +168,14 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
     }
 
     encounteredBarcodes <- c(encounteredBarcodes, colnames(seuratObj))
+
+    if (!all(is.null(excludedAssays))) {
+      for (an in excludedAssays) {
+        if (an %in% names(seuratObj@assays)) {
+          seuratObj[[an]] <- NULL
+        }
+      }
+    }
     seuratObjs[[datasetId]] <- seuratObj
   }
 
