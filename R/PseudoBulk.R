@@ -29,7 +29,8 @@ PseudobulkSeurat <- function(seuratObj,
                              nCountRnaStratification = F, 
                              stratificationGroupingFields = c("ClusterNames_0.2", "ClusterNames_0.4", "ClusterNames_0.6", "ClusterNames_0.8", "ClusterNames1.2")) {
   if (!all(groupFields %in% names(seuratObj@meta.data))) {
-    stop('All fields from groupFields must be in seuratObj@meta.data')
+    missing <- groupFields[!groupFields %in% names(seuratObj@meta.data)]
+    stop(paste0('All fields from groupFields must be in seuratObj@meta.data. Missing: ', paste0(missing, collapse = ',')))
   }
   
   #QC and pseudobulk based on nCount_RNA distributions
