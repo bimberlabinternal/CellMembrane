@@ -13,7 +13,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
   GS <- c()
   
   #ensure msigdbGeneSets is formatted properly to parse. 
-  if (!is.null(msigdbGeneSets) & !is.na(msigdbGeneSets) & !(length(msigdbGeneSets) == 0)) {
+  if (all(!is.null(msigdbGeneSets), !is.na(msigdbGeneSets), !(length(msigdbGeneSets) == 0))) {
     #require vector. customGeneSets needs to be a list, so this could be a point of confusion
     if (!is.vector(msigdbGeneSets)) {
       stop("msigdbGeneSets is not a vector. Please coerce it to a vector of supported characters.")
@@ -37,7 +37,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
   } 
   
   #parse customGeneSets
-  if (!is.null(customGeneSets) & !(length(customGeneSets) == 0)) {
+  if (all(!is.null(customGeneSets), !(length(customGeneSets) == 0))) {
     #check typing (msigdbGeneSets is a vector, so this could be a point of confusion).
     if (!is.list(customGeneSets)){
       stop("customGeneSets is not a list. Please coerce it into a named list.")
