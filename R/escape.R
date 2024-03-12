@@ -27,7 +27,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
       #remove GO:BP from the list and fetch hierarchical gene set.
       msigdbGeneSets <- msigdbGeneSets[msigdbGeneSets != "GO:BP"]
       GS_GO_BP <- escape::getGeneSets(library = "C5", subcategory = "BP")
-      #fetch 
+      #fetch non-hierarchical gene sets and concatenate gene sets
       GS <- c(GS, c(escape::getGeneSets(library = msigdbGeneSets), GS_GO_BP))
     } else {
       #if the msigdb gene set is hierarchical but unsupported, throw error: 
