@@ -12,29 +12,11 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
   #gene set vector to be populated by msigdb or custom gene sets
   GS <- c()
   
-  #ensure msigdbGeneSets is formatted properly to parse. 
-  if (all(!is.null(msigdbGeneSets), !is.na(msigdbGeneSets), !(length(msigdbGeneSets) == 0))) {
-    #require vector. customGeneSets needs to be a list, so this could be a point of confusion
-    if (!is.vector(msigdbGeneSets)) {
-      stop("msigdbGeneSets is not a vector. Please coerce it to a vector of supported characters.")
-    }
-    ##GO:BP and other hierarchical gene sets require subcategories to be passed with them, so we should parse those individually and concatenate afterwards. I think each of these need to be individually supported, but I haven't confirmed. 
-    #check if all gene sets are non-hierarchical
-    if (all(msigdbGeneSets %in% c("H", paste0("C", 1:8)))) {
-      #fetch non-hierarchical gene sets
-      GS <- c(GS, escape::getGeneSets(library = msigdbGeneSets))
-    } else if ("GO:BP" %in% msigdbGeneSets & all(msigdbGeneSets[msigdbGeneSets != "GO:BP"] %in% c("H", paste0("C", 1:8)))) {
-      #remove GO:BP from the list and fetch hierarchical gene set.
-      msigdbGeneSets <- msigdbGeneSets[msigdbGeneSets != "GO:BP"]
-      GS_GO_BP <- escape::getGeneSets(library = "C5", subcategory = "BP")
-      #fetch non-hierarchical gene sets and concatenate gene sets
-      GS <- c(GS, c(escape::getGeneSets(library = msigdbGeneSets), GS_GO_BP))
-    } else {
-      #if the msigdb gene set is hierarchical but unsupported, throw error: 
-      unsupportedGeneSets <- msigdbGeneSets[!(msigdbGeneSets %in% c("GO:BP", "H", paste0("C", 1:8)))]
-      stop(paste0(unsupportedGeneSets, " in msigdbGeneSets are unsupported. Please ensure msigdbGeneSets is any of: H, GO:BP, ", paste0(", C", 1:8), ". Please ensure your requested geneSet is listed, add the gene set to the customGeneSets argument, or contact members of the Bimber Lab to add a gene set."))
-    }
-  } 
+  #retrieve msigdb gene sets
+  if (any(!is.null(msigdbGeneSets), !is.na(msigdbGeneSets))) {
+    #GetMsigdbGeneSet sanity checks the input, so we don't need to here.
+    GS <- GetMsigdbGeneSet(msigdbGeneSets)
+  }
   
   #parse customGeneSets
   if (all(!is.null(customGeneSets), !(length(customGeneSets) == 0))) {
