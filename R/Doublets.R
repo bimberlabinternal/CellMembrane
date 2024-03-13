@@ -19,7 +19,7 @@ FindDoublets <- function(seuratObj, assay = 'RNA', rawResultFile = NULL, doPlot 
 	print('Finding doublets using scDblFinder')
 
 	sce <- Seurat::as.SingleCellExperiment(DietSeurat(seuratObj, assays = c(assay)), assay = assay)
-	df <- scDblFinder::scDblFinder(sce, returnType = 'table', verbose = FALSE)
+	df <- suppressWarnings(scDblFinder::scDblFinder(sce, returnType = 'table', verbose = FALSE))
 	df <- df[df$type == 'real',]
 
 	toAdd <- df$class
