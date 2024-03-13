@@ -4,7 +4,14 @@
 \alias{RunEscape}
 \title{Run escape ssGSEA}
 \usage{
-RunEscape(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FALSE)
+RunEscape(
+  seuratObj,
+  outputAssayName = "escape.ssGSEA",
+  doPlot = FALSE,
+  doPca = TRUE,
+  msigdbGeneSets = c("H"),
+  customGeneSets = NULL
+)
 }
 \arguments{
 \item{seuratObj}{A Seurat object.}
@@ -12,6 +19,12 @@ RunEscape(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FALSE)
 \item{outputAssayName}{The name of the assay to store results}
 
 \item{doPlot}{If true, a FeaturePlot will be printed for each pathway}
+
+\item{doPca}{boolean determining if the PCA plot should be computed and printed.}
+
+\item{msigdbGeneSets}{A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658).}
+
+\item{customGeneSets}{A (preferably named) list containing gene sets to be scored by escape.}
 }
 \value{
 The seurat object with results stored in an assay
