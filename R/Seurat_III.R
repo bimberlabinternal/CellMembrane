@@ -574,7 +574,7 @@ RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.siz
 	if (usedSCTransform) {
 		seuratObj <- SCTransform(seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = FALSE, return.only.var.genes = FALSE)
 	} else {
-  	seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = FALSE, features = feats, do.scale = T, do.center = T, block.size = block.size)
+  	    seuratObj <- ScaleData(object = seuratObj, vars.to.regress = c("S.Score", "G2M.Score"), verbose = FALSE, features = feats, do.scale = T, do.center = T, block.size = block.size)
 	}
 
   return(seuratObj)

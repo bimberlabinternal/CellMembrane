@@ -282,7 +282,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 .TestForSplitLayers <- function(seuratObj, autoJoin = TRUE) {
 	for (assayName in Seurat::Assays(seuratObj)) {
-		if (any(endsWith(SeuratObject::Layers(seuratObj[[assayName]]), suffix = ".1)"))) {
+		if (any(endsWith(SeuratObject::Layers(seuratObj[[assayName]]), suffix = ".1"))) {
 			print(paste0('Split layers found in assay ', assayName, ': ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 
 			if (autoJoin) {
