@@ -197,7 +197,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 	for (datasetId in names(seuratObjs)) {
 		if (is.null(seuratObj)) {
-			seuratObj <- seuratObjs[[datasetId]]
+			seuratObj <- .TestForSplitLayers(seuratObjs[[datasetId]])
 			if (!is.null(expectedDefaultAssay)) {
 				DefaultAssay(seuratObj) <- expectedDefaultAssay
 			}
@@ -240,19 +240,8 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 			}
 
 			# NOTE: if collapse = TRUE is ever supported, we should use this.
-			seuratObj <- merge(x = seuratObj, y = seuratObjs[[datasetId]], project = projectName, merge.data = merge.data)
-
-			# NOTE: in Seurat 5.x, the default is to rename layers (i.e. counts.1 and counts.2). Collapse=TRUE avoids this.
-			for (assayName in Seurat::Assays(seuratObj)) {
-				assayObj <- seuratObj[[assayName]]
-				if (inherits(assayObj, 'Assay5')) {
-					print(paste0('Joining layers: ', assayName))
-					seuratObj[[assayName]] <- SeuratObject::JoinLayers(assayObj)
-				} else {
-					print(paste0('Not an assay5 object, not joining layers: ', assayName))
-					print(seuratObj)
-				}
-			}
+			seuratObj <- merge(x = seuratObj, y = .TestForSplitLayers(seuratObjs[[datasetId]]), project = projectName, merge.data = merge.data)
+			seuratObj <- .TestForSplitLayers(seuratObj)
 
 			seuratObjs[[datasetId]] <- NULL
 			if (doGC) {
@@ -285,6 +274,46 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 					seuratObj[[assayName]] <- AddMetaData(seuratObj[[assayName]], metadata = geneIds1, col.name = 'GeneId')
 				}
 			}
+		}
+	}
+
+	return(seuratObj)
+}
+
+.TestForSplitLayers <- function(seuratObj, autoJoin = TRUE) {
+	for (assayName in Seurat::Assays(seuratObj)) {
+		if (any(endsWith(SeuratObject::Layers(seuratObj[[assayName]]), suffix = ".1)"))) {
+			print(paste0('Split layers found in assay ', assayName, ': ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
+
+			if (autoJoin) {
+				return(.MergeSplitLayers(seuratObj))
+			}
+		}
+	}
+
+	return(seuratObj)
+}
+
+.MergeSplitLayers <- function(seuratObj) {
+	# NOTE: in Seurat 5.x, the default is to rename layers (i.e. counts.1 and counts.2). Collapse=TRUE avoids this, but this is not supported yet
+	for (assayName in Seurat::Assays(seuratObj)) {
+		print(paste0('Inspecting assay layers: ', assayName))
+		print(paste0('Layers: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
+		print(paste0('Class: ', class(seuratObj[[assayName]])[1]))
+
+		assayObj <- seuratObj[[assayName]]
+		if (inherits(assayObj, 'Assay5')) {
+			print(paste0('Joining layers: ', assayName))
+			seuratObj[[assayName]] <- SeuratObject::JoinLayers(assayObj)
+			print(paste0('After join: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
+		} else {
+			print(paste0('Not an assay5 object, not joining layers: ', assayName))
+			print(seuratObj)
+		}
+
+		if (any(endsWith(SeuratObject::Layers(seuratObj[[assayName]]), suffix = ".1)"))) {
+			print(paste0('Remaining layers: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
+			stop('Layers were not joined!')
 		}
 	}
 
