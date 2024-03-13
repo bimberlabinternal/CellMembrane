@@ -50,7 +50,14 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">RunEscape</span><span class="op">(</span><span class="va">seuratObj</span>, outputAssayName <span class="op">=</span> <span class="st">"escape.ssGSEA"</span>, doPlot <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">RunEscape</span><span class="op">(</span></span>
+<span>  <span class="va">seuratObj</span>,</span>
+<span>  outputAssayName <span class="op">=</span> <span class="st">"escape.ssGSEA"</span>,</span>
+<span>  doPlot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  doPca <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  msigdbGeneSets <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"H"</span><span class="op">)</span>,</span>
+<span>  customGeneSets <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -65,6 +72,18 @@
 
 <dt>doPlot</dt>
 <dd><p>If true, a FeaturePlot will be printed for each pathway</p></dd>
+
+
+<dt>doPca</dt>
+<dd><p>boolean determining if the PCA plot should be computed and printed.</p></dd>
+
+
+<dt>msigdbGeneSets</dt>
+<dd><p>A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658).</p></dd>
+
+
+<dt>customGeneSets</dt>
+<dd><p>A (preferably named) list containing gene sets to be scored by escape.</p></dd>
 
 </dl></div>
     <div id="value">
