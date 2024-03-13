@@ -246,7 +246,11 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 			for (assayName in Seurat::Assays(seuratObj)) {
 				assayObj <- seuratObj[[assayName]]
 				if (inherits(assayObj, 'Assay5')) {
+					print(paste0('Joining layers: ', assayName))
 					seuratObj[[assayName]] <- SeuratObject::JoinLayers(assayObj)
+				} else {
+					print(paste0('Not an assay5 object, not joining layers: ', assayName))
+					print(seuratObj)
 				}
 			}
 
