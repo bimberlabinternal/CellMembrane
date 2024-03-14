@@ -10,7 +10,8 @@ RunEscape(
   doPlot = FALSE,
   doPca = TRUE,
   msigdbGeneSets = c("H"),
-  customGeneSets = NULL
+  customGeneSets = NULL,
+  assayName = "RNA"
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ RunEscape(
 \item{msigdbGeneSets}{A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658).}
 
 \item{customGeneSets}{A (preferably named) list containing gene sets to be scored by escape.}
+
+\item{assayName}{The name of the source assay}
 }
 \value{
 The seurat object with results stored in an assay
