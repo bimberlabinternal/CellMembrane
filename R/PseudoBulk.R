@@ -240,6 +240,7 @@ PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA'
 #' @param test.use Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
 #' @return A list with the differential_expression results, volano ggplot object and pvalue_dist ggplot object
 #' @export
+
 PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_threshold = 1, FDR_threshold = 0.05, test.use = "QLF"){
   #perform differential expression for the given contrast
   if (test.use == "QLF"){
