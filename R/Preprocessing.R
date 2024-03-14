@@ -277,7 +277,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 		}
 	}
 
-	seuratObj <- .TestForSplitLayers(seuratObjs[[datasetId]])
+	seuratObj <- .TestForSplitLayers(seuratObj)
 
 	return(seuratObj)
 }
