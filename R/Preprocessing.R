@@ -241,6 +241,8 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 			# NOTE: if collapse = TRUE is ever supported, we should use this.
 			seuratObj <- merge(x = seuratObj, y = .TestForSplitLayers(seuratObjs[[datasetId]]), project = projectName, merge.data = merge.data)
+
+			print('testing for split layers after merge:')
 			seuratObj <- .TestForSplitLayers(seuratObj)
 
 			seuratObjs[[datasetId]] <- NULL
@@ -279,6 +281,11 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 	seuratObj <- .TestForSplitLayers(seuratObj)
 
+	print(paste0('Merge complete, layers:'))
+	for (assayName in names(seuratObj@assays)) {
+		print(paste0(assayName, ': ', paste0(SeuratObject::Layers(seuratObj, assay = assayName), collapse = ', ')))
+	}
+
 	return(seuratObj)
 }
 
@@ -297,8 +304,6 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 }
 
 .MergeSplitLayers <- function(seuratObj) {
-	seuratObj <- Seurat::DietSeurat(seuratObj)
-
 	# NOTE: in Seurat 5.x, the default is to rename layers (i.e. counts.1 and counts.2). Collapse=TRUE avoids this, but this is not supported yet
 	for (assayName in Seurat::Assays(seuratObj)) {
 		print(paste0('Inspecting assay layers: ', assayName))
