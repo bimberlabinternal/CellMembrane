@@ -288,14 +288,19 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 }
 
 .MergeSplitLayersIfNeeded <- function(seuratObj) {
-	if (.HasSplitLayers(seuratObj)) {
+	if (HasSplitLayers(seuratObj)) {
 		return(.MergeSplitLayers(seuratObj))
 	}
 
 	return(seuratObj)
 }
 
-.HasSplitLayers <- function(seuratObj) {
+#' @title HasSplitLayers
+#'
+#' @param seuratObj The seurat object
+#' @return A boolean indicating whether the object has split layers
+#' @export
+HasSplitLayers <- function(seuratObj) {
 	for (assayName in Seurat::Assays(seuratObj)) {
 		if (length(SeuratObject::Layers(seuratObj, assay = assayName, search = 'counts')) > 1) {
 			return(TRUE)
@@ -309,17 +314,21 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 	return(FALSE)
 }
 
-.MergeSplitLayers <- function(seuratObj) {
+#' @title MergeSplitLayers
+#'
+#' @param seuratObj The seurat object
+#' @return The updated seurat object
+#' @export
+MergeSplitLayers <- function(seuratObj) {
 	# NOTE: in Seurat 5.x, the default is to rename layers (i.e. counts.1 and counts.2). Collapse=TRUE avoids this, but this is not supported yet
 	for (assayName in Seurat::Assays(seuratObj)) {
 		print(paste0('Inspecting assay layers: ', assayName))
 		print(paste0('Layers: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 		print(paste0('Class: ', class(seuratObj[[assayName]])[1]))
 
-		assayObj <- seuratObj[[assayName]]
-		if (inherits(assayObj, 'Assay5')) {
+		if (inherits(seuratObj[[assayName]], 'Assay5')) {
 			print(paste0('Joining layers: ', assayName))
-			seuratObj[[assayName]] <- SeuratObject::JoinLayers(assayObj)
+			seuratObj[[assayName]] <- SeuratObject::JoinLayers(seuratObj[[assayName]])
 			print(paste0('After join: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 		} else {
 			print(paste0('Not an assay5 object, not joining layers: ', assayName))
@@ -330,6 +339,10 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 			print(paste0('Remaining layers: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 			stop('Layers were not joined!')
 		}
+	}
+
+	if (HasSplitLayers(seuratObj)) {
+		stop(paste0('This seurat object has split layers'))
 	}
 
 	return(seuratObj)
