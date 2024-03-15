@@ -197,7 +197,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 	for (datasetId in names(seuratObjs)) {
 		if (is.null(seuratObj)) {
-			seuratObj <- .TestForSplitLayers(seuratObjs[[datasetId]])
+			seuratObj <- .MergeSplitLayersIfNeeded(seuratObjs[[datasetId]])
 			if (!is.null(expectedDefaultAssay)) {
 				DefaultAssay(seuratObj) <- expectedDefaultAssay
 			}
@@ -240,10 +240,8 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 			}
 
 			# NOTE: if collapse = TRUE is ever supported, we should use this.
-			seuratObj <- merge(x = seuratObj, y = .TestForSplitLayers(seuratObjs[[datasetId]]), project = projectName, merge.data = merge.data)
-
-			print('testing for split layers after merge:')
-			seuratObj <- .TestForSplitLayers(seuratObj)
+			seuratObj <- merge(x = seuratObj, y = .MergeSplitLayersIfNeeded(seuratObjs[[datasetId]]), project = projectName, merge.data = merge.data)
+			seuratObj <- .MergeSplitLayersIfNeeded(seuratObj)
 
 			seuratObjs[[datasetId]] <- NULL
 			if (doGC) {
@@ -279,7 +277,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 		}
 	}
 
-	seuratObj <- .TestForSplitLayers(seuratObj)
+	seuratObj <- .MergeSplitLayersIfNeeded(seuratObj)
 
 	print(paste0('Merge complete, layers:'))
 	for (assayName in names(seuratObj@assays)) {
@@ -289,18 +287,26 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 	return(seuratObj)
 }
 
-.TestForSplitLayers <- function(seuratObj, autoJoin = TRUE) {
-	for (assayName in Seurat::Assays(seuratObj)) {
-		if (any(endsWith(SeuratObject::Layers(seuratObj[[assayName]]), suffix = ".1"))) {
-			print(paste0('Split layers found in assay ', assayName, ': ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
-
-			if (autoJoin) {
-				return(.MergeSplitLayers(seuratObj))
-			}
-		}
+.MergeSplitLayersIfNeeded <- function(seuratObj) {
+	if (.HasSplitLayers(seuratObj)) {
+		return(.MergeSplitLayers(seuratObj))
 	}
 
 	return(seuratObj)
+}
+
+.HasSplitLayers <- function(seuratObj) {
+	for (assayName in Seurat::Assays(seuratObj)) {
+		if (length(SeuratObject::Layers(seuratObj, assay = assayName, search = 'counts')) > 1) {
+			return(TRUE)
+		}
+
+		if (length(SeuratObject::Layers(seuratObj, assay = assayName, search = 'data')) > 1) {
+			return(TRUE)
+		}
+	}
+
+	return(FALSE)
 }
 
 .MergeSplitLayers <- function(seuratObj) {
@@ -320,7 +326,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 			print(seuratObj)
 		}
 
-		if (any(endsWith(SeuratObject::Layers(seuratObj[[assayName]]), suffix = ".1)"))) {
+		if (.HasSplitLayers(seuratObj)) {
 			print(paste0('Remaining layers: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 			stop('Layers were not joined!')
 		}
