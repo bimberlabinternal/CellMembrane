@@ -112,6 +112,9 @@
     <loc>/reference/GetXYDataFromPlot.html</loc>
   </url>
   <url>
+    <loc>/reference/HasSplitLayers.html</loc>
+  </url>
+  <url>
     <loc>/reference/HighlightCellsOnSeuratPlot.html</loc>
   </url>
   <url>
@@ -125,6 +128,9 @@
   </url>
   <url>
     <loc>/reference/MergeSeuratObjs.html</loc>
+  </url>
+  <url>
+    <loc>/reference/MergeSplitLayers.html</loc>
   </url>
   <url>
     <loc>/reference/NanoString_Housekeeping_Normalization.html</loc>
