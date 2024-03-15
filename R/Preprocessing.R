@@ -289,7 +289,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 .MergeSplitLayersIfNeeded <- function(seuratObj) {
 	if (HasSplitLayers(seuratObj)) {
-		return(.MergeSplitLayers(seuratObj))
+		return(MergeSplitLayers(seuratObj))
 	}
 
 	return(seuratObj)
