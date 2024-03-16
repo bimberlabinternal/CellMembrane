@@ -37,6 +37,13 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
       names(customGeneSets) <- paste0("CustomGeneSet", 1:length(customGeneSets))
       warning("The customGeneSets list is unnamed. Naming the genesets with generic names such as: CustomGeneSet1, CustomGeneSet2 ...")
     }
+
+    if (any(grepl(names(customGeneSets), pattern = '_'))) {
+      print('Converting underscore to hyphen in set names')
+      toFix <- grepl(names(customGeneSets), pattern = '_')
+      names(customGeneSets)[toFix] <- gsub(names(customGeneSets)[toFix], pattern = '_', replacement = '-')
+    }
+
     #concatenate the customGeneSets to the running list of genes (empty if msigdb is empty)
     GS <- c(GS, customGeneSets)
   }
@@ -66,8 +73,9 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
   
   if (doPlot) {
     pathways <- rownames(seuratObj@assays[[outputAssayName]])
+    key <- seuratObj@assays[[outputAssayName]]@key
     for (fn in pathways) {
-      print(suppressWarnings(Seurat::FeaturePlot(seuratObj, features = fn, min.cutoff = 'q02', max.cutoff = 'q98')))
+      print(suppressWarnings(Seurat::FeaturePlot(seuratObj, features = paste0(key, fn), min.cutoff = 'q02', max.cutoff = 'q98')))
     }
   }
   
