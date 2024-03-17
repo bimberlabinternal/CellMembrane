@@ -115,7 +115,6 @@ Remotes:
 Config/reticulate:
   list(
     packages = list(
-      list(package = "cellbender"),
       list(package = "phate"),
       list(package = "sctour")
     )
@@ -123,7 +122,6 @@ Config/reticulate:
 Collate: 
     'Analysis.R'
     'CSCore.R'
-    'CellBender.R'
     'Preprocessing.R'
     'Utils.R'
     'CiteSeq.R'
