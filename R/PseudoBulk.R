@@ -670,7 +670,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
           seuratObj.negative.contrast <- seuratObj.negative.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% x[,paste0("negative_contrast_", contrast_column)])
           #this merge could be more efficient (specifically, this merge could be performed just once instead of once per contrast_column), but it offers a convenient check-in during the subset.
           seuratObj.contrast <- merge(seuratObj.positive.contrast, seuratObj.negative.contrast)
-          if (HasSplitLayers) {
+          if (HasSplitLayers(seuratObj.contrast)) {
             seuratObj.contrast <- MergeSplitLayers(seuratObj.contrast)
           }
           print(paste(c("Remaining Cells:", nrow(seuratObj.contrast@meta.data))))
