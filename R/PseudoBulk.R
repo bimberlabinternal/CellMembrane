@@ -238,10 +238,11 @@ PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA'
 #' @param logFC_threshold The min logFC
 #' @param FDR_threshold The min FDR to report
 #' @param test.use Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
+#' @param showPlots Boolean determining if the volcano plots and p value dsitributions should be shown. 
 #' @return A list with the differential_expression results, volano ggplot object and pvalue_dist ggplot object
 #' @export
 
-PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_threshold = 1, FDR_threshold = 0.05, test.use = "QLF"){
+PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_threshold = 1, FDR_threshold = 0.05, test.use = "QLF", showPlots = T){
   #perform differential expression for the given contrast
   if (test.use == "QLF"){
     fit_test <- edgeR::glmQLFTest(fit, contrast = contrast)
@@ -277,10 +278,14 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
     egg::theme_article() +
     ggtitle(contrast_name)
   
-  print(volcano)
+  
   
   pvalue_dist <- ggplot(differential_expression$table, aes( x= PValue)) + geom_histogram() + ggtitle("PValue Distribution")
+  
+  if (showPlots) {
   print(pvalue_dist)
+  print(volcano)
+  }
   
   return(list(
     differential_expression = differential_expression,
@@ -615,11 +620,12 @@ xnor <- function(x,y){(x == y)}
 #' @param design a design/model matrix returned by DesignModelMatrix().
 #' @param test.use A passthrough argument specifying the statistical test to be run by PerformGlmFit and PerformDifferentialExpression. 
 #' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by PerformDifferentialExpression. 
+#' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by PerformDifferentialExpression.
 #' @param minCountsPerGene A passthrough argument specifying the minimum counts a gene must have before it is filtered.
 #' @param assayName A passthrough argument specifying in which assay the counts are held. 
 #' @return A list of dataframes containing the differentially expressed genes in each contrast supplied by one of the filteredGenes arguments. 
 
-RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filteredContrastsDataframe = NULL, design, test.use, logFC_threshold = 1, minCountsPerGene = 1, assayName = "RNA"){
+RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filteredContrastsDataframe = NULL, design, test.use, logFC_threshold = 1, minCountsPerGene = 1, FDR_threshold = 0.05, assayName = "RNA"){
   if (is.null(filteredContrastsFile) & is.null(filteredContrastsDataframe)){
     stop("Please define either filteredContrastsDataframe or filteredContrastsFile. Both of these are output by FilterPseudobulkContrasts() and are equivalent. filteredContrastsDataframe is returned by FilterPseudobulkContrasts(), and filteredContrastsFile is written to disk (by default: ./filtered_contrasts.tsv)")
   } else if (!is.null(filteredContrastsFile) & !is.null(filteredContrastsDataframe)){
@@ -668,7 +674,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
           #Iteratively subset SeuratObj.contrast so we fit the glm on just the samples going into the contrast.
           seuratObj.positive.contrast <- seuratObj.positive.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% x[,paste0("positive_contrast_", contrast_column)])
           seuratObj.negative.contrast <- seuratObj.negative.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% x[,paste0("negative_contrast_", contrast_column)])
-          #this merge could be more efficient (specifically, this merge could be performed just once instead of once per contrast_column), but it offers a convenient check-in during the subset.
+          #this merge could be more efficient (specifically, this merge could be performed just once instead of once per contrast_column), but it offers a convenient check-in during the subset and offers the most correct data to eBayes().
           seuratObj.contrast <- merge(seuratObj.positive.contrast, seuratObj.negative.contrast)
           if (HasSplitLayers(seuratObj.contrast)) {
             seuratObj.contrast <- MergeSplitLayers(seuratObj.contrast)
@@ -690,7 +696,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       #This only tests the last contrast column for >1 samples, but this should be sufficient. If a contrast yielded a subset with no samples remaining, it should error in the trycatch and seuratObj should be NULL. 
       if (all(table(seuratObj.contrast@meta.data[,contrast_column]) > 1)) {
         #convert seurat object to SingleCellExperiment for edgeR
-        sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj.contrast, assay = "RNA", layer = "counts"), colData = seuratObj.contrast@meta.data))
+        sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj.contrast, assay = "RNA", layer = "counts")), colData = seuratObj.contrast@meta.data)
         
         #filter out lowly expressed genes
         if (!is.null(minCountsPerGene)) {
@@ -704,13 +710,12 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
         fit <- PerformGlmFit(seuratObj.contrast, design = filtered_design_matrix, test.use = test.use, assayName = assayName, minCountsPerGene = minCountsPerGene)
         #format contrast using limma
         contrast <- limma::makeContrasts(contrasts = contrast_name, levels = colnames(filtered_design_matrix))
-        result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = logFC_threshold, FDR_threshold = 0.05, test.use = test.use)
-
+        result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold, test.use = test.use, showPlots = F)
         #if no DEGs are returned, then spoof the table with a "null DEG".
-        if(nrow(result$table)==0){
+        if(nrow(result$differential_expression$table)==0){
           print(paste0("empty DE results for contrast:", contrast_name))
           result <- list()
-          result$table <- data.frame(logFC = 0,
+          result$differential_expression$table <- data.frame(logFC = 0,
                                      logCPM = 0,
                                      `F` = 1,
                                      PValue = 1,
@@ -720,7 +725,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       } else {
         print("Not enough samples to estimate dispersion/fit GLM")
         result <- list()
-        result$table <- data.frame(logFC = 0,
+        result$differential_expression$table <- data.frame(logFC = 0,
                                    logCPM = 0,
                                    `F` = 1,
                                    PValue = 1,
@@ -731,18 +736,18 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       print("Filtering eliminated all samples.")
       contrast_name <- paste0(positive_contrast, "-", negative_contrast)
       result <- list()
-      result$table <- data.frame(logFC = 0,
+      result$differential_expression$table <- data.frame(logFC = 0,
                                  logCPM = 0,
                                  `F` = 1,
                                  PValue = 1,
                                  FDR = 1,
                                  gene = "none")
     }
-    result$table$contrast_name <- contrast_name
-    result$table$positive_contrast <- positive_contrast
-    result$table$negative_contrast <- negative_contrast
-    result$table <- cbind(result$table, x)
-    return(result)
+    result$differential_expression$table$contrast_name <- contrast_name
+    result$differential_expression$table$positive_contrast <- positive_contrast
+    result$differential_expression$table$negative_contrast <- negative_contrast
+    result$differential_expression$table <- cbind(result$differential_expression$table, x)
+    return(result$differential_expression$table)
   })
   return(results)
 }

@@ -12,6 +12,7 @@ RunFilteredContrasts(
   test.use,
   logFC_threshold = 1,
   minCountsPerGene = 1,
+  FDR_threshold = 0.05,
   assayName = "RNA"
 )
 }
@@ -27,6 +28,8 @@ RunFilteredContrasts(
 \item{logFC_threshold}{A passthrough argument specifying the log fold change threshold to be used by PerformDifferentialExpression.}
 
 \item{minCountsPerGene}{A passthrough argument specifying the minimum counts a gene must have before it is filtered.}
+
+\item{FDR_threshold}{A passthrough argument specifying the FDR threshold to be used by PerformDifferentialExpression.}
 
 \item{assayName}{A passthrough argument specifying in which assay the counts are held.}
 }

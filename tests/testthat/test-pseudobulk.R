@@ -86,10 +86,16 @@ test_that("Logic gate study design works", {
   #Test that running differential expression on filtered constrasts works. 
   DE_results <- RunFilteredContrasts(seuratObj = pbulk, 
                        filteredContrastsDataframe = filtered_contrasts, 
-                       design = design,test.use = "QLF", 
-                       logFC_threshold = 1, 
+                       design = design,
+                       test.use = "QLF", 
+                       logFC_threshold = 0,
+                       FDR_threshold = 0.5,
                        minCountsPerGene = 1, 
                        assayName = "RNA")
+  #15 total contrasts
+  expect_equal(length(DE_results), expected = 15)
+  #9008 "DEGs" in the first contrast (note overly permissive DEG thresholds)
+  expect_equal(nrow(DE_results$`1`), expected = 9008)
 })
 
 test_that("Feature Selection by GLM works", {
