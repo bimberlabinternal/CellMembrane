@@ -302,11 +302,11 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 #' @export
 HasSplitLayers <- function(seuratObj) {
 	for (assayName in Seurat::Assays(seuratObj)) {
-		if (length(SeuratObject::Layers(seuratObj, assay = assayName, search = 'counts')) > 1) {
+		if (length(suppressWarnings(SeuratObject::Layers(seuratObj, assay = assayName, search = 'counts'))) > 1) {
 			return(TRUE)
 		}
 
-		if (length(SeuratObject::Layers(seuratObj, assay = assayName, search = 'data')) > 1) {
+		if (length(suppressWarnings(SeuratObject::Layers(seuratObj, assay = assayName, search = 'data'))) > 1) {
 			return(TRUE)
 		}
 	}
