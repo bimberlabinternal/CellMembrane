@@ -53,11 +53,11 @@ test_that("Logic gate study design works", {
   design <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort", "timepoint"), sampleIdCol = "subject")
   #create logical_dataframe/study design
   logic_list <- list( list("vaccine_cohort", "xor", "control"), list("timepoint", "any", "necropsy"))
-  filtered_contrasts <- FilterPseudobulkContrasts(logic_list = logic_list, 
+  filtered_contrasts <- FilterPseudobulkContrasts(logicList = logic_list, 
                                                   design = design, 
-                                                  use_require_identical_logic = F, 
-                                                  require_identical_fields = NULL, 
-                                                  filtered_contrasts_output_file = tempfile())
+                                                  useRequireIdenticalLogic = F, 
+                                                  requireIdenticalFields = NULL, 
+                                                  filteredContrastsOutputFile = tempfile())
   #test filtering worked as expected
   testthat::expect_equal(nrow(filtered_contrasts), expected =  15)
   #test that xor gate on vaccine_cohort field worked
@@ -73,15 +73,23 @@ test_that("Logic gate study design works", {
   #Test require_identical_field logic
   logic_list <- list( list("vaccine_cohort", "xor", "control"))
   require_identical_fields <- c("timepoint")
-  filtered_contrasts_require_identical <- FilterPseudobulkContrasts(logic_list = logic_list, 
+  filtered_contrasts_require_identical <- FilterPseudobulkContrasts(logicList = logic_list, 
                                                             design = design, 
-                                                            use_require_identical_logic = T, 
-                                                            require_identical_fields = c("timepoint"), 
-                                                            filtered_contrasts_output_file = tempfile())
+                                                            useRequireIdenticalLogic = T, 
+                                                            requireIdenticalFields = c("timepoint"), 
+                                                            filteredContrastsOutputFile = tempfile())
   #test filtering worked as expected
   testthat::expect_equal(nrow(filtered_contrasts_require_identical), expected =  9)
   #test that timepoints are always equal
   testthat::expect_true(all(filtered_contrasts_require_identical[,"positive_contrast_timepoint"] == filtered_contrasts_require_identical[,"negative_contrast_timepoint"]))
+  
+  #Test that running differential expression on filtered constrasts works. 
+  DE_results <- RunFilteredContrasts(seuratObj = pbulk, 
+                       filteredContrastsDataframe = filtered_contrasts, 
+                       design = design,test.use = "QLF", 
+                       logFC_threshold = 1, 
+                       minCountsPerGene = 1, 
+                       assayName = "RNA")
 })
 
 test_that("Feature Selection by GLM works", {
