@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Trigger Rdiscvr Docker
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.PAT }}
           repository: bimberlabinternal/Rdiscvr
@@ -33,7 +33,7 @@ jobs:
 
       - name: Docker meta
         id: docker_meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/bimberlabinternal/cellmembrane
           tags: |
