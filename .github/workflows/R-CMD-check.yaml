@@ -45,7 +45,6 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
           python3 -m pip install --user umap-learn phate sctour scikit-misc
-          python3 -m pip install --user git+https://github.com/broadinstitute/CellBender.git
 
       - name: Setup CoNGA
         run: |
