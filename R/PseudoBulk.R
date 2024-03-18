@@ -615,6 +615,7 @@ xnor <- function(x,y){(x == y)}
 #' @title RunFilteredContrasts
 #'
 #' @description This is the companion function to FilterPseudobulkContrasts. FilterPseudobulkContrasts determines the valuable contrasts relative to your metadata variable of interest, and this function performs the model fitting and collecting the differential expression results.
+#' @param seuratObj A pseudobulked Seurat object that was used for DesignModelMatrix() and FilterPseudobulkContrasts(). 
 #' @param filteredContrastsFile A file containing the output of FilterPseudobulkContrasts. This can be omitted if you use the dataframe returned by FilterPseudobulkContrasts insetad.
 #' @param filteredContrastsDataframe A dataframe containing the output of FilterPseudobulkContrasts. This can be omitted if you read the results of FilterPseudobulkContrasts from the file written by the function instead. 
 #' @param design a design/model matrix returned by DesignModelMatrix().

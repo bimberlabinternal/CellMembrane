@@ -17,6 +17,8 @@ RunFilteredContrasts(
 )
 }
 \arguments{
+\item{seuratObj}{A pseudobulked Seurat object that was used for DesignModelMatrix() and FilterPseudobulkContrasts().}
+
 \item{filteredContrastsFile}{A file containing the output of FilterPseudobulkContrasts. This can be omitted if you use the dataframe returned by FilterPseudobulkContrasts insetad.}
 
 \item{filteredContrastsDataframe}{A dataframe containing the output of FilterPseudobulkContrasts. This can be omitted if you read the results of FilterPseudobulkContrasts from the file written by the function instead.}
