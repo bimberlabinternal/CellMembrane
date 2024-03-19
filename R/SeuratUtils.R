@@ -859,3 +859,63 @@ AddNewMetaColumn <- function(seuratObj, varname, formulavector, defaultname, enf
   return(seuratObj)
   
 }
+
+
+
+#' Split Seurat Object into Non-Overlapping Subsets
+#'
+#' This function splits a Seurat object into K non-overlapping subsets. 
+#' Optionally, cells can be randomized before splitting to ensure the subsets are random. 
+#' This can be particularly useful for cross-validation or training/testing splits in analysis workflows.
+#'
+#' @param seuratObj A Seurat object to be split.
+#' @param K The number of non-overlapping subsets to create from the Seurat object. Must be a positive integer.
+#' @param Randomize Logical indicating whether to randomize the cells before splitting. 
+#'        Defaults to TRUE, meaning cells will be randomized. If FALSE, the original cell order is preserved.
+#'
+#' @return A list of Seurat objects, each representing a subset of the original object.
+#'         The number of objects in the list corresponds to the value of K.
+#'
+#' @examples
+#' # Assuming `seuratObj` is your Seurat object and you want to split it into 3 parts
+#' split_objects <- splitSeuratObject(seuratObj, K = 3, Randomize = TRUE)
+#'
+#' @export
+splitSeuratObject <- function(seuratObj, K, Randomize = TRUE) {
+  # Check if the Seurat object is valid
+  if (!inherits(seuratObj, "Seurat")) {
+    stop("The input object is not a valid Seurat object.")
+  }
+  
+  # Check if K is a positive integer
+  if (!is.numeric(K) || K <= 0 || K != round(K)) {
+    stop("K must be a positive integer.")
+  }
+  
+  # Randomize the cell order if Randomize is TRUE
+  if (Randomize) {
+    cells <- sample(Cells(seuratObj))
+  } else {
+    cells <- Cells(seuratObj)
+  }
+  
+  # Calculate the number of cells per split
+  cellNum <- length(cells)
+  cellsPerSplit <- floor(cellNum / K)
+  
+  # Initialize a list to store the split objects
+  splitObjects <- list()
+  
+  # Split the Seurat object
+  for (i in 1:K) {
+    if (i < K) {
+      subsetCells <- cells[((i-1) * cellsPerSplit + 1):(i * cellsPerSplit)]
+    } else {
+      # Ensure the last split includes any remaining cells
+      subsetCells <- cells[((i-1) * cellsPerSplit + 1):length(cells)]
+    }
+    splitObjects[[i]] <- subset(seuratObj, cells = subsetCells)
+  }
+  
+  return(splitObjects)
+}
