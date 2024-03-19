@@ -9,6 +9,7 @@ RunEscape(
   outputAssayName = "escape.ssGSEA",
   doPlot = FALSE,
   doPca = TRUE,
+  performDimRedux = FALSE,
   msigdbGeneSets = c("H"),
   customGeneSets = NULL,
   assayName = "RNA"
@@ -22,6 +23,8 @@ RunEscape(
 \item{doPlot}{If true, a FeaturePlot will be printed for each pathway}
 
 \item{doPca}{boolean determining if the PCA plot should be computed and printed.}
+
+\item{performDimRedux}{If true, the standard seurat PCA/FindClusters/UMAP process will be run on the escape data. This may be most useful when using a customGeneSet or a smaller set of features/pathways}
 
 \item{msigdbGeneSets}{A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658).}
 
