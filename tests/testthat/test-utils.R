@@ -38,3 +38,15 @@ test_that("AddNewMetaColumn works as expected", {
                                  defaultname = "Mid"))
 })
 
+test_that("GetMsigdbGeneSet works as expected", {
+  #I think we might add GO:MF in the future, so this serves as a gotcha to check the codebase more fully to ensure compatibility
+  testthat::expect_error(GetMsigdbGeneSet(msigdbGeneSets = "GO:MF"))
+  #if this fails, then MsigDB added a "C9" category, and the Utils function GetMsigdbGeneSet needs to be updated to include C9
+  testthat::expect_error(GetMsigdbGeneSet(msigdbGeneSets = "C9"))
+  #These are pretty vague checks to make sure the fetch works, but don't impose any length restrictions. 
+  testthat::expect_no_error(GetMsigdbGeneSet(msigdbGeneSets = "GO:BP"))
+  testthat::expect_no_error(GetMsigdbGeneSet(msigdbGeneSets = "H"))
+  #I really doubt hallmark will change size, but if it changes a lot, we should know. 
+  testthat::expect_equal(length(names(GetMsigdbGeneSet(msigdbGeneSets = "H"))), expected =  50)
+})
+

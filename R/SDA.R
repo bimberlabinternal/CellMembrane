@@ -28,8 +28,9 @@ utils::globalVariables(
 #' @param save_freq Passed directly to SDAtools::run_SDA()
 #' @param nThreads Passed to SDAtools::run_SDA() num_openmp_threads
 #' @param storeGoEnrichment If true, SDA_GO_Enrichment will be performed and stored in the result list
+#' @param sdaDebug This is passed directly to SDAtools::run_SDA()
 #' @export
-RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 2, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, save_freq = 1000, nThreads = 1, storeGoEnrichment = FALSE) {
+RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 2, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, save_freq = 1000, nThreads = 1, storeGoEnrichment = FALSE, sdaDebug = FALSE) {
   SerObj.DGE <- Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')
 
   n_cells <- ncol(SerObj.DGE)
@@ -170,7 +171,8 @@ RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFea
           eigen_parallel = (nThreads > 1),
           ignore_missing = FALSE,
           num_blocks = 8,
-          num_openmp_threads = nThreads
+          num_openmp_threads = nThreads,
+          debug = sdaDebug
   )
 
   results <- SDAtools::load_results(results_folder = resultsDir, data_path = outputFolder)

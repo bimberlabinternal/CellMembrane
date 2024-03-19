@@ -4,7 +4,7 @@
 \alias{ScoreCellCycle}
 \title{Score Cell Cycle}
 \usage{
-ScoreCellCycle(seuratObj, min.genes = 10, useAlternateG2M = false)
+ScoreCellCycle(seuratObj, min.genes = 10, useAlternateG2M = FALSE)
 }
 \arguments{
 \item{seuratObj}{The seurat object}

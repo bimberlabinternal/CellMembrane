@@ -29,7 +29,8 @@ PseudobulkSeurat <- function(seuratObj,
                              nCountRnaStratification = F, 
                              stratificationGroupingFields = c("ClusterNames_0.2", "ClusterNames_0.4", "ClusterNames_0.6", "ClusterNames_0.8", "ClusterNames1.2")) {
   if (!all(groupFields %in% names(seuratObj@meta.data))) {
-    stop('All fields from groupFields must be in seuratObj@meta.data')
+    missing <- groupFields[!groupFields %in% names(seuratObj@meta.data)]
+    stop(paste0('All fields from groupFields must be in seuratObj@meta.data. Missing: ', paste0(missing, collapse = ',')))
   }
   
   #QC and pseudobulk based on nCount_RNA distributions
@@ -90,7 +91,7 @@ PseudobulkSeurat <- function(seuratObj,
   # TODO: perhaps filtering on saturation, min.counts or other features??
   seuratObj$KeyField <- unname(apply(seuratObj@meta.data[,groupFields,drop = FALSE], 1, function(y){
     # NOTE: AverageExpression will convert underscores to hyphens in the sample names anyway, so proactively do this here
-    return(paste0(make.names(y), collapse = metaFieldCollapseCharacter))
+    return(gsub(x = paste0(make.names(y), collapse = metaFieldCollapseCharacter), replacement = '-', pattern = '_'))
   }))
   
   Seurat::Idents(seuratObj) <- seuratObj$KeyField
@@ -109,7 +110,7 @@ PseudobulkSeurat <- function(seuratObj,
     warning(paste0(x, collapse = ';'))
     warning('Seurat colnames:')
     warning(paste0(y, collapse = ';'))
-    stop('The keyField and AverageExpression object keys to do not match')
+    stop(paste0('The keyField and AverageExpression object keys to do not match. Metadata: ', paste0(head(x), collapse = ', '), ', matrix: ', paste0(head(y), collapse = ', ')))
   }
   
   metaGrouped <- metaGrouped[,names(metaGrouped) != 'KeyField',drop = FALSE]
