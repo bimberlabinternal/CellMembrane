@@ -140,3 +140,4 @@ Collate:
     'escape.R'
     'scMetabolism.R'
     'sctour.R'
+VignetteBuilder: knitr

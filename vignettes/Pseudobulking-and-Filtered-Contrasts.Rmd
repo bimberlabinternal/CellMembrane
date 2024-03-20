@@ -1,0 +1,232 @@
+---
+title: "Pseudobulking-and-Filtered-Contrasts"
+author: "GW McElfresh"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::html_clean:
+    highlight: kate
+    self_contained: yes
+    thumbnails: no
+    code_folding: show
+vignette: >
+  %\VignetteIndexEntry{Pseudobulking-and-Filtered-Contrasts}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(ComplexHeatmap)
+library(circlize)
+library(Seurat, warn.conflicts = F)
+library(CellMembrane, warn.conflicts = F)
+```
+
+## What is Pseudobulking? 
+
+Pseudobulking is a technique used in single cell RNA Sequencing to simplify the data from many single cells into a (pseudo) bulked sample by summing all of the gene expression from each cell in the group. Groupings can be determined several different ways.
+
+- Technical batching (e.g. a 10X lane or all of the cells from a single subject).
+- Biological phenotypes (e.g. T cells vs B cells).
+
+Pseudobulking approaches should include groupings closely aligned with your experimental variables (e.g. pseudobulking on Subject, Treatment Status, and Timepoint) and generally not be used downstream of unsupervised clustering for reasons discussed below. 
+
+## Why should we use Pseudobulking? 
+
+In scRNASeq analyses, it is very common to use unsupervised clustering approaches to create clusters of cells for which their gene expression is grossly different. These cell groupings sometimes correspond to distinct cellular phenotypes, but other times clusters capture transient cell states such as division or metabolic shifts. Once these clusters are obtained, one generally runs a variation of Seurat's `FindMarkers()` to perform a wilcoxon test between two clusters, or a one-versus-all test to compare a single cluster to the rest of the data grouped together. This approach works well for determining the top 10/50/100 genes that define the population, but falls short when one asks "What are the differentially expressed genes?". 
+
+
+Differential gene expression usually considers the "strength" of expression $Log_2(\dfrac{Expression_{experimental}}{Expression_{control}})$ and the p value as computed via a hypothesis test versus a null distribution. Frequently, you will discover that the p values obtained via the clustering and `FindMarkers()` method will be infinitesimally small. This is due to a phenomenon known as double dipping, wherein the clustering was determined through differences in gene expression, and then the genes were tested for "how different is the gene's expression between clusters" using a null hypothesis that is no longer feasible (e.g. using $Expression_{cluster_1} = Expression_{cluster_2}$ as a null hypothesis when cluster membership maximizes $Expression_{cluster_1} \neq Expression_{cluster_2}$). 
+
+
+Pseudobulking offers a way to statistically determine gene sets that are generally congruent with one's expectations of type I and type II error control. 
+
+For more on double dipping and approaches to circumvent it, please read https://arxiv.org/abs/2301.07276 and related works from the Witten lab.
+
+## How to Pseudobulk
+
+```{r start pseudobulking, fig.width = 10}
+#Load seurat object
+seuratObj <- suppressMessages(suppressWarnings(DietSeurat(Seurat::UpdateSeuratObject(readRDS("../tests/testdata/seuratOutput.rds")))))
+
+#assign some random experimental variables: vaccine groups, experimental time points, and subject Ids. 
+seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy", "day4"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"subject"] <- c(base::rep(1, length.out = 1000), base::rep(2, length.out = 557))
+  seuratObj@meta.data$sample_identifier <- paste0("Subject-", seuratObj$subject, '-', seuratObj$vaccine_cohort, "-", seuratObj$timepoint)
+
+#set up pseudobulking
+pbulk <- suppressWarnings(PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint", "sample_identifier")))
+```
+
+## Differential Expression: What is a 'Contrast'?
+
+Contrasts are comparisons of samples. When one discusses differential expression between two groups, that comparison is performed via a "contrast" between those two groups. To link which groups will be compared to one another, we use a design matrix, which allows us to impose our experimental design onto the samples and group them appropriately to determine gene expression differences between the groups. 
+
+```{r example design matrix 1, fig.height=7, fig.width = 10}
+
+design <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort"), sampleIdCol = "sample_identifier")
+
+ComplexHeatmap::Heatmap(design, 
+                        cluster_columns = F, 
+                        cluster_rows = F, 
+                        show_row_names = T,
+                        column_title = "Experimental Groups",
+                        row_title = "Individual Sample Labels",
+                        col = colorRamp2(c(0, 1), c("cadetblue2", "coral")),
+                        rect_gp = gpar(col = "black", lwd = 2),
+                        heatmap_legend_param = list(title = "Group Membership", 
+                                                    at = c(0,1), 
+                                                    color_bar = "discrete", 
+                                                    labels = c("Not in Group", "In Group")
+                                                    ))
+
+
+```
+
+However, you can make more complicated designs that incorporate multiple levels of experimental variables. Fitting a model downstream will require at minimum more than 1 data point per group, but more biological replication is better. 
+
+```{r example design matrix 2, fig.height=7, fig.width = 10}
+design <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort", "timepoint"), sampleIdCol = "sample_identifier")
+
+
+
+ComplexHeatmap::Heatmap(design, 
+                        cluster_columns = F, 
+                        cluster_rows = F, 
+                        show_row_names = T,
+                        column_title = "Experimental Groups",
+                        row_title = "Individual Sample Labels",
+                        col = colorRamp2(c(0, 1), c("cadetblue2", "coral")),
+                        rect_gp = gpar(col = "black", lwd = 2),
+                        heatmap_legend_param = list(title = "Group Membership", 
+                                                    at = c(0,1), 
+                                                    color_bar = "discrete", 
+                                                    labels = c("Not in Group", "In Group")
+                                                    ))
+```
+
+
+## Running a Contrast: vaccineOne vs vaccineTwo
+
+Now that you have the sample grouping established, we can fit models to our data and compare those to calculate log fold changes and statistical significance. Normally, these models are regressions using some kind of count-based distribution (poisson, quasipoisson, negative binomial) using packages such as DESeq2 or edgeR.
+
+Let's define a contrast using just vaccine information and compare vaccine one and vaccine two: 
+
+```{r design matrix for contrasts, fig.height=7, fig.width = 10}
+design <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort"), sampleIdCol = "sample_identifier")
+
+
+ComplexHeatmap::Heatmap(design, 
+                        cluster_columns = F, 
+                        cluster_rows = F, 
+                        show_row_names = T,
+                        column_title = "Experimental Groups",
+                        row_title = "Individual Sample Labels",
+                        col = colorRamp2(c(0, 1), c("cadetblue2", "coral")),
+                        rect_gp = gpar(col = "black", lwd = 2),
+                        heatmap_legend_param = list(title = "Group Membership", 
+                                                    at = c(0,1), 
+                                                    color_bar = "discrete", 
+                                                    labels = c("Not in Group", "In Group")
+                                                    ))
+```
+
+```{r example contrast}
+#fit a GLM using edgeR
+fit <- PerformGlmFit(pbulk, design = design, test.use = "QLF")
+
+# Define Contrast using the notation Group1 - Group2. 
+# Genes that are upregulated in group 1 will have a positive log fold change
+# while genes upregulated in group 2 will have a negative log fold change.
+contrast_name <- "vaccineOne - vaccineTwo"
+contrast <-
+  limma::makeContrasts(contrasts = contrast_name, levels = colnames(design))
+
+result <- PerformDifferentialExpression(
+  fit,
+  contrast,
+  contrast_name,
+  logFC_threshold = 1,
+  FDR_threshold = 0.05,
+  test.use = "QLF",
+  showPlots = T
+)
+```
+
+## Great, now let us automate it. 
+
+In larger studies where you have several experimental variables, the number of possible comparisons grow combinatorially. 
+
+```{r example of large design matrix}
+#single level design matrix
+design <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort"), sampleIdCol = "sample_identifier")
+
+#6 possible contrasts with a single level design
+ncol(combn(x = colnames(design),m = 2))
+
+#two-level design matrix
+design <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort", "timepoint"), sampleIdCol = "sample_identifier")
+
+#66 possible contrasts by including timepoint in our contrasts...
+ncol(combn(x = colnames(design),m = 2))
+
+```
+
+However, you probably don't care about all of the possible comparisons. If your design matrix includes cell type, timepoint, and vaccine, there will be many differentially expressed genes between B cells and Myeloid cells, but not due to timepoint or vaccine cohort. Let's use some logic to specify exactly what we want to measure across all possible pseudobulking contrasts. 
+
+Here, I'll use the two-level study design, but I've learned that vaccineTwo recently failed its clinical trial, so I only want to investigate vaccineOne over my time course. However, I also know that the effect of the vaccine could vary over time, so I want to make sure that I only compare the vaccineOne to either unvax or control within a given timepoint. 
+
+```{r defining logic gates}
+logicList <- list( list("vaccine_cohort", "xor", "vaccineOne"), 
+                   list("vaccine_cohort", "nor", "vaccineTwo"))
+#We can easily visualize the list of lists as a dataframe to inspect the logic gates.
+do.call("rbind", logicList)
+
+```
+This list of lists sets up our logic gates for filtering contrasts. One of the sides of the contrast needs to be vaccineOne (XOR gate on vaccineOne), and neither of the contrasts can have vaccineTwo in them (NOR gate on vaccineTwo).
+
+To accomplish ensuring that the timepoint variable remains fixed across the contrasts, we can pass `'timepoint'` to the `'requireIdenticalFields'` argument in the `FilterPseudobulkContrasts`. 
+
+```{r filtering contrasts to run}
+filtered_contrasts <- FilterPseudobulkContrasts(logicList = logicList, 
+                                                          design = design, 
+                                                          useRequireIdenticalLogic = T, 
+                                                          requireIdenticalFields = c("timepoint"), 
+                                                          filteredContrastsOutputFile = tempfile())
+
+filtered_contrasts
+```
+
+Now we can see that we have six contrasts (down from 66) that compare vaccineOne to either control or unvax, within a fixed timepoint.
+
+## Run Filtered Contrasts
+
+We can use the `RunFilteredContrasts` function to execute the basic edgeR QLF differential expression function on each of these contrasts. This will print the biological coefficient of variation plot for each subset so you can grossly interpet whether or not the model fitting is suitable. 
+
+```{r run filtered contrasts, fig.width = 3, fig.height= 3}
+DE_results <- RunFilteredContrasts(seuratObj = pbulk, 
+                       filteredContrastsDataframe = filtered_contrasts, 
+                       design = design,
+                       test.use = "QLF", 
+                       logFC_threshold = 0,
+                       FDR_threshold = 0.5,
+                       minCountsPerGene = 1, 
+                       assayName = "RNA")
+```
+
+The results of these fits are collected in an indexed list
+
+```{r show filtered contrasts}
+head(DE_results$`1`)
+```
+
+
+## TODO: Add Bar Plot and DE Heatmaps. 
+
+```{r}
+
+```
