@@ -625,6 +625,7 @@ xnor <- function(x,y){(x == y)}
 #' @param minCountsPerGene A passthrough argument specifying the minimum counts a gene must have before it is filtered.
 #' @param assayName A passthrough argument specifying in which assay the counts are held. 
 #' @return A list of dataframes containing the differentially expressed genes in each contrast supplied by one of the filteredGenes arguments. 
+#' @export
 
 RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filteredContrastsDataframe = NULL, design, test.use, logFC_threshold = 1, minCountsPerGene = 1, FDR_threshold = 0.05, assayName = "RNA"){
   if (is.null(filteredContrastsFile) & is.null(filteredContrastsDataframe)){
