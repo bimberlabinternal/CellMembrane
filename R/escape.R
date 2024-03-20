@@ -88,7 +88,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
 }
 
 .RunEscapePca <- function(seuratObj, assayName, dimsToUse = NULL, resolutionsToUse = 0.2) {
-  Seurat::VariableFeatures(seuratObj) <- rownames(seuratObj@assays[[assayName]])
+  Seurat::VariableFeatures(seuratObj, assay = assayName) <- rownames(seuratObj@assays[[assayName]])
   seuratObj <- Seurat::ScaleData(seuratObj, assay = assayName)
 
   pca.reduction.key <- paste0(assayName, 'pca_')
