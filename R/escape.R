@@ -4,13 +4,14 @@
 #' @param seuratObj A Seurat object.
 #' @param outputAssayName The name of the assay to store results
 #' @param doPlot If true, a FeaturePlot will be printed for each pathway
-#' @param doPca boolean determining if the PCA plot should be computed and printed. 
+#' @param doPca boolean determining if the PCA plot should be computed and printed.
+#' @param performDimRedux If true, the standard seurat PCA/FindClusters/UMAP process will be run on the escape data. This may be most useful when using a customGeneSet or a smaller set of features/pathways
 #' @param msigdbGeneSets A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658). 
 #' @param customGeneSets A (preferably named) list containing gene sets to be scored by escape.
 #' @param assayName The name of the source assay
 #' @return The seurat object with results stored in an assay
 #' @export
-RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FALSE, doPca = TRUE, msigdbGeneSets = c("H"), customGeneSets = NULL, assayName = 'RNA') {
+RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FALSE, doPca = TRUE, performDimRedux = FALSE, msigdbGeneSets = c("H"), customGeneSets = NULL, assayName = 'RNA') {
   #gene set vector to be populated by msigdb or custom gene sets
   GS <- c()
   
@@ -78,7 +79,46 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
       print(suppressWarnings(Seurat::FeaturePlot(seuratObj, features = paste0(key, fn), min.cutoff = 'q02', max.cutoff = 'q98')))
     }
   }
+
+  if (performDimRedux) {
+    seuratObj <- .RunEscapePca(seuratObj, assayName = outputAssayName)
+  }
   
   return(seuratObj)
 }
 
+.RunEscapePca <- function(seuratObj, assayName, dimsToUse = NULL, resolutionsToUse = 0.2) {
+  Seurat::VariableFeatures(seuratObj) <- rownames(seuratObj@assays[[assayName]])
+  seuratObj <- Seurat::ScaleData(seuratObj, assay = assayName)
+
+  pca.reduction.key <- paste0(assayName, 'pca_')
+  pca.reduction.name <- paste0('pca.', assayName)
+  seuratObj <- Seurat::RunPCA(seuratObj, npcs = length(VariableFeatures(seuratObj)), reduction.key = pca.reduction.key, reduction.name = pca.reduction.name)
+
+  print(Seurat::ProjectDim(seuratObj, reduction = pca.reduction.name, assay = assayName))
+  print(Seurat::PCAPlot(seuratObj, reduction = pca.reduction.name))
+  print(Seurat::VizDimLoadings(object = seuratObj, dims = 1:4, nfeatures = nrow(seuratObj@assays[[assayName]]), reduction = pca.reduction.name))
+
+  if (all(is.null(dimsToUse))) {
+    npc <- dim(seuratObj@reductions[[]]@cell.embeddings)[2]
+    dimsToUse <- 1:min(npc, nrow(seuratObj@assays[[assayName]]))
+  }
+
+  graphName <- paste0(assayName, '.nn')
+  seuratObj <- Seurat::FindNeighbors(seuratObj, dims = dimsToUse, reduction = pca.reduction.name, assay = assayName, graph.name = graphName)
+
+  origIdents <- Idents(seuratObj)
+  for (resolutionToUse in resolutionsToUse) {
+    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName)
+    seuratObj[[paste0('ClusterNames.', assayName, '_', resolutionToUse)]] <- Idents(object = seuratObj)
+  }
+  Idents(seuratObj) <- origIdents
+
+  umap.reduction.name <- paste0(assayName, '.umap')
+  umap.reduction.key <- paste0(assayName, 'umap_')
+  seuratObj <- Seurat::RunUMAP(seuratObj, dims = dimsToUse, assay = assayName, reduction = pca.reduction.name, reduction.name = umap.reduction.name, reduction.key = umap.reduction.key)
+
+  print(DimPlot(seuratObj, reduction = umap.reduction.name))
+
+  return(seuratObj)
+}
