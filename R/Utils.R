@@ -535,29 +535,3 @@ GetMsigdbGeneSet <- function(msigdbGeneSets = "H") {
     }
   }
 }
-
-
-#' @title FitModelToMetadata
-#'
-#' @description Fit a multinomial log-linear model to seurat object metadata
-#' @param seuratObj The seurat object
-#' @param groupCol The seurat object
-#' @param colNames The seurat object
-#' @export
-#' @return A nnet object
-FitModelToMetadata <- function(seuratObj, groupCol, colNames) {
-  model <- nnet::multinom(formula = as.formula(paste0(groupCol, " ~ ", paste0(colNames, collapse = " + ") )), data = seuratObj@meta.data, maxit = 1000)
-
-  print(ComplexHeatmap::Heatmap(coef(model),
-                                column_title = "Extreme Coefficents (Strong Predictors)")
-  )
-
-  print(ComplexHeatmap::Heatmap(asinh(coef(model)),
-                                column_title = "Smoothed Coefficents (General Trends)",
-                                cell_fun = function(j, i, x, y, width, height, fill) {
-                                  grid.text(sprintf("%.1f", asinh(coef(model))[i, j]), x, y, gp = gpar(fontsize = 10))
-                                })
-  )
-
-  return(model)
-}
