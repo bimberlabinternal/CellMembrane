@@ -85,7 +85,12 @@ Imports:
     WGCNA,
     escape (>= 1.99.1),
     GSVA (>= 1.51.5),
-    dynamicTreeCut
+    dynamicTreeCut, 
+    presto,
+    msigdbr,
+    fgsea,
+    clusterProfiler,
+    babelgene
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -111,7 +116,8 @@ Remotes:
     davidcsterratt/geometry/pkg,
     ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
-    rcastelo/GSVA
+    rcastelo/GSVA,
+    immunogenomics/presto
 Config/reticulate:
   list(
     packages = list(
@@ -127,6 +133,7 @@ Collate:
     'CiteSeq.R'
     'CoNGA.R'
     'Doublets.R'
+    'GeneSetAnalysis.R'
     'LDA.R'
     'Phate.R'
     'PseudoBulk.R'
