@@ -88,19 +88,19 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
 }
 
 .RunEscapePca <- function(seuratObj, assayName, dimsToUse = NULL, resolutionsToUse = 0.2) {
-  Seurat::VariableFeatures(seuratObj) <- rownames(seuratObj@assays[[assayName]])
+  Seurat::VariableFeatures(seuratObj, assay = assayName) <- rownames(seuratObj@assays[[assayName]])
   seuratObj <- Seurat::ScaleData(seuratObj, assay = assayName)
 
-  pca.reduction.key <- paste0(assayName, 'pca_')
+  assayNameForKeys <- gsub(assayName, pattern = '\\.', replacement = '')
+  pca.reduction.key <- paste0(assayNameForKeys, 'pca_')
   pca.reduction.name <- paste0('pca.', assayName)
-  seuratObj <- Seurat::RunPCA(seuratObj, npcs = length(VariableFeatures(seuratObj)), reduction.key = pca.reduction.key, reduction.name = pca.reduction.name)
+  seuratObj <- Seurat::RunPCA(seuratObj, assay = assayName, npcs = length(Seurat::VariableFeatures(seuratObj, assay = assayName)), reduction.key = pca.reduction.key, reduction.name = pca.reduction.name)
 
   print(Seurat::ProjectDim(seuratObj, reduction = pca.reduction.name, assay = assayName))
-  print(Seurat::PCAPlot(seuratObj, reduction = pca.reduction.name))
   print(Seurat::VizDimLoadings(object = seuratObj, dims = 1:4, nfeatures = nrow(seuratObj@assays[[assayName]]), reduction = pca.reduction.name))
 
   if (all(is.null(dimsToUse))) {
-    npc <- dim(seuratObj@reductions[[]]@cell.embeddings)[2]
+    npc <- dim(seuratObj@reductions[[pca.reduction.name]]@cell.embeddings)[2]
     dimsToUse <- 1:min(npc, nrow(seuratObj@assays[[assayName]]))
   }
 
@@ -115,8 +115,8 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
   Idents(seuratObj) <- origIdents
 
   umap.reduction.name <- paste0(assayName, '.umap')
-  umap.reduction.key <- paste0(assayName, 'umap_')
-  seuratObj <- Seurat::RunUMAP(seuratObj, dims = dimsToUse, assay = assayName, reduction = pca.reduction.name, reduction.name = umap.reduction.name, reduction.key = umap.reduction.key)
+  umap.reduction.key <- paste0(assayNameForKeys, 'umap_')
+  seuratObj <- Seurat::RunUMAP(seuratObj, dims = dimsToUse, assay = assayName, reduction = pca.reduction.name, reduction.name = umap.reduction.name, reduction.key = umap.reduction.key, verbose = FALSE)
 
   print(DimPlot(seuratObj, reduction = umap.reduction.name))
 
