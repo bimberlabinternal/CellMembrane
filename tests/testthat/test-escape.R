@@ -12,6 +12,8 @@ test_that("escape works as expected", {
     expect_equal(max(seuratObj@assays$escape.ssGSEA$data[1]), 626, tolerance = 0.5)
     
     expect_true('pca.escape.ssGSEA' %in% names(seuratObj@reductions))
+    print(names(seuratObj@reductions))
     expect_true('escape.ssGSEA.umap' %in% names(seuratObj@reductions))
     expect_true('escape.ssGSEA.nn' %in% names(seuratObj@graphs))
+    print(names(seuratObj@graphs))
 })
