@@ -157,13 +157,14 @@ PseudobulkSeurat <- function(seuratObj,
 
 
 #TODO: add support to extend this to propeller (pseudobulk the object, then optionally discard.)
+
 #' @title DesignModelMatrix
 #'
-#' @description Creates an edgeR glm object
+#' @description This creates a model matrix that groups the samples according to the experimental groups used downstream in statistical analyses.
 #' @param seuratObj The seurat object
 #' @param contrast_columns A vector of columns to contrast
 #' @param sampleIdCol An additional column denoting the variable containing the sample (for grouping)
-#' @return An edgeR glm object
+#' @return A model matrix (samples x groups data frame.)
 #' @export
 DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_ID"){
   #Create a dummy sce@colData that unites the contrast columns into a single "group" column
@@ -200,7 +201,7 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
 #' @param design The model.matrix object
 #' @param test.use Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
 #' @param assayName The name of the assay to use
-#' @param minCountsPerGene Any genes with fewer than this many counts (across samples) will be dropped
+#' @param minCountsPerGene Any genes with fewer than this many counts (across samples) will be dropped.
 #' @return An edgeR glm object
 #' @export
 PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1){
@@ -239,24 +240,24 @@ PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA'
 #' @param FDR_threshold The min FDR to report
 #' @param test.use Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
 #' @param showPlots Boolean determining if the volcano plots and p value dsitributions should be shown. 
-#' @return A list with the differential_expression results, volano ggplot object and pvalue_dist ggplot object
+#' @return A list with the differential_expression results, volcano ggplot object and pvalue_dist ggplot object
 #' @export
 
 PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_threshold = 1, FDR_threshold = 0.05, test.use = "QLF", showPlots = T){
-  #perform differential expression for the given contrast
-  if (test.use == "QLF"){
-    fit_test <- edgeR::glmQLFTest(fit, contrast = contrast)
-  } else if (test.use == "LRT"){
-    fit_test <- edgeR::glmLRT(fit, contrast = contrast)
-  } else {
-    stop("Please supply a valid test.use argument.")
-  }
+
+    #perform differential expression for the given contrast
+    if (test.use == "QLF"){
+      fit_test <- edgeR::glmQLFTest(fit, contrast = contrast)
+    } else if (test.use == "LRT"){
+      fit_test <- edgeR::glmLRT(fit, contrast = contrast)
+    } else {
+      stop("Please supply a valid test.use argument.")
+    }
+    #distill results into differential_expression list
+    differential_expression <- edgeR::topTags(fit_test, n= Inf)
+    differential_expression$table$gene <- rownames(differential_expression$table)
   
-  #distill results into differential_expression list
-  differential_expression <- edgeR::topTags(fit_test, n= Inf)
-  differential_expression$table$gene <- rownames(differential_expression$table)
-  
-  #create
+  #create volcano plot
   volcano <- ggplot(differential_expression$table, aes(x= logFC, y = -log10(FDR), label = gene)) +
     #plot the upregulated genes using logFC cutoff and FDR cutoff
     geom_point(data = differential_expression$table[differential_expression$table$logFC >=logFC_threshold &
@@ -280,7 +281,10 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
   
   
   
-  pvalue_dist <- ggplot(differential_expression$table, aes( x= PValue)) + geom_histogram() + ggtitle("PValue Distribution")
+  pvalue_dist <- ggplot(differential_expression$table, aes( x= PValue)) + 
+    geom_histogram() + 
+    ggtitle("PValue Distribution") + 
+    egg::theme_article()
   
   if (showPlots) {
   print(pvalue_dist)
@@ -302,7 +306,7 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
 #' @param logFC_threshold Log fold change threshold pass-through variable to be sent to PerformDifferentialExpression.
 #' @return A list with the differential_expression results, volano ggplot object and pvalue_dist ggplot object
 #' @export
-RunPairwiseContrasts <- function(fit, test.use, logFC_threshold = 1){
+RunPairwiseContrasts <- function(fit, test.use, logFC_threshold = 1) {
   #create a nx2 array of all possible unique pairwise combinations of contrasts
   contrasts <- t(utils::combn(colnames(fit$design), m = 2))
   results <- future.apply::future_lapply(split(contrasts, 1:nrow(contrasts)), future.seed = GetSeed(), FUN = function(x){
@@ -753,8 +757,6 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
   })
   return(results)
 }
-
-
 
 #' @title FitRegularizedClassificationGlm 
 #'
