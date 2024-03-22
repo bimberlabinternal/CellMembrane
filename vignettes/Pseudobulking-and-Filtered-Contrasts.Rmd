@@ -225,8 +225,61 @@ head(DE_results$`1`)
 ```
 
 
-## TODO: Add Bar Plot and DE Heatmaps. 
+## Pseudobulking Bar Plot
+
+We can visualize the results of `RunFilteredContrasts` in a bar plot, showing the magnitude of up- and down-regulated genes over our contrasts that address our hypothesis. The colors indicate whether or not the genes are unique (red or dark blue) to their contrast or shared across the contrasts (orange, light blue). 
+
+```{r}
+barplot_results <- PseudobulkingBarPlot(DE_results, title = "Vaccine One vs Unvaxxed/Control")
+```
+
+Further annotation of the bar plot requires some custom code, but can be formatted like so using the data frame returned from `PseudobulkingBarPlot`: 
+
+```{r}
+#store dataframe
+barPlot_dataframe <- barplot_results$dataframe
+
+#inspect dataframe column names to determine how the fill aesthetic needs to be specified for the geom_tile() calls. 
+barplot_results$dataframe %>% colnames()
+
+metadata_tiles <- ggplot(barplot_results$dataframe) + 
+  #define a custom scale for timepoint metadata
+  scale_fill_manual(values = rev(hcl.colors(4, palette = "Purples 3")), guide = guide_legend(order = 1))+
+  labs(fill = "Timepoint")+
+  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = "Positive Contrast Timepoint", fill = barPlot_dataframe$positive_contrast_timepoint)) +
+  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = "Negative Contrast Timepoint", fill = barPlot_dataframe$negative_contrast_timepoint)) +
+  ggnewscale::new_scale_fill() +
+  
+  #define a custom scale for vaccine_cohort metadata
+  scale_fill_manual(values = rev(hcl.colors(4, palette = "Inferno")), guide = guide_legend(order = 1))+
+  labs(fill = "Vaccine")+
+  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = "Positive Contrast Vaccine", fill = barPlot_dataframe$positive_contrast_vaccine_cohort)) +
+  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = "Negative Contrast Vaccine", fill = barPlot_dataframe$negative_contrast_vaccine_cohort)) +
+  ggnewscale::new_scale_fill() +
+  
+  #match the formatting of the Pseudobulking Bar Plot
+  egg::theme_article() +
+  ggplot2::theme(axis.text.x = ggplot2::element_blank())  + 
+  xlab("Contrast")+ 
+  ylab("Metadata Variables")+
+  #add some dashed lines to delineate metadata groupings
+  geom_hline(yintercept =c(2.5, 4.5), color = "black", linetype = "dashed")+
+  scale_y_discrete(limits = rev(c("Positive Contrast Timepoint", "Negative Contrast Timepoint","Positive Contrast Vaccine","Negative Contrast Vaccine")))
+
+metadata_tiles
+```
+
+Then, you can add these plots together to annotate the contrasts shown in the Pseudobulking Bar Plot. 
+
+```{r}
+barplot_results$barPlot + metadata_tiles
+
+(barplot_results$barPlot) / (metadata_tiles) + plot_layout(guides = 'collect')
+```
+
+## TODO: DE Heatmap
 
 ```{r}
 
 ```
+

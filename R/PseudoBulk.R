@@ -824,7 +824,7 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
       count < 10 ~ "<10 DEGs"
     ))
   
-  filteredContrastsResults$DEG_Magnitude <- factor(filteredContrastsResults$DEG_Magnitude, levels = c("1000+ DEGs", "1000-100 DEGs", "100-10 DEGs", "100-10 DEGs", "<10 DEGs"))
+  filteredContrastsResults$DEG_Magnitude <- factor(filteredContrastsResults$DEG_Magnitude, levels = c("1000+ DEGs", "1000-100 DEGs", "100-10 DEGs", "<10 DEGs"))
   
   bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
     ggplot2::geom_bar(data = filteredContrastsResults, 
@@ -833,17 +833,17 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
     ggplot2::labs(fill="Unique") + 
     ggplot2::ylab("Number of DEGs")+ 
     egg::theme_article() + 
-    #geom_rug(aes(x = reorder(contrast_name, -abs(n_DEG)), color = negative_contrast_Timepoint), sides="b", length = unit(2, units = "cm")) +
     ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
-    ggtitle(title) + 
-    xlab("Differential Expression Contrasts")
+    ggplot2::ggtitle(title) + 
+    ggplot2::xlab("Differential Expression Contrasts") + 
+    ggplot2::facet_wrap(~DEG_Magnitude)
   
   if (log_y_axis) {
     bargraph <- bargraph + dplyr::scale_y_log10()
   }
   print(bargraph)
   
-  return(list(dataframe = filteredContrastsResults, bargraph = bargraph))
+  return(list(dataframe = filteredContrastsResults, barPlot = bargraph))
 }
 
 #' @title .addRegulationInformation
