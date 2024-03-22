@@ -236,6 +236,9 @@ barplot_results <- PseudobulkingBarPlot(DE_results, title = "Vaccine One vs Unva
 Further annotation of the bar plot requires some custom code, but can be formatted like so using the data frame returned from `PseudobulkingBarPlot`: 
 
 ```{r Annotate bar Plot}
+library(dplyr)
+library(ggplot2)
+
 #store dataframe
 barPlot_dataframe <- barplot_results$dataframe
 
