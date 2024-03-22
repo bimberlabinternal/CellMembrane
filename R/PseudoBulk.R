@@ -758,6 +758,125 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
   return(results)
 }
 
+#' @title PseudobulkingBarPlot
+#'
+#' @description This is a plotting function downstream of RunFilteredContrasts that will create a  bar plot with the results of each contrast ordered by the magnitude of differentially expressed genes. 
+#' @param filteredContrastsResults A list of dataframes returned by RunFilteredContrasts.
+#' @param metadataFilterList An optional list of lists specifying further filtering to be performed. These lists must follow the format: list( list("filterDirection", "filterField", "filterValue" )) where: filterDirection determines whether the Positive, Negative, or Both sides of the contrasts should be filtered, filterField determines which metadata field (originally supplied to groupFields in PseudobulkSeurat and contrast_columns in DesignModelMatrix), filterValue corresponds to which values of the filterField should be filtered. This is useful if you passed parallel hypotheses (e.g. what genes are differentially expressed in each tissue?) in the requireIdenticalFields argument of RunFilteredContrasts, but want to plot the results of only one tissue at a time. 
+#' @param title Title for the bar plot. 
+#' @param log_y_axis A boolean determining if the y axis (magnitude of differential expression) should be log transformed.
+#' @return A list containing the filtered dataframe used for plotting and the bar plot itself. 
+#' @export
+
+PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", log_y_axis = FALSE) {
+  #convert from list of dataframes to one large data frame (note: row names will be duplicated when genes appear more than once).
+  filteredContrastsResults <- dplyr::bind_rows(filteredContrastsResults)
+  #tag the genes as either up or down regulated
+  filteredContrastsResults <- .addRegulationInformation(filteredContrastsResults)
+  
+  #Further filter contrasts associated with a list of vectors (metadataFilterList).
+  if (!is.null(metadataFilterList)) {
+    if (!is.list(metadataFilterList)) {
+      stop("metadataFilterList is improperly formatted. Please ensure metadataFilterList includes a contrast directionality ('Positive', 'Negative', or 'Both'), a metadata variable that was included in groupFields, and a whitelist value that is a member of the metadata variable. Proper formatting should look like: metadataFilterList = list(c('Positive', 'Tissue', 'Lung')).")
+    } else if (length(unlist(metadataFilterList)) %% 3 != 0) {
+      stop("Not all vectors in metadataFilterList are of length 3! Please ensure metadataFilterList includes a contrast directionality ('Positive', 'Negative', or 'Both'), a metadata variable that was included in groupFields, and a whitelist value that is a member of the metadata variable. Proper formatting should look like: metadataFilterList = list(c('Positive', 'Tissue', 'Lung')).")
+    } 
+    #parse the filterList for the metadata field and whitelist value 
+    for (filter in metadataFilterList) {
+      #define filters
+      filterDirection <- filter[1]
+      filterField <- filter[2]
+      filterValue <- filter[3]
+      
+      #Make sure the filters are valid 
+      if (! (filterDirection %in% c("Positive", "Negative", "Both"))) {
+        stop(paste0("Error: Invalid argument ", filterDirection, " supplied in metadataFilterList. Please ensure the first argument in each vector of metadataFilterList specifies a direction that is either 'Positive' for filtering only the positive side of each contrast, 'Negative' for filtering the negative side, or 'Both' for filtering values from either side of each contrast."))
+      } else if (!(grepl(filterField, colnames(filteredContrastsResults)))) {
+        stop(paste0("Error: No contrast columns associated with ", filterField, " were found in the column names of filteredContrastsResults. Please ensure your metadata column was both supplied to groupFields in PseudobulkSeurat and designated as a contrastColumn in DesignModelMatrix."))
+      } else if (! (grepl(filterValue, filteredContrastsResults[,paste0("positive_contrast_", filterField)]) | 
+                    grepl(filterValue, filteredContrastsResults[,paste0("negative_contrast_", filterField)]))){
+        warning(paste0(filterValue, " was not found in the columns associated with ", filterField,". No filtering was performed associated with the following filter: ", filter))
+      }
+      
+      #Apply post-RunFilteredContrasts filtering rules to the contrasts
+      if (filterDirection == "Positive" | filterDirection == "Both") {
+        filteredContrastsResults <- filteredContrastsResults %>% 
+          dplyr::filter(grepl(filterValue, paste0("positive_contrast_", filterField)))
+      } 
+      if (filterDirection == "Negative" | filterDirection == "Both") {
+        filteredContrastsResults <- filteredContrastsResults %>% 
+          dplyr::filter(grepl(filterValue, paste0("negative_contrast_", filterField)))
+      }
+      
+    }
+  }
+  
+  #Define order of magnitude DEG groupings
+  filteredContrastsResults <- filteredContrastsResults %>% 
+    dplyr::filter(gene != "none") %>% 
+    dplyr::group_by(contrast_name) %>% 
+    dplyr::mutate(count = sum(abs(n_DEG))) %>% 
+    dplyr::arrange(-count)  %>% 
+    dplyr::mutate(DEG_Magnitude = dplyr::case_when(
+      count > 1000 ~ "1000+ DEGs",
+      count <= 1000 & count >= 100 ~ "1000-100 DEGs",
+      count <= 100 & count >= 10 ~ "100-10 DEGs",
+      count < 10 ~ "<10 DEGs"
+    ))
+  
+  filteredContrastsResults$DEG_Magnitude <- factor(filteredContrastsResults$DEG_Magnitude, levels = c("1000+ DEGs", "1000-100 DEGs", "100-10 DEGs", "100-10 DEGs", "<10 DEGs"))
+  
+  bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
+    ggplot2::geom_bar(data = filteredContrastsResults, 
+                      ggplot2::aes(x = reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
+    ggplot2::scale_fill_manual(values = c("cadetblue2", "blue", "orange", "red")) + 
+    ggplot2::labs(fill="Unique") + 
+    ggplot2::ylab("Number of DEGs")+ 
+    egg::theme_article() + 
+    #geom_rug(aes(x = reorder(contrast_name, -abs(n_DEG)), color = negative_contrast_Timepoint), sides="b", length = unit(2, units = "cm")) +
+    ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
+    ggtitle(title) + 
+    xlab("Differential Expression Contrasts")
+  
+  if (log_y_axis) {
+    bargraph <- bargraph + dplyr::scale_y_log10()
+  }
+  print(bargraph)
+  
+  return(list(dataframe = filteredContrastsResults, bargraph = bargraph))
+}
+
+#' @title .addRegulationInformation
+#' 
+#' @description a helper function for PseudobulkingBarPlot to tag genes as up- or down-regulated and check for uniqueness of differential gene expression across the contrasts. 
+#' @param tibble a (presumably large) tibble from dplyr containing the results of RunFilteredPseudobulkingContrasts
+#' @return a tibble with the uniqueness and direction of regulation for each gene stored in tibble$regulation
+
+.addRegulationInformation <- function(tibble){
+  tibble <- dplyr::as_tibble(tibble)
+  tibble <- tibble %>% 
+    group_by(contrast_name, gene) %>% 
+    mutate(regulation = ifelse(logFC > 0, yes = "upregulated", no = "downregulated")) %>% 
+    mutate(regulation = ifelse(logFC == 0, yes = "noDEG", no = regulation))
+  
+  tibble <- tibble |>
+    dplyr::group_by(gene) |>
+    dplyr::mutate(gene_occurance = dplyr::n()) 
+  
+  #determine regulation-uniqueness pairs
+  tibble[tibble$regulation == "upregulated","uniqueness"] <- "up_nonunique"
+  tibble[tibble$regulation == "upregulated" & tibble$gene_occurance == 1, "uniqueness"] <- "up_unique"
+  tibble[tibble$regulation == "downregulated","uniqueness"] <- "down_nonunique"
+  tibble[tibble$regulation == "downregulated" & tibble$gene_occurance == 1, "uniqueness"] <- "down_unique"
+  
+  #geom_bar sums the n_DEG column, so fixing the sign is all that is necessary
+  tibble[tibble$regulation == "upregulated", "n_DEG"] <- 1 
+  tibble[tibble$regulation == "downregulated", "n_DEG"] <- -1 
+  tibble[tibble$regulation == "noDEG", "n_DEG"] <- 0
+  return(tibble)
+}
+
+
 #' @title FitRegularizedClassificationGlm 
 #'
 #' @description Treating gene expression like a classification problem, this function trains a penalized model to classify a metadata feature. 

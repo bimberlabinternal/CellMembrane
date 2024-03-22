@@ -30,7 +30,7 @@ PerformDifferentialExpression(
 \item{showPlots}{Boolean determining if the volcano plots and p value dsitributions should be shown.}
 }
 \value{
-A list with the differential_expression results, volano ggplot object and pvalue_dist ggplot object
+A list with the differential_expression results, volcano ggplot object and pvalue_dist ggplot object
 }
 \description{
 This is designed to perform DE using edgeR on a pseudobulked seurat object
