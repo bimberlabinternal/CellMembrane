@@ -229,13 +229,13 @@ head(DE_results$`1`)
 
 We can visualize the results of `RunFilteredContrasts` in a bar plot, showing the magnitude of up- and down-regulated genes over our contrasts that address our hypothesis. The colors indicate whether or not the genes are unique (red or dark blue) to their contrast or shared across the contrasts (orange, light blue). 
 
-```{r}
+```{r Create Bar Plot}
 barplot_results <- PseudobulkingBarPlot(DE_results, title = "Vaccine One vs Unvaxxed/Control")
 ```
 
 Further annotation of the bar plot requires some custom code, but can be formatted like so using the data frame returned from `PseudobulkingBarPlot`: 
 
-```{r}
+```{r Annotate bar Plot}
 #store dataframe
 barPlot_dataframe <- barplot_results$dataframe
 
@@ -269,10 +269,10 @@ metadata_tiles <- ggplot(barplot_results$dataframe) +
 metadata_tiles
 ```
 
-Then, you can add these plots together to annotate the contrasts shown in the Pseudobulking Bar Plot. 
+Then, you can add these plots together using patchwork to annotate the contrasts shown in the Pseudobulking Bar Plot. 
 
-```{r}
-barplot_results$barPlot + metadata_tiles
+```{r Show Final Bar Plot}
+library(patchwork)
 
 (barplot_results$barPlot) / (metadata_tiles) + plot_layout(guides = 'collect')
 ```
