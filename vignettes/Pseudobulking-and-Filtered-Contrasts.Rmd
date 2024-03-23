@@ -280,9 +280,44 @@ library(patchwork)
 (barplot_results$barPlot) / (metadata_tiles) + plot_layout(guides = 'collect')
 ```
 
-## TODO: DE Heatmap
+## Differential Expression Heatmap
+
+Very often, we would like to interpret a group of genes' (module) expression relative to our experimental design. We can visualize gene groupings using a carefully formatted heatmap.  For this heatmap, we'd like to show genes that are upregulated in our experimental condition compared to our control. 
+
+First, let's re-run `FilterPseudobulkingContrasts` with more common differential gene expression cutoffs so we're working with a smaller gene space. You can also use other feature selection algorithms such as CellMembrane's `FitRegularizedClassificationGlm()` or other machine learning approaches to determine appropriate gene sets. 
 
 ```{r}
+DE_results <- RunFilteredContrasts(seuratObj = pbulk, 
+                       filteredContrastsDataframe = filtered_contrasts, 
+                       design = design,
+                       test.use = "QLF", 
+                       logFC_threshold = 1,
+                       FDR_threshold = 0.05,
+                       minCountsPerGene = 1, 
+                       assayName = "RNA")
+
+#bind the list into a dataframe
+DEGs <- dplyr::bind_rows(DE_results) 
+
+#select all of the genes that are differentially expressed in any contrast across the transcriptome
+genes <- unique(DEGs$gene)
+```
+
+
+
+
+```{r}
+
+heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                       geneSpace = genes, 
+                       contrastField = "vaccine_cohort", 
+                       negativeContrastValue = "control", 
+                       useRequireIdenticalLogic = FALSE, 
+                       #requireIdenticalFields = "timepoint"
+                       
+                        )
+
+heatmap_list$heatmap
 
 ```
 
