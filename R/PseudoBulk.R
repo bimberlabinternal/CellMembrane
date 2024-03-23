@@ -742,17 +742,17 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @export
 
 PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, positiveContrastSubgroupingVariable = NULL, useRequireIdenticalLogic = NULL, requireIdenticalFields = NULL, show_row_names = FALSE) {
-  
+  #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
   design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, positiveContrastSubgroupingVariable), sampleIdCol = sampleIdCol)
-  
+  #similarly, parse these arguments for setting up a logicList
   logicList <- list(list(contrastField, "xor", negativeContrastValue))
-  
+  #positiveContrastValue is mostly a filtering tool since we need to establish what our 'control' is via negativeContrastValue.  
   if (!is.null(positiveContrastValue)) {
     logicList[[2]] <- list(contrastField, 'xor', positiveContrastValue)
   }
   
   filteredContrasts <- FilterPseudobulkContrasts(logicList = logicList, design = design, useRequireIdenticalLogic = useRequireIdenticalLogic, requireIdenticalFields = requireIdenticalFields, filteredContrastsOutputFile = tempfile())
-  #we can run RunFilteredContrasts without any filtering because our filtering should occur when we pass-in our geneSpace variable. We're just populating log fold changes here. 
+  #we can run RunFilteredContrasts without any differential expression-based filtering because our gene filtering should occur when we pass-in our geneSpace variable. We're just populating log fold changes here. 
   lfc_results <- RunFilteredContrasts(seuratObj = seuratObj, 
                                                filteredContrastsDataframe = filteredContrasts, 
                                                design = design,
@@ -764,7 +764,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   #bind RunFilteredContrasts into a dataframe
   lfc_results <- dplyr::bind_rows(lfc_results)
   
-  #swap directionality of contrasts if necessary
+  #swap directionality of contrasts such that negativeContrastValue is always negative if necessary. Contrasts are populated alphabetically upstream, so it's easier to just ensure ordering here. 
   lfc_proper_negative_contrast <- lfc_results %>% 
     dplyr::filter(!!sym(paste0("negative_contrast_",contrastField)) == negativeContrastValue)
   lfc_swapped_negative_contrast <- lfc_results %>% 
@@ -773,6 +773,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   lfc_results <- rbind(lfc_proper_negative_contrast, lfc_swapped_negative_contrast)
   
   #pivot the long-form tibble into a matrix for complexheatmap
+  #if we have a second grouping variable (positiveContrastSubgroupingVariable), we include it in the else statement. 
   if (is.null(positiveContrastSubgroupingVariable)) {
     lfc_results_wide <- lfc_results %>% 
       as.data.frame() %>% 
@@ -784,15 +785,17 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
       dplyr::select(all_of(c("gene", "logFC", paste0("positive_contrast_",contrastField), paste0("positive_contrast_",positiveContrastSubgroupingVariable)))) %>% 
       tidyr::pivot_wider(values_from = logFC, names_from = c(!!sym(paste0("positive_contrast_",contrastField)),!!sym(paste0("positive_contrast_",positiveContrastSubgroupingVariable)) ))
   }
-  
+  #format the tibble from dplyr into a numeric matrix for ComplexHeatmap
   heatmap_matrix <- as.data.frame(lfc_results_wide)
   gene_vector <- heatmap_matrix[,"gene"] 
   heatmap_matrix <- heatmap_matrix[,!colnames(heatmap_matrix) %in% "gene"]
   heatmap_matrix <- as.matrix(sapply(heatmap_matrix, as.numeric)) 
   rownames(heatmap_matrix) <- gene_vector 
+  #If a contrast "failed" due to not enough samples to fit a GLM in the contrast, it will return an NA LFC and Pvalue. Impute this to zero. 
   heatmap_matrix[is.na(heatmap_matrix)] <- 0
   
-  
+  #If there's no second grouping variable, compute a heatmap with just the grouping labels. 
+  #else, compute a heatmap with the top labels as positive values of contrastField, while the bottom labels are entries of positiveContrastSubgroupingVariable.
   if (is.null(positiveContrastSubgroupingVariable)) {
     top_annotation <- ComplexHeatmap::HeatmapAnnotation(
       foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill = "white"), 
@@ -805,7 +808,8 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
                                        column_names_centered = T,
                                        show_row_names = show_row_names, 
                                        cluster_columns = FALSE, 
-                                       top_annotation = top_annotation)
+                                       top_annotation = top_annotation, 
+                                       show_column_names = FALSE)
     
   } else {
     labels_df <- do.call(args = strsplit(colnames(heatmap_matrix), split = "_"), rbind)
