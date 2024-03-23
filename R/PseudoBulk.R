@@ -689,7 +689,7 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
     ggplot2::facet_wrap(~DEG_Magnitude)
   
   if (log_y_axis) {
-    bargraph <- bargraph + dplyr::scale_y_log10()
+    bargraph <- bargraph + ggplot2::scale_y_log10()
   }
   print(bargraph)
   
