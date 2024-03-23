@@ -3,7 +3,7 @@
 #' @import ggplot2
 
 utils::globalVariables(
-  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation'),
+  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -640,7 +640,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
   } else if (!is.null(filteredContrastsDataframe) ){
     contrasts <- filteredContrastsDataframe
   } else if (!is.null(filteredContrastsFile)){
-    contrasts <- read.file()
+    contrasts <- read.table()
   }
   
   if (!("counts" %in% SeuratObject::Layers(seuratObj))) {
@@ -828,7 +828,7 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
   
   bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
     ggplot2::geom_bar(data = filteredContrastsResults, 
-                      ggplot2::aes(x = reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
+                      ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
     ggplot2::scale_fill_manual(values = c("cadetblue2", "blue", "orange", "red")) + 
     ggplot2::labs(fill="Unique") + 
     ggplot2::ylab("Number of DEGs")+ 
@@ -876,6 +876,127 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
   return(tibble)
 }
 
+#' @title PseudobulkingDEHeatmap
+#'
+#' @description This is a plotting function that formats the FilterPseudobulkingContrasts logic to plot a heatmap of log fold changes for a given gene space. It is recommended that you filter this gene space through some kind of feature selection, but full transcriptome heatmaps are possible.  
+#' @param seuratObj A pseudobulked Seurat object.
+#' @param geneSpace An optional vector of gene names that specify which genes should populate the heatmap. It is recommended that you perform some kind of feature selection upstream of this to select genes for plotting. 
+#' @param contrastField The primary grouping variable to display (on top of the heatmap). 
+#' @param negativeContrastValue The value of contrastField to be treated as "downregulated". 
+#' @param positiveContrastValue An optional variable to define a specific positive contrast value. While negativeContrastValue determines the log fold changes, this argument operates primarily as a filtering variable to eliminate groups and show a particular value of the contrast field.
+#' @param positiveContrastSubgroupingVariable If there is a second relevant grouping variable, you can supply a second metadata column to group the data by. 
+#' @param useRequireIdenticalLogic A passthrough variable for FilterPseudobulkContrasts.
+#' @param requireIdenticalFields A passthrough variable for FilterPseudobulkContrasts.
+#' @param show_row_names a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap. 
+#' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
+#' @export
+
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, positiveContrastSubgroupingVariable = NULL, useRequireIdenticalLogic = NULL, requireIdenticalFields = NULL, show_row_names = FALSE) {
+  
+  design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, positiveContrastSubgroupingVariable), sampleIdCol = sampleIdCol)
+  
+  logicList <- list(list(contrastField, "xor", negativeContrastValue))
+  
+  if (!is.null(positiveContrastValue)) {
+    logicList[[2]] <- list(contrastField, 'xor', positiveContrastValue)
+  }
+  
+  filteredContrasts <- FilterPseudobulkContrasts(logicList = logicList, design = design, useRequireIdenticalLogic = useRequireIdenticalLogic, requireIdenticalFields = requireIdenticalFields, filteredContrastsOutputFile = tempfile())
+  #we can run RunFilteredContrasts without any filtering because our filtering should occur when we pass-in our geneSpace variable. We're just populating log fold changes here. 
+  lfc_results <- RunFilteredContrasts(seuratObj = seuratObj, 
+                                               filteredContrastsDataframe = filteredContrasts, 
+                                               design = design,
+                                               test.use = "QLF", 
+                                               logFC_threshold = 0,
+                                               FDR_threshold = 1.1,
+                                               minCountsPerGene = 1, 
+                                               assayName = "RNA")
+  #bind RunFilteredContrasts into a dataframe
+  lfc_results <- dplyr::bind_rows(lfc_results)
+  
+  #swap directionality of contrasts if necessary
+  lfc_proper_negative_contrast <- lfc_results %>% 
+    filter(!!sym(paste0("negative_contrast_",contrastField)) == negativeContrastValue)
+  lfc_swapped_negative_contrast <- lfc_results %>% 
+    filter(!!sym(paste0("negative_contrast_",contrastField)) != negativeContrastValue) %>% 
+    .swapContrast()
+  lfc_results <- rbind(lfc_proper_negative_contrast, lfc_swapped_negative_contrast)
+  
+  #pivot the long-form tibble into a matrix for complexheatmap
+  if (is.null(positiveContrastSubgroupingVariable)) {
+    lfc_results_wide <- lfc_results %>% 
+      as.data.frame() %>% 
+      select(all_of(c("gene", "logFC", paste0("positive_contrast_",contrastField)))) %>% 
+      tidyr::pivot_wider(values_from = logFC, names_from = !!sym(paste0("positive_contrast_",contrastField)))
+  } else {
+    lfc_results_wide <- lfc_results %>% 
+      as.data.frame() %>% 
+      select(all_of(c("gene", "logFC", paste0("positive_contrast_",contrastField), paste0("positive_contrast_",positiveContrastSubgroupingVariable)))) %>% 
+      tidyr::pivot_wider(values_from = logFC, names_from = c(!!sym(paste0("positive_contrast_",contrastField)),!!sym(paste0("positive_contrast_",positiveContrastSubgroupingVariable)) ))
+  }
+  
+  heatmap_matrix <- as.data.frame(lfc_results_wide)
+  gene_vector <- heatmap_matrix[,"gene"] 
+  heatmap_matrix <- heatmap_matrix[,!colnames(heatmap_matrix) %in% "gene"]
+  heatmap_matrix <- as.matrix(sapply(heatmap_matrix, as.numeric)) 
+  rownames(heatmap_matrix) <- gene_vector 
+  heatmap_matrix[is.na(heatmap_matrix)] <- 0
+  
+  
+  if (is.null(positiveContrastSubgroupingVariable)) {
+    top_annotation <- HeatmapAnnotation(
+      foo = anno_block(gp = gpar(fill = "white"), 
+                       labels = gsub(colnames(heatmap_matrix))))
+    
+    heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
+                                       column_labels = labels_df[,2],
+                                       name = "Log Fold Changes", 
+                                       column_names_rot = 0,
+                                       column_names_centered = T,
+                                       show_row_names = show_row_names, 
+                                       cluster_columns = FALSE, 
+                                       top_annotation = top_annotation)
+    
+  } else {
+    labels_df <- do.call(args = strsplit(colnames(heatmap_matrix), split = "_"), rbind)
+    top_annotation <- HeatmapAnnotation(
+      foo = anno_block(gp = gpar(fill = rep(x = "white", length(unique(labels_df[,1])))), 
+                       labels = unique(labels_df[,1])))
+    
+    heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
+                            column_labels = labels_df[,2],
+                            name = "Log Fold Changes", 
+                            column_names_rot = 0,
+                            column_names_centered = T,
+                            show_row_names = show_row_names, 
+                            cluster_columns = FALSE, 
+                            top_annotation = top_annotation)
+  }
+  
+  return(list(heatmap = heatmap, matrix = heatmap_matrix))
+}
+
+
+#' @title .swapContrast
+#' 
+#' @description a helper function for PseudobulkingDEHeatmap to swap the "positive" and "negative" sides of the contrasts such that the desired negative contrast value is correctly designated as negative. 
+#' @param tibble a large tibble from dplyr containing the results of RunFilteredPseudobulkingContrasts called within PseudobulkingDEHeatmap.
+#' @return a tibble with the positive and negative contrast directions swapped.
+
+.swapContrast <- function(tibble){
+  swapped_tibble <- tibble
+  #swap positive contrast columns to negative
+  swapped_tibble[,grepl("negative_contrast", colnames(tibble))] <- tibble[,grepl("positive_contrast", colnames(tibble))]
+  #swap negative contrasts to positive
+  swapped_tibble[,grepl("positive_contrast", colnames(tibble))] <- tibble[,grepl("negative_contrast", colnames(tibble))]
+  #swap direction of log fold change
+  swapped_tibble$logFC <- -swapped_tibble$logFC
+  #swap the contrast names
+  split_contrast_names <- strsplit(swapped_tibble$contrast_name, split = '-')
+  swapped_tibble$contrast_name <- sapply(split_contrast_names, FUN = function(x) { paste0(x[2], "-", x[1])})
+  
+  return(swapped_tibble)
+}
 
 #' @title FitRegularizedClassificationGlm 
 #'
@@ -1002,5 +1123,4 @@ FitRegularizedClassificationGlm <- function(seuratObj,
       split = split
     ))
   }
-  
 }
