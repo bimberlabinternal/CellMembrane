@@ -741,7 +741,13 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
 #' @export
 
-PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, positiveContrastSubgroupingVariable = NULL, useRequireIdenticalLogic = NULL, requireIdenticalFields = NULL, show_row_names = FALSE) {
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, positiveContrastSubgroupingVariable = NULL, useRequireIdenticalLogic = NULL, requireIdenticalFields = NULL, show_row_names = FALSE, assay = "RNA") {
+  
+  #subset the seuratObj according to the desired geneSpace
+  count_matrix <- GetAssayData(seuratObj, assay = assay, layer = 'counts')
+  count_matrix <- count_matrix[geneSpace, ]
+  seuratObj <- CreateSeuratObject(counts = count_matrix, assay = assay, meta.data = seuratObj@meta.data)
+  
   #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
   design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, positiveContrastSubgroupingVariable), sampleIdCol = sampleIdCol)
   #similarly, parse these arguments for setting up a logicList
@@ -751,7 +757,21 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
     logicList[[2]] <- list(contrastField, 'xor', positiveContrastValue)
   }
   
-  filteredContrasts <- FilterPseudobulkContrasts(logicList = logicList, design = design, useRequireIdenticalLogic = useRequireIdenticalLogic, requireIdenticalFields = requireIdenticalFields, filteredContrastsOutputFile = tempfile())
+  if (useRequireIdenticalLogic) {
+    filteredContrasts <- FilterPseudobulkContrasts(logicList = logicList, 
+                                                   design = design, 
+                                                   useRequireIdenticalLogic = useRequireIdenticalLogic, 
+                                                   requireIdenticalFields = requireIdenticalFields, 
+                                                   filteredContrastsOutputFile = tempfile())
+  } else {
+    filteredContrasts <- FilterPseudobulkContrasts(logicList = logicList, 
+                                                   design = design, 
+                                                   useRequireIdenticalLogic = useRequireIdenticalLogic, 
+                                                   filteredContrastsOutputFile = tempfile())
+  }
+  
+  
+
   #we can run RunFilteredContrasts without any differential expression-based filtering because our gene filtering should occur when we pass-in our geneSpace variable. We're just populating log fold changes here. 
   lfc_results <- RunFilteredContrasts(seuratObj = seuratObj, 
                                                filteredContrastsDataframe = filteredContrasts, 
@@ -797,15 +817,18 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   #If there's no second grouping variable, compute a heatmap with just the grouping labels. 
   #else, compute a heatmap with the top labels as positive values of contrastField, while the bottom labels are entries of positiveContrastSubgroupingVariable.
   if (is.null(positiveContrastSubgroupingVariable)) {
+<<<<<<< HEAD
     top_annotation <- ComplexHeatmap::HeatmapAnnotation(
       foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill = "white"), 
                        labels = gsub(colnames(heatmap_matrix))))
+=======
+    top_annotation <- HeatmapAnnotation(
+      foo = anno_block(gp = gpar(fill =  rep(x = "white", length(colnames(heatmap_matrix)))), 
+                       labels = colnames(heatmap_matrix)))
+>>>>>>> bd14278 (adding comments, fixing heatmap bugs)
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
-                                       column_labels = labels_df[,2],
                                        name = "Log Fold Changes", 
-                                       column_names_rot = 0,
-                                       column_names_centered = T,
                                        show_row_names = show_row_names, 
                                        cluster_columns = FALSE, 
                                        top_annotation = top_annotation, 
