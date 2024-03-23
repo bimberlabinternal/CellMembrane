@@ -817,15 +817,11 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   #If there's no second grouping variable, compute a heatmap with just the grouping labels. 
   #else, compute a heatmap with the top labels as positive values of contrastField, while the bottom labels are entries of positiveContrastSubgroupingVariable.
   if (is.null(positiveContrastSubgroupingVariable)) {
-<<<<<<< HEAD
-    top_annotation <- ComplexHeatmap::HeatmapAnnotation(
-      foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill = "white"), 
-                       labels = gsub(colnames(heatmap_matrix))))
-=======
+    
     top_annotation <- HeatmapAnnotation(
       foo = anno_block(gp = gpar(fill =  rep(x = "white", length(colnames(heatmap_matrix)))), 
                        labels = colnames(heatmap_matrix)))
->>>>>>> bd14278 (adding comments, fixing heatmap bugs)
+
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
                                        name = "Log Fold Changes", 
