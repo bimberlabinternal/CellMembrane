@@ -3,7 +3,7 @@
 #' @import ggplot2
 
 utils::globalVariables(
-  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name'),
+  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name', 'sampleIdCol'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -766,9 +766,9 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   
   #swap directionality of contrasts if necessary
   lfc_proper_negative_contrast <- lfc_results %>% 
-    filter(!!sym(paste0("negative_contrast_",contrastField)) == negativeContrastValue)
+    dplyr::filter(!!sym(paste0("negative_contrast_",contrastField)) == negativeContrastValue)
   lfc_swapped_negative_contrast <- lfc_results %>% 
-    filter(!!sym(paste0("negative_contrast_",contrastField)) != negativeContrastValue) %>% 
+    dplyr::filter(!!sym(paste0("negative_contrast_",contrastField)) != negativeContrastValue) %>% 
     .swapContrast()
   lfc_results <- rbind(lfc_proper_negative_contrast, lfc_swapped_negative_contrast)
   
@@ -776,12 +776,12 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   if (is.null(positiveContrastSubgroupingVariable)) {
     lfc_results_wide <- lfc_results %>% 
       as.data.frame() %>% 
-      select(all_of(c("gene", "logFC", paste0("positive_contrast_",contrastField)))) %>% 
+      dplyr::select(all_of(c("gene", "logFC", paste0("positive_contrast_",contrastField)))) %>% 
       tidyr::pivot_wider(values_from = logFC, names_from = !!sym(paste0("positive_contrast_",contrastField)))
   } else {
     lfc_results_wide <- lfc_results %>% 
       as.data.frame() %>% 
-      select(all_of(c("gene", "logFC", paste0("positive_contrast_",contrastField), paste0("positive_contrast_",positiveContrastSubgroupingVariable)))) %>% 
+      dplyr::select(all_of(c("gene", "logFC", paste0("positive_contrast_",contrastField), paste0("positive_contrast_",positiveContrastSubgroupingVariable)))) %>% 
       tidyr::pivot_wider(values_from = logFC, names_from = c(!!sym(paste0("positive_contrast_",contrastField)),!!sym(paste0("positive_contrast_",positiveContrastSubgroupingVariable)) ))
   }
   
@@ -794,8 +794,8 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   
   
   if (is.null(positiveContrastSubgroupingVariable)) {
-    top_annotation <- HeatmapAnnotation(
-      foo = anno_block(gp = gpar(fill = "white"), 
+    top_annotation <- ComplexHeatmap::HeatmapAnnotation(
+      foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill = "white"), 
                        labels = gsub(colnames(heatmap_matrix))))
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
@@ -809,8 +809,8 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
     
   } else {
     labels_df <- do.call(args = strsplit(colnames(heatmap_matrix), split = "_"), rbind)
-    top_annotation <- HeatmapAnnotation(
-      foo = anno_block(gp = gpar(fill = rep(x = "white", length(unique(labels_df[,1])))), 
+    top_annotation <- ComplexHeatmap::HeatmapAnnotation(
+      foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill = rep(x = "white", length(unique(labels_df[,1])))), 
                        labels = unique(labels_df[,1])))
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
