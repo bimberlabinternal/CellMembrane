@@ -10,10 +10,9 @@ PseudobulkingDEHeatmap(
   contrastField = NULL,
   negativeContrastValue = NULL,
   positiveContrastValue = NULL,
-  positiveContrastSubgroupingVariable = NULL,
-  useRequireIdenticalLogic = NULL,
-  requireIdenticalFields = NULL,
-  show_row_names = FALSE
+  subgroupingVariable = NULL,
+  show_row_names = FALSE,
+  assay = "RNA"
 )
 }
 \arguments{
@@ -27,11 +26,7 @@ PseudobulkingDEHeatmap(
 
 \item{positiveContrastValue}{An optional variable to define a specific positive contrast value. While negativeContrastValue determines the log fold changes, this argument operates primarily as a filtering variable to eliminate groups and show a particular value of the contrast field.}
 
-\item{positiveContrastSubgroupingVariable}{If there is a second relevant grouping variable, you can supply a second metadata column to group the data by.}
-
-\item{useRequireIdenticalLogic}{A passthrough variable for FilterPseudobulkContrasts.}
-
-\item{requireIdenticalFields}{A passthrough variable for FilterPseudobulkContrasts.}
+\item{subgroupingVariable}{If there is a second relevant grouping variable, you can supply a second metadata column to group the data by.}
 
 \item{show_row_names}{a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap.}
 }

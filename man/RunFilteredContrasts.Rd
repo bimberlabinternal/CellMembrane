@@ -13,7 +13,8 @@ RunFilteredContrasts(
   logFC_threshold = 1,
   minCountsPerGene = 1,
   FDR_threshold = 0.05,
-  assayName = "RNA"
+  assayName = "RNA",
+  showPlots = FALSE
 )
 }
 \arguments{
@@ -27,13 +28,15 @@ RunFilteredContrasts(
 
 \item{test.use}{A passthrough argument specifying the statistical test to be run by PerformGlmFit and PerformDifferentialExpression.}
 
-\item{logFC_threshold}{A passthrough argument specifying the log fold change threshold to be used by PerformDifferentialExpression.}
+\item{logFC_threshold}{A passthrough argument specifying the log fold change threshold to be used by PerformDifferentialExpression (for plotting only).}
 
-\item{minCountsPerGene}{A passthrough argument specifying the minimum counts a gene must have before it is filtered.}
+\item{minCountsPerGene}{A passthrough argument specifying the minimum counts a gene must have before it is filtered and excluded from GLM fitting by PerformGlmFit().}
 
-\item{FDR_threshold}{A passthrough argument specifying the FDR threshold to be used by PerformDifferentialExpression.}
+\item{FDR_threshold}{A passthrough argument specifying the FDR threshold to be used by PerformDifferentialExpression (for plotting only).}
 
 \item{assayName}{A passthrough argument specifying in which assay the counts are held.}
+
+\item{showPlots}{A passthrough argument specifying whether or not PerformDifferentialExpression should show the volano plots}
 }
 \value{
 A list of dataframes containing the differentially expressed genes in each contrast supplied by one of the filteredGenes arguments.

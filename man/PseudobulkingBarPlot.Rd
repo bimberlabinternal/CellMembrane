@@ -8,7 +8,9 @@ PseudobulkingBarPlot(
   filteredContrastsResults,
   metadataFilterList = NULL,
   title = "Please Title The Bar Plot",
-  log_y_axis = FALSE
+  log_y_axis = FALSE,
+  logFC_threshold = 1,
+  FDR_threshold = 0.05
 )
 }
 \arguments{
@@ -19,6 +21,10 @@ PseudobulkingBarPlot(
 \item{title}{Title for the bar plot.}
 
 \item{log_y_axis}{A boolean determining if the y axis (magnitude of differential expression) should be log transformed.}
+
+\item{logFC_threshold}{A passthrough argument specifying the log fold change threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.}
+
+\item{FDR_threshold}{A passthrough argument specifying the FDR threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.}
 }
 \value{
 A list containing the filtered dataframe used for plotting and the bar plot itself.

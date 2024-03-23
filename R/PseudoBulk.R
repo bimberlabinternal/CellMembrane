@@ -474,14 +474,15 @@ xnor <- function(x,y){(x == y)}
 #' @param filteredContrastsDataframe A dataframe containing the output of FilterPseudobulkContrasts. This can be omitted if you read the results of FilterPseudobulkContrasts from the file written by the function instead. 
 #' @param design a design/model matrix returned by DesignModelMatrix().
 #' @param test.use A passthrough argument specifying the statistical test to be run by PerformGlmFit and PerformDifferentialExpression. 
-#' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by PerformDifferentialExpression. 
-#' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by PerformDifferentialExpression.
-#' @param minCountsPerGene A passthrough argument specifying the minimum counts a gene must have before it is filtered.
+#' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by PerformDifferentialExpression (for plotting only). 
+#' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by PerformDifferentialExpression (for plotting only).
+#' @param minCountsPerGene A passthrough argument specifying the minimum counts a gene must have before it is filtered and excluded from GLM fitting by PerformGlmFit().
 #' @param assayName A passthrough argument specifying in which assay the counts are held. 
+#' @param showPlots A passthrough argument specifying whether or not PerformDifferentialExpression should show the volano plots 
 #' @return A list of dataframes containing the differentially expressed genes in each contrast supplied by one of the filteredGenes arguments. 
 #' @export
 
-RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filteredContrastsDataframe = NULL, design, test.use, logFC_threshold = 1, minCountsPerGene = 1, FDR_threshold = 0.05, assayName = "RNA"){
+RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filteredContrastsDataframe = NULL, design, test.use, logFC_threshold = 1, minCountsPerGene = 1, FDR_threshold = 0.05, assayName = "RNA", showPlots = FALSE){
   if (is.null(filteredContrastsFile) & is.null(filteredContrastsDataframe)){
     stop("Please define either filteredContrastsDataframe or filteredContrastsFile. Both of these are output by FilterPseudobulkContrasts() and are equivalent. filteredContrastsDataframe is returned by FilterPseudobulkContrasts(), and filteredContrastsFile is written to disk (by default: ./filtered_contrasts.tsv)")
   } else if (!is.null(filteredContrastsFile) & !is.null(filteredContrastsDataframe)){
@@ -566,7 +567,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
         fit <- PerformGlmFit(seuratObj.contrast, design = filtered_design_matrix, test.use = test.use, assayName = assayName, minCountsPerGene = minCountsPerGene)
         #format contrast using limma
         contrast <- limma::makeContrasts(contrasts = contrast_name, levels = colnames(filtered_design_matrix))
-        result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold, test.use = test.use, showPlots = F)
+        result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold, test.use = test.use, showPlots = showPlots)
         #if no DEGs are returned, then spoof the table with a "null DEG".
         if(nrow(result$differential_expression$table)==0){
           print(paste0("empty DE results for contrast:", contrast_name))
@@ -615,14 +616,16 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
 #' @param metadataFilterList An optional list of lists specifying further filtering to be performed. These lists must follow the format: list( list("filterDirection", "filterField", "filterValue" )) where: filterDirection determines whether the Positive, Negative, or Both sides of the contrasts should be filtered, filterField determines which metadata field (originally supplied to groupFields in PseudobulkSeurat and contrast_columns in DesignModelMatrix), filterValue corresponds to which values of the filterField should be filtered. This is useful if you passed parallel hypotheses (e.g. what genes are differentially expressed in each tissue?) in the requireIdenticalFields argument of RunFilteredContrasts, but want to plot the results of only one tissue at a time. 
 #' @param title Title for the bar plot. 
 #' @param log_y_axis A boolean determining if the y axis (magnitude of differential expression) should be log transformed.
+#' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction. 
+#' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.
 #' @return A list containing the filtered dataframe used for plotting and the bar plot itself. 
 #' @export
 
-PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", log_y_axis = FALSE) {
+PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", log_y_axis = FALSE, logFC_threshold = 1, FDR_threshold = 0.05) {
   #convert from list of dataframes to one large data frame (note: row names will be duplicated when genes appear more than once).
   filteredContrastsResults <- dplyr::bind_rows(filteredContrastsResults)
   #tag the genes as either up or down regulated
-  filteredContrastsResults <- .addRegulationInformation(filteredContrastsResults)
+  filteredContrastsResults <- .addRegulationInformationAndFilterDEGs(filteredContrastsResults, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold)
   
   #Further filter contrasts associated with a list of vectors (metadataFilterList).
   if (!is.null(metadataFilterList)) {
@@ -664,6 +667,7 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
   #Define order of magnitude DEG groupings
   filteredContrastsResults <- filteredContrastsResults %>% 
     dplyr::filter(gene != "none") %>% 
+    dplyr::filter(!is.na(uniqueness)) %>% 
     dplyr::group_by(contrast_name) %>% 
     dplyr::mutate(count = sum(abs(n_DEG))) %>% 
     dplyr::arrange(-count)  %>% 
@@ -679,14 +683,14 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
   bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
     ggplot2::geom_bar(data = filteredContrastsResults, 
                       ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
-    ggplot2::scale_fill_manual(values = c("cadetblue2", "blue", "orange", "red")) + 
+    ggplot2::scale_fill_manual(values = c(down_nonunique = "cadetblue2", down_unique = "blue", up_nonunique = "orange", up_unique = "red")) + 
     ggplot2::labs(fill="Unique") + 
     ggplot2::ylab("Number of DEGs")+ 
     egg::theme_article() + 
     ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
     ggplot2::ggtitle(title) + 
     ggplot2::xlab("Differential Expression Contrasts") + 
-    ggplot2::facet_wrap(~DEG_Magnitude)
+    ggplot2::facet_wrap(~DEG_Magnitude, scales = "free_x")
   
   if (log_y_axis) {
     bargraph <- bargraph + ggplot2::scale_y_log10()
@@ -696,18 +700,19 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
   return(list(dataframe = filteredContrastsResults, barPlot = bargraph))
 }
 
-#' @title .addRegulationInformation
+#' @title .addRegulationInformationAndFilterDEGs
 #' 
 #' @description a helper function for PseudobulkingBarPlot to tag genes as up- or down-regulated and check for uniqueness of differential gene expression across the contrasts. 
 #' @param tibble a (presumably large) tibble from dplyr containing the results of RunFilteredPseudobulkingContrasts
 #' @return a tibble with the uniqueness and direction of regulation for each gene stored in tibble$regulation
 
-.addRegulationInformation <- function(tibble){
+.addRegulationInformationAndFilterDEGs <- function(tibble, logFC_threshold = 1, FDR_threshold = 0.05){
   tibble <- dplyr::as_tibble(tibble)
   tibble <- tibble %>% 
     group_by(contrast_name, gene) %>% 
-    mutate(regulation = ifelse(logFC > 0, yes = "upregulated", no = "downregulated")) %>% 
-    mutate(regulation = ifelse(logFC == 0, yes = "noDEG", no = regulation))
+    mutate(regulation = case_when( logFC > logFC_threshold & FDR < FDR_threshold ~ "upregulated",
+                                   logFC < -logFC_threshold & FDR < FDR_threshold ~ "downregulated", 
+                                   abs(logFC) < logFC_threshold | FDR > FDR_threshold ~ "noDEG"))
   
   tibble <- tibble |>
     dplyr::group_by(gene) |>
@@ -734,14 +739,12 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @param contrastField The primary grouping variable to display (on top of the heatmap). 
 #' @param negativeContrastValue The value of contrastField to be treated as "downregulated". 
 #' @param positiveContrastValue An optional variable to define a specific positive contrast value. While negativeContrastValue determines the log fold changes, this argument operates primarily as a filtering variable to eliminate groups and show a particular value of the contrast field.
-#' @param positiveContrastSubgroupingVariable If there is a second relevant grouping variable, you can supply a second metadata column to group the data by. 
-#' @param useRequireIdenticalLogic A passthrough variable for FilterPseudobulkContrasts.
-#' @param requireIdenticalFields A passthrough variable for FilterPseudobulkContrasts.
+#' @param subgroupingVariable If there is a second relevant grouping variable, you can supply a second metadata column to group the data by. 
 #' @param show_row_names a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap. 
 #' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
 #' @export
 
-PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, positiveContrastSubgroupingVariable = NULL, useRequireIdenticalLogic = NULL, requireIdenticalFields = NULL, show_row_names = FALSE, assay = "RNA") {
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, show_row_names = FALSE, assay = "RNA") {
   
   #subset the seuratObj according to the desired geneSpace
   count_matrix <- GetAssayData(seuratObj, assay = assay, layer = 'counts')
@@ -749,7 +752,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   seuratObj <- CreateSeuratObject(counts = count_matrix, assay = assay, meta.data = seuratObj@meta.data)
   
   #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
-  design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, positiveContrastSubgroupingVariable), sampleIdCol = sampleIdCol)
+  design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol)
   #similarly, parse these arguments for setting up a logicList
   logicList <- list(list(contrastField, "xor", negativeContrastValue))
   #positiveContrastValue is mostly a filtering tool since we need to establish what our 'control' is via negativeContrastValue.  
@@ -757,13 +760,18 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
     logicList[[2]] <- list(contrastField, 'xor', positiveContrastValue)
   }
   
-  if (useRequireIdenticalLogic) {
+  if (!is.null(subgroupingVariable)) {
+    #use subgroupingVariable information to infer arguments for FilterPseudobulkContrasts
+    useRequireIdenticalLogic <- TRUE
+    requireIdenticalFields <- subgroupingVariable
     filteredContrasts <- FilterPseudobulkContrasts(logicList = logicList, 
                                                    design = design, 
                                                    useRequireIdenticalLogic = useRequireIdenticalLogic, 
                                                    requireIdenticalFields = requireIdenticalFields, 
                                                    filteredContrastsOutputFile = tempfile())
   } else {
+    #use subgroupingVariable information to infer arguments for FilterPseudobulkContrasts
+    useRequireIdenticalLogic <- FALSE
     filteredContrasts <- FilterPseudobulkContrasts(logicList = logicList, 
                                                    design = design, 
                                                    useRequireIdenticalLogic = useRequireIdenticalLogic, 
@@ -793,17 +801,18 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   lfc_results <- rbind(lfc_proper_negative_contrast, lfc_swapped_negative_contrast)
   
   #pivot the long-form tibble into a matrix for complexheatmap
-  #if we have a second grouping variable (positiveContrastSubgroupingVariable), we include it in the else statement. 
-  if (is.null(positiveContrastSubgroupingVariable)) {
+  #if we have a second grouping variable (subgroupingVariable), we include it in the else statement. 
+  if (is.null(subgroupingVariable)) {
     lfc_results_wide <- lfc_results %>% 
       as.data.frame() %>% 
       dplyr::select(all_of(c("gene", "logFC", paste0("positive_contrast_",contrastField)))) %>% 
       tidyr::pivot_wider(values_from = logFC, names_from = !!sym(paste0("positive_contrast_",contrastField)))
   } else {
     lfc_results_wide <- lfc_results %>% 
+      tidyr::unite(joinedFields, c(paste0("positive_contrast_",contrastField), paste0("positive_contrast_",subgroupingVariable)), remove = FALSE) %>% 
       as.data.frame() %>% 
-      dplyr::select(all_of(c("gene", "logFC", paste0("positive_contrast_",contrastField), paste0("positive_contrast_",positiveContrastSubgroupingVariable)))) %>% 
-      tidyr::pivot_wider(values_from = logFC, names_from = c(!!sym(paste0("positive_contrast_",contrastField)),!!sym(paste0("positive_contrast_",positiveContrastSubgroupingVariable)) ))
+      dplyr::select(all_of(c("gene", "logFC", "joinedFields"))) %>% 
+      tidyr::pivot_wider(values_from = logFC, names_from = joinedFields )
   }
   #format the tibble from dplyr into a numeric matrix for ComplexHeatmap
   heatmap_matrix <- as.data.frame(lfc_results_wide)
@@ -815,11 +824,12 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   heatmap_matrix[is.na(heatmap_matrix)] <- 0
   
   #If there's no second grouping variable, compute a heatmap with just the grouping labels. 
-  #else, compute a heatmap with the top labels as positive values of contrastField, while the bottom labels are entries of positiveContrastSubgroupingVariable.
-  if (is.null(positiveContrastSubgroupingVariable)) {
+  #else, compute a heatmap with the top labels as positive values of contrastField, while the bottom labels are entries of subgroupingVariable.
+  if (is.null(subgroupingVariable)) {
     
+    split <- colnames(heatmap_matrix)
     top_annotation <- HeatmapAnnotation(
-      foo = anno_block(gp = gpar(fill =  rep(x = "white", length(colnames(heatmap_matrix)))), 
+      foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill =  rep(x = "white", length(colnames(heatmap_matrix)))), 
                        labels = colnames(heatmap_matrix)))
 
     
@@ -828,10 +838,14 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
                                        show_row_names = show_row_names, 
                                        cluster_columns = FALSE, 
                                        top_annotation = top_annotation, 
-                                       show_column_names = FALSE)
+                                       show_column_names = FALSE, 
+                                       column_split = split, 
+                                       column_title = NULL, 
+                                       border = TRUE)
     
   } else {
     labels_df <- do.call(args = strsplit(colnames(heatmap_matrix), split = "_"), rbind)
+    split <- labels_df[,1]
     top_annotation <- ComplexHeatmap::HeatmapAnnotation(
       foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill = rep(x = "white", length(unique(labels_df[,1])))), 
                        labels = unique(labels_df[,1])))
@@ -843,7 +857,10 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
                             column_names_centered = T,
                             show_row_names = show_row_names, 
                             cluster_columns = FALSE, 
-                            top_annotation = top_annotation)
+                            top_annotation = top_annotation, 
+                            column_split = split, 
+                            column_title = NULL, 
+                            border = TRUE)
   }
   
   return(list(heatmap = heatmap, matrix = heatmap_matrix))
