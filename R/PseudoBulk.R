@@ -450,6 +450,10 @@ FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequir
   #filter the contrasts using the indices that satisfy the logic gates/require_identical fields.
   contrasts <- contrasts[filtered_contrast_indices,]
   
+  if (nrow(contrasts) == 0) {
+    stop("All contrasts were filtered. Please ensure the first entry of logicList's lists is a field supplied to the contrast_columns argument of DesignModelMatrix(). Please also check that the third entry of the logicList's lists reacts predictably with the make.names() function.")
+  }
+  
   #initialize a dataframe to store the filtered contrasts.
   filteredContrastsDataframe <- data.frame()
   #iterate through the filtered contrasts and coerce the matrix into a data frame. 
@@ -717,8 +721,8 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 .addRegulationInformationAndFilterDEGs <- function(tibble, logFC_threshold = 1, FDR_threshold = 0.05){
   tibble <- dplyr::as_tibble(tibble)
   tibble <- tibble %>% 
-    group_by(contrast_name, gene) %>% 
-    mutate(regulation = case_when( logFC > logFC_threshold & FDR < FDR_threshold ~ "upregulated",
+    dplyr::group_by(contrast_name, gene) %>% 
+    dplyr::mutate(regulation = dplyr::case_when( logFC > logFC_threshold & FDR < FDR_threshold ~ "upregulated",
                                    logFC < -logFC_threshold & FDR < FDR_threshold ~ "downregulated", 
                                    abs(logFC) < logFC_threshold | FDR > FDR_threshold ~ "noDEG"))
   

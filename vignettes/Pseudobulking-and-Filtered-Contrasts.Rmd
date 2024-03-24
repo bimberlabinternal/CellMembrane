@@ -262,11 +262,17 @@ head(DE_results$`1`)
 We can visualize the results of `RunFilteredContrasts` in a bar plot, showing the magnitude of up- and down-regulated genes over our contrasts that address our hypothesis. The colors indicate whether or not the genes are unique (red or dark blue) to their contrast or shared across the contrasts (orange, light blue). Please note, the thresholds are used to determine if the genes are differentially expressed or not within each contrast.
 
 ```{r Create Permissive Bar Plot}
-barplot_results <- PseudobulkingBarPlot(DE_results, title = "Vaccine One vs Unvaxxed/Control", logFC_threshold = 0, FDR_threshold = .5)
+barplot_results <- PseudobulkingBarPlot(DE_results, 
+                                        title = "Vaccine One vs Unvaxxed/Control", 
+                                        logFC_threshold = 0, 
+                                        FDR_threshold = .5)
 ```
 
 ```{r Create Strict Bar Plot}
-barplot_results <- PseudobulkingBarPlot(DE_results, title = "Vaccine One vs Unvaxxed/Control", logFC_threshold = 0.1, FDR_threshold = 0.05)
+barplot_results <- PseudobulkingBarPlot(DE_results, 
+                                        title = "Vaccine One vs Unvaxxed/Control", 
+                                        logFC_threshold = 0.1, 
+                                        FDR_threshold = 0.05)
 ```
 
 Further annotation of the bar plot requires some custom code, but can be formatted like so using the data frame returned from `PseudobulkingBarPlot`: 
