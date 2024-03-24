@@ -839,7 +839,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
                                        name = "Log Fold Changes", 
-                                       showRowNames = showRowNames, 
+                                       show_row_names = showRowNames, 
                                        cluster_columns = FALSE, 
                                        top_annotation = top_annotation, 
                                        show_column_names = FALSE, 
@@ -859,7 +859,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
                             name = "Log Fold Changes", 
                             column_names_rot = 0,
                             column_names_centered = T,
-                            showRowNames = showRowNames, 
+                            show_row_names = showRowNames, 
                             cluster_columns = FALSE, 
                             top_annotation = top_annotation, 
                             column_split = split, 
