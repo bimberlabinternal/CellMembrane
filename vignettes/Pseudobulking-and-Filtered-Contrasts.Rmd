@@ -73,7 +73,7 @@ design <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort"), sampl
 ComplexHeatmap::Heatmap(design, 
                         cluster_columns = F, 
                         cluster_rows = F, 
-                        showRowNames = T,
+                        show_row_names = T,
                         column_title = "Experimental Groups",
                         row_title = "Individual Sample Labels",
                         col = colorRamp2(c(0, 1), c("cadetblue2", "coral")),
