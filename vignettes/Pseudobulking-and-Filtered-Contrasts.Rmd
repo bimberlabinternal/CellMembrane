@@ -14,12 +14,13 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE, set.seed(1234)}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>", 
   cache = T
 )
+set.seed(1234)
 library(ComplexHeatmap)
 library(circlize)
 library(Seurat, warn.conflicts = F)
