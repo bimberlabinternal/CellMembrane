@@ -86,8 +86,14 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
     ref <- ref[genesPresent,]
 
-    seuratObjSubset <- Seurat::DietSeurat(seuratObj, assays = c(assay), counts = TRUE)
+    seuratObjSubset <- Seurat::DietSeurat(seuratObj, assays = assay, counts = TRUE)
     seuratObjSubset <- subset(seuratObjSubset, features = genesPresent)
+    cellsToKeep <- colnames(seuratObjSubset)[Matrix::colSums(GetAssayData(object = seuratObjSubset, assay = assay, slot = "counts")) > 0]
+    if (length(cellsToKeep) != ncol(seuratObjSubset)) {
+      print('Dropping cells with zero counts after feature subset')
+      seuratObjSubset <- subset(seuratObjSubset, cells = cellsToKeep)
+    }
+
     Seurat::DefaultAssay(seuratObjSubset) <- assay
 
     #Convert to SingleCellExperiment
@@ -105,12 +111,12 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
     tryCatch({
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.main, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE, BPPARAM = BPPARAM))
-      if (length(colnames(seuratObj)) != nrow(pred.results)) {
+      if (length(cellsToKeep) != nrow(pred.results)) {
         stop('Length of SingleR results did not match seurat object')
       }
 
       if (!is.null(rawDataFile)){
-        toBind <- data.frame(cellbarcode = colnames(seuratObj), classification_type = 'Main', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
+        toBind <- data.frame(cellbarcode = cellsToKeep, classification_type = 'Main', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
         if (is.null(completeRawData)) {
           completeRawData <- toBind
         } else {
@@ -131,10 +137,11 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
       toAdd <- pred.results$pruned.labels
       toAdd[is.na(toAdd)] <- 'Unknown'
-      names(toAdd) <- colnames(seuratObj)
+      names(toAdd) <- pred.results$cellbarcode
       fn <- paste0(dataset, '.label')
       allFields <- c(allFields, fn)
-      seuratObj[[fn]] <- toAdd
+      seuratObj <- Seurat::AddMetaData(seuratObj, toAdd, col.name = fn)
+      seuratObj[[fn]][is.na(seuratObj[[fn]])] <- 'Unknown'
 
       tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn, drop = TRUE]]))
       ComplexHeatmap::Heatmap(log10(tab+10),
@@ -145,12 +152,12 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       ) # using a larger pseudo-count for smoothing.
 
       pred.results <- suppressWarnings(SingleR::SingleR(test = sce, ref = ref, labels = ref$label.fine, assay.type.test = 'logcounts', assay.type.ref = refAssay, fine.tune = TRUE, prune = TRUE))
-      if (length(colnames(seuratObj)) != nrow(pred.results)) {
+      if (length(cellsToKeep) != nrow(pred.results)) {
         stop('Length of SingleR results did not match seurat object')
       }
 
       if (!is.null(rawDataFile)){
-        toBind <- data.frame(cellbarcode = colnames(seuratObj), classification_type = 'Fine', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
+        toBind <- data.frame(cellbarcode = cellsToKeep, classification_type = 'Fine', dataset = dataset, labels = pred.results$labels, pruned.labels = pred.results$pruned.labels)
         if (is.null(completeRawData)) {
           completeRawData <- toBind
         } else {
@@ -169,10 +176,11 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
       toAdd <- pred.results$pruned.labels
       toAdd[is.na(toAdd)] <- 'Unknown'
-      names(toAdd) <- colnames(seuratObj)
+      names(toAdd) <- pred.results$cellbarcode
       fn2 <- paste0(dataset, '.label.fine')
       allFields <- c(allFields, fn2)
-      seuratObj[[fn2]] <- toAdd
+      seuratObj <- Seurat::AddMetaData(seuratObj, toAdd, col.name = fn2)
+      seuratObj[[fn2]][is.na(seuratObj[[fn2]])] <- 'Unknown'
 
       tab <- table(cluster=as.character(Seurat::Idents(seuratObj)), label=unname(seuratObj[[fn2, drop = TRUE]]))
       ComplexHeatmap::Heatmap(log10(tab+10),
