@@ -743,11 +743,12 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @param positiveContrastValue An optional variable to define a specific positive contrast value. While negativeContrastValue determines the log fold changes, this argument operates primarily as a filtering variable to eliminate groups and show a particular value of the contrast field.
 #' @param subgroupingVariable If there is a second relevant grouping variable, you can supply a second metadata column to group the data by. 
 #' @param assayName the name of the assay in the seurat object storing the count matrix. 
-#' @param show_row_names a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap. 
+#' @param showRowNames a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap. 
+#' @param sampleIdCol The metadata column denoting the variable containing the sample identifier (for grouping). 
 #' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
 #' @export
 
-PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, show_row_names = FALSE, assayName = "RNA", sampleIdCol = NULL) {
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID') {
   
   #subset the seuratObj according to the desired geneSpace
   count_matrix <- GetAssayData(seuratObj, assay = assayName, layer = 'counts')
@@ -838,7 +839,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
                                        name = "Log Fold Changes", 
-                                       show_row_names = show_row_names, 
+                                       showRowNames = showRowNames, 
                                        cluster_columns = FALSE, 
                                        top_annotation = top_annotation, 
                                        show_column_names = FALSE, 
@@ -858,7 +859,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
                             name = "Log Fold Changes", 
                             column_names_rot = 0,
                             column_names_centered = T,
-                            show_row_names = show_row_names, 
+                            showRowNames = showRowNames, 
                             cluster_columns = FALSE, 
                             top_annotation = top_annotation, 
                             column_split = split, 
