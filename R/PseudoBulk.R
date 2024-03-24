@@ -389,6 +389,12 @@ FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequir
     stop("Metadata columns requested in requireIdenticalFields do not appear in the supplied design matrix's contrast_columns attribute. Please ensure that the contrast_columns vector supplied to DesignModelMatrix() is correct and that all elements in the requireIdenticalFields vector are metadata column names whose values you intended to keep constant across all pairwise contrasts.")
   }
   
+  #Sanitize the logicList's criterion field according to the make.names() usage in the DesignModelMatrix (where it will compare the str_split(column) values)
+  #The metadata's name field is fetched from a raw value stored in attr(design, "contrast_columns"), so it doesn't need to be fixed. 
+  for (logicListIndex in 1:length(logicList)){
+    logicList[[logicListIndex]][[3]] <- gsub("_", ".", make.names(logicList[[logicListIndex]]))[[3]]
+  }
+  
   #create a nx2 array of all possible unique pairwise combinations of contrasts from the design matrix.
   contrasts <- t(utils::combn(colnames(design), m = 2))
   
