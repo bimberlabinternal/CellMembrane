@@ -553,7 +553,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       #This only tests the last contrast column for >1 samples, but this should be sufficient. If a contrast yielded a subset with no samples remaining, it should error in the trycatch and seuratObj should be NULL. 
       if (all(table(seuratObj.contrast@meta.data[,contrast_column]) > 1)) {
         #convert seurat object to SingleCellExperiment for edgeR
-        sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj.contrast, assay = "RNA", layer = "counts")), colData = seuratObj.contrast@meta.data)
+        sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj.contrast, assay = assayName, layer = "counts")), colData = seuratObj.contrast@meta.data)
         
         #filter out lowly expressed genes
         if (!is.null(minCountsPerGene)) {
@@ -750,9 +750,9 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, show_row_names = FALSE, assayName = "RNA", sampleIdCol = NULL) {
   
   #subset the seuratObj according to the desired geneSpace
-  count_matrix <- GetAssayData(seuratObj, assay = assay, layer = 'counts')
+  count_matrix <- GetAssayData(seuratObj, assay = assayName, layer = 'counts')
   count_matrix <- count_matrix[geneSpace, ]
-  seuratObj <- CreateSeuratObject(counts = count_matrix, assay = assay, meta.data = seuratObj@meta.data)
+  seuratObj <- CreateSeuratObject(counts = count_matrix, assay = assayName, meta.data = seuratObj@meta.data)
   
   #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
   design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol)
@@ -791,7 +791,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
                                                logFC_threshold = 0,
                                                FDR_threshold = 1.1,
                                                minCountsPerGene = 1, 
-                                               assayName = "RNA")
+                                               assayName = assayName)
   #bind RunFilteredContrasts into a dataframe
   lfc_results <- dplyr::bind_rows(lfc_results)
   
