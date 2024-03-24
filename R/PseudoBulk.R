@@ -3,7 +3,7 @@
 #' @import ggplot2
 
 utils::globalVariables(
-  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name', 'sampleIdCol'),
+  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name', 'sampleIdCol', 'joinedFields'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -704,6 +704,8 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' 
 #' @description a helper function for PseudobulkingBarPlot to tag genes as up- or down-regulated and check for uniqueness of differential gene expression across the contrasts. 
 #' @param tibble a (presumably large) tibble from dplyr containing the results of RunFilteredPseudobulkingContrasts
+#' @param logFC_threshold The minimum value for a gene's absolute value of log fold change to be considered differentially expressed. 
+#' @param FDR_threshold The maximum value for a gene's FDR to be considered differentially expressed. 
 #' @return a tibble with the uniqueness and direction of regulation for each gene stored in tibble$regulation
 
 .addRegulationInformationAndFilterDEGs <- function(tibble, logFC_threshold = 1, FDR_threshold = 0.05){
@@ -740,11 +742,12 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @param negativeContrastValue The value of contrastField to be treated as "downregulated". 
 #' @param positiveContrastValue An optional variable to define a specific positive contrast value. While negativeContrastValue determines the log fold changes, this argument operates primarily as a filtering variable to eliminate groups and show a particular value of the contrast field.
 #' @param subgroupingVariable If there is a second relevant grouping variable, you can supply a second metadata column to group the data by. 
+#' @param assayName the name of the assay in the seurat object storing the count matrix. 
 #' @param show_row_names a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap. 
 #' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
 #' @export
 
-PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, show_row_names = FALSE, assay = "RNA") {
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, show_row_names = FALSE, assayName = "RNA", sampleIdCol = NULL) {
   
   #subset the seuratObj according to the desired geneSpace
   count_matrix <- GetAssayData(seuratObj, assay = assay, layer = 'counts')
@@ -828,7 +831,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   if (is.null(subgroupingVariable)) {
     
     split <- colnames(heatmap_matrix)
-    top_annotation <- HeatmapAnnotation(
+    top_annotation <- ComplexHeatmap::HeatmapAnnotation(
       foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill =  rep(x = "white", length(colnames(heatmap_matrix)))), 
                        labels = colnames(heatmap_matrix)))
 

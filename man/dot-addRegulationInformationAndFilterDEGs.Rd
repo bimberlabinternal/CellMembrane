@@ -12,6 +12,10 @@
 }
 \arguments{
 \item{tibble}{a (presumably large) tibble from dplyr containing the results of RunFilteredPseudobulkingContrasts}
+
+\item{logFC_threshold}{The minimum value for a gene's absolute value of log fold change to be considered differentially expressed.}
+
+\item{FDR_threshold}{The maximum value for a gene's FDR to be considered differentially expressed.}
 }
 \value{
 a tibble with the uniqueness and direction of regulation for each gene stored in tibble$regulation

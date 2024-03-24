@@ -347,7 +347,7 @@ heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk,
                        geneSpace = genes, 
                        contrastField = "vaccine_cohort", 
                        negativeContrastValue = "control", 
-                       useRequireIdenticalLogic = FALSE, 
+                       sampleIdCol = 'sample_identifier'
                        )
 
 ```
@@ -368,6 +368,7 @@ heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk,
                        contrastField = "vaccine_cohort", 
                        negativeContrastValue = "control", 
                        subgroupingVariable = 'timepoint',
+                       sampleIdCol = 'sample_identifier'
                        )
 ```
 

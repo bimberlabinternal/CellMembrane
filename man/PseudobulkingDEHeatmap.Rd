@@ -12,7 +12,8 @@ PseudobulkingDEHeatmap(
   positiveContrastValue = NULL,
   subgroupingVariable = NULL,
   show_row_names = FALSE,
-  assay = "RNA"
+  assayName = "RNA",
+  sampleIdCol = NULL
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ PseudobulkingDEHeatmap(
 \item{subgroupingVariable}{If there is a second relevant grouping variable, you can supply a second metadata column to group the data by.}
 
 \item{show_row_names}{a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap.}
+
+\item{assayName}{the name of the assay in the seurat object storing the count matrix.}
 }
 \value{
 A list containing the filtered dataframe used for plotting and the heatmap plot itself.
