@@ -3,7 +3,7 @@
 #' @import ggplot2
 
 utils::globalVariables(
-  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name', 'sampleIdCol', 'joinedFields'),
+  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name', 'sampleIdCol', 'joinedFields', 'seuratObj_feature_selected'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -763,10 +763,12 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   #subset the seuratObj according to the desired geneSpace
   count_matrix <- GetAssayData(seuratObj, assay = assayName, layer = 'counts')
   count_matrix <- count_matrix[geneSpace, ]
-  seuratObj <- CreateSeuratObject(counts = count_matrix, assay = assayName, meta.data = seuratObj@meta.data)
+  metadata <- seuratObj@meta.data
+  
+  seuratObj_feature_selected <- CreateSeuratObject(counts = count_matrix, assay = assayName, meta.data = metadata)
   
   #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
-  design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol)
+  design <- DesignModelMatrix(seuratObj_feature_selected, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol)
   #similarly, parse these arguments for setting up a logicList
   logicList <- list(list(contrastField, "xor", negativeContrastValue))
   #positiveContrastValue is mostly a filtering tool since we need to establish what our 'control' is via negativeContrastValue.  
@@ -795,7 +797,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   
 
   #we can run RunFilteredContrasts without any differential expression-based filtering because our gene filtering should occur when we pass-in our geneSpace variable. We're just populating log fold changes here. 
-  lfc_results <- RunFilteredContrasts(seuratObj = seuratObj, 
+  lfc_results <- RunFilteredContrasts(seuratObj = seuratObj_feature_selected, 
                                                filteredContrastsDataframe = filteredContrasts, 
                                                design = design,
                                                test.use = "QLF", 
