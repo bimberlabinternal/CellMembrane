@@ -761,11 +761,12 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID') {
   
   #subset the seuratObj according to the desired geneSpace
-  count_matrix <- GetAssayData(seuratObj, assay = assayName, layer = 'counts')
+  count_matrix <- SeuratObject::GetAssayData(seuratObj, assay = assayName, layer = 'counts')
   count_matrix <- count_matrix[geneSpace, ]
+  rownames(count_matrix) <- geneSpace
   metadata <- seuratObj@meta.data
   
-  seuratObj_feature_selected <- CreateSeuratObject(counts = count_matrix, assay = assayName, meta.data = metadata)
+  seuratObj_feature_selected <- SeuratObject::CreateSeuratObject(counts = count_matrix, assay = assayName, meta.data = metadata)
   
   #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
   design <- DesignModelMatrix(seuratObj_feature_selected, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol)
