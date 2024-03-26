@@ -42,7 +42,7 @@ test_that("Logic gate study design works", {
   #add fabricated study metadata
   seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
   seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy", "day4"), length.out = length(colnames(seuratObj)))
-  seuratObj@meta.data[,"subject"] <- c(base::rep(1, length.out = 1000), base::rep(2, length.out = 557))
+  seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
   #set up pseudobulking
   pbulk <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint","subject"))
   design <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort", "timepoint"), sampleIdCol = "subject")
@@ -88,9 +88,33 @@ test_that("Logic gate study design works", {
                        minCountsPerGene = 1, 
                        assayName = "RNA")
   #15 total contrasts
-  expect_equal(length(DE_results), expected = 15)
+  testthat::expect_equal(length(DE_results), expected = 15)
   #9008 "DEGs" in the first contrast (note overly permissive DEG thresholds)
-  expect_equal(nrow(DE_results$`1`), expected = 9008)
+  testthat::expect_equal(nrow(DE_results$`1`), expected = 9008)
+  
+  barPlot <- PseudobulkingBarPlot(filteredContrasts = DE_results, 
+                       metadataFilterList = NULL
+                       )
+  #test that PseudobulkingBarPlot yields a list with a barPlot element
+  testthat::expect_true("barPlot" %in% names(barPlot))
+  #test that the barPlot element is a ggplot object (list)
+  testthat::expect_true("list" == typeof(barPlot$barPlot))
+  
+  genes <- rownames(pbulk)[1:10]
+  
+  heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes, 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "control", 
+                                         sampleIdCol = 'subject'
+  )
+  
+  #test that PseudobulkingDEHeatmap yields a list with a heatmap and matrix element
+  testthat::expect_true(all(c("heatmap", "matrix") %in% names(heatmap_list)))
+  #test that the barPlot element is a ComplexHeatmap object (S4)
+  testthat::expect_true(typeof(heatmap_list$heatmap) == "S4")
+  #test that the heatmap matrix has 3 columns
+  testthat::expect_true(ncol(heatmap_list$matrix) == 3)
 })
 
 test_that("Feature Selection by GLM works", {

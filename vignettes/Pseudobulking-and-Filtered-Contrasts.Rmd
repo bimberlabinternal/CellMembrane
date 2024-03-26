@@ -314,7 +314,8 @@ metadata_tiles <- ggplot(barplot_results$dataframe) +
   ylab("Metadata Variables")+
   #add some dashed lines to delineate metadata groupings
   geom_hline(yintercept =c(2.5, 4.5), color = "black", linetype = "dashed")+
-  scale_y_discrete(limits = rev(c("Positive Contrast Timepoint", "Negative Contrast Timepoint","Positive Contrast Vaccine","Negative Contrast Vaccine")))
+  geom_vline(xintercept = seq(1:length(unique(barplot_results$dataframe$contrast_name)))+0.5) +
+  scale_y_discrete(limits = rev(c("Positive Contrast Timepoint", "Negative Contrast Timepoint","Positive Contrast Vaccine","Negative Contrast Vaccine"))) + facet_wrap(~DEG_Magnitude, scales = "free_x")
 
 metadata_tiles
 ```
@@ -331,27 +332,21 @@ library(patchwork)
 
 Very often, we would like to interpret a group of genes' (module) expression relative to our experimental design. We can visualize gene groupings using a carefully formatted heatmap.  For this heatmap, we'd like to show genes that are upregulated in our experimental condition compared to our control. 
 
-First, let's re-run `FilterPseudobulkingContrasts` with more stringent differential gene expression cutoffs so we're working with a smaller gene space. You can also use other feature selection algorithms such as CellMembrane's `FitRegularizedClassificationGlm()` or other machine learning approaches to determine appropriate gene sets. 
+First, let's reuse the results of `FilterPseudobulkingContrasts` and apply some differential gene expression cutoffs so we're working with a smaller gene space. You can also use other feature selection algorithms such as CellMembrane's `FitRegularizedClassificationGlm()` or other machine learning approaches to determine appropriate gene sets. 
 
-```{r}
-DE_results <- RunFilteredContrasts(seuratObj = pbulk, 
-                       filteredContrastsDataframe = filtered_contrasts, 
-                       design = design,
-                       test.use = "QLF", 
-                       minCountsPerGene = 1, 
-                       assayName = "RNA")
-
+```{r filter DEGs for heatmap}
 #bind the list into a dataframe using thresholds to determine the differentially expressed genes
 DEGs <- dplyr::bind_rows(DE_results) %>% 
   dplyr::filter(abs(logFC) < 1) %>% 
-  dplyr::filter(FDR < 0.5)
+  dplyr::filter(FDR < 0.05)
 
 #select all of the genes that are differentially expressed in any contrast across the transcriptome
 genes <- unique(DEGs$gene)
 ```
 
-
 ### Create the heatmap on just the DEGs
+
+Then, we can make a heatmap on just the differentially expressed genes so we can interpret their expression in relation to our vaccine groups.
 
 ```{r Single Variable Heatmap}
 heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
@@ -365,7 +360,7 @@ heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk,
 
 We can compare the gene log fold changes over the vaccine cohorts and find gene modules that are consistently upregulated. 
 
-```{r}
+```{r show first heatmap}
 heatmap_list$heatmap
 ```
 
@@ -385,7 +380,7 @@ heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk,
 
 Now, we can interpret the changes within vaccine cohorts and over time!
 
-```{r fig.width = 8}
+```{r show second heatmap, fig.width = 8}
 heatmap_list$heatmap
 ```
 
