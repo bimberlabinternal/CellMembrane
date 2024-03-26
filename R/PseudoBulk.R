@@ -632,6 +632,25 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
 #' @export
 
 PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", log_y_axis = FALSE, logFC_threshold = 1, FDR_threshold = 0.05) {
+  
+  if (!is.list(filteredContrastsResults)) {
+    stop("filteredContrastsResults is not a list. Please ensure filteredContrastsResults is a list of dataframes returned by RunFilteredContrasts().")
+  } else if (length(filteredContrastsResults) == 0) {
+    stop("filteredContrastsResults is empty. Please ensure filteredContrastsResults is a list of dataframes returned by RunFilteredContrasts().")
+  } else if (!all(sapply(filteredContrastsResults, function(x) class(x) == "data.frame"))) {
+    stop("filteredContrastsResults is not a list of dataframes. Please ensure filteredContrastsResults is a list of dataframes returned by RunFilteredContrasts().")
+  } 
+  
+  if (!is.null(metadataFilterList)) {
+    if(!is.list(metadataFilterList)){
+      stop("metadataFilterList is not a list. Please ensure metadataFilterList includes a contrast directionality ('Positive', 'Negative', or 'Both'), a metadata variable that was included in groupFields, and a whitelist value that is a member of the metadata variable. Proper formatting should look like: \nmetadataFilterList = list(list('Positive', 'Tissue', 'Lung'), list('Negative', 'Timepoint', 'Baseline')).")
+    } else if (length(metadataFilterList) == 0) {
+      stop("metadataFilterList is empty. Please ensure metadataFilterList includes a contrast directionality ('Positive', 'Negative', or 'Both'), a metadata variable that was included in groupFields, and a whitelist value that is a member of the metadata variable. Proper formatting should look like: \nmetadataFilterList = list(list('Positive', 'Tissue', 'Lung'), list('Negative', 'Timepoint', 'Baseline')).")
+    } else if (length(unlist(metadataFilterList)) %% 3 != 0) {
+      stop("Not all lists in metadataFilterList are of length 3! Please ensure metadataFilterList includes a contrast directionality ('Positive', 'Negative', or 'Both'), a metadata variable that was included in groupFields, and a whitelist value that is a member of the metadata variable. Proper formatting should look like: \nmetadataFilterList = list(list('Positive', 'Tissue', 'Lung'), list('Negative', 'Timepoint', 'Baseline')).")
+    }
+  }
+  
   #convert from list of dataframes to one large data frame (note: row names will be duplicated when genes appear more than once).
   filteredContrastsResults <- dplyr::bind_rows(filteredContrastsResults)
   #tag the genes as either up or down regulated
