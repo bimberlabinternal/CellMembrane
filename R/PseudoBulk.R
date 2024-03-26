@@ -778,6 +778,20 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @export
 
 PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID') {
+  #sanity check arguments
+  if (is.null(contrastField)) {
+    stop("Please define a contrastField. This is a metadata variable (supplied to groupFields during PseudobulkSeurat()) that will be displayed on the top of the heatmap.")
+  }
+  if (is.null(negativeContrastValue)) {
+    stop("Please define a negativeContrastValue. This is the value of contrastField that will be treated as 'downregulated' in log fold changes shown in the heatmap.")
+  } else if (!(negativeContrastValue %in% seuratObj@meta.data[,contrastField])) {
+    stop(paste0("Error: could not find negativeContrastValue: ", negativeContrastValue, " in the metadata field ", contrastField, " within the Seurat Object. Please ensure the negativeContrastValue is a member of the ",  contrastField, " metadata field."))
+  } else if (!is.null(positiveContrastValue) & !(positiveContrastValue %in% seuratObj@meta.data[,contrastField])) {
+    stop(paste0("Error: could not find positiveContrastValue: ", positiveContrastValue, " in the metadata field ", contrastField, " within the Seurat Object. Please ensure the positiveContrastValue is a member of the ",  contrastField, " metadata field."))
+  }
+  if(!is.null(subgroupingVariable) & !(subgroupingVariable %in% colnames(seuratObj@meta.data))) {
+    stop(paste0("Error: could not find subgroupingVariable: ", subgroupingVariable, " in the metadata fields of the Seurat Object. Please ensure the subgroupingVariable: ", subgroupingVariable, " is a member of the metadata and was passed as a groupField to PseudobulkSeurat()."))
+  }
   
   #subset the seuratObj according to the desired geneSpace
   count_matrix <- SeuratObject::GetAssayData(seuratObj, assay = assayName, layer = 'counts')
