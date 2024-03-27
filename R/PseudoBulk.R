@@ -3,7 +3,7 @@
 #' @import ggplot2
 
 utils::globalVariables(
-  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name', 'sampleIdCol', 'joinedFields', 'seuratObj_feature_selected'),
+  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name', 'sampleIdCol', 'joinedFields'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -782,7 +782,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
   if (is.null(contrastField)) {
     stop("Please define a contrastField. This is a metadata variable (supplied to groupFields during PseudobulkSeurat()) that will be displayed on the top of the heatmap.")
   }
-
+  #check negativeContrastValue & positiveCOntrastValue
   if (is.null(negativeContrastValue)) {
     stop("Please define a negativeContrastValue. This is the value of contrastField that will be treated as 'downregulated' in log fold changes shown in the heatmap.")
   } else if (!(negativeContrastValue %in% seuratObj@meta.data[,contrastField])) {
@@ -792,49 +792,27 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
       stop(paste0("Error: could not find positiveContrastValue: ", positiveContrastValue, " in the metadata field ", contrastField, " within the Seurat Object. Please ensure the positiveContrastValue is a member of the ",  contrastField, " metadata field."))
     }
   }
-  
+  #check subgroupingVariable
   if (!is.null(subgroupingVariable)) {
     if (!(subgroupingVariable %in% colnames(seuratObj@meta.data))) {
       stop(paste0("Error: could not find subgroupingVariable: ", subgroupingVariable, " in the metadata fields of the Seurat Object. Please ensure the subgroupingVariable: ", subgroupingVariable, " is a member of the metadata and was passed as a groupField to PseudobulkSeurat()."))
     }
   }
-  
+  #check geneSpace
   if (length(geneSpace) == 1) {
     stop("Error: geneSpace must contain more than one gene. Please ensure geneSpace is a vector of gene names that you would like to plot in the heatmap.")
+  } else if (is.null(geneSpace)) {
+    stop("Error: please define a geneSpace. This should be a vector of gene names within the pseudobulked Seurat object.")
+  } else if (all(!(geneSpace %in% rownames(seuratObj)))) {
+    stop("Error: no genes in geneSpace were found in the supplied seurat object. Please ensure geneSpace is a vector of character gene names that you would like to plot in the heatmap.")
+  } else if (any(!(geneSpace %in% rownames(seuratObj)))) {
+    warning(paste0("Genes: ", geneSpace[!(geneSpace %in% rownames(seuratObj))], " not found in supplied Seurat Object! These genes will be omitted."))
+  } else if (sum(geneSpace %in% rownames(seuratObj)) <= 1) {
+    stop(paste0('Only ', sum(geneSpace %in% rownames(seuratObj)), ' gene(s) overlapped between geneSpace (length ', length(geneSpace),') and the assay (size ', length(rownames(seuratObj)),'). With Seurat V5 there must be more than one feature'))
   }
-
-  #subset the seuratObj according to the desired geneSpace
-  count_matrix <- SeuratObject::GetAssayData(seuratObj, assay = assayName, layer = 'counts')
-
-  if (all(is.null(geneSpace))) {
-    geneSpace <- rownames(count_matrix)
-  }
-
-  geneOverlaps <- geneSpace %in% rownames(count_matrix)
-  if (!all(geneOverlaps)) {
-    stop('Not all genes in the geneSpace were present in the seurat count matrix')
-  } else if (sum(geneOverlaps) <= 1) {
-    stop(paste0('Only ', sum(geneOverlaps), ' gene(s) overlapped between geneSpace (length ', length(geneSpace),') and the assay (size ', nrow(count_matrix),'). With Seurat V5 there must be more than one feature'))
-  }
-
-  count_matrix <- count_matrix[geneSpace, , drop = FALSE]
-  if (any(rownames(count_matrix) != geneSpace)) {
-    stop('The rownames after subset did not match the geneSpace')
-  }
-
-  metadata <- seuratObj@meta.data
-
-  # This should have been caught upstream, but this ensures the subset works as expected:
-  if (nrow(count_matrix) <= 1) {
-    stop('Error, there is just one row in the subset count matrix')
-  } else if (ncol(count_matrix) <= 1) {
-    stop('Error, there is just one sample in the subset count matrix')
-  }
-
-  seuratObj_feature_selected <- SeuratObject::CreateSeuratObject(counts = count_matrix, assay = assayName, meta.data = metadata)
   
   #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
-  design <- DesignModelMatrix(seuratObj_feature_selected, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol)
+  design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol)
   #similarly, parse these arguments for setting up a logicList
   logicList <- list(list(contrastField, "xor", negativeContrastValue))
   #positiveContrastValue is mostly a filtering tool since we need to establish what our 'control' is via negativeContrastValue.  
@@ -860,10 +838,8 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
                                                    filteredContrastsOutputFile = tempfile())
   }
   
-  
-
   #we can run RunFilteredContrasts without any differential expression-based filtering because our gene filtering should occur when we pass-in our geneSpace variable. We're just populating log fold changes here. 
-  lfc_results <- RunFilteredContrasts(seuratObj = seuratObj_feature_selected, 
+  lfc_results <- RunFilteredContrasts(seuratObj = seuratObj, 
                                                filteredContrastsDataframe = filteredContrasts, 
                                                design = design,
                                                test.use = "QLF", 
@@ -881,6 +857,9 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
     dplyr::filter(!!sym(paste0("negative_contrast_",contrastField)) != negativeContrastValue) %>% 
     .swapContrast()
   lfc_results <- rbind(lfc_proper_negative_contrast, lfc_swapped_negative_contrast)
+  
+  #filter the matrix to include just genes passed to geneSpace
+  lfc_results <- lfc_results %>% filter(gene %in% geneSpace)
   
   #pivot the long-form tibble into a matrix for complexheatmap
   #if we have a second grouping variable (subgroupingVariable), we include it in the else statement. 
