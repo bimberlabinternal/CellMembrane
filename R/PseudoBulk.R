@@ -798,6 +798,10 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
       stop(paste0("Error: could not find subgroupingVariable: ", subgroupingVariable, " in the metadata fields of the Seurat Object. Please ensure the subgroupingVariable: ", subgroupingVariable, " is a member of the metadata and was passed as a groupField to PseudobulkSeurat()."))
     }
   }
+  
+  if (length(geneSpace) == 1) {
+    stop("Error: geneSpace must contain more than one gene. Please ensure geneSpace is a vector of gene names that you would like to plot in the heatmap.")
+  }
 
   #subset the seuratObj according to the desired geneSpace
   count_matrix <- SeuratObject::GetAssayData(seuratObj, assay = assayName, layer = 'counts')

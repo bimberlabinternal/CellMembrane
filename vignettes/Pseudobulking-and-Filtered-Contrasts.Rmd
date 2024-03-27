@@ -337,7 +337,7 @@ First, let's reuse the results of `FilterPseudobulkingContrasts` and apply some 
 ```{r filter DEGs for heatmap}
 #bind the list into a dataframe using thresholds to determine the differentially expressed genes
 DEGs <- dplyr::bind_rows(DE_results) %>% 
-  dplyr::filter(abs(logFC) < 1) %>% 
+  dplyr::filter(abs(logFC) > 1) %>% 
   dplyr::filter(FDR < 0.05)
 
 #select all of the genes that are differentially expressed in any contrast across the transcriptome
