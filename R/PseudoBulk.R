@@ -451,10 +451,17 @@ FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequir
   #if no filtering was actually performed, filtered_contrast_indices will be NULL/empty, so we don't need to filter the contrasts.
   if (!is.null(filtered_contrast_indices)) {
     contrasts <- contrasts[filtered_contrast_indices,]
+    warning("No filtering in RunFilteredContrasts was performed.")
   }
-
   
-  if (nrow(contrasts) == 0) {
+  #if the contrasts matrix only has one row, it will be automatically coerced into a vector. We need to ensure it remains a matrix.
+  if (is.vector(contrasts)) {
+    contrasts <- matrix(contrasts, ncol = 2)
+  }
+  
+  if (is.null(contrasts)) {
+    stop("All contrasts were filtered. Please ensure the first entry of logicList's lists is a field supplied to the contrast_columns argument of DesignModelMatrix(). Please also check that the third entry of the logicList's lists reacts predictably with the make.names() function.")
+  } else if (nrow(contrasts) == 0) {
     stop("All contrasts were filtered. Please ensure the first entry of logicList's lists is a field supplied to the contrast_columns argument of DesignModelMatrix(). Please also check that the third entry of the logicList's lists reacts predictably with the make.names() function.")
   }
   
@@ -882,9 +889,12 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
   #format the tibble from dplyr into a numeric matrix for ComplexHeatmap
   heatmap_matrix <- as.data.frame(lfc_results_wide)
   gene_vector <- heatmap_matrix[,"gene"] 
+  contrast_values_vector <- colnames(heatmap_matrix)[colnames(heatmap_matrix) != "gene"] #if the heatmap matrix ends up being a single column after we strip away the gene column, it will be converted to a vector and lose its name.
   heatmap_matrix <- heatmap_matrix[,!colnames(heatmap_matrix) %in% "gene"]
   heatmap_matrix <- as.matrix(sapply(heatmap_matrix, as.numeric)) 
   rownames(heatmap_matrix) <- gene_vector 
+  colnames(heatmap_matrix) <- contrast_values_vector #reassign the contrast values to the column names in case heatmap_matrix became a vector in the above lines. 
+  
   #If a contrast "failed" due to not enough samples to fit a GLM in the contrast, it will return an NA LFC and Pvalue. Impute this to zero. 
   heatmap_matrix[is.na(heatmap_matrix)] <- 0
   
