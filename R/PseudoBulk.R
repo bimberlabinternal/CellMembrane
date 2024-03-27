@@ -792,7 +792,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
     }
   }
   
-  if(!is.null(subgroupingVariable)) {
+  if (!is.null(subgroupingVariable)) {
     if (!(subgroupingVariable %in% colnames(seuratObj@meta.data))) {
       stop(paste0("Error: could not find subgroupingVariable: ", subgroupingVariable, " in the metadata fields of the Seurat Object. Please ensure the subgroupingVariable: ", subgroupingVariable, " is a member of the metadata and was passed as a groupField to PseudobulkSeurat()."))
       
@@ -803,6 +803,10 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   count_matrix <- SeuratObject::GetAssayData(seuratObj, assay = assayName, layer = 'counts')
   if (!all(geneSpace %in% rownames(count_matrix))) {
     stop('Not all genes in the geneSpace were present in the seurat count matrix')
+  }
+
+  if (ncol(count_matrix) <= 1) {
+    stop('As of Seurat 5, seurat objects cannot have a single sample')
   }
 
   count_matrix <- count_matrix[geneSpace, , drop = FALSE]
