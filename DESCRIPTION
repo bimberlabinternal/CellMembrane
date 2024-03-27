@@ -38,7 +38,7 @@ Imports:
     DT,
     SingleCellExperiment,
     dsb,
-    ggnewscale,
+    ggnewscale (>= 0.4.10),
     BiocParallel,
     rlang,
     magick,
