@@ -801,7 +801,11 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   
   #subset the seuratObj according to the desired geneSpace
   count_matrix <- SeuratObject::GetAssayData(seuratObj, assay = assayName, layer = 'counts')
-  count_matrix <- count_matrix[geneSpace, ]
+  if (!all(geneName %in% rownames(count_matrix))) {
+    stop('Not all genes in the geneSpace were present in the seurat count matrix')
+  }
+
+  count_matrix <- count_matrix[geneSpace, , drop = FALSE]
   rownames(count_matrix) <- geneSpace
   metadata <- seuratObj@meta.data
   
