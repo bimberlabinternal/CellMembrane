@@ -6,7 +6,7 @@
 \usage{
 PseudobulkingDEHeatmap(
   seuratObj,
-  geneSpace = rownames(seuratObj),
+  geneSpace = NULL,
   contrastField = NULL,
   negativeContrastValue = NULL,
   positiveContrastValue = NULL,
@@ -19,7 +19,7 @@ PseudobulkingDEHeatmap(
 \arguments{
 \item{seuratObj}{A pseudobulked Seurat object.}
 
-\item{geneSpace}{An optional vector of gene names that specify which genes should populate the heatmap. It is recommended that you perform some kind of feature selection upstream of this to select genes for plotting.}
+\item{geneSpace}{An optional vector of gene names that specify which genes should populate the heatmap. It is recommended that you perform some kind of feature selection upstream of this to select genes for plotting. If NULL, all rows in the assay object will be used.}
 
 \item{contrastField}{The primary grouping variable to display (on top of the heatmap).}
 
