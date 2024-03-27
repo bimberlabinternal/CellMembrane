@@ -812,7 +812,11 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   count_matrix <- count_matrix[geneSpace, , drop = FALSE]
   rownames(count_matrix) <- geneSpace
   metadata <- seuratObj@meta.data
-  
+
+  if (nrow(count_matrix) <= 1) {
+    stop('As of Seurat 5, seurat objects cannot have a single feature')
+  }
+
   seuratObj_feature_selected <- SeuratObject::CreateSeuratObject(counts = count_matrix, assay = assayName, meta.data = metadata)
   
   #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
