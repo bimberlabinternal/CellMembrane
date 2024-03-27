@@ -766,7 +766,7 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #'
 #' @description This is a plotting function that formats the FilterPseudobulkingContrasts logic to plot a heatmap of log fold changes for a given gene space. It is recommended that you filter this gene space through some kind of feature selection, but full transcriptome heatmaps are possible.  
 #' @param seuratObj A pseudobulked Seurat object.
-#' @param geneSpace An optional vector of gene names that specify which genes should populate the heatmap. It is recommended that you perform some kind of feature selection upstream of this to select genes for plotting. 
+#' @param geneSpace An optional vector of gene names that specify which genes should populate the heatmap. It is recommended that you perform some kind of feature selection upstream of this to select genes for plotting. If NULL, all rows in the assay object will be used.
 #' @param contrastField The primary grouping variable to display (on top of the heatmap). 
 #' @param negativeContrastValue The value of contrastField to be treated as "downregulated". 
 #' @param positiveContrastValue An optional variable to define a specific positive contrast value. While negativeContrastValue determines the log fold changes, this argument operates primarily as a filtering variable to eliminate groups and show a particular value of the contrast field.
@@ -777,11 +777,12 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
 #' @export
 
-PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID') {
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID') {
   #sanity check arguments
   if (is.null(contrastField)) {
     stop("Please define a contrastField. This is a metadata variable (supplied to groupFields during PseudobulkSeurat()) that will be displayed on the top of the heatmap.")
   }
+
   if (is.null(negativeContrastValue)) {
     stop("Please define a negativeContrastValue. This is the value of contrastField that will be treated as 'downregulated' in log fold changes shown in the heatmap.")
   } else if (!(negativeContrastValue %in% seuratObj@meta.data[,contrastField])) {
@@ -795,26 +796,35 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = rownames(seuratObj), c
   if (!is.null(subgroupingVariable)) {
     if (!(subgroupingVariable %in% colnames(seuratObj@meta.data))) {
       stop(paste0("Error: could not find subgroupingVariable: ", subgroupingVariable, " in the metadata fields of the Seurat Object. Please ensure the subgroupingVariable: ", subgroupingVariable, " is a member of the metadata and was passed as a groupField to PseudobulkSeurat()."))
-      
     }
   }
-  
+
   #subset the seuratObj according to the desired geneSpace
   count_matrix <- SeuratObject::GetAssayData(seuratObj, assay = assayName, layer = 'counts')
-  if (!all(geneSpace %in% rownames(count_matrix))) {
-    stop('Not all genes in the geneSpace were present in the seurat count matrix')
+
+  if (all(is.null(geneSpace))) {
+    geneSpace <- rownames(count_matrix)
   }
 
-  if (ncol(count_matrix) <= 1) {
-    stop('As of Seurat 5, seurat objects cannot have a single sample')
+  geneOverlaps <- geneSpace %in% rownames(count_matrix)
+  if (!all(geneOverlaps)) {
+    stop('Not all genes in the geneSpace were present in the seurat count matrix')
+  } else if (sum(geneOverlaps) <= 1) {
+    stop(paste0('Only ', sum(geneOverlaps), ' gene(s) overlapped between geneSpace (length ', length(geneSpace),') and the assay (size ', nrow(count_matrix),'). With Seurat V5 there must be more than one feature'))
   }
 
   count_matrix <- count_matrix[geneSpace, , drop = FALSE]
-  rownames(count_matrix) <- geneSpace
+  if (any(rownames(count_matrix) != geneSpace)) {
+    stop('The rownames after subset did not match the geneSpace')
+  }
+
   metadata <- seuratObj@meta.data
 
+  # This should have been caught upstream, but this ensures the subset works as expected:
   if (nrow(count_matrix) <= 1) {
-    stop('As of Seurat 5, seurat objects cannot have a single feature')
+    stop('Error, there is just one row in the subset count matrix')
+  } else if (ncol(count_matrix) <= 1) {
+    stop('Error, there is just one sample in the subset count matrix')
   }
 
   seuratObj_feature_selected <- SeuratObject::CreateSeuratObject(counts = count_matrix, assay = assayName, meta.data = metadata)
