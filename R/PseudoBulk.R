@@ -448,7 +448,11 @@ FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequir
     }
   }
   #filter the contrasts using the indices that satisfy the logic gates/require_identical fields.
-  contrasts <- contrasts[filtered_contrast_indices,]
+  #if no filtering was actually performed, filtered_contrast_indices will be NULL/empty, so we don't need to filter the contrasts.
+  if (!is.null(filtered_contrast_indices)) {
+    contrasts <- contrasts[filtered_contrast_indices,]
+  }
+
   
   if (nrow(contrasts) == 0) {
     stop("All contrasts were filtered. Please ensure the first entry of logicList's lists is a field supplied to the contrast_columns argument of DesignModelMatrix(). Please also check that the third entry of the logicList's lists reacts predictably with the make.names() function.")
