@@ -294,17 +294,17 @@ barplot_results$dataframe %>% colnames()
 
 metadata_tiles <- ggplot(barplot_results$dataframe) + 
   #define a custom scale for timepoint metadata
-  scale_fill_manual(values = rev(hcl.colors(4, palette = "Purples 3")), guide = guide_legend(order = 1))+
+  scale_fill_manual(values = rev(hcl.colors(n_distinct(pbulk$timepoint), palette = "Purples 3")), guide = guide_legend(order = 1))+
   labs(fill = "Timepoint")+
-  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = "Positive Contrast Timepoint", fill = barPlot_dataframe$positive_contrast_timepoint)) +
-  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = "Negative Contrast Timepoint", fill = barPlot_dataframe$negative_contrast_timepoint)) +
+  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = 1, fill = barPlot_dataframe$positive_contrast_timepoint)) +
+  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = 2, fill = barPlot_dataframe$negative_contrast_timepoint)) +
   ggnewscale::new_scale_fill() +
   
   #define a custom scale for vaccine_cohort metadata
-  scale_fill_manual(values = rev(hcl.colors(4, palette = "Inferno")), guide = guide_legend(order = 1))+
+  scale_fill_manual(values = rev(hcl.colors(n_distinct(pbulk$vaccine_cohort), palette = "Inferno")), guide = guide_legend(order = 1))+
   labs(fill = "Vaccine")+
-  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = "Positive Contrast Vaccine", fill = barPlot_dataframe$positive_contrast_vaccine_cohort)) +
-  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = "Negative Contrast Vaccine", fill = barPlot_dataframe$negative_contrast_vaccine_cohort)) +
+  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = 3, fill = barPlot_dataframe$positive_contrast_vaccine_cohort)) +
+  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = 4, fill = barPlot_dataframe$negative_contrast_vaccine_cohort)) +
   ggnewscale::new_scale_fill() +
   
   #match the formatting of the Pseudobulking Bar Plot
@@ -314,7 +314,7 @@ metadata_tiles <- ggplot(barplot_results$dataframe) +
   ylab("Metadata Variables")+
   #add some dashed lines to delineate metadata groupings
   geom_hline(yintercept =c(2.5, 4.5), color = "black", linetype = "dashed")+
-  geom_vline(xintercept = seq(1:length(unique(barplot_results$dataframe$contrast_name)))+0.5) +
+  geom_vline(xintercept = seq_along(unique(barplot_results$dataframe$contrast_name))+0.5) +
   scale_y_discrete(limits = rev(c("Positive Contrast Timepoint", "Negative Contrast Timepoint","Positive Contrast Vaccine","Negative Contrast Vaccine"))) + facet_wrap(~DEG_Magnitude, scales = "free_x")
 
 metadata_tiles
