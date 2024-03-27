@@ -4,6 +4,15 @@
     <loc>/404.html</loc>
   </url>
   <url>
+    <loc>/articles/CellMembrane-Tutorial.html</loc>
+  </url>
+  <url>
+    <loc>/articles/Pseudobulking-and-Filtered-Contrasts.html</loc>
+  </url>
+  <url>
+    <loc>/articles/index.html</loc>
+  </url>
+  <url>
     <loc>/authors.html</loc>
   </url>
   <url>
@@ -47,9 +56,6 @@
   </url>
   <url>
     <loc>/reference/CreateSeuratObj.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CreateStudyWideBarPlot.html</loc>
   </url>
   <url>
     <loc>/reference/DesignModelMatrix.html</loc>
@@ -169,6 +175,12 @@
     <loc>/reference/PseudobulkSeurat.html</loc>
   </url>
   <url>
+    <loc>/reference/PseudobulkingBarPlot.html</loc>
+  </url>
+  <url>
+    <loc>/reference/PseudobulkingDEHeatmap.html</loc>
+  </url>
+  <url>
     <loc>/reference/Q3_Normalization.html</loc>
   </url>
   <url>
@@ -202,10 +214,10 @@
     <loc>/reference/RunEscape.html</loc>
   </url>
   <url>
-    <loc>/reference/RunPHATE.html</loc>
+    <loc>/reference/RunFilteredContrasts.html</loc>
   </url>
   <url>
-    <loc>/reference/RunPairwiseContrasts.html</loc>
+    <loc>/reference/RunPHATE.html</loc>
   </url>
   <url>
     <loc>/reference/RunPcaSteps.html</loc>
@@ -278,6 +290,12 @@
   </url>
   <url>
     <loc>/reference/dot-UpdateGeneModel.html</loc>
+  </url>
+  <url>
+    <loc>/reference/dot-addRegulationInformationAndFilterDEGs.html</loc>
+  </url>
+  <url>
+    <loc>/reference/dot-swapContrast.html</loc>
   </url>
   <url>
     <loc>/reference/index.html</loc>
