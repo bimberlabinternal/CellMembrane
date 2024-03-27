@@ -21,7 +21,7 @@ PerformGlmFit(
 
 \item{assayName}{The name of the assay to use}
 
-\item{minCountsPerGene}{Any genes with fewer than this many counts (across samples) will be dropped}
+\item{minCountsPerGene}{Any genes with fewer than this many counts (across samples) will be dropped.}
 }
 \value{
 An edgeR glm object

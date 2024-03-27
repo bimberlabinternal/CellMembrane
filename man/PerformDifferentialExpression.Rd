@@ -10,7 +10,8 @@ PerformDifferentialExpression(
   contrast_name,
   logFC_threshold = 1,
   FDR_threshold = 0.05,
-  test.use = "QLF"
+  test.use = "QLF",
+  showPlots = T
 )
 }
 \arguments{
@@ -25,9 +26,11 @@ PerformDifferentialExpression(
 \item{FDR_threshold}{The min FDR to report}
 
 \item{test.use}{Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT}
+
+\item{showPlots}{Boolean determining if the volcano plots and p value dsitributions should be shown.}
 }
 \value{
-A list with the differential_expression results, volano ggplot object and pvalue_dist ggplot object
+A list with the differential_expression results, volcano ggplot object and pvalue_dist ggplot object
 }
 \description{
 This is designed to perform DE using edgeR on a pseudobulked seurat object

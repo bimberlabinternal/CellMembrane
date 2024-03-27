@@ -85,7 +85,8 @@ Imports:
     WGCNA,
     escape (>= 1.99.0),
     GSVA (>= 1.51.5),
-    dynamicTreeCut
+    dynamicTreeCut, 
+    pacman
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -140,3 +141,4 @@ Collate:
     'escape.R'
     'scMetabolism.R'
     'sctour.R'
+VignetteBuilder: knitr

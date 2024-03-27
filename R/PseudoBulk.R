@@ -3,7 +3,7 @@
 #' @import ggplot2
 
 utils::globalVariables(
-  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation'),
+  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name', 'sampleIdCol', 'joinedFields'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -157,13 +157,14 @@ PseudobulkSeurat <- function(seuratObj,
 
 
 #TODO: add support to extend this to propeller (pseudobulk the object, then optionally discard.)
+
 #' @title DesignModelMatrix
 #'
-#' @description Creates an edgeR glm object
+#' @description This creates a model matrix that groups the samples according to the experimental groups used downstream in statistical analyses.
 #' @param seuratObj The seurat object
 #' @param contrast_columns A vector of columns to contrast
 #' @param sampleIdCol An additional column denoting the variable containing the sample (for grouping)
-#' @return An edgeR glm object
+#' @return A model matrix (samples x groups data frame.)
 #' @export
 DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_ID"){
   #Create a dummy sce@colData that unites the contrast columns into a single "group" column
@@ -200,7 +201,7 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
 #' @param design The model.matrix object
 #' @param test.use Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
 #' @param assayName The name of the assay to use
-#' @param minCountsPerGene Any genes with fewer than this many counts (across samples) will be dropped
+#' @param minCountsPerGene Any genes with fewer than this many counts (across samples) will be dropped.
 #' @return An edgeR glm object
 #' @export
 PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1){
@@ -238,23 +239,25 @@ PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA'
 #' @param logFC_threshold The min logFC
 #' @param FDR_threshold The min FDR to report
 #' @param test.use Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
-#' @return A list with the differential_expression results, volano ggplot object and pvalue_dist ggplot object
+#' @param showPlots Boolean determining if the volcano plots and p value dsitributions should be shown. 
+#' @return A list with the differential_expression results, volcano ggplot object and pvalue_dist ggplot object
 #' @export
-PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_threshold = 1, FDR_threshold = 0.05, test.use = "QLF"){
-  #perform differential expression for the given contrast
-  if (test.use == "QLF"){
-    fit_test <- edgeR::glmQLFTest(fit, contrast = contrast)
-  } else if (test.use == "LRT"){
-    fit_test <- edgeR::glmLRT(fit, contrast = contrast)
-  } else {
-    stop("Please supply a valid test.use argument.")
-  }
+
+PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_threshold = 1, FDR_threshold = 0.05, test.use = "QLF", showPlots = T){
+
+    #perform differential expression for the given contrast
+    if (test.use == "QLF"){
+      fit_test <- edgeR::glmQLFTest(fit, contrast = contrast)
+    } else if (test.use == "LRT"){
+      fit_test <- edgeR::glmLRT(fit, contrast = contrast)
+    } else {
+      stop("Please supply a valid test.use argument.")
+    }
+    #distill results into differential_expression list
+    differential_expression <- edgeR::topTags(fit_test, n= Inf)
+    differential_expression$table$gene <- rownames(differential_expression$table)
   
-  #distill results into differential_expression list
-  differential_expression <- edgeR::topTags(fit_test, n= Inf)
-  differential_expression$table$gene <- rownames(differential_expression$table)
-  
-  #create
+  #create volcano plot
   volcano <- ggplot(differential_expression$table, aes(x= logFC, y = -log10(FDR), label = gene)) +
     #plot the upregulated genes using logFC cutoff and FDR cutoff
     geom_point(data = differential_expression$table[differential_expression$table$logFC >=logFC_threshold &
@@ -276,10 +279,17 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
     egg::theme_article() +
     ggtitle(contrast_name)
   
-  print(volcano)
   
-  pvalue_dist <- ggplot(differential_expression$table, aes( x= PValue)) + geom_histogram() + ggtitle("PValue Distribution")
+  
+  pvalue_dist <- ggplot(differential_expression$table, aes( x= PValue)) + 
+    geom_histogram() + 
+    ggtitle("PValue Distribution") + 
+    egg::theme_article()
+  
+  if (showPlots) {
   print(pvalue_dist)
+  print(volcano)
+  }
   
   return(list(
     differential_expression = differential_expression,
@@ -288,164 +298,14 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
   )
 }
 
-#' @title RunPairwiseContrasts
-#'
-#' @description A convenience function to iterate and perform pairwise contrasts using the glm object
-#' @param fit The glm fit object generated by PerformGlmFit
-#' @param test.use Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
-#' @param logFC_threshold Log fold change threshold pass-through variable to be sent to PerformDifferentialExpression.
-#' @return A list with the differential_expression results, volano ggplot object and pvalue_dist ggplot object
-#' @export
-RunPairwiseContrasts <- function(fit, test.use, logFC_threshold = 1){
-  #create a nx2 array of all possible unique pairwise combinations of contrasts
-  contrasts <- t(utils::combn(colnames(fit$design), m = 2))
-  results <- future.apply::future_lapply(split(contrasts, 1:nrow(contrasts)), future.seed = GetSeed(), FUN = function(x){
-    up_contrast<- x[[1]]
-    down_contrast <- x[[2]]
-    contrast_name <- paste0(up_contrast, "-", down_contrast)
-    print(paste("Performing DE for: ", contrast_name))
-    contrast <- limma::makeContrasts(contrasts = contrast_name, levels = fit$design)
-    result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = logFC_threshold, FDR_threshold = 0.05, test.use = test.use)
-  })
-  #use contrast names to label the results list
-  names(results) <- paste0(contrasts[,1],  "-", contrasts[,2])
-  return(results)
-}
-
-#' @title CreateStudyWideBarPlot 
-#'
-#' @description Summarize the results of RunPairwiseContrasts() into a series of bar plots, showing the magnitude of differentially expressed genes over many contrasts.
-#' @param pairwise_de_results The result of RunPairwiseContrasts().
-#' @param pvalue_threshold The pvalue/FDR threshold used to filter the differential expression tables for significance. 
-#' @param logFC_threshold Log fold change threshold used to filter the differential expression tables for significance. 
-#' @param LikeVsLike Boolean controlling whether or not one of the contrasts should be held constant in the summarization (i.e., only like cell-types should be considered, since Vaccinated_T cells vs Vaccianted_Myeloid cells will be very different, but not necessarily informative.)
-#' @param LikeVsLikeGroupFieldIndex The numerical index of the contrast_columns variable supplied to DesignModelMatrix() that should be held constant for like vs like comparisons.
-#' @param facetLikeVsLike Boolean controlling whether or not the final plot should be faceted in a LikeVsLike contrast. If you have several grouping variables, this could be helpful.
-#' @return A ggplot2 bar plot showing the magnitudes of the differentially expressed genes.
-#' @export
-
-CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05, logFC_threshold = 1, LikeVsLike = F, LikeVsLikeGroupFieldIndex= NULL, facetLikeVsLike = T){
-  
-  #check to see if the LikeVsLike variables are set properly
-  if (!is.logical(LikeVsLike)){
-    stop("Please ensure LikeVsLike is equal to either TRUE or FALSE. LikeVsLike determines whether or not you want to only keep comparisons where a specific value of the contrast is fixed between samples. For instance: the contrast Vaccinated_Tcells-Vaccinated_Myeloid could be discarded if you wanted only comparisons between T cells")
-  } else if (!LikeVsLike) {
-    #if not performing Like vs Like comparisons, force Like vs Like faceting to be false.
-    print("LikeVsLike is set to FALSE. Forcing facetLikeVsLike to FALSE as well.")
-    facetLikeVsLike <- FALSE
-  }
-  
-  if (!is.logical(facetLikeVsLike)){
-    stop("Please ensure facetLikeVsLike is equal to either TRUE or FALSE. In the case of a LikeVsLike comparison, should the unique values of the LikeVsLike contrast be faceted?")
-  }
-  
-  if (LikeVsLike | facetLikeVsLike){
-    #determine how many grouping fields are present. This splits on _ and -.  _ determines the number of grouping fields, and - splits the two contrasts. We divide by two because the assumption is that these are all pairwise contrasts.
-    number_of_grouping_fields <- length(strsplit(names(pairwise_de_results)[1], split = "_|-")[[1]])/2
-    if (is.null(LikeVsLikeGroupFieldIndex)){
-      stop("LikeVsLikeGroupFieldIndex is NULL. Please define which groupField should be filtered to perform LikeVsLike comparisons. For instance, if you want to filter for cell type comparisons and your groupFields are c('Tissue', 'Timepoint', 'CellType', 'cDNA_ID'), then you would pass 3 as the LikeVsLikeGroupFieldIndex. Please additionally note that your sampleIdCol will be omitted from this indexing, so for the arragement: c('cDNA_ID', 'Tissue', 'Timepoint', 'CellType'), where sampleIdCol = cDNA_ID, the index should still be specified as 3.")   
-    } else if (!is.numeric(LikeVsLikeGroupFieldIndex)){
-      stop("LikeVsLikeGroupFieldIndex is non-numeric. Please ensure that LikeVsLikeGroupFieldIndex is the numerical index of the groupField (i.e. 3), rather than the name of the group field. ")
-    } else if (LikeVsLikeGroupFieldIndex > number_of_grouping_fields){
-      stop(paste0("LikeVsLikeGroupFieldIndex exceeds the total number of grouping fields possible: ", number_of_grouping_fields, ". Please ensure that you omitted the groupField that defines sampleIdCol within the DesignModelMatrix function."))
-    } else {
-      #If LikeVsLike is properly configured, filter out all of the non-LikeVsLike contrasts
-      pairwise_de_results_filtered <- list()
-      #mine out the groupingFields info from the contrast and discard contrasts where LikeVsLikeGroupFieldIndex varies.
-      for (contrast in names(pairwise_de_results)){
-        #isolate the contrasts
-        contrasts <- strsplit(contrast, split = "-")
-        positive_contrast <- contrasts[[1]][1]
-        negative_contrast <- contrasts[[1]][2]
-        #mine out the groupingFields info from the contrast
-        positive_contrast_LikeVsLikeGroup <- strsplit(positive_contrast, split = "_")[[1]][LikeVsLikeGroupFieldIndex]
-        negative_contrast_LikeVsLikeGroup <- strsplit(negative_contrast, split = "_")[[1]][LikeVsLikeGroupFieldIndex]
-        #compare the LikeVsLike group and add it to the filtered list if they match
-        if (positive_contrast_LikeVsLikeGroup == negative_contrast_LikeVsLikeGroup){
-          pairwise_de_results_filtered[contrast] <-  pairwise_de_results[contrast]
-        }
-      }
-      #overwrite the filtered list 
-      pairwise_de_results <- pairwise_de_results_filtered
-    }
-  }
-  
-  #instantiate vector to store DEG lists during contrast iteration.
-  degs <- c()
-  
-  #Construct Barplot 
-  #iterate through contrasts (filtered contrasts if LikeVsLike = T).
-  for (contrast in names(pairwise_de_results)){
-    #create dataframe to store differentially expressed genes table
-    deg <- pairwise_de_results[[contrast]]$differential_expression$table
-    title <- pairwise_de_results[[contrast]]$volcano$labels$title
-    deg <- tibble::as_tibble(deg)
-    deg$contrast <- title
-    
-    #establish up or down regulation in DE results
-    deg$regulation <- NA
-    deg[deg$logFC > logFC_threshold & deg$FDR < pvalue_threshold, "regulation"] <- "upregulated"
-    deg[deg$logFC < -logFC_threshold & deg$FDR < pvalue_threshold, "regulation"] <- "downregulated"
-    
-    #filter insignificantly differentially expressed genes
-    deg <- deg |> dplyr::filter(!is.na(regulation))
-    #concatenate into a cross-contrast list of differentially expressed gene results
-    degs <- rbind(degs, deg)
-  }
-  
-  #iterate through the concatenation of all significant & logFC filtered DEG results for uniqueness. 
-  plotting_DEGs <- degs |>
-    dplyr::group_by(gene) |>
-    dplyr::mutate(gene_occurance = dplyr::n()) 
-  
-  #determine regulation-uniqueness pairs
-  plotting_DEGs[plotting_DEGs$regulation == "upregulated","uniqueness"] <- "up_nonunique"
-  plotting_DEGs[plotting_DEGs$regulation == "upregulated" & plotting_DEGs$gene_occurance == 1, "uniqueness"] <- "up_unique"
-  plotting_DEGs[plotting_DEGs$regulation == "downregulated","uniqueness"] <- "down_nonunique"
-  plotting_DEGs[plotting_DEGs$regulation == "downregulated" & plotting_DEGs$gene_occurance == 1, "uniqueness"] <- "down_unique"
-  
-  #geom_bar sums the n_DEG column, so fixing the sign is all that is necessary
-  plotting_DEGs[plotting_DEGs$regulation == "upregulated", "n_DEG"] <- 1 
-  plotting_DEGs[plotting_DEGs$regulation == "downregulated", "n_DEG"] <- -1 
-  
-  if (!facetLikeVsLike){
-    #construct plot without faceting
-    DEG_bargraph <- ggplot2::ggplot(plotting_DEGs) + 
-      ggplot2::geom_bar(data = plotting_DEGs, ggplot2::aes(x = contrast, y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
-      ggplot2::scale_fill_manual(values = c("cadetblue2", "blue", "orange", "red")) + 
-      ggplot2::labs(fill="Unique") + 
-      ggplot2::ylab("Number of DEGs")+ 
-      egg::theme_article() + 
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))
-  } else {
-    #mine the faceting grouping variables from the contrast names using LikeVsLikeGroupFieldIndex
-    contrast_splits <- strsplit(plotting_DEGs$contrast, split = "-")
-    for (contrast_split_index in 1:length(contrast_splits)){
-      contrast_splits[[contrast_split_index]]
-      plotting_DEGs[contrast_split_index,'faceting_variable_values'] <- strsplit(contrast_splits[[contrast_split_index]][1], split = "_")[[1]][LikeVsLikeGroupFieldIndex]
-    }
-    #Construct the faceted plot
-    DEG_bargraph <- ggplot2::ggplot(plotting_DEGs) + 
-      ggplot2::geom_bar(data = plotting_DEGs, ggplot2::aes(x = contrast, y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
-      ggplot2::scale_fill_manual(values = c("cadetblue2", "blue", "orange", "red")) + 
-      ggplot2::labs(fill="Unique") + 
-      ggplot2::ylab("Number of DEGs")+ 
-      egg::theme_article() + 
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) + 
-      facet_wrap(~faceting_variable_values, scales = "free_x")
-  }
-  
-  return(DEG_bargraph)
-}
-
 #' @title FilterPseudobulkContrasts
 #'
 #' @description This is designed to accept a study design defined by a series of logical gates applied to metadata fields, test them for equivalence to some criterion, and then filter pairwise contrasts accordingly.
-#' @param logic_list The list that defines the study design. Please see examples for the setup and use. This list be a list of lists where each sub-list has three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor. The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.
+#' @param logicList The list that defines the study design. Please see examples for the setup and use. This list be a list of lists where each sub-list has three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor. The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.
 #' @param design a design/model matrix returned by DesignModelMatrix().
-#' @param use_require_identical_logic Whether or not to apply require_identical logic using require_identical_fields. It is possible to use logic gates to keep metadata fields constant, but using this saves time & effort/iteration.
-#' @param require_identical_fields The metadata columns of the SeuratObj that you wish to keep constant. For example: defining "Tissue" in this vector would filter all contrasts comparing Liver to PBMC, as their tissue is not identical.
-#' @param filtered_contrasts_output_file The file to write the list of filtered contrasts to (one pair of samples per row, separated into their metadata fields).
+#' @param useRequireIdenticalLogic Whether or not to apply require_identical logic using requireIdenticalFields. It is possible to use logic gates to keep metadata fields constant, but using this saves time & effort/iteration.
+#' @param requireIdenticalFields The metadata columns of the SeuratObj that you wish to keep constant. For example: defining "Tissue" in this vector would filter all contrasts comparing Liver to PBMC, as their tissue is not identical.
+#' @param filteredContrastsOutputFile The file to write the list of filtered contrasts to (one pair of samples per row, separated into their metadata fields).
 #' @return A dataframe of pairwise contrasts, with column names indicating the directionality (positive vs negative) and associated metadata column (inferred by contrast_columns).
 #' @examples
 #' \dontrun{
@@ -459,19 +319,19 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
 #' #The first element defines the metadata column or field that will be used for filtering. 
 #' #The second defines the logic gate (AND -> any, OR -> any, xor, xnor, nand, nor). 
 #' #The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.
-#' logic_list <- list(
+#' logicList <- list(
 #'                     list('Challenge', 'xor', 'Mock.challenged'), 
 #'                     list('SampleType', 'all', 'Necropsy')
 #'             )
 #'
 #' 
-#' #Finally, enumerate all possible contrasts, then filter and return them according to the study design defined by logic_list.
-#' #If you want to perform "Like-vs-Like" contrasts (i.e. T cell vs T cell within a cell_type metadata field), specify those columns as required to be identical and set use_require_identical_logic to TRUE.
-#' filtered_contrasts <- FilterPseudobulkContrasts(logic_list = logic_list, 
+#' #Finally, enumerate all possible contrasts, then filter and return them according to the study design defined by logicList.
+#' #If you want to perform "Like-vs-Like" contrasts (i.e. T cell vs T cell within a cell_type metadata field), specify those columns as required to be identical and set useRequireIdenticalLogic to TRUE.
+#' filtered_contrasts <- FilterPseudobulkContrasts(logicList = logicList, 
 #'                                                 design = design, 
-#'                                                 use_require_identical_logic = T, 
-#'                                                 require_identical_fields = c('Tissue','cell_type', 'SampleType'), 
-#'                                                 filtered_contrasts_output_file = './filtered_contrasts.tsv')
+#'                                                 useRequireIdenticalLogic = T, 
+#'                                                 requireIdenticalFields = c('Tissue','cell_type', 'SampleType'), 
+#'                                                 filteredContrastsOutputFile = './filtered_contrasts.tsv')
 #'                                                 
 #' }
 #' @details
@@ -492,7 +352,7 @@ CreateStudyWideBarPlot <- function(pairwise_de_results, pvalue_threshold = 0.05,
 #' @export
 #' @md
 
-FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_require_identical_logic = T, require_identical_fields = NULL, filtered_contrasts_output_file = './filtered_contrasts.tsv'){
+FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequireIdenticalLogic = T, requireIdenticalFields = NULL, filteredContrastsOutputFile = './filtered_contrasts.tsv'){
   #check design matrix.
   if (is.null(design)){
     stop("Please define a design matrix. The design matrix is intended to be returned by DesignModelMatrix().")
@@ -502,31 +362,37 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
     stop("'contrast_columns' is missing from the design model matrix attributes. Please use CellMembrane's DesignModelMatrix to create the design matrix, or stash the contrast_columns vector into the design matrix using \n  attr(design, 'contrast_columns') <- contrast_columns ")
   }
   contrast_columns <- attr(design, "contrast_columns")
-  #ensure logic_list is properly defined.
-  if (is.null(logic_list)){
+  #ensure logicList is properly defined.
+  if (is.null(logicList)){
     stop("Please supply a list that defines the logic gates used for filtering the contrasts. This list should have three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
-  } else if (typeof(logic_list) != "list"){
-    stop("Please ensure that logic_list is a list composed of lists. Each sub-list should define a gate that will filter possible contrasts. This list should have three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
-  } else if (!(all(lengths(logic_list) == 3))){
-    stop("The lengths of all of the elements (i.e. logic gates) within logic_list are not equal to 3. Please ensure there are exactly three entries in each element of logic_list. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
-  } else if (!(all(sapply(logic_list, "[[", 1) %in% contrast_columns))){
-    stop("There are elements (logic gates) within logic_list whose first element is not in the contrast_columns found within the design matrix. contrast_columns is the vector supplied to DesignModelMatrix() upstream of this function and holds the metadata field names of the pseudobulked Seurat object that comprise the contrasts. If you're seeing this, something has gone awry (like using an old design matrix or a typo in the logic_list), or you're trying to supply your own design/model matrix, which is currently not supported.")
-  } else if (any(sapply(logic_list, "[[", 2) %in% c("and", "AND", "or", "OR"))){
+  } else if (typeof(logicList) != "list"){
+    stop("Please ensure that logicList is a list composed of lists. Each sub-list should define a gate that will filter possible contrasts. This list should have three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
+  } else if (!(all(lengths(logicList) == 3))){
+    stop("The lengths of all of the elements (i.e. logic gates) within logicList are not equal to 3. Please ensure there are exactly three entries in each element of logicList. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor). The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.")
+  } else if (!(all(sapply(logicList, "[[", 1) %in% contrast_columns))){
+    stop("There are elements (logic gates) within logicList whose first element is not in the contrast_columns found within the design matrix. contrast_columns is the vector supplied to DesignModelMatrix() upstream of this function and holds the metadata field names of the pseudobulked Seurat object that comprise the contrasts. If you're seeing this, something has gone awry (like using an old design matrix or a typo in the logicList), or you're trying to supply your own design/model matrix, which is currently not supported.")
+  } else if (any(sapply(logicList, "[[", 2) %in% c("and", "AND", "or", "OR"))){
     stop("Error in one of the logic gate specifications. For an AND gate, please use the function name 'all'. For an OR gate, please use the function name 'any'.")
-  } else if (!all(tolower(sapply(logic_list, "[[", 2)) %in% c("any", "all", "xor", "nand", "nor", "xnor"))){
+  } else if (!all(tolower(sapply(logicList, "[[", 2)) %in% c("any", "all", "xor", "nand", "nor", "xnor"))){
     stop("Error in one of the logic gate specifications. Please use one of: 'any', 'all', 'xor', 'nand', 'nor', 'xnor' to specify your logic gate.")
   }
   
   #check require_identical fields arguments.
-  if (!is.logical(use_require_identical_logic)){
-    stop("Please set use_require_identical_logic to TRUE or FALSE.")
+  if (!is.logical(useRequireIdenticalLogic)){
+    stop("Please set useRequireIdenticalLogic to TRUE or FALSE.")
   }
-  if (!is.null(require_identical_fields) & !use_require_identical_logic){
-    warning("use_require_identical_logic is set to FALSE, but require_identical_fields are supplied. These will not be used for filtering.")
-  } else if (use_require_identical_logic & is.null(require_identical_fields)){
-    stop("use_require_identical_logic is TRUE, but no require_identical_fields have been supplied.")
-  } else if (!all(require_identical_fields %in% contrast_columns)){
-    stop("Metadata columns requested in require_identical_fields do not appear in the supplied design matrix's contrast_columns attribute. Please ensure that the contrast_columns vector supplied to DesignModelMatrix() is correct and that all elements in the require_identical_fields vector are metadata column names whose values you intended to keep constant across all pairwise contrasts.")
+  if (!is.null(requireIdenticalFields) & !useRequireIdenticalLogic){
+    warning("useRequireIdenticalLogic is set to FALSE, but requireIdenticalFields are supplied. These will not be used for filtering.")
+  } else if (useRequireIdenticalLogic & is.null(requireIdenticalFields)){
+    stop("useRequireIdenticalLogic is TRUE, but no requireIdenticalFields have been supplied.")
+  } else if (!all(requireIdenticalFields %in% contrast_columns)){
+    stop("Metadata columns requested in requireIdenticalFields do not appear in the supplied design matrix's contrast_columns attribute. Please ensure that the contrast_columns vector supplied to DesignModelMatrix() is correct and that all elements in the requireIdenticalFields vector are metadata column names whose values you intended to keep constant across all pairwise contrasts.")
+  }
+  
+  #Sanitize the logicList's criterion field according to the make.names() usage in the DesignModelMatrix (where it will compare the str_split(column) values)
+  #The metadata's name field is fetched from a raw value stored in attr(design, "contrast_columns"), so it doesn't need to be fixed. 
+  for (logicListIndex in 1:length(logicList)){
+    logicList[[logicListIndex]][[3]] <- gsub("_", ".", make.names(logicList[[logicListIndex]]))[[3]]
   }
   
   #create a nx2 array of all possible unique pairwise combinations of contrasts from the design matrix.
@@ -534,7 +400,7 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
   
   #initialize contrast indices vector (to be used to subset the total contrast list after filtering).
   filtered_contrast_indices <- c()
-  #iterate through all of the contrasts, filter those that don't satisfy the logic gates/require_identical_fields logic.
+  #iterate through all of the contrasts, filter those that don't satisfy the logic gates/requireIdenticalFields logic.
   for (row_index in 1:nrow(contrasts)){
     #define the relevant metadata fields for each side of the contrast.
     positive_contrast <- unlist(strsplit(contrasts[row_index,1], split = "_"))
@@ -544,37 +410,37 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
     
     #define iterator to track how many logic gates were passed for the contrast pair.
     gates_satisfied <- 0
-    for (logic_gate_index in 1:length(logic_list)){
-      #define variables to set up the logic gate from logic_list.
-      field_to_check <- logic_list[[logic_gate_index]][[1]]
-      gate <- logic_list[[logic_gate_index]][[2]]
-      criterion <- logic_list[[logic_gate_index]][[3]]
+    for (logic_gate_index in 1:length(logicList)){
+      #define variables to set up the logic gate from logicList.
+      field_to_check <- logicList[[logic_gate_index]][[1]]
+      gate <- logicList[[logic_gate_index]][[2]]
+      criterion <- logicList[[logic_gate_index]][[3]]
       #set up logic gate and check if the contrast satisfies the gate.
       if (get(gate)(
         positive_contrast[field_to_check] == criterion,
         negative_contrast[field_to_check] == criterion)){
         #if true, mark the gate as satisfied.
         gates_satisfied <- gates_satisfied + 1
-        #it is possible to fully define your study design within logic_gate without using the require_identical_fields logic as a shortcut, so we check if it's used or not.
-        if (use_require_identical_logic == T){
+        #it is possible to fully define your study design within logic_gate without using the requireIdenticalFields logic as a shortcut, so we check if it's used or not.
+        if (useRequireIdenticalLogic == T){
           #check if the contrast passed all of the logic gates, if so, test for require_identical fields.
-          if (gates_satisfied == length(logic_list)){
+          if (gates_satisfied == length(logicList)){
             #reset counter for matching require_identical fields.
-            require_identical_fields_satisfied <- 0
-            for (require_identical in require_identical_fields){
+            requireIdenticalFields_satisfied <- 0
+            for (require_identical in requireIdenticalFields){
               #keep track of how many require_identical fields are equal to each other.
               if (positive_contrast[require_identical] == negative_contrast[require_identical]){
-                require_identical_fields_satisfied <- require_identical_fields_satisfied + 1
+                requireIdenticalFields_satisfied <- requireIdenticalFields_satisfied + 1
               }
               #if all of the require_identical fields are require_identical keep the contrast.
-              if (require_identical_fields_satisfied == length(require_identical_fields)){
+              if (requireIdenticalFields_satisfied == length(requireIdenticalFields)){
                 filtered_contrast_indices <- c(filtered_contrast_indices, row_index)
               }
             }
           }
         } else{
           #if all of the gates are satisfied and the require_identical logic isn't used, keep the contrast.
-          if (gates_satisfied == length(logic_list)){
+          if (gates_satisfied == length(logicList)){
             filtered_contrast_indices <- c(filtered_contrast_indices, row_index)
           }
         }
@@ -582,10 +448,25 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
     }
   }
   #filter the contrasts using the indices that satisfy the logic gates/require_identical fields.
-  contrasts <- contrasts[filtered_contrast_indices,]
+  #if no filtering was actually performed, filtered_contrast_indices will be NULL/empty, so we don't need to filter the contrasts.
+  if (!is.null(filtered_contrast_indices)) {
+    contrasts <- contrasts[filtered_contrast_indices,]
+    warning("No filtering in RunFilteredContrasts was performed.")
+  }
+  
+  #if the contrasts matrix only has one row, it will be automatically coerced into a vector. We need to ensure it remains a matrix.
+  if (is.vector(contrasts)) {
+    contrasts <- matrix(contrasts, ncol = 2)
+  }
+  
+  if (is.null(contrasts)) {
+    stop("All contrasts were filtered. Please ensure the first entry of logicList's lists is a field supplied to the contrast_columns argument of DesignModelMatrix(). Please also check that the third entry of the logicList's lists reacts predictably with the make.names() function.")
+  } else if (nrow(contrasts) == 0) {
+    stop("All contrasts were filtered. Please ensure the first entry of logicList's lists is a field supplied to the contrast_columns argument of DesignModelMatrix(). Please also check that the third entry of the logicList's lists reacts predictably with the make.names() function.")
+  }
   
   #initialize a dataframe to store the filtered contrasts.
-  filtered_contrasts_dataframe <- data.frame()
+  filteredContrastsDataframe <- data.frame()
   #iterate through the filtered contrasts and coerce the matrix into a data frame. 
   for(contrast_index in 1:nrow(contrasts)){
     #split the contrasts by _ and coerce into a dataframe. 
@@ -594,17 +475,493 @@ FilterPseudobulkContrasts <- function(logic_list = NULL, design = NULL, use_requ
     colnames(temporary_data_frame) <- c(paste0("positive_contrast_", contrast_columns), 
                                         paste0("negative_contrast_", contrast_columns))
     rownames(temporary_data_frame) <- contrast_index
-    filtered_contrasts_dataframe <- rbind(filtered_contrasts_dataframe, temporary_data_frame)
+    filteredContrastsDataframe <- rbind(filteredContrastsDataframe, temporary_data_frame)
   }
   #write the filtered output file in "data.frame" format, with column names and no row indices. 
-  write.table(filtered_contrasts_dataframe, file = filtered_contrasts_output_file, row.names = F, col.names = T)
-  return(filtered_contrasts_dataframe)
+  write.table(filteredContrastsDataframe, file = filteredContrastsOutputFile, row.names = F, col.names = T)
+  return(filteredContrastsDataframe)
 }
 
 #logic gates to be used with FilterPseudobulkContrasts()
 nand <- function(x,y){ !(x&y) } 
 nor <- function(x,y){ !(x|y) } 
 xnor <- function(x,y){(x == y)}
+
+#' @title RunFilteredContrasts
+#'
+#' @description This is the companion function to FilterPseudobulkContrasts. FilterPseudobulkContrasts determines the valuable contrasts relative to your metadata variable of interest, and this function performs the model fitting and collecting the differential expression results.
+#' @param seuratObj A pseudobulked Seurat object that was used for DesignModelMatrix() and FilterPseudobulkContrasts(). 
+#' @param filteredContrastsFile A file containing the output of FilterPseudobulkContrasts. This can be omitted if you use the dataframe returned by FilterPseudobulkContrasts insetad.
+#' @param filteredContrastsDataframe A dataframe containing the output of FilterPseudobulkContrasts. This can be omitted if you read the results of FilterPseudobulkContrasts from the file written by the function instead. 
+#' @param design a design/model matrix returned by DesignModelMatrix().
+#' @param test.use A passthrough argument specifying the statistical test to be run by PerformGlmFit and PerformDifferentialExpression. 
+#' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by PerformDifferentialExpression (for plotting only). 
+#' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by PerformDifferentialExpression (for plotting only).
+#' @param minCountsPerGene A passthrough argument specifying the minimum counts a gene must have before it is filtered and excluded from GLM fitting by PerformGlmFit().
+#' @param assayName A passthrough argument specifying in which assay the counts are held. 
+#' @param showPlots A passthrough argument specifying whether or not PerformDifferentialExpression should show the volano plots 
+#' @return A list of dataframes containing the differentially expressed genes in each contrast supplied by one of the filteredGenes arguments. 
+#' @export
+
+RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filteredContrastsDataframe = NULL, design, test.use, logFC_threshold = 1, minCountsPerGene = 1, FDR_threshold = 0.05, assayName = "RNA", showPlots = FALSE){
+  if (is.null(filteredContrastsFile) & is.null(filteredContrastsDataframe)){
+    stop("Please define either filteredContrastsDataframe or filteredContrastsFile. Both of these are output by FilterPseudobulkContrasts() and are equivalent. filteredContrastsDataframe is returned by FilterPseudobulkContrasts(), and filteredContrastsFile is written to disk (by default: ./filtered_contrasts.tsv)")
+  } else if (!is.null(filteredContrastsFile) & !is.null(filteredContrastsDataframe)){
+    warning("Both filteredContrastsFile and filteredContrastsDataframe are defined. Only one of these is necessary, so filteredContrastsDataframe will be used as the list of filtered contrasts and the filteredContrastsFile argument will be ignored.")
+    contrasts <- filteredContrastsDataframe
+  } else if (!is.null(filteredContrastsDataframe) ){
+    contrasts <- filteredContrastsDataframe
+  } else if (!is.null(filteredContrastsFile)){
+    contrasts <- read.table()
+  }
+  
+  if (!("counts" %in% SeuratObject::Layers(seuratObj))) {
+    stop("Could not find the 'counts' layer in the supplied Seurat Object.")
+  }
+  
+  results <- future.apply::future_lapply(split(contrasts, 1:nrow(contrasts)), future.seed = GetSeed(), FUN = function(x){
+    #initialize two seurat objects, one to be subset according to the positive contrasts, and one to be subset according to the negative contrast. These will be merged downstream.
+    seuratObj.positive.contrast <- seuratObj
+    seuratObj.negative.contrast <- seuratObj
+    positive_contrast <- NULL
+    negative_contrast <- NULL
+    #construct the positive and negative contrast by accessing each value within the filtered contrast data frame (row-wise) by adding the appropriate prefix to the metadata field name (i.e. the "contrast column")
+    print(paste0("Contrast columns: ", attr(design,"contrast_columns")))
+    for (contrast_column in attr(design, "contrast_columns")){
+      #if the contrasts have only just been initialized, don't use an underscore delimiter when concatenating.
+      if (is.null(positive_contrast)){
+        positive_contrast <- x[,paste0("positive_contrast_", contrast_column)]
+        negative_contrast <- x[,paste0("negative_contrast_", contrast_column)]
+      } else {
+        positive_contrast <- paste0(positive_contrast, "_", x[,paste0("positive_contrast_", contrast_column)])
+        negative_contrast <- paste0(negative_contrast, "_", x[,paste0("negative_contrast_", contrast_column)])
+      }
+      #establish a whitelist of values from the contrast_column to subset the seurat object
+      #valid_values_from_contrast <- c(x[,paste0("positive_contrast_", contrast_column)], x[,paste0("negative_contrast_", contrast_column)])
+      contrast_name <- paste0(positive_contrast, "-", negative_contrast)
+      print(paste("Subsetting Cells for: ", contrast_name))
+      #the behavior of make.names() in DesignModelMatrix calls make.names() on the whole contrast rather than it's constituent parts, which yields divergent behavior (4 -> X4) when the value starts with a number. However, this is necessary to correct for spaces/hypens in metadata variables. 
+      #TODO: ensure the first contrast column in DesignModelMatrix is non-numeric.
+      print("Filtering cells...")
+      if(!any(grepl("^[0-9]",seuratObj.positive.contrast@meta.data[,contrast_column])) | !any(grepl("^[0-9]",seuratObj.negative.contrast@meta.data[,contrast_column]))){
+        seuratObj.positive.contrast@meta.data[,contrast_column] <- make.names(seuratObj.positive.contrast@meta.data[,contrast_column])
+        seuratObj.negative.contrast@meta.data[,contrast_column] <- make.names(seuratObj.negative.contrast@meta.data[,contrast_column])
+      }
+      seuratObj.contrast <-tryCatch(
+        {
+          #Iteratively subset SeuratObj.contrast so we fit the glm on just the samples going into the contrast.
+          seuratObj.positive.contrast <- seuratObj.positive.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% x[,paste0("positive_contrast_", contrast_column)])
+          seuratObj.negative.contrast <- seuratObj.negative.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% x[,paste0("negative_contrast_", contrast_column)])
+          #this merge could be more efficient (specifically, this merge could be performed just once instead of once per contrast_column), but it offers a convenient check-in during the subset and offers the most correct data to eBayes().
+          seuratObj.contrast <- merge(seuratObj.positive.contrast, seuratObj.negative.contrast)
+          if (HasSplitLayers(seuratObj.contrast)) {
+            seuratObj.contrast <- MergeSplitLayers(seuratObj.contrast)
+          }
+          print(paste(c("Remaining Cells:", nrow(seuratObj.contrast@meta.data))))
+          print(paste("colsums:", table(seuratObj.contrast@meta.data[,contrast_column])))
+          seuratObj.contrast
+        }, error = function(e){
+          print(paste("Error subsetting in contrast:", contrast_name, ". Column:",  contrast_column))
+          print(paste("Error:", e))
+          return(NULL)
+        }
+      )
+    }
+    
+    if (!is.null(seuratObj.contrast)){
+      print(paste("Performing DE for: ", contrast_name))
+      #After filtering, each side of the contrast needs to have more than 1 sample or the estimated dispersion will be NA and the GLM fitting will fail. 
+      #This only tests the last contrast column for >1 samples, but this should be sufficient. If a contrast yielded a subset with no samples remaining, it should error in the trycatch and seuratObj should be NULL. 
+      if (all(table(seuratObj.contrast@meta.data[,contrast_column]) > 1)) {
+        #convert seurat object to SingleCellExperiment for edgeR
+        sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj.contrast, assay = assayName, layer = "counts")), colData = seuratObj.contrast@meta.data)
+        
+        #filter out lowly expressed genes
+        if (!is.null(minCountsPerGene)) {
+          sce <- sce[rowSums(as.matrix(SingleCellExperiment::counts(sce))) > minCountsPerGene, ]
+        }
+
+        filtered_design_matrix <- DesignModelMatrix(seuratObj.contrast,
+                                                    contrast_columns = attr(design, "contrast_columns"),
+                                                    sampleIdCol = attr(design, "sampleIdCol"))
+        
+        fit <- PerformGlmFit(seuratObj.contrast, design = filtered_design_matrix, test.use = test.use, assayName = assayName, minCountsPerGene = minCountsPerGene)
+        #format contrast using limma
+        contrast <- limma::makeContrasts(contrasts = contrast_name, levels = colnames(filtered_design_matrix))
+        result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold, test.use = test.use, showPlots = showPlots)
+        #if no DEGs are returned, then spoof the table with a "null DEG".
+        if(nrow(result$differential_expression$table)==0){
+          print(paste0("empty DE results for contrast:", contrast_name))
+          result <- list()
+          result$differential_expression$table <- data.frame(logFC = 0,
+                                     logCPM = 0,
+                                     `F` = 1,
+                                     PValue = 1,
+                                     FDR = 1,
+                                     gene = "none")
+        }
+      } else {
+        print("Not enough samples to estimate dispersion/fit GLM")
+        result <- list()
+        result$differential_expression$table <- data.frame(logFC = 0,
+                                   logCPM = 0,
+                                   `F` = 1,
+                                   PValue = 1,
+                                   FDR = 1,
+                                   gene = "none")
+      }
+    } else {
+      print("Filtering eliminated all samples.")
+      contrast_name <- paste0(positive_contrast, "-", negative_contrast)
+      result <- list()
+      result$differential_expression$table <- data.frame(logFC = 0,
+                                 logCPM = 0,
+                                 `F` = 1,
+                                 PValue = 1,
+                                 FDR = 1,
+                                 gene = "none")
+    }
+    result$differential_expression$table$contrast_name <- contrast_name
+    result$differential_expression$table$positive_contrast <- positive_contrast
+    result$differential_expression$table$negative_contrast <- negative_contrast
+    result$differential_expression$table <- cbind(result$differential_expression$table, x)
+    return(result$differential_expression$table)
+  })
+  return(results)
+}
+
+#' @title PseudobulkingBarPlot
+#'
+#' @description This is a plotting function downstream of RunFilteredContrasts that will create a  bar plot with the results of each contrast ordered by the magnitude of differentially expressed genes. 
+#' @param filteredContrastsResults A list of dataframes returned by RunFilteredContrasts.
+#' @param metadataFilterList An optional list of lists specifying further filtering to be performed. These lists must follow the format: list( list("filterDirection", "filterField", "filterValue" )) where: filterDirection determines whether the Positive, Negative, or Both sides of the contrasts should be filtered, filterField determines which metadata field (originally supplied to groupFields in PseudobulkSeurat and contrast_columns in DesignModelMatrix), filterValue corresponds to which values of the filterField should be filtered. This is useful if you passed parallel hypotheses (e.g. what genes are differentially expressed in each tissue?) in the requireIdenticalFields argument of RunFilteredContrasts, but want to plot the results of only one tissue at a time. 
+#' @param title Title for the bar plot. 
+#' @param log_y_axis A boolean determining if the y axis (magnitude of differential expression) should be log transformed.
+#' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction. 
+#' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.
+#' @return A list containing the filtered dataframe used for plotting and the bar plot itself. 
+#' @export
+
+PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", log_y_axis = FALSE, logFC_threshold = 1, FDR_threshold = 0.05) {
+  
+  if (!is.list(filteredContrastsResults)) {
+    stop("filteredContrastsResults is not a list. Please ensure filteredContrastsResults is a list of dataframes returned by RunFilteredContrasts().")
+  } else if (length(filteredContrastsResults) == 0) {
+    stop("filteredContrastsResults is empty. Please ensure filteredContrastsResults is a list of dataframes returned by RunFilteredContrasts().")
+  } else if (!all(sapply(filteredContrastsResults, function(x) class(x) == "data.frame"))) {
+    stop("filteredContrastsResults is not a list of dataframes. Please ensure filteredContrastsResults is a list of dataframes returned by RunFilteredContrasts().")
+  } 
+  
+  if (!is.null(metadataFilterList)) {
+    if(!is.list(metadataFilterList)){
+      stop("metadataFilterList is not a list. Please ensure metadataFilterList includes a contrast directionality ('Positive', 'Negative', or 'Both'), a metadata variable that was included in groupFields, and a whitelist value that is a member of the metadata variable. Proper formatting should look like: \nmetadataFilterList = list(list('Positive', 'Tissue', 'Lung'), list('Negative', 'Timepoint', 'Baseline')).")
+    } else if (length(metadataFilterList) == 0) {
+      stop("metadataFilterList is empty. Please ensure metadataFilterList includes a contrast directionality ('Positive', 'Negative', or 'Both'), a metadata variable that was included in groupFields, and a whitelist value that is a member of the metadata variable. Proper formatting should look like: \nmetadataFilterList = list(list('Positive', 'Tissue', 'Lung'), list('Negative', 'Timepoint', 'Baseline')).")
+    } else if (length(unlist(metadataFilterList)) %% 3 != 0) {
+      stop("Not all lists in metadataFilterList are of length 3! Please ensure metadataFilterList includes a contrast directionality ('Positive', 'Negative', or 'Both'), a metadata variable that was included in groupFields, and a whitelist value that is a member of the metadata variable. Proper formatting should look like: \nmetadataFilterList = list(list('Positive', 'Tissue', 'Lung'), list('Negative', 'Timepoint', 'Baseline')).")
+    }
+  }
+  
+  #convert from list of dataframes to one large data frame (note: row names will be duplicated when genes appear more than once).
+  filteredContrastsResults <- dplyr::bind_rows(filteredContrastsResults)
+  #tag the genes as either up or down regulated
+  filteredContrastsResults <- .addRegulationInformationAndFilterDEGs(filteredContrastsResults, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold)
+  
+  #Further filter contrasts associated with a list of vectors (metadataFilterList).
+  if (!is.null(metadataFilterList)) {
+    if (!is.list(metadataFilterList)) {
+      stop("metadataFilterList is improperly formatted. Please ensure metadataFilterList includes a contrast directionality ('Positive', 'Negative', or 'Both'), a metadata variable that was included in groupFields, and a whitelist value that is a member of the metadata variable. Proper formatting should look like: metadataFilterList = list(c('Positive', 'Tissue', 'Lung')).")
+    } else if (length(unlist(metadataFilterList)) %% 3 != 0) {
+      stop("Not all vectors in metadataFilterList are of length 3! Please ensure metadataFilterList includes a contrast directionality ('Positive', 'Negative', or 'Both'), a metadata variable that was included in groupFields, and a whitelist value that is a member of the metadata variable. Proper formatting should look like: metadataFilterList = list(c('Positive', 'Tissue', 'Lung')).")
+    } 
+    #parse the filterList for the metadata field and whitelist value 
+    for (filter in metadataFilterList) {
+      #define filters
+      filterDirection <- filter[1]
+      filterField <- filter[2]
+      filterValue <- filter[3]
+      
+      #Make sure the filters are valid 
+      if (! (filterDirection %in% c("Positive", "Negative", "Both"))) {
+        stop(paste0("Error: Invalid argument ", filterDirection, " supplied in metadataFilterList. Please ensure the first argument in each vector of metadataFilterList specifies a direction that is either 'Positive' for filtering only the positive side of each contrast, 'Negative' for filtering the negative side, or 'Both' for filtering values from either side of each contrast."))
+      } else if (!(grepl(filterField, colnames(filteredContrastsResults)))) {
+        stop(paste0("Error: No contrast columns associated with ", filterField, " were found in the column names of filteredContrastsResults. Please ensure your metadata column was both supplied to groupFields in PseudobulkSeurat and designated as a contrastColumn in DesignModelMatrix."))
+      } else if (! (grepl(filterValue, filteredContrastsResults[,paste0("positive_contrast_", filterField)]) | 
+                    grepl(filterValue, filteredContrastsResults[,paste0("negative_contrast_", filterField)]))){
+        warning(paste0(filterValue, " was not found in the columns associated with ", filterField,". No filtering was performed associated with the following filter: ", filter))
+      }
+      
+      #Apply post-RunFilteredContrasts filtering rules to the contrasts
+      if (filterDirection == "Positive" | filterDirection == "Both") {
+        filteredContrastsResults <- filteredContrastsResults %>% 
+          dplyr::filter(grepl(filterValue, paste0("positive_contrast_", filterField)))
+      } 
+      if (filterDirection == "Negative" | filterDirection == "Both") {
+        filteredContrastsResults <- filteredContrastsResults %>% 
+          dplyr::filter(grepl(filterValue, paste0("negative_contrast_", filterField)))
+      }
+      
+    }
+  }
+  
+  #Define order of magnitude DEG groupings
+  filteredContrastsResults <- filteredContrastsResults %>% 
+    dplyr::filter(gene != "none") %>% 
+    dplyr::filter(!is.na(uniqueness)) %>% 
+    dplyr::group_by(contrast_name) %>% 
+    dplyr::mutate(count = sum(abs(n_DEG))) %>% 
+    dplyr::arrange(-count)  %>% 
+    dplyr::mutate(DEG_Magnitude = dplyr::case_when(
+      count > 1000 ~ "1000+ DEGs",
+      count <= 1000 & count >= 100 ~ "1000-100 DEGs",
+      count <= 100 & count >= 10 ~ "100-10 DEGs",
+      count < 10 ~ "<10 DEGs"
+    ))
+  
+  filteredContrastsResults$DEG_Magnitude <- factor(filteredContrastsResults$DEG_Magnitude, levels = c("1000+ DEGs", "1000-100 DEGs", "100-10 DEGs", "<10 DEGs"))
+  
+  bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
+    ggplot2::geom_bar(data = filteredContrastsResults, 
+                      ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
+    ggplot2::scale_fill_manual(values = c(down_nonunique = "cadetblue2", down_unique = "blue", up_nonunique = "orange", up_unique = "red")) + 
+    ggplot2::labs(fill="Unique") + 
+    ggplot2::ylab("Number of DEGs")+ 
+    egg::theme_article() + 
+    ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
+    ggplot2::ggtitle(title) + 
+    ggplot2::xlab("Differential Expression Contrasts") + 
+    ggplot2::facet_wrap(~DEG_Magnitude, scales = "free_x")
+  
+  if (log_y_axis) {
+    bargraph <- bargraph + ggplot2::scale_y_log10()
+  }
+  print(bargraph)
+  
+  return(list(dataframe = filteredContrastsResults, barPlot = bargraph))
+}
+
+#' @title .addRegulationInformationAndFilterDEGs
+#' 
+#' @description a helper function for PseudobulkingBarPlot to tag genes as up- or down-regulated and check for uniqueness of differential gene expression across the contrasts. 
+#' @param tibble a (presumably large) tibble from dplyr containing the results of RunFilteredPseudobulkingContrasts
+#' @param logFC_threshold The minimum value for a gene's absolute value of log fold change to be considered differentially expressed. 
+#' @param FDR_threshold The maximum value for a gene's FDR to be considered differentially expressed. 
+#' @return a tibble with the uniqueness and direction of regulation for each gene stored in tibble$regulation
+
+.addRegulationInformationAndFilterDEGs <- function(tibble, logFC_threshold = 1, FDR_threshold = 0.05){
+  tibble <- dplyr::as_tibble(tibble)
+  tibble <- tibble %>% 
+    dplyr::group_by(contrast_name, gene) %>% 
+    dplyr::mutate(regulation = dplyr::case_when( logFC > logFC_threshold & FDR < FDR_threshold ~ "upregulated",
+                                   logFC < -logFC_threshold & FDR < FDR_threshold ~ "downregulated", 
+                                   abs(logFC) < logFC_threshold | FDR > FDR_threshold ~ "noDEG"))
+  
+  tibble <- tibble |>
+    dplyr::group_by(gene) |>
+    dplyr::mutate(gene_occurance = dplyr::n()) 
+  
+  #determine regulation-uniqueness pairs
+  tibble[tibble$regulation == "upregulated","uniqueness"] <- "up_nonunique"
+  tibble[tibble$regulation == "upregulated" & tibble$gene_occurance == 1, "uniqueness"] <- "up_unique"
+  tibble[tibble$regulation == "downregulated","uniqueness"] <- "down_nonunique"
+  tibble[tibble$regulation == "downregulated" & tibble$gene_occurance == 1, "uniqueness"] <- "down_unique"
+  
+  #geom_bar sums the n_DEG column, so fixing the sign is all that is necessary
+  tibble[tibble$regulation == "upregulated", "n_DEG"] <- 1 
+  tibble[tibble$regulation == "downregulated", "n_DEG"] <- -1 
+  tibble[tibble$regulation == "noDEG", "n_DEG"] <- 0
+  return(tibble)
+}
+
+#' @title PseudobulkingDEHeatmap
+#'
+#' @description This is a plotting function that formats the FilterPseudobulkingContrasts logic to plot a heatmap of log fold changes for a given gene space. It is recommended that you filter this gene space through some kind of feature selection, but full transcriptome heatmaps are possible.  
+#' @param seuratObj A pseudobulked Seurat object.
+#' @param geneSpace An optional vector of gene names that specify which genes should populate the heatmap. It is recommended that you perform some kind of feature selection upstream of this to select genes for plotting. If NULL, all rows in the assay object will be used.
+#' @param contrastField The primary grouping variable to display (on top of the heatmap). 
+#' @param negativeContrastValue The value of contrastField to be treated as "downregulated". 
+#' @param positiveContrastValue An optional variable to define a specific positive contrast value. While negativeContrastValue determines the log fold changes, this argument operates primarily as a filtering variable to eliminate groups and show a particular value of the contrast field.
+#' @param subgroupingVariable If there is a second relevant grouping variable, you can supply a second metadata column to group the data by. 
+#' @param assayName the name of the assay in the seurat object storing the count matrix. 
+#' @param showRowNames a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap. 
+#' @param sampleIdCol The metadata column denoting the variable containing the sample identifier (for grouping). 
+#' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
+#' @export
+
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID') {
+  #sanity check arguments
+  if (is.null(contrastField)) {
+    stop("Please define a contrastField. This is a metadata variable (supplied to groupFields during PseudobulkSeurat()) that will be displayed on the top of the heatmap.")
+  }
+  #check negativeContrastValue & positiveCOntrastValue
+  if (is.null(negativeContrastValue)) {
+    stop("Please define a negativeContrastValue. This is the value of contrastField that will be treated as 'downregulated' in log fold changes shown in the heatmap.")
+  } else if (!(negativeContrastValue %in% seuratObj@meta.data[,contrastField])) {
+    stop(paste0("Error: could not find negativeContrastValue: ", negativeContrastValue, " in the metadata field ", contrastField, " within the Seurat Object. Please ensure the negativeContrastValue is a member of the ",  contrastField, " metadata field."))
+  } else if (!is.null(positiveContrastValue)) {
+    if (!(positiveContrastValue %in% seuratObj@meta.data[,contrastField])) {
+      stop(paste0("Error: could not find positiveContrastValue: ", positiveContrastValue, " in the metadata field ", contrastField, " within the Seurat Object. Please ensure the positiveContrastValue is a member of the ",  contrastField, " metadata field."))
+    }
+  }
+  #check subgroupingVariable
+  if (!is.null(subgroupingVariable)) {
+    if (!(subgroupingVariable %in% colnames(seuratObj@meta.data))) {
+      stop(paste0("Error: could not find subgroupingVariable: ", subgroupingVariable, " in the metadata fields of the Seurat Object. Please ensure the subgroupingVariable: ", subgroupingVariable, " is a member of the metadata and was passed as a groupField to PseudobulkSeurat()."))
+    }
+  }
+  #check geneSpace
+  if (length(geneSpace) == 1) {
+    stop("Error: geneSpace must contain more than one gene. Please ensure geneSpace is a vector of gene names that you would like to plot in the heatmap.")
+  } else if (is.null(geneSpace)) {
+    stop("Error: please define a geneSpace. This should be a vector of gene names within the pseudobulked Seurat object.")
+  } else if (all(!(geneSpace %in% rownames(seuratObj)))) {
+    stop("Error: no genes in geneSpace were found in the supplied seurat object. Please ensure geneSpace is a vector of character gene names that you would like to plot in the heatmap.")
+  } else if (any(!(geneSpace %in% rownames(seuratObj)))) {
+    warning(paste0("Genes: ", geneSpace[!(geneSpace %in% rownames(seuratObj))], " not found in supplied Seurat Object! These genes will be omitted."))
+  } else if (sum(geneSpace %in% rownames(seuratObj)) <= 1) {
+    stop(paste0('Only ', sum(geneSpace %in% rownames(seuratObj)), ' gene(s) overlapped between geneSpace (length ', length(geneSpace),') and the assay (size ', length(rownames(seuratObj)),'). With Seurat V5 there must be more than one feature'))
+  }
+  
+  #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
+  design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol)
+  #similarly, parse these arguments for setting up a logicList
+  logicList <- list(list(contrastField, "xor", negativeContrastValue))
+  #positiveContrastValue is mostly a filtering tool since we need to establish what our 'control' is via negativeContrastValue.  
+  if (!is.null(positiveContrastValue)) {
+    logicList[[2]] <- list(contrastField, 'xor', positiveContrastValue)
+  }
+  
+  if (!is.null(subgroupingVariable)) {
+    #use subgroupingVariable information to infer arguments for FilterPseudobulkContrasts
+    useRequireIdenticalLogic <- TRUE
+    requireIdenticalFields <- subgroupingVariable
+    filteredContrasts <- FilterPseudobulkContrasts(logicList = logicList, 
+                                                   design = design, 
+                                                   useRequireIdenticalLogic = useRequireIdenticalLogic, 
+                                                   requireIdenticalFields = requireIdenticalFields, 
+                                                   filteredContrastsOutputFile = tempfile())
+  } else {
+    #use subgroupingVariable information to infer arguments for FilterPseudobulkContrasts
+    useRequireIdenticalLogic <- FALSE
+    filteredContrasts <- FilterPseudobulkContrasts(logicList = logicList, 
+                                                   design = design, 
+                                                   useRequireIdenticalLogic = useRequireIdenticalLogic, 
+                                                   filteredContrastsOutputFile = tempfile())
+  }
+  
+  #we can run RunFilteredContrasts without any differential expression-based filtering because our gene filtering should occur when we pass-in our geneSpace variable. We're just populating log fold changes here. 
+  lfc_results <- RunFilteredContrasts(seuratObj = seuratObj, 
+                                               filteredContrastsDataframe = filteredContrasts, 
+                                               design = design,
+                                               test.use = "QLF", 
+                                               logFC_threshold = 0,
+                                               FDR_threshold = 1.1,
+                                               minCountsPerGene = 1, 
+                                               assayName = assayName)
+  #bind RunFilteredContrasts into a dataframe
+  lfc_results <- dplyr::bind_rows(lfc_results)
+  
+  #swap directionality of contrasts such that negativeContrastValue is always negative if necessary. Contrasts are populated alphabetically upstream, so it's easier to just ensure ordering here. 
+  lfc_proper_negative_contrast <- lfc_results %>% 
+    dplyr::filter(!!sym(paste0("negative_contrast_",contrastField)) == negativeContrastValue)
+  lfc_swapped_negative_contrast <- lfc_results %>% 
+    dplyr::filter(!!sym(paste0("negative_contrast_",contrastField)) != negativeContrastValue) %>% 
+    .swapContrast()
+  lfc_results <- rbind(lfc_proper_negative_contrast, lfc_swapped_negative_contrast)
+  
+  #filter the matrix to include just genes passed to geneSpace
+  lfc_results <- lfc_results %>% filter(gene %in% geneSpace)
+  
+  #pivot the long-form tibble into a matrix for complexheatmap
+  #if we have a second grouping variable (subgroupingVariable), we include it in the else statement. 
+  if (is.null(subgroupingVariable)) {
+    lfc_results_wide <- lfc_results %>% 
+      as.data.frame() %>% 
+      dplyr::select(all_of(c("gene", "logFC", paste0("positive_contrast_",contrastField)))) %>% 
+      tidyr::pivot_wider(values_from = logFC, names_from = !!sym(paste0("positive_contrast_",contrastField)))
+  } else {
+    lfc_results_wide <- lfc_results %>% 
+      tidyr::unite(joinedFields, c(paste0("positive_contrast_",contrastField), paste0("positive_contrast_",subgroupingVariable)), remove = FALSE) %>% 
+      as.data.frame() %>% 
+      dplyr::select(all_of(c("gene", "logFC", "joinedFields"))) %>% 
+      tidyr::pivot_wider(values_from = logFC, names_from = joinedFields )
+  }
+  #format the tibble from dplyr into a numeric matrix for ComplexHeatmap
+  heatmap_matrix <- as.data.frame(lfc_results_wide)
+  gene_vector <- heatmap_matrix[,"gene"] 
+  contrast_values_vector <- colnames(heatmap_matrix)[colnames(heatmap_matrix) != "gene"] #if the heatmap matrix ends up being a single column after we strip away the gene column, it will be converted to a vector and lose its name.
+  heatmap_matrix <- heatmap_matrix[,!colnames(heatmap_matrix) %in% "gene"]
+  heatmap_matrix <- as.matrix(sapply(heatmap_matrix, as.numeric)) 
+  rownames(heatmap_matrix) <- gene_vector 
+  colnames(heatmap_matrix) <- contrast_values_vector #reassign the contrast values to the column names in case heatmap_matrix became a vector in the above lines. 
+  
+  #If a contrast "failed" due to not enough samples to fit a GLM in the contrast, it will return an NA LFC and Pvalue. Impute this to zero. 
+  heatmap_matrix[is.na(heatmap_matrix)] <- 0
+  
+  #If there's no second grouping variable, compute a heatmap with just the grouping labels. 
+  #else, compute a heatmap with the top labels as positive values of contrastField, while the bottom labels are entries of subgroupingVariable.
+  if (is.null(subgroupingVariable)) {
+    
+    split <- colnames(heatmap_matrix)
+    top_annotation <- ComplexHeatmap::HeatmapAnnotation(
+      foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill =  rep(x = "white", length(colnames(heatmap_matrix)))), 
+                       labels = colnames(heatmap_matrix)))
+
+    
+    heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
+                                       name = "Log Fold Changes", 
+                                       show_row_names = showRowNames, 
+                                       cluster_columns = FALSE, 
+                                       top_annotation = top_annotation, 
+                                       show_column_names = FALSE, 
+                                       column_split = split, 
+                                       column_title = NULL, 
+                                       border = TRUE)
+    
+  } else {
+    labels_df <- do.call(args = strsplit(colnames(heatmap_matrix), split = "_"), rbind)
+    split <- labels_df[,1]
+    top_annotation <- ComplexHeatmap::HeatmapAnnotation(
+      foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill = rep(x = "white", length(unique(labels_df[,1])))), 
+                       labels = unique(labels_df[,1])))
+    
+    heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
+                            column_labels = labels_df[,2],
+                            name = "Log Fold Changes", 
+                            column_names_rot = 0,
+                            column_names_centered = T,
+                            show_row_names = showRowNames, 
+                            cluster_columns = FALSE, 
+                            top_annotation = top_annotation, 
+                            column_split = split, 
+                            column_title = NULL, 
+                            border = TRUE)
+  }
+  
+  return(list(heatmap = heatmap, matrix = heatmap_matrix))
+}
+
+
+#' @title .swapContrast
+#' 
+#' @description a helper function for PseudobulkingDEHeatmap to swap the "positive" and "negative" sides of the contrasts such that the desired negative contrast value is correctly designated as negative. 
+#' @param tibble a large tibble from dplyr containing the results of RunFilteredPseudobulkingContrasts called within PseudobulkingDEHeatmap.
+#' @return a tibble with the positive and negative contrast directions swapped.
+
+.swapContrast <- function(tibble){
+  swapped_tibble <- tibble
+  #swap positive contrast columns to negative
+  swapped_tibble[,grepl("negative_contrast", colnames(tibble))] <- tibble[,grepl("positive_contrast", colnames(tibble))]
+  #swap negative contrasts to positive
+  swapped_tibble[,grepl("positive_contrast", colnames(tibble))] <- tibble[,grepl("negative_contrast", colnames(tibble))]
+  #swap direction of log fold change
+  swapped_tibble$logFC <- -swapped_tibble$logFC
+  #swap the contrast names
+  split_contrast_names <- strsplit(swapped_tibble$contrast_name, split = '-')
+  swapped_tibble$contrast_name <- sapply(split_contrast_names, FUN = function(x) { paste0(x[2], "-", x[1])})
+  
+  return(swapped_tibble)
+}
 
 #' @title FitRegularizedClassificationGlm 
 #'
@@ -731,5 +1088,4 @@ FitRegularizedClassificationGlm <- function(seuratObj,
       split = split
     ))
   }
-  
 }
