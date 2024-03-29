@@ -451,7 +451,8 @@ FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequir
   #if no filtering was actually performed, filtered_contrast_indices will be NULL/empty, so we don't need to filter the contrasts.
   if (!is.null(filtered_contrast_indices)) {
     contrasts <- contrasts[filtered_contrast_indices,]
-    warning("No filtering in RunFilteredContrasts was performed.")
+  } else {
+    warning("No filtering in FilterPseudobulkContrasts() was performed.")
   }
   
   #if the contrasts matrix only has one row, it will be automatically coerced into a vector. We need to ensure it remains a matrix.
