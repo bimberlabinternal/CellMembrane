@@ -82,7 +82,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2024-03-27</h4>
+            <h4 data-toc-skip class="date">2024-03-29</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/HEAD/vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd" class="external-link"><code>vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd</code></a></small>
       <div class="hidden name"><code>Pseudobulking-and-Filtered-Contrasts.Rmd</code></div>
@@ -322,8 +322,6 @@ across the contrasts, we can pass <code>'timepoint'</code> to the
 <span>                                                          useRequireIdenticalLogic <span class="op">=</span> <span class="cn">T</span>, </span>
 <span>                                                          requireIdenticalFields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"timepoint"</span><span class="op">)</span>, </span>
 <span>                                                          filteredContrastsOutputFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in FilterPseudobulkContrasts(logicList = logicList, design = design, :</span></span>
-<span><span class="co">#&gt; No filtering in RunFilteredContrasts was performed.</span></span>
 <span></span>
 <span><span class="va">filtered_contrasts</span></span>
 <span><span class="co">#&gt;   positive_contrast_vaccine_cohort positive_contrast_timepoint</span></span>
@@ -729,9 +727,7 @@ groups.</p>
 <span>                       contrastField <span class="op">=</span> <span class="st">"vaccine_cohort"</span>, </span>
 <span>                       negativeContrastValue <span class="op">=</span> <span class="st">"control"</span>, </span>
 <span>                       sampleIdCol <span class="op">=</span> <span class="st">'sample_identifier'</span></span>
-<span>                       <span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in FilterPseudobulkContrasts(logicList = logicList, design = design, :</span></span>
-<span><span class="co">#&gt; No filtering in RunFilteredContrasts was performed.</span></span></code></pre></div>
+<span>                       <span class="op">)</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Single%20Variable%20Heatmap-1.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Single%20Variable%20Heatmap-2.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Single%20Variable%20Heatmap-3.png" width="700"></p>
 <pre><code><span><span class="co">#&gt; [1] "Contrast columns: vaccine_cohort"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control-unvax"</span></span>
@@ -789,9 +785,7 @@ information as a <code>subgroupingVariable</code> to
 <span>                       negativeContrastValue <span class="op">=</span> <span class="st">"control"</span>, </span>
 <span>                       subgroupingVariable <span class="op">=</span> <span class="st">'timepoint'</span>,</span>
 <span>                       sampleIdCol <span class="op">=</span> <span class="st">'sample_identifier'</span></span>
-<span>                       <span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in FilterPseudobulkContrasts(logicList = logicList, design = design, :</span></span>
-<span><span class="co">#&gt; No filtering in RunFilteredContrasts was performed.</span></span></code></pre></div>
+<span>                       <span class="op">)</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Two%20Variable%20Heatmap-1.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Two%20Variable%20Heatmap-2.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Two%20Variable%20Heatmap-3.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Two%20Variable%20Heatmap-4.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Two%20Variable%20Heatmap-5.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Two%20Variable%20Heatmap-6.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Two%20Variable%20Heatmap-7.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Two%20Variable%20Heatmap-8.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Two%20Variable%20Heatmap-9.png" width="700"></p>
 <pre><code><span><span class="co">#&gt; [1] "Contrast columns: vaccine_cohort" "Contrast columns: timepoint"     </span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control-unvax"</span></span>
