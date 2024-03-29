@@ -736,7 +736,7 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
     ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
     ggplot2::ggtitle(title) + 
     ggplot2::xlab("Differential Expression Contrasts") + 
-    ggplot2::facet_wrap(~DEG_Magnitude, scales = "free_x")
+    ggplot2::facet_grid(~DEG_Magnitude, scales = "free_x")
   
   if (log_y_axis) {
     bargraph <- bargraph + ggplot2::scale_y_continuous(trans = scales::pseudo_log_trans(base = 10))
