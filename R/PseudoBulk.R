@@ -640,10 +640,11 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
 #' @param log_y_axis A boolean determining if the y axis (magnitude of differential expression) should be log transformed.
 #' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction. 
 #' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.
+#' @param swapContrastDirectionality A boolean determining if the contrast directionality should be swapped. This is useful if you want the "control" condition in your contrasts to appear in the opposite directionality of the default. 
 #' @return A list containing the filtered dataframe used for plotting and the bar plot itself. 
 #' @export
 
-PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", log_y_axis = FALSE, logFC_threshold = 1, FDR_threshold = 0.05) {
+PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", log_y_axis = FALSE, logFC_threshold = 1, FDR_threshold = 0.05, swapContrastDirectionality = FALSE) {
   
   if (!is.list(filteredContrastsResults)) {
     stop("filteredContrastsResults is not a list. Please ensure filteredContrastsResults is a list of dataframes returned by RunFilteredContrasts().")
@@ -721,6 +722,10 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
   
   filteredContrastsResults$DEG_Magnitude <- factor(filteredContrastsResults$DEG_Magnitude, levels = c("1000+ DEGs", "1000-100 DEGs", "100-10 DEGs", "<10 DEGs"))
   
+  if (swapContrastDirectionality){
+    filteredContrastsResults <- .swapContrastDirectionality(filteredContrastsResults)
+  }
+  
   bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
     ggplot2::geom_bar(data = filteredContrastsResults, 
                       ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
@@ -734,7 +739,7 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
     ggplot2::facet_wrap(~DEG_Magnitude, scales = "free_x")
   
   if (log_y_axis) {
-    bargraph <- bargraph + ggplot2::scale_y_log10()
+    bargraph <- bargraph + ggplot2::scale_y_continuous(trans = scales::pseudo_log_trans(base = 10))
   }
   print(bargraph)
   

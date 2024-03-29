@@ -10,7 +10,8 @@ PseudobulkingBarPlot(
   title = "Please Title The Bar Plot",
   log_y_axis = FALSE,
   logFC_threshold = 1,
-  FDR_threshold = 0.05
+  FDR_threshold = 0.05,
+  swapContrastDirectionality = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ PseudobulkingBarPlot(
 \item{logFC_threshold}{A passthrough argument specifying the log fold change threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.}
 
 \item{FDR_threshold}{A passthrough argument specifying the FDR threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.}
+
+\item{swapContrastDirectionality}{A boolean determining if the contrast directionality should be swapped. This is useful if you want the "control" condition in your contrasts to appear in the opposite directionality of the default.}
 }
 \value{
 A list containing the filtered dataframe used for plotting and the bar plot itself.
