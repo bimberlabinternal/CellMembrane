@@ -637,14 +637,14 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
 #' @param filteredContrastsResults A list of dataframes returned by RunFilteredContrasts.
 #' @param metadataFilterList An optional list of lists specifying further filtering to be performed. These lists must follow the format: list( list("filterDirection", "filterField", "filterValue" )) where: filterDirection determines whether the Positive, Negative, or Both sides of the contrasts should be filtered, filterField determines which metadata field (originally supplied to groupFields in PseudobulkSeurat and contrast_columns in DesignModelMatrix), filterValue corresponds to which values of the filterField should be filtered. This is useful if you passed parallel hypotheses (e.g. what genes are differentially expressed in each tissue?) in the requireIdenticalFields argument of RunFilteredContrasts, but want to plot the results of only one tissue at a time. 
 #' @param title Title for the bar plot. 
-#' @param log_y_axis A boolean determining if the y axis (magnitude of differential expression) should be log transformed.
+#' @param free_y_scale A boolean determining if the y axis (magnitude of differential expression) should be left free during faceting.
 #' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction. 
 #' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.
 #' @param swapContrastDirectionality A boolean determining if the contrast directionality should be swapped. This is useful if you want the "control" condition in your contrasts to appear in the opposite directionality of the default. 
 #' @return A list containing the filtered dataframe used for plotting and the bar plot itself. 
 #' @export
 
-PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", log_y_axis = FALSE, logFC_threshold = 1, FDR_threshold = 0.05, swapContrastDirectionality = FALSE) {
+PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", free_y_scale = FALSE, logFC_threshold = 1, FDR_threshold = 0.05, swapContrastDirectionality = FALSE) {
   
   if (!is.list(filteredContrastsResults)) {
     stop("filteredContrastsResults is not a list. Please ensure filteredContrastsResults is a list of dataframes returned by RunFilteredContrasts().")
@@ -723,24 +723,36 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
   filteredContrastsResults$DEG_Magnitude <- factor(filteredContrastsResults$DEG_Magnitude, levels = c("1000+ DEGs", "1000-100 DEGs", "100-10 DEGs", "<10 DEGs"))
   
   if (swapContrastDirectionality){
-    filteredContrastsResults <- .swapContrastDirectionality(filteredContrastsResults)
+    filteredContrastsResults <- .swapContrast(filteredContrastsResults)
   }
   
-  bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
-    ggplot2::geom_bar(data = filteredContrastsResults, 
-                      ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
-    ggplot2::scale_fill_manual(values = c(down_nonunique = "cadetblue2", down_unique = "blue", up_nonunique = "orange", up_unique = "red")) + 
-    ggplot2::labs(fill="Unique") + 
-    ggplot2::ylab("Number of DEGs")+ 
-    egg::theme_article() + 
-    ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
-    ggplot2::ggtitle(title) + 
-    ggplot2::xlab("Differential Expression Contrasts") + 
-    ggplot2::facet_grid(~DEG_Magnitude, scales = "free_x")
-  
-  if (log_y_axis) {
-    bargraph <- bargraph + ggplot2::scale_y_continuous(trans = scales::pseudo_log_trans(base = 10))
+  #plot the bar graph, facet by DEG_Magnitude, color by uniqueness, and optionally free the y axis (geom_bar doesn't work with log scales).
+  if (free_y_scale) {
+    bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
+      ggplot2::geom_bar(data = filteredContrastsResults, 
+                        ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
+      ggplot2::scale_fill_manual(values = c(down_nonunique = "cadetblue2", down_unique = "blue", up_nonunique = "orange", up_unique = "red")) + 
+      ggplot2::labs(fill="Unique") + 
+      ggplot2::ylab("Number of DEGs")+ 
+      egg::theme_article() + 
+      ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
+      ggplot2::ggtitle(title) + 
+      ggplot2::xlab("Differential Expression Contrasts") + 
+      ggplot2::facet_grid(~DEG_Magnitude, scales = "free")
+  } else {
+    bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
+      ggplot2::geom_bar(data = filteredContrastsResults, 
+                        ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
+      ggplot2::scale_fill_manual(values = c(down_nonunique = "cadetblue2", down_unique = "blue", up_nonunique = "orange", up_unique = "red")) + 
+      ggplot2::labs(fill="Unique") + 
+      ggplot2::ylab("Number of DEGs")+ 
+      egg::theme_article() + 
+      ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
+      ggplot2::ggtitle(title) + 
+      ggplot2::xlab("Differential Expression Contrasts") + 
+      ggplot2::facet_grid(~DEG_Magnitude, scales = "free_x")
   }
+  
   print(bargraph)
   
   return(list(dataframe = filteredContrastsResults, barPlot = bargraph))

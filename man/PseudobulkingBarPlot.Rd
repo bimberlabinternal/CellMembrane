@@ -8,7 +8,7 @@ PseudobulkingBarPlot(
   filteredContrastsResults,
   metadataFilterList = NULL,
   title = "Please Title The Bar Plot",
-  log_y_axis = FALSE,
+  free_y_scale = FALSE,
   logFC_threshold = 1,
   FDR_threshold = 0.05,
   swapContrastDirectionality = FALSE
@@ -21,7 +21,7 @@ PseudobulkingBarPlot(
 
 \item{title}{Title for the bar plot.}
 
-\item{log_y_axis}{A boolean determining if the y axis (magnitude of differential expression) should be log transformed.}
+\item{free_y_scale}{A boolean determining if the y axis (magnitude of differential expression) should be left free during faceting.}
 
 \item{logFC_threshold}{A passthrough argument specifying the log fold change threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.}
 
