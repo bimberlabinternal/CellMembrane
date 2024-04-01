@@ -686,9 +686,9 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
       #Make sure the filters are valid 
       if (! (filterDirection %in% c("Positive", "Negative", "Both"))) {
         stop(paste0("Error: Invalid argument ", filterDirection, " supplied in metadataFilterList. Please ensure the first argument in each vector of metadataFilterList specifies a direction that is either 'Positive' for filtering only the positive side of each contrast, 'Negative' for filtering the negative side, or 'Both' for filtering values from either side of each contrast."))
-      } else if (!(grepl(filterField, colnames(filteredContrastsResults)))) {
+      } else if (any(!(grepl(filterField, colnames(filteredContrastsResults))))) {
         stop(paste0("Error: No contrast columns associated with ", filterField, " were found in the column names of filteredContrastsResults. Please ensure your metadata column was both supplied to groupFields in PseudobulkSeurat and designated as a contrastColumn in DesignModelMatrix."))
-      } else if (! (grepl(filterValue, filteredContrastsResults[,paste0("positive_contrast_", filterField)]) | 
+      } else if (!any(grepl(filterValue, filteredContrastsResults[,paste0("positive_contrast_", filterField)]) | 
                     grepl(filterValue, filteredContrastsResults[,paste0("negative_contrast_", filterField)]))){
         warning(paste0(filterValue, " was not found in the columns associated with ", filterField,". No filtering was performed associated with the following filter: ", filter))
       }
