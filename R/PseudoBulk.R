@@ -637,7 +637,6 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
 #' @param filteredContrastsResults A list of dataframes returned by RunFilteredContrasts.
 #' @param metadataFilterList An optional list of lists specifying further filtering to be performed. These lists must follow the format: list( list("filterDirection", "filterField", "filterValue" )) where: filterDirection determines whether the Positive, Negative, or Both sides of the contrasts should be filtered, filterField determines which metadata field (originally supplied to groupFields in PseudobulkSeurat and contrast_columns in DesignModelMatrix), filterValue corresponds to which values of the filterField should be filtered. This is useful if you passed parallel hypotheses (e.g. what genes are differentially expressed in each tissue?) in the requireIdenticalFields argument of RunFilteredContrasts, but want to plot the results of only one tissue at a time. 
 #' @param title Title for the bar plot. 
-#' @param free_y_scale A boolean determining if the y axis (magnitude of differential expression) should be left free during faceting.
 #' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction. 
 #' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.
 #' @param swapContrastDirectionality A boolean determining if the contrast directionality should be swapped. This is useful if you want the "control" condition in your contrasts to appear in the opposite directionality of the default. 
@@ -726,8 +725,8 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
     filteredContrastsResults <- .swapContrast(filteredContrastsResults)
   }
   
-  #plot the bar graph, facet by DEG_Magnitude, color by uniqueness, and optionally free the y axis (geom_bar doesn't work with log scales).
-  if (free_y_scale) {
+  #plot the bar graph
+  #note: geom_bar doesn't play nicely with y axis transformations, so scales = free_y and log transforming the y axis does not work. 
     bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
       ggplot2::geom_bar(data = filteredContrastsResults, 
                         ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
@@ -738,20 +737,7 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
       ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
       ggplot2::ggtitle(title) + 
       ggplot2::xlab("Differential Expression Contrasts") + 
-      ggplot2::facet_grid(~DEG_Magnitude, scales = "free")
-  } else {
-    bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
-      ggplot2::geom_bar(data = filteredContrastsResults, 
-                        ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
-      ggplot2::scale_fill_manual(values = c(down_nonunique = "cadetblue2", down_unique = "blue", up_nonunique = "orange", up_unique = "red")) + 
-      ggplot2::labs(fill="Unique") + 
-      ggplot2::ylab("Number of DEGs")+ 
-      egg::theme_article() + 
-      ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
-      ggplot2::ggtitle(title) + 
-      ggplot2::xlab("Differential Expression Contrasts") + 
-      ggplot2::facet_grid(~DEG_Magnitude, scales = "free_x")
-  }
+      ggplot2::facet_grid(~DEG_Magnitude)
   
   print(bargraph)
   

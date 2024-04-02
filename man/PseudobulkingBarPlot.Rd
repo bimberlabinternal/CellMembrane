@@ -21,8 +21,6 @@ PseudobulkingBarPlot(
 
 \item{title}{Title for the bar plot.}
 
-\item{free_y_scale}{A boolean determining if the y axis (magnitude of differential expression) should be left free during faceting.}
-
 \item{logFC_threshold}{A passthrough argument specifying the log fold change threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.}
 
 \item{FDR_threshold}{A passthrough argument specifying the FDR threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.}
