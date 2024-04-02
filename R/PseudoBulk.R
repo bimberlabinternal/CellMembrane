@@ -643,7 +643,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
 #' @return A list containing the filtered dataframe used for plotting and the bar plot itself. 
 #' @export
 
-PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", free_y_scale = FALSE, logFC_threshold = 1, FDR_threshold = 0.05, swapContrastDirectionality = FALSE) {
+PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", logFC_threshold = 1, FDR_threshold = 0.05, swapContrastDirectionality = FALSE) {
   
   if (!is.list(filteredContrastsResults)) {
     stop("filteredContrastsResults is not a list. Please ensure filteredContrastsResults is a list of dataframes returned by RunFilteredContrasts().")
