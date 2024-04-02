@@ -1020,13 +1020,15 @@ FitRegularizedClassificationGlm <- function(seuratObj,
       seuratObj <- CellMembrane::NormalizeAndScale(seuratObj, 
                                                    nVariableFeatures = length(rownames(seuratObj)),
                                                    variableGenesBlacklist = RIRA::GetGeneSet("VariableGenes_Exclusion.2"),
-                                                   scoreCellCycle=F
+                                                   scoreCellCycle=F, 
+                                                   featuresToRegress = NULL
       )
     } else {
       seuratObj <- CellMembrane::NormalizeAndScale(seuratObj, 
                                                    nVariableFeatures = numberOfVariableFeatures,
                                                    variableGenesBlacklist = RIRA::GetGeneSet("VariableGenes_Exclusion.2"),
-                                                   scoreCellCycle=F
+                                                   scoreCellCycle=F, 
+                                                   featuresToRegress = NULL
       )
     }
   }
