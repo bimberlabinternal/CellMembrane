@@ -8,7 +8,6 @@ PseudobulkingBarPlot(
   filteredContrastsResults,
   metadataFilterList = NULL,
   title = "Please Title The Bar Plot",
-  free_y_scale = FALSE,
   logFC_threshold = 1,
   FDR_threshold = 0.05,
   swapContrastDirectionality = FALSE
