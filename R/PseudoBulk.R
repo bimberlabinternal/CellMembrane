@@ -910,7 +910,9 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
     top_annotation <- ComplexHeatmap::HeatmapAnnotation(
       foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill =  rep(x = "white", length(colnames(heatmap_matrix)))), 
                        labels = colnames(heatmap_matrix)))
-    col_fun = circlize::colorRamp2(c(min(heatmap_matrix), 0, max(heatmap_matrix)), c("dodgerblue3", "white", "red"))
+    #force a symmetric and zero-centered color scale
+    heatmap_extreme_value <- max(abs(min(heatmap_matrix)), abs(max(heatmap_matrix)))
+    col_fun = circlize::colorRamp2(c(-abs(heatmap_extreme_value), 0, abs(heatmap_extreme_value)), c("dodgerblue3", "white", "red"))
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
                                        name = "Log Fold Changes", 
@@ -929,7 +931,9 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
     top_annotation <- ComplexHeatmap::HeatmapAnnotation(
       foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill = rep(x = "white", length(unique(labels_df[,1])))), 
                        labels = unique(labels_df[,1])))
-    col_fun = circlize::colorRamp2(c(min(heatmap_matrix), 0, max(heatmap_matrix)), c("dodgerblue3", "white", "red"))
+    #force a symmetric and zero-centered color scale
+    heatmap_extreme_value <- max(abs(min(heatmap_matrix)), abs(max(heatmap_matrix)))
+    col_fun = circlize::colorRamp2(c(-abs(heatmap_extreme_value), 0, abs(heatmap_extreme_value)), c("dodgerblue3", "white", "red"))
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
                             column_labels = labels_df[,2],
