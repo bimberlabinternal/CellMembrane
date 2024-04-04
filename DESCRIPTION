@@ -96,7 +96,8 @@ Suggests:
     shiny,
     pkgdown,
     org.Hs.eg.db,
-    org.Mmu.eg.db
+    org.Mmu.eg.db, 
+    circlize
 RoxygenNote: 7.3.1
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
