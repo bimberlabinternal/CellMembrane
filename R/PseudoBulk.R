@@ -202,9 +202,11 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
 #' @param test.use Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
 #' @param assayName The name of the assay to use
 #' @param minCountsPerGene Any genes with fewer than this many counts (across samples) will be dropped.
+#' @param legacy A passthrough variable for edgeR's glmQLF function. They recently (R 4.0) changed the default behavior, so this will break on earlier versions of R. 
+#' @param plotBCV A boolean determining if the BCV plot should be shown.
 #' @return An edgeR glm object
 #' @export
-PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1){
+PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1, legacy = FALSE, plotBCV = TRUE){
   #convert seurat object to SingleCellExperiment for edgeR
   sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')), colData = seuratObj@meta.data)
   
@@ -217,10 +219,13 @@ PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA'
   y <- edgeR::DGEList(SingleCellExperiment::counts(sce), remove.zeros = TRUE)
   y <- edgeR::calcNormFactors(y)
   y <- edgeR::estimateDisp(y, design)
-  print(edgeR::plotBCV(y))
+  if (plotBCV){
+    print(edgeR::plotBCV(y))
+  }
+
   
   if (test.use == "QLF"){
-    fit <- edgeR::glmQLFit(y, design)
+    fit <- edgeR::glmQLFit(y, design, legacy = legacy)
   } else if (test.use == "LRT"){
     fit <- edgeR::glmFit(y, design)
   } else {

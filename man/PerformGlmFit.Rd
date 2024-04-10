@@ -9,7 +9,9 @@ PerformGlmFit(
   design,
   test.use = "QLF",
   assayName = "RNA",
-  minCountsPerGene = 1
+  minCountsPerGene = 1,
+  legacy = FALSE,
+  plotBCV = TRUE
 )
 }
 \arguments{
@@ -22,6 +24,10 @@ PerformGlmFit(
 \item{assayName}{The name of the assay to use}
 
 \item{minCountsPerGene}{Any genes with fewer than this many counts (across samples) will be dropped.}
+
+\item{legacy}{A passthrough variable for edgeR's glmQLF function. They recently (R 4.0) changed the default behavior, so this will break on earlier versions of R.}
+
+\item{plotBCV}{A boolean determining if the BCV plot should be shown.}
 }
 \value{
 An edgeR glm object
