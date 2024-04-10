@@ -789,10 +789,11 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @param assayName the name of the assay in the seurat object storing the count matrix. 
 #' @param showRowNames a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap. 
 #' @param sampleIdCol The metadata column denoting the variable containing the sample identifier (for grouping). 
+#' @param minCountsPerGene Passthrough variable for PerformGlmFit, used for filtering out lowly expressed genes. 
 #' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
 #' @export
 
-PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID') {
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID', minCountsPerGene = 1) {
   #sanity check arguments
   if (is.null(contrastField)) {
     stop("Please define a contrastField. This is a metadata variable (supplied to groupFields during PseudobulkSeurat()) that will be displayed on the top of the heatmap.")
@@ -860,7 +861,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
                                                test.use = "QLF", 
                                                logFC_threshold = 0,
                                                FDR_threshold = 1.1,
-                                               minCountsPerGene = 1, 
+                                               minCountsPerGene = minCountsPerGene, 
                                                assayName = assayName)
   #bind RunFilteredContrasts into a dataframe
   lfc_results <- dplyr::bind_rows(lfc_results)

@@ -13,7 +13,8 @@ PseudobulkingDEHeatmap(
   subgroupingVariable = NULL,
   showRowNames = FALSE,
   assayName = "RNA",
-  sampleIdCol = "cDNA_ID"
+  sampleIdCol = "cDNA_ID",
+  minCountsPerGene = 1
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ PseudobulkingDEHeatmap(
 \item{assayName}{the name of the assay in the seurat object storing the count matrix.}
 
 \item{sampleIdCol}{The metadata column denoting the variable containing the sample identifier (for grouping).}
+
+\item{minCountsPerGene}{Passthrough variable for PerformGlmFit, used for filtering out lowly expressed genes.}
 }
 \value{
 A list containing the filtered dataframe used for plotting and the heatmap plot itself.
