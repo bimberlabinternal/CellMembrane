@@ -52,6 +52,11 @@ For more on double dipping and approaches to circumvent it, please read https://
 ## How to Pseudobulk
 
 ```{r start pseudobulking, fig.width = 10}
+
+
+print('This is the WD:')
+print(here::here())
+
 #Load seurat object
 seuratObj <- suppressMessages(suppressWarnings(
     Seurat::UpdateSeuratObject(readRDS(here::here("tests/testdata/seuratOutput.rds")))
