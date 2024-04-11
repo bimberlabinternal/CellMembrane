@@ -54,7 +54,7 @@ For more on double dipping and approaches to circumvent it, please read https://
 ```{r start pseudobulking, fig.width = 10}
 #Load seurat object
 seuratObj <- suppressMessages(suppressWarnings(
-    Seurat::UpdateSeuratObject(readRDS(devtools::package_file("tests/testdata/seuratOutput.rds")))
+    Seurat::UpdateSeuratObject(readRDS(here::here("tests/testdata/seuratOutput.rds")))
 ))
 
 #assign some random experimental variables: vaccine groups, experimental time points, and subject Ids. 
