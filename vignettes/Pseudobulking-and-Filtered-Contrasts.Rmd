@@ -55,8 +55,9 @@ For more on double dipping and approaches to circumvent it, please read https://
 
 
 print('This is the WD:')
+print(getwd())
 print(here::here())
-print(system.file(package = 'CellMembrane'))
+print(system.file(package = 'CellMembrane', mustWork = FALSE))
 
 #Load seurat object
 seuratObj <- suppressMessages(suppressWarnings(
