@@ -28,6 +28,14 @@ library(SeuratObject)
 library(CellMembrane, warn.conflicts = F)
 ```
 
+```{r}
+
+message('This is the WD:')
+message(getwd())
+message(system.file(package = 'CellMembrane', mustWork = FALSE))
+
+```
+
 ## What is Pseudobulking? 
 
 Pseudobulking is a technique used in single cell RNA Sequencing to simplify the data from many single cells into a (pseudo) bulked sample by summing all of the gene expression from each cell in the group. Groupings can be determined several different ways.
@@ -52,12 +60,6 @@ For more on double dipping and approaches to circumvent it, please read https://
 ## How to Pseudobulk
 
 ```{r start pseudobulking, fig.width = 10}
-
-
-print('This is the WD:')
-print(getwd())
-print(here::here())
-print(system.file(package = 'CellMembrane', mustWork = FALSE))
 
 #Load seurat object
 seuratObj <- suppressMessages(suppressWarnings(
