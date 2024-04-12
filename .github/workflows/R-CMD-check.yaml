@@ -132,7 +132,11 @@ jobs:
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_: false
-        run: rcmdcheck::rcmdcheck(args = c("--no-manual"), error_on = "warning", check_dir = "check")
+        run: |
+          logger::log_info('This is the filepath:')
+          logger::log_info(getwd())
+          logger::log_info(system.file(package = 'CellMembrane', mustWork = FALSE))
+          rcmdcheck::rcmdcheck(args = c("--no-manual"), error_on = "warning", check_dir = "check")
         shell: Rscript {0}
 
       - name: Show testthat output

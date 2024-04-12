@@ -30,9 +30,9 @@ library(CellMembrane, warn.conflicts = F)
 
 ```{r}
 
-message('This is the WD:')
-message(getwd())
-message(system.file(package = 'CellMembrane', mustWork = FALSE))
+logger::log_info('This is the WD:')
+logger::log_info(getwd())
+logger::log_info(system.file(package = 'CellMembrane', mustWork = FALSE))
 
 ```
 
