@@ -63,7 +63,7 @@ For more on double dipping and approaches to circumvent it, please read https://
 
 #Load seurat object
 seuratObj <- suppressMessages(suppressWarnings(
-    Seurat::UpdateSeuratObject(readRDS(here::here("../tests/testdata/seuratOutput.rds")))
+    Seurat::UpdateSeuratObject(readRDS(paste0(system.file(package = 'CellMembrane', mustWork = FALSE), "/tests/testdata/seuratOutput.rds")))
 ))
 
 #assign some random experimental variables: vaccine groups, experimental time points, and subject Ids. 
