@@ -28,13 +28,6 @@ library(SeuratObject)
 library(CellMembrane, warn.conflicts = F)
 ```
 
-```{r}
-
-logger::log_info('This is the WD:')
-logger::log_info(getwd())
-logger::log_info(system.file(package = 'CellMembrane', mustWork = FALSE))
-
-```
 
 ## What is Pseudobulking? 
 

@@ -136,6 +136,7 @@ jobs:
           logger::log_info('This is the filepath:')
           logger::log_info(getwd())
           logger::log_info(system.file(package = 'CellMembrane', mustWork = FALSE))
+          logger::log_info(Sys.getenv())
           rcmdcheck::rcmdcheck(args = c("--no-manual"), error_on = "warning", check_dir = "check")
         shell: Rscript {0}
 
