@@ -56,7 +56,6 @@ For more on double dipping and approaches to circumvent it, please read https://
 
 print('This is the WD:')
 print(here::here())
-print(rmarkdown::find_external_resources("../tests/testdata/seuratOutput.rds"))
 print(system.file(package = 'CellMembrane'))
 
 #Load seurat object
