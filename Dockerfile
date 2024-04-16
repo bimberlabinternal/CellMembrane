@@ -8,6 +8,8 @@ ADD . /CellMembrane
 RUN cd /CellMembrane \
     && if [ "${GH_PAT}" != 'NOT_SET' ];then echo 'Setting GITHUB_PAT'; export GITHUB_PAT="${GH_PAT}";fi \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
+    # Pre-install the cpu-only versions of pytorch to try to reduce image size:
+    && python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
