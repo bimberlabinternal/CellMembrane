@@ -556,8 +556,8 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       seuratObj.contrast <-tryCatch(
         {
           #Iteratively subset SeuratObj.contrast so we fit the glm on just the samples going into the contrast.
-          seuratObj.positive.contrast <- seuratObj.positive.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% x[,paste0("positive_contrast_", contrast_column)])
-          seuratObj.negative.contrast <- seuratObj.negative.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% x[,paste0("negative_contrast_", contrast_column)])
+          seuratObj.positive.contrast <- seuratObj.positive.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% gsub("_",".", x[,paste0("positive_contrast_", contrast_column)]))
+          seuratObj.negative.contrast <- seuratObj.negative.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% gsub("_",".", x[,paste0("negative_contrast_", contrast_column)]))
           #this merge could be more efficient (specifically, this merge could be performed just once instead of once per contrast_column), but it offers a convenient check-in during the subset and offers the most correct data to eBayes().
           seuratObj.contrast <- merge(seuratObj.positive.contrast, seuratObj.negative.contrast)
           if (HasSplitLayers(seuratObj.contrast)) {
