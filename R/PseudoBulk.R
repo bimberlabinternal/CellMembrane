@@ -710,39 +710,60 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
     }
   }
   
-  #Define order of magnitude DEG groupings
-  filteredContrastsResults <- filteredContrastsResults %>% 
-    dplyr::filter(gene != "none") %>% 
-    dplyr::filter(!is.na(uniqueness)) %>% 
-    dplyr::group_by(contrast_name) %>% 
-    dplyr::mutate(count = sum(abs(n_DEG))) %>% 
-    dplyr::arrange(-count)  %>% 
-    dplyr::mutate(DEG_Magnitude = dplyr::case_when(
-      count > 1000 ~ "1000+ DEGs",
-      count <= 1000 & count >= 100 ~ "1000-100 DEGs",
-      count <= 100 & count >= 10 ~ "100-10 DEGs",
-      count < 10 ~ "<10 DEGs"
-    ))
-  
-  filteredContrastsResults$DEG_Magnitude <- factor(filteredContrastsResults$DEG_Magnitude, levels = c("1000+ DEGs", "1000-100 DEGs", "100-10 DEGs", "<10 DEGs"))
-  
   if (swapContrastDirectionality){
     filteredContrastsResults <- .swapContrast(filteredContrastsResults)
   }
   
+  #Define order of magnitude DEG groupings
+  filteredContrastsResults <- filteredContrastsResults %>% 
+    #filter genes from failed model fits
+    dplyr::filter(gene != "none") %>% 
+    dplyr::filter(!is.na(uniqueness)) %>% 
+    #compute the number of DEGs for each group of DEGs (unique vs up/down regulated)
+    dplyr::group_by(contrast_name) %>% 
+    reframe(number_of_positive_nonunique_DEGs = sum(n_DEG[uniqueness %in% c("up_nonunique")]), 
+            number_of_positive_unique_DEGs = sum(n_DEG[uniqueness %in% c("up_unique")]),
+            number_of_negative_nonunique_DEGs = sum(n_DEG[uniqueness %in% c("down_nonunique")]), 
+            number_of_negative_unique_DEGs = sum(n_DEG[uniqueness %in% c("down_unique")])) %>%     
+    group_by(contrast_name) %>% 
+    mutate(total_DEGs = max(number_of_positive_nonunique_DEGs) + 
+             max(number_of_positive_unique_DEGs) + 
+             max(abs(number_of_negative_nonunique_DEGs)) + 
+             max(abs(number_of_negative_unique_DEGs))) %>%
+    unique.data.frame() %>% 
+    dplyr::mutate(DEG_Magnitude = dplyr::case_when(
+      total_DEGs > 1000 ~ "1000+ DEGs",
+      total_DEGs <= 1000 & total_DEGs >= 100 ~ "1000-100 DEGs",
+      total_DEGs <= 100 & total_DEGs >= 10 ~ "100-10 DEGs",
+      total_DEGs < 10 ~ "<10 DEGs"
+    ))
+  
+  filteredContrastsResults$DEG_Magnitude <- factor(filteredContrastsResults$DEG_Magnitude, levels = c("1000+ DEGs", "1000-100 DEGs", "100-10 DEGs", "<10 DEGs"))
+  
+
+  
   #plot the bar graph
   #note: geom_bar doesn't play nicely with y axis transformations, so scales = free_y and log transforming the y axis does not work. 
     bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
-      ggplot2::geom_bar(data = filteredContrastsResults, 
-                        ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
-      ggplot2::scale_fill_manual(values = c(down_nonunique = "cadetblue2", down_unique = "blue", up_nonunique = "orange", up_unique = "red")) + 
-      ggplot2::labs(fill="Unique") + 
+      ggplot2::geom_col(ggplot2::aes(x = stats::reorder(contrast_name, -abs(total_DEGs)), y = number_of_positive_nonunique_DEGs, fill = "up_nonunique"), position="stack") + 
+      ggplot2::geom_col(ggplot2::aes(x = stats::reorder(contrast_name, -abs(total_DEGs)), y = number_of_negative_nonunique_DEGs, fill = "down_nonunique"), position="stack") + 
+      #plot downregulated genes
+      ggplot2::geom_col(ggplot2::aes(x = stats::reorder(contrast_name, -abs(total_DEGs)), y = number_of_positive_unique_DEGs, fill = "up_unique"), position="stack") + 
+      ggplot2::geom_col(ggplot2::aes(x = stats::reorder(contrast_name, -abs(total_DEGs)), y = number_of_negative_unique_DEGs, fill = "down_unique"), position="stack", ) + 
+      #define fixed color scheme
+      ggplot2::scale_fill_manual(values = c("up_unique" = "red",
+                                            "up_nonunique" = "orange", 
+                                            "down_unique" = "blue", 
+                                            "down_nonunique" = "cadetblue2"),
+                                 breaks = c("up_unique", "up_nonunique", "down_unique", "down_nonunique"),
+                                 aesthetics = "fill") + 
+      ggplot2::labs(fill="Gene Uniqueness") + 
       ggplot2::ylab("Number of DEGs")+ 
       egg::theme_article() + 
       ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
       ggplot2::ggtitle(title) + 
       ggplot2::xlab("Differential Expression Contrasts") + 
-      ggplot2::facet_grid(~DEG_Magnitude)
+      ggplot2::facet_grid(~DEG_Magnitude, scales = "free_x")
   
   print(bargraph)
   
