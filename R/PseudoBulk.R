@@ -720,11 +720,12 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
     dplyr::filter(gene != "none") %>% 
     dplyr::filter(!is.na(uniqueness)) %>% 
     #compute the number of DEGs for each group of DEGs (unique vs up/down regulated)
-    dplyr::group_by(contrast_name) %>% 
+    dplyr::group_by(contrast_name, across(starts_with("positive_contrast")), across(starts_with("negative_contrast"))) %>% 
     reframe(number_of_positive_nonunique_DEGs = sum(n_DEG[uniqueness %in% c("up_nonunique")]), 
             number_of_positive_unique_DEGs = sum(n_DEG[uniqueness %in% c("up_unique")]),
             number_of_negative_nonunique_DEGs = sum(n_DEG[uniqueness %in% c("down_nonunique")]), 
-            number_of_negative_unique_DEGs = sum(n_DEG[uniqueness %in% c("down_unique")])) %>%     
+            number_of_negative_unique_DEGs = sum(n_DEG[uniqueness %in% c("down_unique")]), 
+            ) %>%     
     group_by(contrast_name) %>% 
     mutate(total_DEGs = max(number_of_positive_nonunique_DEGs) + 
              max(number_of_positive_unique_DEGs) + 
