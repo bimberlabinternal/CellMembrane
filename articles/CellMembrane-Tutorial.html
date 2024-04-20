@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CellMembrane Tutorial • CellMembrane</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
@@ -82,7 +82,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2024-03-29</h4>
+            <h4 data-toc-skip class="date">2024-04-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/HEAD/vignettes/CellMembrane-Tutorial.Rmd" class="external-link"><code>vignettes/CellMembrane-Tutorial.Rmd</code></a></small>
       <div class="hidden name"><code>CellMembrane-Tutorial.Rmd</code></div>
@@ -296,10 +296,6 @@ high-level data summarizations.</p>
 <pre><code><span><span class="co">## Warning: The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric</span></span>
 <span><span class="co">## To use Python UMAP via reticulate, set umap.method to 'umap-learn' and metric to 'correlation'</span></span>
 <span><span class="co">## This message will be shown once per session</span></span></code></pre>
-<pre><code><span><span class="co">## Found more than one class "dist" in cache; using the first, from namespace 'spam'</span></span></code></pre>
-<pre><code><span><span class="co">## Also defined by 'BiocGenerics'</span></span></code></pre>
-<pre><code><span><span class="co">## Found more than one class "dist" in cache; using the first, from namespace 'spam'</span></span></code></pre>
-<pre><code><span><span class="co">## Also defined by 'BiocGenerics'</span></span></code></pre>
 <p><img src="CellMembrane-Tutorial_files/figure-html/FindClustersAndDimRedux-1.png" width="700"><img src="CellMembrane-Tutorial_files/figure-html/FindClustersAndDimRedux-2.png" width="700"><img src="CellMembrane-Tutorial_files/figure-html/FindClustersAndDimRedux-3.png" width="700"></p>
 </div>
 </div>
@@ -317,16 +313,16 @@ status), we can use Seurat’s <code>DimPlot()</code> to visualize the
 data. Clustering identity is computed over several resolutions and
 stored in metadata fields named <code>ClusterNames_</code> + a
 resolution parameter (increasing in units of 0.2).</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">DimPlot</span><span class="op">(</span><span class="va">pbmc_small</span>, group.by <span class="op">=</span> <span class="st">'groups'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CellMembrane-Tutorial_files/figure-html/DimPlots-1.png" width="700"></p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">DimPlot</span><span class="op">(</span><span class="va">pbmc_small</span>, group.by <span class="op">=</span> <span class="st">'ClusterNames_0.2'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CellMembrane-Tutorial_files/figure-html/DimPlots-2.png" width="700"></p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">DimPlot</span><span class="op">(</span><span class="va">pbmc_small</span>, group.by <span class="op">=</span> <span class="st">'ClusterNames_0.8'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CellMembrane-Tutorial_files/figure-html/DimPlots-3.png" width="700"></p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">DimPlot</span><span class="op">(</span><span class="va">pbmc_small</span>, group.by <span class="op">=</span> <span class="st">'ClusterNames_1.2'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CellMembrane-Tutorial_files/figure-html/DimPlots-4.png" width="700"></p>
 </div>
@@ -335,10 +331,10 @@ resolution parameter (increasing in units of 0.2).</p>
 </h3>
 <p>For continuous variables and expression of individual genes, you can
 use Seurat’s <code>FeaturePlot()</code>.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">FeaturePlot</span><span class="op">(</span><span class="va">pbmc_small</span>, features <span class="op">=</span> <span class="st">'nCount_RNA'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CellMembrane-Tutorial_files/figure-html/FeaturePlots-1.png" width="700"></p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">FeaturePlot</span><span class="op">(</span><span class="va">pbmc_small</span>, features <span class="op">=</span> <span class="st">'PPBP'</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CellMembrane-Tutorial_files/figure-html/FeaturePlots-2.png" width="700"></p>
 <p>We can combine these observations to conclude that Cluster 4 (at
@@ -367,7 +363,7 @@ specify our groups for differential expression.</p>
 Group 2 = Cluster 0 in cluster resolution 1.2) by specifying the
 <code>ident.1</code>, <code>ident.2</code>, and the grouping field
 <code>group.by</code> arguments.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span> <span class="op">&lt;-</span> <span class="fu">FindMarkers</span><span class="op">(</span><span class="va">pbmc_small</span>, ident.1 <span class="op">=</span> <span class="fl">4</span>, ident.2 <span class="op">=</span> <span class="fl">0</span>, group.by <span class="op">=</span> <span class="st">"ClusterNames_1.2"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## For a (much!) faster implementation of the Wilcoxon Rank Sum Test,</span></span>
 <span><span class="co">## (default method for FindMarkers) please install the presto package</span></span>
@@ -378,7 +374,7 @@ Group 2 = Cluster 0 in cluster resolution 1.2) by specifying the
 <span><span class="co">## After installation of presto, Seurat will automatically use the more </span></span>
 <span><span class="co">## efficient implementation (no further action necessary).</span></span>
 <span><span class="co">## This message will be shown once per session</span></span></code></pre>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">markers</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                  p_val avg_log2FC pct.1 pct.2    p_val_adj</span></span>
 <span><span class="co">## GP9       3.055940e-08  12.105216     1 0.000 7.028661e-06</span></span>
@@ -396,7 +392,7 @@ expression in cluster 4 than cluster 0.</p>
 <p>However, we can also perform a “Cluster 4 versus the rest of the
 data” comparison. We can leave <code>ident.2 = NULL</code> to specify
 that we want to do this one versus all comparison.</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span> <span class="op">&lt;-</span> <span class="fu">FindMarkers</span><span class="op">(</span><span class="va">pbmc_small</span>, ident.1 <span class="op">=</span> <span class="fl">4</span>, ident.2 <span class="op">=</span> <span class="cn">NULL</span>, group.by <span class="op">=</span> <span class="st">"ClusterNames_1.2"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">markers</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              p_val avg_log2FC pct.1 pct.2    p_val_adj</span></span>
@@ -416,7 +412,7 @@ markers.</p>
 <p>For information on the pipe symbol <code>%&gt;%</code> used below,
 seek information on ‘tidy data’ from Hadley Wickham and his
 <code>tidyverse</code>. (<a href="https://r4ds.hadley.nz/data-tidy.html" class="external-link uri">https://r4ds.hadley.nz/data-tidy.html</a>)</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html" class="external-link">p_load</a></span><span class="op">(</span><span class="va">dplyr</span><span class="op">)</span></span>
 <span><span class="va">markers</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">arrange</span><span class="op">(</span><span class="op">-</span><span class="va">avg_log2FC</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
@@ -428,7 +424,7 @@ seek information on ‘tidy data’ from Hadley Wickham and his
 <span><span class="co">## PF4    2.816457e-17  10.566582 1.000 0.014 6.477852e-15</span></span>
 <span><span class="co">## GNG11  2.816457e-17   9.503074 1.000 0.014 6.477852e-15</span></span>
 <span><span class="co">## CA2    4.017473e-15   8.760577 0.889 0.014 9.240187e-13</span></span></code></pre>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">arrange</span><span class="op">(</span><span class="op">-</span><span class="va">avg_log2FC</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -444,10 +440,10 @@ markers of our platelet population, while GNLY, LST1, and HLA-DPA1
 should be expressed in other clusters Let’s visualize these using other
 standard Seurat functions: <code>DotPlot</code> and
 <code>VlnPlot</code>.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">pbmc_small</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GP9"</span>, <span class="st">"PTCRA"</span>, <span class="st">"TMEM40"</span>, <span class="st">"LST1"</span>, <span class="st">"GNLY"</span>, <span class="st">"HLA-DPA1"</span><span class="op">)</span>, group.by <span class="op">=</span> <span class="st">"ClusterNames_1.2"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CellMembrane-Tutorial_files/figure-html/DotandVlnPlots-1.png" width="700"></p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">VlnPlot</span><span class="op">(</span><span class="va">pbmc_small</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GP9"</span>, <span class="st">"PTCRA"</span>, <span class="st">"TMEM40"</span>, <span class="st">"LST1"</span>, <span class="st">"GNLY"</span>, <span class="st">"HLA-DPA1"</span><span class="op">)</span>, group.by <span class="op">=</span> <span class="st">"ClusterNames_1.2"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CellMembrane-Tutorial_files/figure-html/DotandVlnPlots-2.png" width="700"></p>
 <p>Visualizing your data through unsupervised clustering to find sources
@@ -474,7 +470,7 @@ link changes in gene expression to your experimental variables.</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
 </div>
 
       </footer>

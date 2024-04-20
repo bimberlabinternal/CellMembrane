@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pseudobulking-and-Filtered-Contrasts • CellMembrane</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
@@ -82,7 +82,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2024-03-29</h4>
+            <h4 data-toc-skip class="date">2024-04-20</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/HEAD/vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd" class="external-link"><code>vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd</code></a></small>
       <div class="hidden name"><code>Pseudobulking-and-Filtered-Contrasts.Rmd</code></div>
@@ -147,9 +147,11 @@ the Witten lab.</p>
 <h2 id="how-to-pseudobulk">How to Pseudobulk<a class="anchor" aria-label="anchor" href="#how-to-pseudobulk"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#Load seurat object</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="co">#Load seurat object. GITHUB_WORKSPACE is set in the GitHub actions build, and if this is not set, try to build relative to this file:</span></span>
 <span><span class="va">seuratObj</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span></span>
-<span>    <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/UpdateSeuratObject.html" class="external-link">UpdateSeuratObject</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"../tests/testdata/seuratOutput.rds"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/UpdateSeuratObject.html" class="external-link">UpdateSeuratObject</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">'GITHUB_WORKSPACE'</span>, unset <span class="op">=</span> <span class="st">'..'</span><span class="op">)</span>, <span class="st">"/tests/testdata/seuratOutput.rds"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#assign some random experimental variables: vaccine groups, experimental time points, and subject Ids. </span></span>
 <span><span class="va">seuratObj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">[</span>,<span class="st">"vaccine_cohort"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">base</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"control"</span>, <span class="st">"vaccineOne"</span>, <span class="st">"vaccineTwo"</span>, <span class="st">"unvax"</span><span class="op">)</span>, length.out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">seuratObj</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -526,9 +528,7 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_baseline-vaccineOne_baseline"</span></span>
 <span><span class="co">#&gt; NULL</span></span>
-<span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span>
-<span><span class="co">#&gt; Warning: ggrepel: 12 unlabeled data points (too many overlaps). Consider</span></span>
-<span><span class="co">#&gt; increasing max.overlaps</span></span></code></pre>
+<span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-3.png" width="700"></p>
 <p>Stricter thresholds (on one contrast):</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
@@ -568,41 +568,41 @@ genes in the <code>DE_results</code> list.</p>
 <p>The results of these fits are collected in an indexed list.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">`1`</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                         logFC    logCPM        F       PValue          FDR</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779  2.5055344  7.947035 64.15675 1.171857e-15 1.052796e-11</span></span>
-<span><span class="co">#&gt; PPBP                5.9075917  6.281093 35.59650 2.442333e-09 1.097096e-05</span></span>
-<span><span class="co">#&gt; FTH1               -0.5117331 11.953743 24.56483 7.206870e-07 2.158217e-03</span></span>
-<span><span class="co">#&gt; CCL4                1.1348542  8.081288 18.42948 1.766166e-05 3.944499e-02</span></span>
-<span><span class="co">#&gt; MYL9                5.0324986  5.761245 18.01507 2.195291e-05 3.944499e-02</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466  4.9705901  5.720471 17.02997 3.684970e-05 5.235822e-02</span></span>
+<span><span class="co">#&gt;                       logFC   logCPM        F       PValue        FDR</span></span>
+<span><span class="co">#&gt; ENSMMUG00000013779 2.508914 7.947035 29.06002 1.410345e-06 0.01267054</span></span>
+<span><span class="co">#&gt; PPBP               5.925406 6.281093 18.59153 6.954292e-05 0.28638808</span></span>
+<span><span class="co">#&gt; ENSMMUG00000045466 4.962180 5.720471 17.73263 9.728616e-05 0.28638808</span></span>
+<span><span class="co">#&gt; CCL4               1.136360 8.081288 16.14102 1.747465e-04 0.28638808</span></span>
+<span><span class="co">#&gt; JUND               3.467154 5.807715 16.00326 1.813868e-04 0.28638808</span></span>
+<span><span class="co">#&gt; MYL9               5.044856 5.761245 16.04572 1.912654e-04 0.28638808</span></span>
 <span><span class="co">#&gt;                                  gene                        contrast_name</span></span>
 <span><span class="co">#&gt; ENSMMUG00000013779 ENSMMUG00000013779 control_baseline-vaccineOne_baseline</span></span>
 <span><span class="co">#&gt; PPBP                             PPBP control_baseline-vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; FTH1                             FTH1 control_baseline-vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; CCL4                             CCL4 control_baseline-vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; MYL9                             MYL9 control_baseline-vaccineOne_baseline</span></span>
 <span><span class="co">#&gt; ENSMMUG00000045466 ENSMMUG00000045466 control_baseline-vaccineOne_baseline</span></span>
+<span><span class="co">#&gt; CCL4                             CCL4 control_baseline-vaccineOne_baseline</span></span>
+<span><span class="co">#&gt; JUND                             JUND control_baseline-vaccineOne_baseline</span></span>
+<span><span class="co">#&gt; MYL9                             MYL9 control_baseline-vaccineOne_baseline</span></span>
 <span><span class="co">#&gt;                    positive_contrast   negative_contrast</span></span>
 <span><span class="co">#&gt; ENSMMUG00000013779  control_baseline vaccineOne_baseline</span></span>
 <span><span class="co">#&gt; PPBP                control_baseline vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; FTH1                control_baseline vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; CCL4                control_baseline vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; MYL9                control_baseline vaccineOne_baseline</span></span>
 <span><span class="co">#&gt; ENSMMUG00000045466  control_baseline vaccineOne_baseline</span></span>
+<span><span class="co">#&gt; CCL4                control_baseline vaccineOne_baseline</span></span>
+<span><span class="co">#&gt; JUND                control_baseline vaccineOne_baseline</span></span>
+<span><span class="co">#&gt; MYL9                control_baseline vaccineOne_baseline</span></span>
 <span><span class="co">#&gt;                    positive_contrast_vaccine_cohort positive_contrast_timepoint</span></span>
 <span><span class="co">#&gt; ENSMMUG00000013779                          control                    baseline</span></span>
 <span><span class="co">#&gt; PPBP                                        control                    baseline</span></span>
-<span><span class="co">#&gt; FTH1                                        control                    baseline</span></span>
-<span><span class="co">#&gt; CCL4                                        control                    baseline</span></span>
-<span><span class="co">#&gt; MYL9                                        control                    baseline</span></span>
 <span><span class="co">#&gt; ENSMMUG00000045466                          control                    baseline</span></span>
+<span><span class="co">#&gt; CCL4                                        control                    baseline</span></span>
+<span><span class="co">#&gt; JUND                                        control                    baseline</span></span>
+<span><span class="co">#&gt; MYL9                                        control                    baseline</span></span>
 <span><span class="co">#&gt;                    negative_contrast_vaccine_cohort negative_contrast_timepoint</span></span>
 <span><span class="co">#&gt; ENSMMUG00000013779                       vaccineOne                    baseline</span></span>
 <span><span class="co">#&gt; PPBP                                     vaccineOne                    baseline</span></span>
-<span><span class="co">#&gt; FTH1                                     vaccineOne                    baseline</span></span>
+<span><span class="co">#&gt; ENSMMUG00000045466                       vaccineOne                    baseline</span></span>
 <span><span class="co">#&gt; CCL4                                     vaccineOne                    baseline</span></span>
-<span><span class="co">#&gt; MYL9                                     vaccineOne                    baseline</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466                       vaccineOne                    baseline</span></span></code></pre></div>
+<span><span class="co">#&gt; JUND                                     vaccineOne                    baseline</span></span>
+<span><span class="co">#&gt; MYL9                                     vaccineOne                    baseline</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -642,35 +642,29 @@ be formatted like so using the data frame returned from
 <span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co">#store dataframe</span></span>
-<span><span class="va">barPlot_dataframe</span> <span class="op">&lt;-</span> <span class="va">barplot_results</span><span class="op">$</span><span class="va">dataframe</span></span>
-<span></span>
 <span><span class="co">#inspect dataframe column names to determine how the fill aesthetic needs to be specified for the geom_tile() calls. </span></span>
 <span><span class="va">barplot_results</span><span class="op">$</span><span class="va">dataframe</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "logFC"                            "logCPM"                          </span></span>
-<span><span class="co">#&gt;  [3] "F"                                "PValue"                          </span></span>
-<span><span class="co">#&gt;  [5] "FDR"                              "gene"                            </span></span>
-<span><span class="co">#&gt;  [7] "contrast_name"                    "positive_contrast"               </span></span>
-<span><span class="co">#&gt;  [9] "negative_contrast"                "positive_contrast_vaccine_cohort"</span></span>
-<span><span class="co">#&gt; [11] "positive_contrast_timepoint"      "negative_contrast_vaccine_cohort"</span></span>
-<span><span class="co">#&gt; [13] "negative_contrast_timepoint"      "regulation"                      </span></span>
-<span><span class="co">#&gt; [15] "gene_occurance"                   "uniqueness"                      </span></span>
-<span><span class="co">#&gt; [17] "n_DEG"                            "count"                           </span></span>
-<span><span class="co">#&gt; [19] "DEG_Magnitude"</span></span>
+<span><span class="co">#&gt;  [1] "contrast_name"                     "positive_contrast"                </span></span>
+<span><span class="co">#&gt;  [3] "positive_contrast_vaccine_cohort"  "positive_contrast_timepoint"      </span></span>
+<span><span class="co">#&gt;  [5] "negative_contrast"                 "negative_contrast_vaccine_cohort" </span></span>
+<span><span class="co">#&gt;  [7] "negative_contrast_timepoint"       "number_of_positive_nonunique_DEGs"</span></span>
+<span><span class="co">#&gt;  [9] "number_of_positive_unique_DEGs"    "number_of_negative_nonunique_DEGs"</span></span>
+<span><span class="co">#&gt; [11] "number_of_negative_unique_DEGs"    "total_DEGs"                       </span></span>
+<span><span class="co">#&gt; [13] "DEG_Magnitude"</span></span>
 <span></span>
 <span><span class="va">metadata_tiles</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">barplot_results</span><span class="op">$</span><span class="va">dataframe</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="co">#define a custom scale for timepoint metadata</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html" class="external-link">n_distinct</a></span><span class="op">(</span><span class="va">pbulk</span><span class="op">$</span><span class="va">timepoint</span><span class="op">)</span>, palette <span class="op">=</span> <span class="st">"Purples 3"</span><span class="op">)</span><span class="op">)</span>, guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>order <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"Timepoint"</span><span class="op">)</span><span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">contrast_name</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">count</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="fl">1</span>, fill <span class="op">=</span> <span class="va">barPlot_dataframe</span><span class="op">$</span><span class="va">positive_contrast_timepoint</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">contrast_name</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">count</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="fl">2</span>, fill <span class="op">=</span> <span class="va">barPlot_dataframe</span><span class="op">$</span><span class="va">negative_contrast_timepoint</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">contrast_name</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">total_DEGs</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="fl">1</span>, fill <span class="op">=</span> <span class="va">barplot_results</span><span class="op">$</span><span class="va">dataframe</span><span class="op">$</span><span class="va">negative_contrast_timepoint</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">contrast_name</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">total_DEGs</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="fl">2</span>, fill <span class="op">=</span> <span class="va">barplot_results</span><span class="op">$</span><span class="va">dataframe</span><span class="op">$</span><span class="va">positive_contrast_timepoint</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggnewscale</span><span class="fu">::</span><span class="fu"><a href="https://eliocamp.github.io/ggnewscale/reference/new_scale.html" class="external-link">new_scale_fill</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  </span>
 <span>  <span class="co">#define a custom scale for vaccine_cohort metadata</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html" class="external-link">n_distinct</a></span><span class="op">(</span><span class="va">pbulk</span><span class="op">$</span><span class="va">vaccine_cohort</span><span class="op">)</span>, palette <span class="op">=</span> <span class="st">"Inferno"</span><span class="op">)</span><span class="op">)</span>, guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>order <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"Vaccine"</span><span class="op">)</span><span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">contrast_name</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">count</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="fl">3</span>, fill <span class="op">=</span> <span class="va">barPlot_dataframe</span><span class="op">$</span><span class="va">positive_contrast_vaccine_cohort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">contrast_name</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">count</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="fl">4</span>, fill <span class="op">=</span> <span class="va">barPlot_dataframe</span><span class="op">$</span><span class="va">negative_contrast_vaccine_cohort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">contrast_name</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">total_DEGs</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="fl">3</span>, fill <span class="op">=</span> <span class="va">barplot_results</span><span class="op">$</span><span class="va">dataframe</span><span class="op">$</span><span class="va">negative_contrast_vaccine_cohort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">contrast_name</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">total_DEGs</span><span class="op">)</span><span class="op">)</span>, y <span class="op">=</span> <span class="fl">4</span>, fill <span class="op">=</span> <span class="va">barplot_results</span><span class="op">$</span><span class="va">dataframe</span><span class="op">$</span><span class="va">positive_contrast_vaccine_cohort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggnewscale</span><span class="fu">::</span><span class="fu"><a href="https://eliocamp.github.io/ggnewscale/reference/new_scale.html" class="external-link">new_scale_fill</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  </span>
 <span>  <span class="co">#match the formatting of the Pseudobulking Bar Plot</span></span>
@@ -681,7 +675,7 @@ be formatted like so using the data frame returned from
 <span>  <span class="co">#add some dashed lines to delineate metadata groupings</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.5</span>, <span class="fl">4.5</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"black"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">barplot_results</span><span class="op">$</span><span class="va">dataframe</span><span class="op">$</span><span class="va">contrast_name</span><span class="op">)</span><span class="op">)</span><span class="op">+</span><span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_discrete.html" class="external-link">scale_y_discrete</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Positive Contrast Timepoint"</span>, <span class="st">"Negative Contrast Timepoint"</span>,<span class="st">"Positive Contrast Vaccine"</span>,<span class="st">"Negative Contrast Vaccine"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">DEG_Magnitude</span>, scales <span class="op">=</span> <span class="st">"free_x"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_discrete.html" class="external-link">scale_y_discrete</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Positive Contrast Vaccine"</span>, <span class="st">"Negative Contrast Vaccine"</span>,<span class="st">"Positive Contrast Timepoint"</span>,<span class="st">"Negative Contrast Timepoint"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">DEG_Magnitude</span>, scales <span class="op">=</span> <span class="st">"free_x"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">metadata_tiles</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Annotate%20bar%20Plot-1.png" width="700"></p>
@@ -1002,7 +996,7 @@ time!</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
 </div>
 
       </footer>

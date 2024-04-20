@@ -1,8 +1,8 @@
 pandoc: 3.1.11
-pkgdown: 2.0.7
+pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
   CellMembrane-Tutorial: CellMembrane-Tutorial.html
   Pseudobulking-and-Filtered-Contrasts: Pseudobulking-and-Filtered-Contrasts.html
-last_built: 2024-03-29T05:58Z
+last_built: 2024-04-20T02:48Z
 
