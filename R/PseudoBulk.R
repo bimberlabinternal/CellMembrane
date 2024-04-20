@@ -202,9 +202,11 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
 #' @param test.use Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
 #' @param assayName The name of the assay to use
 #' @param minCountsPerGene Any genes with fewer than this many counts (across samples) will be dropped.
+#' @param legacy A passthrough variable for edgeR's glmQLF function. They recently (R 4.0) changed the default behavior, so this will break on earlier versions of R. 
+#' @param plotBCV A boolean determining if the BCV plot should be shown.
 #' @return An edgeR glm object
 #' @export
-PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1){
+PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1, legacy = FALSE, plotBCV = TRUE){
   #convert seurat object to SingleCellExperiment for edgeR
   sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')), colData = seuratObj@meta.data)
   
@@ -217,10 +219,13 @@ PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA'
   y <- edgeR::DGEList(SingleCellExperiment::counts(sce), remove.zeros = TRUE)
   y <- edgeR::calcNormFactors(y)
   y <- edgeR::estimateDisp(y, design)
-  print(edgeR::plotBCV(y))
+  if (plotBCV){
+    print(edgeR::plotBCV(y))
+  }
+
   
   if (test.use == "QLF"){
-    fit <- edgeR::glmQLFit(y, design)
+    fit <- edgeR::glmQLFit(y, design, legacy = legacy)
   } else if (test.use == "LRT"){
     fit <- edgeR::glmFit(y, design)
   } else {
@@ -551,8 +556,8 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       seuratObj.contrast <-tryCatch(
         {
           #Iteratively subset SeuratObj.contrast so we fit the glm on just the samples going into the contrast.
-          seuratObj.positive.contrast <- seuratObj.positive.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% x[,paste0("positive_contrast_", contrast_column)])
-          seuratObj.negative.contrast <- seuratObj.negative.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% x[,paste0("negative_contrast_", contrast_column)])
+          seuratObj.positive.contrast <- seuratObj.positive.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% gsub("_",".", x[,paste0("positive_contrast_", contrast_column)]))
+          seuratObj.negative.contrast <- seuratObj.negative.contrast |> subset(subset = !!rlang::sym(contrast_column) %in% gsub("_",".", x[,paste0("negative_contrast_", contrast_column)]))
           #this merge could be more efficient (specifically, this merge could be performed just once instead of once per contrast_column), but it offers a convenient check-in during the subset and offers the most correct data to eBayes().
           seuratObj.contrast <- merge(seuratObj.positive.contrast, seuratObj.negative.contrast)
           if (HasSplitLayers(seuratObj.contrast)) {
@@ -637,13 +642,13 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
 #' @param filteredContrastsResults A list of dataframes returned by RunFilteredContrasts.
 #' @param metadataFilterList An optional list of lists specifying further filtering to be performed. These lists must follow the format: list( list("filterDirection", "filterField", "filterValue" )) where: filterDirection determines whether the Positive, Negative, or Both sides of the contrasts should be filtered, filterField determines which metadata field (originally supplied to groupFields in PseudobulkSeurat and contrast_columns in DesignModelMatrix), filterValue corresponds to which values of the filterField should be filtered. This is useful if you passed parallel hypotheses (e.g. what genes are differentially expressed in each tissue?) in the requireIdenticalFields argument of RunFilteredContrasts, but want to plot the results of only one tissue at a time. 
 #' @param title Title for the bar plot. 
-#' @param log_y_axis A boolean determining if the y axis (magnitude of differential expression) should be log transformed.
 #' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction. 
 #' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by .addRegulationInformationAndFilterDEGs to filter genes and determine regulation direction.
+#' @param swapContrastDirectionality A boolean determining if the contrast directionality should be swapped. This is useful if you want the "control" condition in your contrasts to appear in the opposite directionality of the default. 
 #' @return A list containing the filtered dataframe used for plotting and the bar plot itself. 
 #' @export
 
-PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", log_y_axis = FALSE, logFC_threshold = 1, FDR_threshold = 0.05) {
+PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = NULL, title = "Please Title The Bar Plot", logFC_threshold = 1, FDR_threshold = 0.05, swapContrastDirectionality = FALSE) {
   
   if (!is.list(filteredContrastsResults)) {
     stop("filteredContrastsResults is not a list. Please ensure filteredContrastsResults is a list of dataframes returned by RunFilteredContrasts().")
@@ -685,9 +690,9 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
       #Make sure the filters are valid 
       if (! (filterDirection %in% c("Positive", "Negative", "Both"))) {
         stop(paste0("Error: Invalid argument ", filterDirection, " supplied in metadataFilterList. Please ensure the first argument in each vector of metadataFilterList specifies a direction that is either 'Positive' for filtering only the positive side of each contrast, 'Negative' for filtering the negative side, or 'Both' for filtering values from either side of each contrast."))
-      } else if (!(grepl(filterField, colnames(filteredContrastsResults)))) {
+      } else if (!any(grepl(filterField), colnames(filteredContrastsResults))) {
         stop(paste0("Error: No contrast columns associated with ", filterField, " were found in the column names of filteredContrastsResults. Please ensure your metadata column was both supplied to groupFields in PseudobulkSeurat and designated as a contrastColumn in DesignModelMatrix."))
-      } else if (! (grepl(filterValue, filteredContrastsResults[,paste0("positive_contrast_", filterField)]) | 
+      } else if (!any(grepl(filterValue, filteredContrastsResults[,paste0("positive_contrast_", filterField)]) | 
                     grepl(filterValue, filteredContrastsResults[,paste0("negative_contrast_", filterField)]))){
         warning(paste0(filterValue, " was not found in the columns associated with ", filterField,". No filtering was performed associated with the following filter: ", filter))
       }
@@ -705,37 +710,62 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
     }
   }
   
+  if (swapContrastDirectionality){
+    filteredContrastsResults <- .swapContrast(filteredContrastsResults)
+  }
+  
   #Define order of magnitude DEG groupings
   filteredContrastsResults <- filteredContrastsResults %>% 
+    #filter genes from failed model fits
     dplyr::filter(gene != "none") %>% 
     dplyr::filter(!is.na(uniqueness)) %>% 
-    dplyr::group_by(contrast_name) %>% 
-    dplyr::mutate(count = sum(abs(n_DEG))) %>% 
-    dplyr::arrange(-count)  %>% 
+    #compute the number of DEGs for each group of DEGs (unique vs up/down regulated)
+    dplyr::group_by(contrast_name, across(starts_with("positive_contrast")), across(starts_with("negative_contrast"))) %>% 
+    reframe(number_of_positive_nonunique_DEGs = sum(n_DEG[uniqueness %in% c("up_nonunique")]), 
+            number_of_positive_unique_DEGs = sum(n_DEG[uniqueness %in% c("up_unique")]),
+            number_of_negative_nonunique_DEGs = sum(n_DEG[uniqueness %in% c("down_nonunique")]), 
+            number_of_negative_unique_DEGs = sum(n_DEG[uniqueness %in% c("down_unique")]), 
+            ) %>%     
+    group_by(contrast_name) %>% 
+    mutate(total_DEGs = max(number_of_positive_nonunique_DEGs) + 
+             max(number_of_positive_unique_DEGs) + 
+             max(abs(number_of_negative_nonunique_DEGs)) + 
+             max(abs(number_of_negative_unique_DEGs))) %>%
+    unique.data.frame() %>% 
     dplyr::mutate(DEG_Magnitude = dplyr::case_when(
-      count > 1000 ~ "1000+ DEGs",
-      count <= 1000 & count >= 100 ~ "1000-100 DEGs",
-      count <= 100 & count >= 10 ~ "100-10 DEGs",
-      count < 10 ~ "<10 DEGs"
+      total_DEGs > 1000 ~ "1000+ DEGs",
+      total_DEGs <= 1000 & total_DEGs >= 100 ~ "1000-100 DEGs",
+      total_DEGs <= 100 & total_DEGs >= 10 ~ "100-10 DEGs",
+      total_DEGs < 10 ~ "<10 DEGs"
     ))
   
   filteredContrastsResults$DEG_Magnitude <- factor(filteredContrastsResults$DEG_Magnitude, levels = c("1000+ DEGs", "1000-100 DEGs", "100-10 DEGs", "<10 DEGs"))
   
-  bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
-    ggplot2::geom_bar(data = filteredContrastsResults, 
-                      ggplot2::aes(x = stats::reorder(contrast_name, -abs(count)), y = n_DEG, fill = uniqueness), position="stack", stat="identity") + 
-    ggplot2::scale_fill_manual(values = c(down_nonunique = "cadetblue2", down_unique = "blue", up_nonunique = "orange", up_unique = "red")) + 
-    ggplot2::labs(fill="Unique") + 
-    ggplot2::ylab("Number of DEGs")+ 
-    egg::theme_article() + 
-    ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
-    ggplot2::ggtitle(title) + 
-    ggplot2::xlab("Differential Expression Contrasts") + 
-    ggplot2::facet_wrap(~DEG_Magnitude, scales = "free_x")
+
   
-  if (log_y_axis) {
-    bargraph <- bargraph + ggplot2::scale_y_log10()
-  }
+  #plot the bar graph
+  #note: geom_bar doesn't play nicely with y axis transformations, so scales = free_y and log transforming the y axis does not work. 
+    bargraph <- ggplot2::ggplot(filteredContrastsResults) + 
+      ggplot2::geom_col(ggplot2::aes(x = stats::reorder(contrast_name, -abs(total_DEGs)), y = number_of_positive_nonunique_DEGs, fill = "up_nonunique"), position="stack") + 
+      ggplot2::geom_col(ggplot2::aes(x = stats::reorder(contrast_name, -abs(total_DEGs)), y = number_of_negative_nonunique_DEGs, fill = "down_nonunique"), position="stack") + 
+      #plot downregulated genes
+      ggplot2::geom_col(ggplot2::aes(x = stats::reorder(contrast_name, -abs(total_DEGs)), y = number_of_positive_unique_DEGs, fill = "up_unique"), position="stack") + 
+      ggplot2::geom_col(ggplot2::aes(x = stats::reorder(contrast_name, -abs(total_DEGs)), y = number_of_negative_unique_DEGs, fill = "down_unique"), position="stack", ) + 
+      #define fixed color scheme
+      ggplot2::scale_fill_manual(values = c("up_unique" = "red",
+                                            "up_nonunique" = "orange", 
+                                            "down_unique" = "blue", 
+                                            "down_nonunique" = "cadetblue2"),
+                                 breaks = c("up_unique", "up_nonunique", "down_unique", "down_nonunique"),
+                                 aesthetics = "fill") + 
+      ggplot2::labs(fill="Gene Uniqueness") + 
+      ggplot2::ylab("Number of DEGs")+ 
+      egg::theme_article() + 
+      ggplot2::theme(axis.text.x = ggplot2::element_blank()) + 
+      ggplot2::ggtitle(title) + 
+      ggplot2::xlab("Differential Expression Contrasts") + 
+      ggplot2::facet_grid(~DEG_Magnitude, scales = "free_x")
+  
   print(bargraph)
   
   return(list(dataframe = filteredContrastsResults, barPlot = bargraph))
@@ -786,10 +816,11 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @param assayName the name of the assay in the seurat object storing the count matrix. 
 #' @param showRowNames a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap. 
 #' @param sampleIdCol The metadata column denoting the variable containing the sample identifier (for grouping). 
+#' @param minCountsPerGene Passthrough variable for PerformGlmFit, used for filtering out lowly expressed genes. 
 #' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
 #' @export
 
-PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID') {
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID', minCountsPerGene = 1) {
   #sanity check arguments
   if (is.null(contrastField)) {
     stop("Please define a contrastField. This is a metadata variable (supplied to groupFields during PseudobulkSeurat()) that will be displayed on the top of the heatmap.")
@@ -857,7 +888,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
                                                test.use = "QLF", 
                                                logFC_threshold = 0,
                                                FDR_threshold = 1.1,
-                                               minCountsPerGene = 1, 
+                                               minCountsPerGene = minCountsPerGene, 
                                                assayName = assayName)
   #bind RunFilteredContrasts into a dataframe
   lfc_results <- dplyr::bind_rows(lfc_results)
@@ -907,10 +938,13 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
     top_annotation <- ComplexHeatmap::HeatmapAnnotation(
       foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill =  rep(x = "white", length(colnames(heatmap_matrix)))), 
                        labels = colnames(heatmap_matrix)))
-
+    #force a symmetric and zero-centered color scale
+    heatmap_extreme_value <- max(abs(min(heatmap_matrix)), abs(max(heatmap_matrix)))
+    col_fun = circlize::colorRamp2(c(-abs(heatmap_extreme_value), 0, abs(heatmap_extreme_value)), c("dodgerblue3", "white", "red"))
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
                                        name = "Log Fold Changes", 
+                                       col = col_fun,
                                        show_row_names = showRowNames, 
                                        cluster_columns = FALSE, 
                                        top_annotation = top_annotation, 
@@ -925,9 +959,13 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
     top_annotation <- ComplexHeatmap::HeatmapAnnotation(
       foo = ComplexHeatmap::anno_block(gp = grid::gpar(fill = rep(x = "white", length(unique(labels_df[,1])))), 
                        labels = unique(labels_df[,1])))
+    #force a symmetric and zero-centered color scale
+    heatmap_extreme_value <- max(abs(min(heatmap_matrix)), abs(max(heatmap_matrix)))
+    col_fun = circlize::colorRamp2(c(-abs(heatmap_extreme_value), 0, abs(heatmap_extreme_value)), c("dodgerblue3", "white", "red"))
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
                             column_labels = labels_df[,2],
+                            col = col_fun,
                             name = "Log Fold Changes", 
                             column_names_rot = 0,
                             column_names_centered = T,
@@ -1003,13 +1041,15 @@ FitRegularizedClassificationGlm <- function(seuratObj,
       seuratObj <- CellMembrane::NormalizeAndScale(seuratObj, 
                                                    nVariableFeatures = length(rownames(seuratObj)),
                                                    variableGenesBlacklist = RIRA::GetGeneSet("VariableGenes_Exclusion.2"),
-                                                   scoreCellCycle=F
+                                                   scoreCellCycle=F, 
+                                                   featuresToRegress = NULL
       )
     } else {
       seuratObj <- CellMembrane::NormalizeAndScale(seuratObj, 
                                                    nVariableFeatures = numberOfVariableFeatures,
                                                    variableGenesBlacklist = RIRA::GetGeneSet("VariableGenes_Exclusion.2"),
-                                                   scoreCellCycle=F
+                                                   scoreCellCycle=F, 
+                                                   featuresToRegress = NULL
       )
     }
   }

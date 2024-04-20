@@ -86,7 +86,8 @@ Imports:
     escape (>= 1.99.0),
     GSVA (>= 1.51.5),
     dynamicTreeCut, 
-    pacman
+    pacman,
+    circlize
 Suggests:
     devtools,
     testthat (>= 2.1.0),

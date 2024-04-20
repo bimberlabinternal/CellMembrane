@@ -28,6 +28,7 @@ library(SeuratObject)
 library(CellMembrane, warn.conflicts = F)
 ```
 
+
 ## What is Pseudobulking? 
 
 Pseudobulking is a technique used in single cell RNA Sequencing to simplify the data from many single cells into a (pseudo) bulked sample by summing all of the gene expression from each cell in the group. Groupings can be determined several different ways.
@@ -52,9 +53,11 @@ For more on double dipping and approaches to circumvent it, please read https://
 ## How to Pseudobulk
 
 ```{r start pseudobulking, fig.width = 10}
-#Load seurat object
+
+#Load seurat object. GITHUB_WORKSPACE is set in the GitHub actions build, and if this is not set, try to build relative to this file:
 seuratObj <- suppressMessages(suppressWarnings(
-    Seurat::UpdateSeuratObject(readRDS("../tests/testdata/seuratOutput.rds"))))
+    Seurat::UpdateSeuratObject(readRDS(paste0(Sys.getenv('GITHUB_WORKSPACE', unset = '..'), "/tests/testdata/seuratOutput.rds")))
+))
 
 #assign some random experimental variables: vaccine groups, experimental time points, and subject Ids. 
 seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
@@ -286,9 +289,6 @@ Further annotation of the bar plot requires some custom code, but can be formatt
 library(dplyr)
 library(ggplot2)
 
-#store dataframe
-barPlot_dataframe <- barplot_results$dataframe
-
 #inspect dataframe column names to determine how the fill aesthetic needs to be specified for the geom_tile() calls. 
 barplot_results$dataframe %>% colnames()
 
@@ -296,15 +296,15 @@ metadata_tiles <- ggplot(barplot_results$dataframe) +
   #define a custom scale for timepoint metadata
   scale_fill_manual(values = rev(hcl.colors(n_distinct(pbulk$timepoint), palette = "Purples 3")), guide = guide_legend(order = 1))+
   labs(fill = "Timepoint")+
-  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = 1, fill = barPlot_dataframe$positive_contrast_timepoint)) +
-  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = 2, fill = barPlot_dataframe$negative_contrast_timepoint)) +
+  geom_tile(aes(x = reorder(contrast_name, -abs(total_DEGs)), y = 1, fill = barplot_results$dataframe$negative_contrast_timepoint)) +
+  geom_tile(aes(x = reorder(contrast_name, -abs(total_DEGs)), y = 2, fill = barplot_results$dataframe$positive_contrast_timepoint)) +
   ggnewscale::new_scale_fill() +
   
   #define a custom scale for vaccine_cohort metadata
   scale_fill_manual(values = rev(hcl.colors(n_distinct(pbulk$vaccine_cohort), palette = "Inferno")), guide = guide_legend(order = 1))+
   labs(fill = "Vaccine")+
-  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = 3, fill = barPlot_dataframe$positive_contrast_vaccine_cohort)) +
-  geom_tile(aes(x = reorder(contrast_name, -abs(count)), y = 4, fill = barPlot_dataframe$negative_contrast_vaccine_cohort)) +
+  geom_tile(aes(x = reorder(contrast_name, -abs(total_DEGs)), y = 3, fill = barplot_results$dataframe$negative_contrast_vaccine_cohort)) +
+  geom_tile(aes(x = reorder(contrast_name, -abs(total_DEGs)), y = 4, fill = barplot_results$dataframe$positive_contrast_vaccine_cohort)) +
   ggnewscale::new_scale_fill() +
   
   #match the formatting of the Pseudobulking Bar Plot
@@ -315,7 +315,7 @@ metadata_tiles <- ggplot(barplot_results$dataframe) +
   #add some dashed lines to delineate metadata groupings
   geom_hline(yintercept =c(2.5, 4.5), color = "black", linetype = "dashed")+
   geom_vline(xintercept = seq_along(unique(barplot_results$dataframe$contrast_name))+0.5) +
-  scale_y_discrete(limits = rev(c("Positive Contrast Timepoint", "Negative Contrast Timepoint","Positive Contrast Vaccine","Negative Contrast Vaccine"))) + facet_wrap(~DEG_Magnitude, scales = "free_x")
+  scale_y_discrete(limits = rev(c("Positive Contrast Vaccine", "Negative Contrast Vaccine","Positive Contrast Timepoint","Negative Contrast Timepoint"))) + facet_wrap(~DEG_Magnitude, scales = "free_x")
 
 metadata_tiles
 ```

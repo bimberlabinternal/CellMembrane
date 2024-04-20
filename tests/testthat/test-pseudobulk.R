@@ -41,7 +41,7 @@ test_that("Logic gate study design works", {
   testthat::expect_equal(ncol(seuratObj), expected = 1557) #check that test seuratObj doesn't change
   #add fabricated study metadata
   seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
-  seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy", "day4"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy", "day_4"), length.out = length(colnames(seuratObj)))
   seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
   #set up pseudobulking
   pbulk <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint","subject"))
