@@ -1,0 +1,213 @@
+---
+title: "CellMembrane Tutorial"
+author: "GW McElfresh"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::html_clean:
+    highlight: kate
+    self_contained: yes
+    thumbnails: no
+    code_folding: show
+vignette: >
+  %\VignetteIndexEntry{CellMembrane-Tutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Software Installation
+
+Several packages exist for single cell RNASeq analysis (R: Seurat, scran. Python: scanpy) and are generally available for installation through CRAN or PyPI (i.e. `install.packages("Seurat")` or `pip install scanpy`). We primarily create wrappers for these software for use in fault-tolerant pipelines and yield useful visualizations to interpret quality control issues and move onto data interpretation. 
+
+To download our R package `CellMembrane`, it is recommended that you create a GitHub account and register your GitHub credentials in your R Studio session. `CellMembrane` requires many other packages from GitHub and, without an account, will exhaust your allotted anonymous API calls to GitHub. To do this, register a github account and follow these steps: 
+
+### 0: Create a GitHub Account
+
+### 1: Install `usethis`
+
+```{r, eval = FALSE}
+#use pacman for easy installation from multiple package managers.
+if (! ("pacman" %in% installed.packages()[,"Package"])) {
+  install.packages('pacman')
+}
+#load or download the 'usethis' package.
+pacman::p_load("usethis")
+```
+
+
+### 2: Use `usethis` to Generate a Personal Access Token (PAT)
+
+This will prompt your browser to open to GitHub, log you in, and land you on the token generation page. Personal Access Tokens are similar to a username + password combination, so they can be used to uniquely identify yourself to GitHub. However, just like a user and password combination, they are sufficient to perform any actions the PAT has permissions to perform as your user. Be careful to ensure you treat a personal access token like you would your password. 
+
+Copy this PAT after it is generated. 
+
+```{r eval = FALSE}
+usethis::create_github_token()
+```
+
+### 3: Write your PAT into your .Renviron file
+
+The .Reviron file is a (usually hidden) file that R will execute upon launching. The purpose of this is to establish your credentials each time you launch R. 
+
+There are two ways to store the credentials:
+
+#### Recommended: `gitcreds::gitcreds_set()`
+
+Running `gitcreds::gitcreds_set()` will prompt you to paste your github credentials into the RStudio console, which it will store and use for authentication. Restart RStudio for this to take effect. 
+
+#### Backup: Editing your .Renviron file
+
+I have experienced that `gitcreds::gitcreds_set()` is sometimes unable to locate the correct .Reviron file in less-than-simple file structures (e.g. on Windows systems with multiple Documents folders due to OneDrive mirroring). For these cases, it's more efficient just to set the PAT yourself by running:
+
+```{r, eval=FALSE}
+usethis::edit_r_environ()
+```
+
+This will open the correct .Renviron file, which you need to paste your github token into as such: 
+
+```{r, eval = FALSE}
+GITHUB_PAT=pasteTheGitHubTokenYouGeneratedInStep3Here
+```
+
+Please ensure you have no spaces in line, save the `.Renviron` file, restart RStudio, and now you're ready to download the Bimber Lab software!
+
+### 4: Initial CellMembrane Download
+
+There are usually some issues that arise during installation, but to figure out what these are we need to try to download everything. 
+
+```{r, eval = FALSE}
+pacman::p_load(BiocManager, devtools)
+
+# Make sure to update your Rprofile to include Bioconductor repos, such as adding this line to ~/.Rprofile:
+local({options(repos = BiocManager::repositories())})
+
+#Latest version:
+devtools::install_github(repo = 'bimberlabinternal/cellmembrane', dependencies = TRUE, upgrade = 'always')
+```
+
+### 5: Iterative Installation of Problematic Packages
+
+You'll probably experience that DropletUtils and preprocessCore failed to install, which prevents other software from installing (RIRA, scuttle, and others.) Installing these packages individually from Bioconductor usually resolves the issue. You'll probably be asked to update packages by typing a/s/ or n. Usually it's safe to update packages (option a), but you can reach out to members of the Bimber lab if issues persist.
+
+```{r, eval = FALSE}
+#install the generally problematic packages
+BiocManager::install(c("DropletUtils", "preprocessCore"))
+
+#try reinstalling the software
+devtools::install_github(repo = 'bimberlabinternal/cellmembrane', dependencies = TRUE, upgrade = 'always')
+```
+
+You may need to Google installation instructions for the individual packages that fail to automatically install, but this iterative installation is generally a one-time process. 
+
+## The Canonical Pipeline 
+
+Single cell RNASeq procesing generally consists of three steps: 
+
+- Normalization
+- Dimensional reduction via PCA
+- Clustering via a community detection algorithm (Louvain clustering in our case, Leiden in others.)
+
+We can use the Seurat wrappers in CellMembrane to perform these steps. Each step will show plots that vary from quality control to high-level data summarizations. 
+
+### 1: Normalize The Data
+
+```{r NormalizeAndScale}
+#load Seurat to gain access to pbmc_small
+pacman::p_load(Seurat, CellMembrane)
+
+#Normalize the data. 
+#We also perform cell cycle scoring here, but pbmc_small does not have these genes
+#so we'll skip it for the tutorial
+pbmc_small <- CellMembrane::NormalizeAndScale(pbmc_small, scoreCellCycle = F)
+
+```
+
+### 2: Run PCA
+
+```{r RunPcaSteps}
+pbmc_small <- CellMembrane::RunPcaSteps(pbmc_small)
+```
+
+### 3: Run Clustering (and UMAP/tSNE)
+
+```{r FindClustersAndDimRedux}
+pbmc_small <- CellMembrane::FindClustersAndDimRedux(pbmc_small)
+```
+
+## Basic Exploratory Data Investigation
+
+Now, we're prepared to investigate the data through several tools. 
+
+### 1: Discrete Data Visualizations
+
+For discrete data stored in the `pbmc_small@meta.data` data frame (such as clustering identity, subject ID numbers, vaccination status), we can use Seurat's `DimPlot()` to visualize the data. Clustering identity is computed over several resolutions and stored in metadata fields named `ClusterNames_` + a resolution parameter (increasing in units of 0.2).
+
+```{r DimPlots}
+DimPlot(pbmc_small, group.by = 'groups')
+DimPlot(pbmc_small, group.by = 'ClusterNames_0.2')
+DimPlot(pbmc_small, group.by = 'ClusterNames_0.8')
+DimPlot(pbmc_small, group.by = 'ClusterNames_1.2')
+```
+
+### 2: Continuous Data Visualization
+
+For continuous variables and expression of individual genes, you can use Seurat's `FeaturePlot()`. 
+
+```{r FeaturePlots}
+FeaturePlot(pbmc_small, features = 'nCount_RNA')
+FeaturePlot(pbmc_small, features = 'PPBP')
+```
+
+We can combine these observations to conclude that Cluster 4 (at resolution `ClusterNames_1.2`) are probably GEMs of platelets or have heavy platelet contamination due to their high expression of Pro-Platelet basic protein (PPBP).
+
+## Differential Expression
+
+Take heed that p values derived from cluster-based differential expression are statistically invalid, as they suffer from double dipping (please read https://arxiv.org/abs/2301.07276 and related works from the Witten lab). Generally speaking, this means your p values are approximately zero for large swathes of the transcriptome. 
+
+However, for determining primary cluster defining markers, we can still use these approaches as long as we don't use thresholds on the p values to determine differential expression. 
+
+To do this, we can use Seurat's `FindMarkers`. We need to specify our groups for differential expression. 
+
+### 1: Targeted Differential Expression
+
+We can perform targeted differential expression (Group 1 = Cluster 4, Group 2 = Cluster 0 in cluster resolution 1.2) by specifying the `ident.1`, `ident.2`, and the grouping field `group.by` arguments.
+
+```{r Targeted Find Markers}
+markers <- FindMarkers(pbmc_small, ident.1 = 4, ident.2 = 0, group.by = "ClusterNames_1.2")
+head(markers)
+```
+
+Here we can see that GP9 (platelet glycoprotein) has far more expression in cluster 4 than cluster 0. 
+
+### 2: One versus All Differential Expression
+
+However, we can also perform a "Cluster 4 versus the rest of the data" comparison. We can leave `ident.2 = NULL` to specify that we want to do this one versus all comparison. 
+
+```{r General Find Markers}
+markers <- FindMarkers(pbmc_small, ident.1 = 4, ident.2 = NULL, group.by = "ClusterNames_1.2")
+head(markers)
+```
+
+### 3: Marker Sorting and Interpretation
+
+By default, the markers are sorted by lowest p value. You can also sort the data by largest average fold change to find reliable markers. 
+
+For information on the pipe symbol `%>%` used below, seek information on 'tidy data' from Hadley Wickham and his `tidyverse`. (https://r4ds.hadley.nz/data-tidy.html)  
+
+```{r Sorting Markers}
+pacman::p_load(dplyr)
+markers %>% 
+  arrange(-avg_log2FC) %>% 
+  head()
+markers %>% 
+  arrange(-avg_log2FC) %>% 
+  tail()
+```
+
+We can see that GP9, PTCRA, and TMEM40 are likely good positive markers of our platelet population, while GNLY, LST1, and HLA-DPA1 should be  expressed in other clusters Let's visualize these using other standard Seurat functions: `DotPlot` and `VlnPlot`.
+
+```{r DotandVlnPlots}
+DotPlot(pbmc_small, features = c("GP9", "PTCRA", "TMEM40", "LST1", "GNLY", "HLA-DPA1"), group.by = "ClusterNames_1.2")
+VlnPlot(pbmc_small, features = c("GP9", "PTCRA", "TMEM40", "LST1", "GNLY", "HLA-DPA1"), group.by = "ClusterNames_1.2")
+```
+
+Visualizing your data through unsupervised clustering to find sources of variation in your transcriptomics data is useful and can help you link changes in gene expression to your experimental variables. 

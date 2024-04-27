@@ -14,8 +14,8 @@ DesignModelMatrix(seuratObj, contrast_columns, sampleIdCol = "cDNA_ID")
 \item{sampleIdCol}{An additional column denoting the variable containing the sample (for grouping)}
 }
 \value{
-An edgeR glm object
+A model matrix (samples x groups data frame.)
 }
 \description{
-Creates an edgeR glm object
+This creates a model matrix that groups the samples according to the experimental groups used downstream in statistical analyses.
 }
