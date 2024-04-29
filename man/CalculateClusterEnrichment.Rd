@@ -11,6 +11,7 @@ CalculateClusterEnrichment(
   treatmentField = NULL,
   alternative = "two.sided",
   pValueCutoff = 0.05,
+  showPlots = TRUE,
   paired = "infer"
 )
 }
@@ -26,6 +27,8 @@ CalculateClusterEnrichment(
 \item{alternative}{A passthrough variable to wilcox.test. If "greater", the alternative hypothesis is that the difference in medians is greater than the null hypothesis. If "less", the alternative hypothesis is that the difference in medians is less than the null hypothesis. If "two.sided", the alternative hypothesis is that the difference in medians is simply "different" from the null hypothesis. In the case of the wilcoxon rank sum (e.g. paired = FALSE), this will test the difference of the medians, rather than the medians themselves.}
 
 \item{pValueCutoff}{The p-value cutoff for significance.}
+
+\item{showPlots}{A boolean that determines if the cluster significance should be shown in a DimPlot.}
 
 \item{paired}{A passthrough variable to wilcox.test. If TRUE, the function will perform a paired Wilcoxon test. If FALSE, the function will perform an unpaired Wilcoxon test. If you're testing (for instance, timepoint) enrichment on repeated measures, this should be TRUE. If you're testing different treatments on different subjects, this should be FALSE. If set to "infer", the function will attempt to infer the correct value based on the name of the treatment field.}
 }

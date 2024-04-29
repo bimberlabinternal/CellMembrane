@@ -287,7 +287,7 @@ CalculateClusterEnrichment <- function(seuratObj,
     dplyr::group_by(!!rlang::sym(clusterField), !!rlang::sym(subjectField), !!rlang::sym(treatmentField)) %>% 
     dplyr::reframe(SubjectClusterProportion = n()/ClusterCount) %>% 
     unique.data.frame()
-  #instantite a dataframe to store the enrichment statistics
+  #instantiate a dataframe to store the enrichment statistics
   enrichmentDataFrame <- data.frame()
   
   #check the number of treatment groups and infer a non-parametric test
@@ -358,9 +358,10 @@ CalculateClusterEnrichment <- function(seuratObj,
   #merge the enrichmentDataFrame with the seurat object metadata to populate p values in the metadata
   metadata <- merge(seuratObj@meta.data, enrichmentDataFrame[, c("Cluster_pValue", "Cluster_p_adj", "clusterField")], by.x = clusterField, by.y =  'clusterField')
   rownames(metadata) <- metadata$CellBarcode
-  
   #populate P values
   seuratObj <- AddMetaData(seuratObj, metadata = metadata)
+  
+  #show a DimPlot of significant clusters
   if (showPlots) { 
     Seurat::DimPlot(seuratObj, cells.highlight = metadata$CellBarcode[metadata$Cluster_p_adj < pValueCutoff]) + ggplot2::ggtitle("Significant Clusters")
     }
