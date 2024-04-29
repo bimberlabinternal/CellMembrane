@@ -12,11 +12,12 @@ CalculateClusterEnrichment(
   alternative = "two.sided",
   pValueCutoff = 0.05,
   showPlots = TRUE,
-  paired = "infer"
+  paired = "infer",
+  removePriorPvalues = TRUE
 )
 }
 \arguments{
-\item{seuratObj}{The seurat object that holds the data.}
+\item{seuratObj}{The Seurat object containing a subjectField, clusterField, and treatmentField. Please see the individual arguments for more information.}
 
 \item{subjectField}{The column of the Seurat object's metadata that contains the subject field. This field should denote individual samples that are independently collected.}
 
@@ -30,8 +31,23 @@ CalculateClusterEnrichment(
 
 \item{showPlots}{A boolean that determines if the cluster significance should be shown in a DimPlot.}
 
-\item{paired}{A passthrough variable to wilcox.test. If TRUE, the function will perform a paired Wilcoxon test. If FALSE, the function will perform an unpaired Wilcoxon test. If you're testing (for instance, timepoint) enrichment on repeated measures, this should be TRUE. If you're testing different treatments on different subjects, this should be FALSE. If set to "infer", the function will attempt to infer the correct value based on the name of the treatment field.}
+\item{paired}{A passthrough variable to wilcox.test. If TRUE, the function will perform a paired Wilcoxon test. If FALSE, the function will perform an unpaired Wilcoxon test. If you're testing (for instance, timepoint) enrichment on repeated measures, this should be TRUE. If you're testing different treatments on different subjects, this should be FALSE. If set to "infer", the function will attempt to infer the correct value based on the name of the treatment field. Specifically, this will search for "time" in your treatment field. If it finds it, it will set paired = TRUE. If it doesn't, it will set paired = FALSE.}
+
+\item{removePriorPvalues}{A boolean that determines if the prior p-values should be removed from the Seurat object metadata. It's likely that you'll want to iteratively compute significance on different metadata fields, so this is set to TRUE by default and will remove the Cluster_pValue and Cluster_p_adj fields from the Seurat object's metadata.}
+}
+\value{
+A Seurat object with the p-values of the clusters in the metadata columns Cluster_pValue and Cluster_p_adj. If showPlots = TRUE, a DimPlot will be shown with significant clusters highlighted.
 }
 \description{
 A function that calculates the enrichment of a cluster under a given treatment variable.
+}
+\examples{
+ \dontrun{
+ seuratObj <- CalculateClusterEnrichment(seuratObj,
+                                       clusterField = "ClusterNames_0.4",
+                                       treatmentField = "vaccine_cohort",
+                                       subjectField = "SubjectId",
+                                       paired = "infer", 
+                                       showPlots = TRUE)
+                                       }
 }
