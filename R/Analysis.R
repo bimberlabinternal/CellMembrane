@@ -241,6 +241,7 @@ MakeEnrichmentDotPlot <- function(seuratObj,
 #' @param treatmentField The column of the Seurat object's metadata that contains the treatment field. This field should denote the treatment of the subject, and should be the primary variable of interest within your study. 
 #' @param alternative A passthrough variable to wilcox.test. If "greater", the alternative hypothesis is that the difference in medians is greater than the null hypothesis. If "less", the alternative hypothesis is that the difference in medians is less than the null hypothesis. If "two.sided", the alternative hypothesis is that the difference in medians is simply "different" from the null hypothesis. In the case of the wilcoxon rank sum (e.g. paired = FALSE), this will test the difference of the medians, rather than the medians themselves. 
 #' @param pValueCutoff The p-value cutoff for significance.
+#' @param showPlots A boolean that determines if the cluster significance should be shown in a DimPlot.
 #' @param paired A passthrough variable to wilcox.test. If TRUE, the function will perform a paired Wilcoxon test. If FALSE, the function will perform an unpaired Wilcoxon test. If you're testing (for instance, timepoint) enrichment on repeated measures, this should be TRUE. If you're testing different treatments on different subjects, this should be FALSE. If set to "infer", the function will attempt to infer the correct value based on the name of the treatment field.
 #' @export
 
@@ -250,6 +251,7 @@ CalculateClusterEnrichment <- function(seuratObj,
                                        treatmentField = NULL,
                                        alternative = 'two.sided',
                                        pValueCutoff = 0.05,
+                                       showPlots = TRUE, 
                                        paired = "infer"
 ){
   # test for validity of metadata fields
@@ -299,9 +301,9 @@ CalculateClusterEnrichment <- function(seuratObj,
       clusterProportions <- clusterProportionsSubset$SubjectClusterProportion
       groupMembership <- clusterProportionsSubset[[treatmentField]]
       pValue <- kruskal.test(clusterProportions, groupMembership, alternative = alternative)$p.value
-      enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, pValue = pValue))
+      enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, Cluster_pValue = pValue))
     }
-    enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, pValue = pValue))
+    enrichmentDataFrame$Cluster_p_adj <- p.adjust(enrichmentDataFrame$Cluster_pValue, n = nrow(enrichmentDataFrame))
   } else if (length(unique(seuratObj@meta.data[[treatmentField]])) == 2) {
     if (paired) { 
       message("Two treatment groups found and paired data was either specified or inferred. Pairwise wilcoxon signed rank test will be performed.")
@@ -322,9 +324,9 @@ CalculateClusterEnrichment <- function(seuratObj,
         }
         #calculate p values. 
         pValue <- wilcox.test(groupOneProportions, groupTwoProportions, paired = TRUE, alternative = alternative)$p.value
-        enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, pValue = pValue))
+        enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, Cluster_pValue = pValue))
       }
-      enrichmentDataFrame$p_adj <- p.adjust(enrichmentDataFrame$pValue, n = nrow(enrichmentDataFrame))
+      enrichmentDataFrame$Cluster_p_adj <- p.adjust(enrichmentDataFrame$Cluster_pValue, n = nrow(enrichmentDataFrame))
     } else {
       message("Two treatment groups found and unpaired data was either specified or inferred. Wilcoxon rank sum test will be performed.")
       #perform wilcoxon rank sum test for each cluster 
@@ -343,8 +345,9 @@ CalculateClusterEnrichment <- function(seuratObj,
         }
         #calculate p values. 
         pValue <- wilcox.test(groupOneProportions, groupTwoProportions, paired = FALSE, alternative = alternative)$p.value
-        enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, pValue = pValue))
+        enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, Cluster_pValue = pValue))
       }
+      enrichmentDataFrame$Cluster_p_adj <- p.adjust(enrichmentDataFrame$Cluster_pValue, n = nrow(enrichmentDataFrame))
     }
   }
   #add cell barodes to metadata if they aren't present
@@ -353,12 +356,15 @@ CalculateClusterEnrichment <- function(seuratObj,
     seuratObj@meta.data$CellBarcode <- rownames(seuratObj@meta.data)
   }
   #merge the enrichmentDataFrame with the seurat object metadata to populate p values in the metadata
-  metadata <- merge(seuratObj@meta.data, enrichmentDataFrame, by.x = clusterField, by.y =  'clusterField')
+  metadata <- merge(seuratObj@meta.data, enrichmentDataFrame[, c("Cluster_pValue", "Cluster_p_adj", "clusterField")], by.x = clusterField, by.y =  'clusterField')
   rownames(metadata) <- metadata$CellBarcode
   
   #populate P values
   seuratObj <- AddMetaData(seuratObj, metadata = metadata)
-  return(enrichmentDataFrame)
+  if (showPlots) { 
+    Seurat::DimPlot(seuratObj, cells.highlight = metadata$CellBarcode[metadata$Cluster_p_adj < pValueCutoff]) + ggplot2::ggtitle("Significant Clusters")
+    }
+  return(seuratObj)
 }
     
 
