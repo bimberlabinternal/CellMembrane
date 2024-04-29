@@ -402,7 +402,7 @@ CalculateClusterEnrichment <- function(seuratObj,
   
   #show a DimPlot of significant clusters
   if (showPlots) { 
-    Seurat::DimPlot(seuratObj, cells.highlight = metadata$CellBarcode[metadata$Cluster_p_adj < pValueCutoff]) + ggplot2::ggtitle("Significant Clusters")
+    print(Seurat::DimPlot(seuratObj, cells.highlight = metadata$CellBarcode[metadata$Cluster_p_adj < pValueCutoff]) + ggplot2::ggtitle("Significant Clusters"))
     }
   return(seuratObj)
 }
