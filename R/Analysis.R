@@ -244,6 +244,7 @@ MakeEnrichmentDotPlot <- function(seuratObj,
 #' @param showPlots A boolean that determines if the cluster significance should be shown in a DimPlot.
 #' @param paired A passthrough variable to wilcox.test. If TRUE, the function will perform a paired Wilcoxon test. If FALSE, the function will perform an unpaired Wilcoxon test. If you're testing (for instance, timepoint) enrichment on repeated measures, this should be TRUE. If you're testing different treatments on different subjects, this should be FALSE. If set to "infer", the function will attempt to infer the correct value based on the name of the treatment field. Specifically, this will search for "time" in your treatment field. If it finds it, it will set paired = TRUE. If it doesn't, it will set paired = FALSE.
 #' @param removePriorPvalues A boolean that determines if the prior p-values should be removed from the Seurat object metadata. It's likely that you'll want to iteratively compute significance on different metadata fields, so this is set to TRUE by default and will remove the Cluster_pValue and Cluster_p_adj fields from the Seurat object's metadata.
+#' @param postHocTest A boolean that determines if a post-hoc test should be performed. If TRUE, the function will perform a Conover-Iman post-hoc test to determine which pairs of treatmentField groups are significantly different from each other.
 #' @return A Seurat object with the p-values of the clusters in the metadata columns Cluster_pValue and Cluster_p_adj. If showPlots = TRUE, a DimPlot will be shown with significant clusters highlighted.
 #' @examples 
 #'  \dontrun{
@@ -264,7 +265,8 @@ CalculateClusterEnrichment <- function(seuratObj,
                                        pValueCutoff = 0.05,
                                        showPlots = TRUE, 
                                        paired = "infer", 
-                                       removePriorPvalues = TRUE
+                                       removePriorPvalues = TRUE, 
+                                       postHocTest = TRUE
 ){
   # test for validity of metadata fields within the seurat object
   # treatmentField
@@ -342,6 +344,33 @@ CalculateClusterEnrichment <- function(seuratObj,
     }
     #adjust p values
     enrichmentDataFrame$Cluster_p_adj <- p.adjust(enrichmentDataFrame$Cluster_pValue, n = nrow(enrichmentDataFrame))
+    #if specified, a post hoc test will be performed on each significant cluster from the Kruskal-Wallis test.
+    if (postHocTest) { 
+      for (cluster in unique(clusterProportionsDataFrame[[clusterField]])) { 
+        if (enrichmentDataFrame[enrichmentDataFrame$clusterField == cluster,]$Cluster_p_adj < pValueCutoff) {
+          # do testing 
+          pairwise_test <- conover.test::conover.test(unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, "SubjectClusterProportion"]),
+                                             unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, treatmentField]))
+          pairwise_test_plotting_dataframe <- data.frame(comparisons = pairwise_test$comparisons, 
+                                                T_statistic = pairwise_test$`T`, 
+                                                P_val_adj = pairwise_test$`P.adjusted`) %>% 
+            tidyr::separate(comparisons, into = c("Group1", "Group2"), sep = " - ") %>% 
+            dplyr::mutate(stars = dplyr::case_when(P_val_adj < 0.001 ~ "***", 
+                                     P_val_adj < 0.01 ~ "**", 
+                                     P_val_adj < 0.05 ~ "*", 
+                                     TRUE ~ ""))
+          enrichmentPlot <- ggplot2::ggplot(pairwise_test_plotting_dataframe, ggplot2::aes(x = Group1, y = Group2, fill = -log10(P_val_adj))) + 
+            ggplot2::geom_tile() + 
+            ggplot2::scale_fill_viridis_c() +
+            ggplot2::geom_text(aes(label=stars), color="black", size=5) +
+                  egg::theme_article() + 
+            ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) + 
+            ggplot2::ggtitle(paste0("Cluster ", cluster, " Enrichment"))
+          print(enrichmentPlot)
+        }
+      }
+    }
+    
   } else if (length(unique(seuratObj@meta.data[[treatmentField]])) == 2) {
     if (paired) { 
       message("Two treatment groups found and paired data was either specified or inferred. Pairwise wilcoxon signed rank test will be performed.")
@@ -406,4 +435,7 @@ CalculateClusterEnrichment <- function(seuratObj,
     }
   return(seuratObj)
 }
+
+
+
 

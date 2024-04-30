@@ -13,7 +13,8 @@ CalculateClusterEnrichment(
   pValueCutoff = 0.05,
   showPlots = TRUE,
   paired = "infer",
-  removePriorPvalues = TRUE
+  removePriorPvalues = TRUE,
+  postHocTest = TRUE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ CalculateClusterEnrichment(
 \item{paired}{A passthrough variable to wilcox.test. If TRUE, the function will perform a paired Wilcoxon test. If FALSE, the function will perform an unpaired Wilcoxon test. If you're testing (for instance, timepoint) enrichment on repeated measures, this should be TRUE. If you're testing different treatments on different subjects, this should be FALSE. If set to "infer", the function will attempt to infer the correct value based on the name of the treatment field. Specifically, this will search for "time" in your treatment field. If it finds it, it will set paired = TRUE. If it doesn't, it will set paired = FALSE.}
 
 \item{removePriorPvalues}{A boolean that determines if the prior p-values should be removed from the Seurat object metadata. It's likely that you'll want to iteratively compute significance on different metadata fields, so this is set to TRUE by default and will remove the Cluster_pValue and Cluster_p_adj fields from the Seurat object's metadata.}
+
+\item{postHocTest}{A boolean that determines if a post-hoc test should be performed. If TRUE, the function will perform a Conover-Iman post-hoc test to determine which pairs of treatmentField groups are significantly different from each other.}
 }
 \value{
 A Seurat object with the p-values of the clusters in the metadata columns Cluster_pValue and Cluster_p_adj. If showPlots = TRUE, a DimPlot will be shown with significant clusters highlighted.
