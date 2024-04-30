@@ -3,7 +3,7 @@
 #' @import ggplot2
 
 utils::globalVariables(
-  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name', 'sampleIdCol', 'joinedFields', 'number_of_positive_nonunique_DEGs', 'number_of_negative_nonunique_DEGs', 'number_of_positive_unique_DEGs', 'number_of_negative_unique_DEGs'),
+  names = c('FDR', 'gene', 'PValue', 'KeyField', 'TotalCells', 'n_DEG', 'uniqueness', 'regulation', 'contrast_name', 'sampleIdCol', 'joinedFields', 'number_of_positive_nonunique_DEGs', 'number_of_negative_nonunique_DEGs', 'number_of_positive_unique_DEGs', 'number_of_negative_unique_DEGs', "total_DEGs"),
   package = 'CellMembrane',
   add = TRUE
 )
