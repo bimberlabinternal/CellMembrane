@@ -87,7 +87,9 @@ Imports:
     GSVA (>= 1.51.5),
     dynamicTreeCut, 
     pacman,
-    circlize
+    circlize, 
+    conover.test, 
+    colorspace
 Suggests:
     devtools,
     testthat (>= 2.1.0),
