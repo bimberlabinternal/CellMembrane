@@ -274,6 +274,8 @@ CalculateClusterEnrichment <- function(seuratObj,
     stop('treatmentField is set to NULL, please specify a valid treatmentField. treatmentField should should denote the treatment of the subject, such as drug or vaccine administration, and should be the primary variable of interest within your study. Timepoint-based metadata fields are also valid values of treatmentField.')
   } else if (!treatmentField %in% colnames(seuratObj@meta.data)) {
     stop(paste0('treatmentField: ', treatmentField, ' not found in the seuratObject metadata columns. Please check the spelling and case sensitivity.'))
+  } else if (grepl(" - ", seuratObj@meta.data[[treatmentField]])) {
+    stop(paste0('treatmentField: ', treatmentField , ' has entries that contain a " - " character. Please change the entries containing the  " - " characters from treatmentField to any other delimiting values.'))
   }
   # subjectField
   if (!subjectField %in% colnames(seuratObj@meta.data)) {

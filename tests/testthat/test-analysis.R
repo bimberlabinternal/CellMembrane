@@ -39,4 +39,13 @@ test_that("Cluster enrichment works", {
                                           paired = "infer")
   testthat::expect_true("Cluster_p_adj" %in% colnames(seuratObj@meta.data))  
   testthat::expect_true(all(seuratObj$Cluster_p_adj <= 1))
+  #test that " - " breaks the function
+  seuratObj@meta.data[,"timepoint"] <- base::rep(c("base - line", "necropsy"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
+  
+  testthat::expect_error(CalculateClusterEnrichment(seuratObj, 
+                                          clusterField = "ClusterNames_0.4", 
+                                          treatmentField = "timepoint",
+                                          subjectField = "subject",
+                                          paired = "infer"))
 })
