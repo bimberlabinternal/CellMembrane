@@ -359,14 +359,17 @@ CalculateClusterEnrichment <- function(seuratObj,
                                      P_val_adj < 0.01 ~ "**", 
                                      P_val_adj < 0.05 ~ "*", 
                                      TRUE ~ ""))
-          enrichmentPlot <- ggplot2::ggplot(pairwise_test_plotting_dataframe, ggplot2::aes(x = Group1, y = Group2, fill = -log10(P_val_adj))) + 
+          enrichmentPlot <- ggplot2::ggplot(pairwise_test_plotting_dataframe, ggplot2::aes(x = Group1, y = Group2, fill = T_statistic)) + 
             ggplot2::geom_tile() + 
-            ggplot2::scale_fill_viridis_c() +
+            colorspace::scale_fill_continuous_diverging(palette = "Blue-Red 3", l1 = 30, l2 = 100, p1 = .9, p2 = 1.2) + 
             ggplot2::geom_text(aes(label=stars), color="black", size=5) +
-                  egg::theme_article() + 
+            egg::theme_article() + 
             ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) + 
-            ggplot2::ggtitle(paste0("Cluster ", cluster, " Enrichment"))
-          print(enrichmentPlot)
+            patchwork::plot_annotation(title = paste0("Cluster ", cluster, " Enrichment"),
+                                       subtitle = "Contrast for T statistic is Group1 - Group2")
+          if (showPlots){
+            print(enrichmentPlot)
+          }
         }
       }
     }
