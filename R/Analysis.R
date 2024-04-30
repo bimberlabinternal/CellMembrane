@@ -2,7 +2,8 @@
 #' @importFrom stats cor 
 
 utils::globalVariables(
-  names = c('ClusterProportion', 'Proportion', 'SizeFactor', 'XY_Key', 'Y_Key'),
+  names = c('ClusterProportion', 'Proportion', 'SizeFactor', 'XY_Key', 'Y_Key', 'ClusterCount',  
+            'comparisons', 'T_statistic', 'P_val_adj', 'Group1', 'Group2', 'stars'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -341,7 +342,7 @@ CalculateClusterEnrichment <- function(seuratObj,
       clusterProportions <- clusterProportionsSubset$SubjectClusterProportion
       groupMembership <- clusterProportionsSubset[[treatmentField]]
       #calculate p values
-      pValue <- kruskal.test(clusterProportions, groupMembership, alternative = alternative)$p.value
+      pValue <- stats::kruskal.test(clusterProportions, groupMembership, alternative = alternative)$p.value
       enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, Cluster_pValue = pValue))
     }
     #adjust p values
