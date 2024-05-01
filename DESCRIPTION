@@ -92,7 +92,9 @@ Imports:
     msigdbr,
     fgsea,
     clusterProfiler,
-    babelgene
+    babelgene,
+    conover.test, 
+    colorspace
 Suggests:
     devtools,
     testthat (>= 2.1.0),
