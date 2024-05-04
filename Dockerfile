@@ -11,6 +11,9 @@ RUN cd /CellMembrane \
     # Pre-install the cpu-only versions of pytorch to try to reduce image size:
     && python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'always');" \
+    # TODO: this is to fix the as_cholmod_sparse' not provided by package 'Matrix' errors. This should ultimately be removed
+    && Rscript -e "install.packages('Matrix', type='source', force=TRUE)" \
+    && Rscript -e "install.packages('irlba', type='source', force=TRUE)" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
