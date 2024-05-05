@@ -505,7 +505,7 @@ xnor <- function(x,y){(x == y)}
 #' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by PerformDifferentialExpression (for plotting only).
 #' @param minCountsPerGene A passthrough argument specifying the minimum counts a gene must have before it is filtered and excluded from GLM fitting by PerformGlmFit().
 #' @param assayName A passthrough argument specifying in which assay the counts are held. 
-#' @param showPlots A passthrough argument specifying whether or not PerformDifferentialExpression should show the volano plots 
+#' @param showPlots A passthrough argument specifying whether or not PerformDifferentialExpression should show the volcano plots.
 #' @return A list of dataframes containing the differentially expressed genes in each contrast supplied by one of the filteredGenes arguments. 
 #' @export
 
@@ -526,7 +526,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
   }
   
   results <- future.apply::future_lapply(split(contrasts, 1:nrow(contrasts)), future.seed = GetSeed(), FUN = function(x){
-    #initialize two seurat objects, one to be subset according to the positive contrasts, and one to be subset according to the negative contrast. These will be merged downstream.
+    #initialize two Seurat objects, one to be subset according to the positive contrasts, and one to be subset according to the negative contrast. These will be merged downstream.
     seuratObj.positive.contrast <- seuratObj
     seuratObj.negative.contrast <- seuratObj
     positive_contrast <- NULL
@@ -534,6 +534,10 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
     #construct the positive and negative contrast by accessing each value within the filtered contrast data frame (row-wise) by adding the appropriate prefix to the metadata field name (i.e. the "contrast column")
     print(paste0("Contrast columns: ", attr(design,"contrast_columns")))
     for (contrast_column in attr(design, "contrast_columns")){
+      #check if the contrast column in the parent Seurat object needs sanitizing before populating seuratObj.positive.contrast and seuratObj.negative.contrast downstream.
+      if (!all(seuratObj@meta.data[,contrast_column] == make.names(seuratObj@meta.data[,contrast_column]))){
+        seuratObj@meta.data[,contrast_column] <- make.names(seuratObj@meta.data[,contrast_column])
+        }
       #if the contrasts have only just been initialized, don't use an underscore delimiter when concatenating.
       if (is.null(positive_contrast)){
         positive_contrast <- x[,paste0("positive_contrast_", contrast_column)]
