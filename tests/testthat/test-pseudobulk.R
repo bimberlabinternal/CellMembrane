@@ -132,7 +132,7 @@ test_that("Non-alphanumeric characters do not break Pseudobulking pipeline", {
                                          geneSpace = genes, 
                                          contrastField = "vaccine_cohort", 
                                          negativeContrastValue = "vaccine One", 
-                                         sampleIdCol = 'subject'
+                                         sampleIdCol = 'subject')
   })
 
 test_that("Feature Selection by GLM works", {
