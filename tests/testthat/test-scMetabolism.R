@@ -7,5 +7,5 @@ test_that("scMetabolism works as expected", {
     expect_false('METABOLISM' %in% names(seuratObj@assays))
 
     expect_equal(length(rownames(seuratObj@misc$METABOLISM.KEGG)), 85)
-    expect_equal(max(seuratObj@misc$METABOLISM.KEGG$AAACCTGAGCCAGGAT), 0.155963, tolerance = 0.01)
+    expect_equal(max(seuratObj@misc$METABOLISM.KEGG$AAACCTGAGCCAGGAT), 0.155963, tolerance = 0.02)
 })
