@@ -535,7 +535,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
     print(paste0("Contrast columns: ", attr(design,"contrast_columns")))
     for (contrast_column in attr(design, "contrast_columns")){
       #check if the contrast column in the parent Seurat object needs sanitizing before populating seuratObj.positive.contrast and seuratObj.negative.contrast downstream.
-      if (!all(seuratObj@meta.data[,contrast_column] == make.names(seuratObj@meta.data[,contrast_column]))){
+      if (!all(seuratObj@meta.data[,contrast_column] == gsub("_", ".", make.names(seuratObj@meta.data[,contrast_column])))){
         print("Converting metadata columns to a make.names() format. Hyphens, spaces, underscores, and other non-alphanumeric characters will be converted to periods. Factor levels will be retained.")
         if (is.factor(seuratObj@meta.data[,contrast_column])) {
           seuratObj@meta.data[,contrast_column] <- forcats::fct_relabel(seuratObj@meta.data[,contrast_column], ~gsub("_", ".", make.names(.)))
