@@ -554,8 +554,8 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       #TODO: ensure the first contrast column in DesignModelMatrix is non-numeric.
       print("Filtering cells...")
       if(!any(grepl("^[0-9]",seuratObj.positive.contrast@meta.data[,contrast_column])) | !any(grepl("^[0-9]",seuratObj.negative.contrast@meta.data[,contrast_column]))){
-        seuratObj.positive.contrast@meta.data[,contrast_column] <- make.names(seuratObj.positive.contrast@meta.data[,contrast_column])
-        seuratObj.negative.contrast@meta.data[,contrast_column] <- make.names(seuratObj.negative.contrast@meta.data[,contrast_column])
+        seuratObj.positive.contrast@meta.data[,contrast_column] <- gsub("_", ".", make.names(seuratObj.positive.contrast@meta.data[,contrast_column]))
+        seuratObj.negative.contrast@meta.data[,contrast_column] <- gsub("_", ".", make.names(seuratObj.negative.contrast@meta.data[,contrast_column]))
       }
       seuratObj.contrast <-tryCatch(
         {
@@ -571,7 +571,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
           print(paste("colsums:", table(seuratObj.contrast@meta.data[,contrast_column])))
           seuratObj.contrast
         }, error = function(e){
-          print(paste("Error subsetting in contrast:", contrast_name, ". Column:",  contrast_column))
+          print(paste0("Error subsetting in contrast: ", contrast_name, ". Column:",  contrast_column))
           print(paste("Error:", e))
           return(NULL)
         }
