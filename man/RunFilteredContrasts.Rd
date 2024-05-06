@@ -36,7 +36,7 @@ RunFilteredContrasts(
 
 \item{assayName}{A passthrough argument specifying in which assay the counts are held.}
 
-\item{showPlots}{A passthrough argument specifying whether or not PerformDifferentialExpression should show the volano plots}
+\item{showPlots}{A passthrough argument specifying whether or not PerformDifferentialExpression should show the volcano plots.}
 }
 \value{
 A list of dataframes containing the differentially expressed genes in each contrast supplied by one of the filteredGenes arguments.

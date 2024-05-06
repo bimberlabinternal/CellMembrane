@@ -535,13 +535,9 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
     print(paste0("Contrast columns: ", attr(design,"contrast_columns")))
     for (contrast_column in attr(design, "contrast_columns")){
       #check if the contrast column in the parent Seurat object needs sanitizing before populating seuratObj.positive.contrast and seuratObj.negative.contrast downstream.
-      if (!all(seuratObj@meta.data[,contrast_column] == gsub("_", ".", make.names(seuratObj@meta.data[,contrast_column])))){
+      if (!all(seuratObj@meta.data[,contrast_column] == .RemoveSpecialCharacters(seuratObj@meta.data[,contrast_column]))) {
         print("Converting metadata columns to a make.names() format. Hyphens, spaces, underscores, and other non-alphanumeric characters will be converted to periods. Factor levels will be retained.")
-        if (is.factor(seuratObj@meta.data[,contrast_column])) {
-          seuratObj@meta.data[,contrast_column] <- forcats::fct_relabel(seuratObj@meta.data[,contrast_column], ~gsub("_", ".", make.names(.)))
-        } else {
-          seuratObj@meta.data[,contrast_column] <- gsub("_", ".", make.names(seuratObj@meta.data[,contrast_column]))
-        }
+        seuratObj@meta.data[,contrast_column] <- .RemoveSpecialCharacters(seuratObj@meta.data[,contrast_column])
       }
       #if the contrasts have only just been initialized, don't use an underscore delimiter when concatenating.
       if (is.null(positive_contrast)){
@@ -560,17 +556,9 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       print("Filtering cells...")
       if(!any(grepl("^[0-9]",seuratObj.positive.contrast@meta.data[,contrast_column])) | !any(grepl("^[0-9]",seuratObj.negative.contrast@meta.data[,contrast_column]))){
         #check for factor ordering on the positive contrast Seurat object and make.names() if necessary
-        if (is.factor(seuratObj.positive.contrast@meta.data[,contrast_column] )) {
-            seuratObj.positive.contrast@meta.data[,contrast_column]  <- forcats::fct_relabel(seuratObj.positive.contrast@meta.data[,contrast_column], ~gsub("_", ".", make.names(.)))
-          } else {
-            seuratObj.positive.contrast@meta.data[,contrast_column] <- gsub("_", ".", make.names(seuratObj.positive.contrast@meta.data[,contrast_column]))
-          }
+        seuratObj.positive.contrast@meta.data[,contrast_column] <- .RemoveSpecialCharacters(seuratObj.positive.contrast@meta.data[,contrast_column])
         #check for factor ordering on the negative contrast Seurat object and make.names() if necessary
-        if (is.factor(seuratObj.negative.contrast@meta.data[,contrast_column] )) {
-          seuratObj.negative.contrast@meta.data[,contrast_column]  <- forcats::fct_relabel(seuratObj.negative.contrast@meta.data[,contrast_column], ~gsub("_", ".", make.names(.)))
-        } else {
-          seuratObj.negative.contrast@meta.data[,contrast_column] <- gsub("_", ".", make.names(seuratObj.negative.contrast@meta.data[,contrast_column]))
-        }
+        seuratObj.negative.contrast@meta.data[,contrast_column] <- .RemoveSpecialCharacters(seuratObj.negative.contrast@meta.data[,contrast_column])
       }
       seuratObj.contrast <-tryCatch(
         {
@@ -653,6 +641,20 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
     return(result$differential_expression$table)
   })
   return(results)
+}
+#' @title RemoveSpecialCharacters
+#' 
+#' @description This function is used to remove special characters from metadata values. This ensures that the seuratObj metadata columns are formatted to match entries in the design matrix. 
+#' @param vector_of_metadata_values A vector of metadata values to be sanitized
+#' @return A vector of metadata values with special characters removed.
+
+.RemoveSpecialCharacters <- function(vector_of_metadata_values) { 
+  if (is.factor(vector_of_metadata_values)) {
+    vector_of_metadata_values  <- forcats::fct_relabel(vector_of_metadata_values, ~gsub("_", ".", make.names(.)))
+  } else {
+    vector_of_metadata_values <- gsub("_", ".", make.names(vector_of_metadata_values))
+  }
+  return(vector_of_metadata_values)
 }
 
 #' @title PseudobulkingBarPlot
@@ -874,12 +876,12 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
   }
   
   #Sanitize negativeContrastValue and positiveContrastValue, since the user is unlikely to know that values need to be compatible with a post-make.names() call to the variables from the design matrix. 
-  if (negativeContrastValue != gsub("_", ".", (make.names(negativeContrastValue)))) { 
-    negativeContrastValue <- gsub("_", ".", make.names(negativeContrastValue)) 
+  if (negativeContrastValue != .RemoveSpecialCharacters(negativeContrastValue)) { 
+    negativeContrastValue <- .RemoveSpecialCharacters(negativeContrastValue)
   } 
   if (!is.null(positiveContrastValue)) {
-    if (positiveContrastValue != gsub("_", ".", (make.names(positiveContrastValue)))) { 
-      positiveContrastValue <- gsub("_", ".", make.names(positiveContrastValue)) 
+    if (positiveContrastValue != .RemoveSpecialCharacters(positiveContrastValue)) { 
+      positiveContrastValue <- .RemoveSpecialCharacters(positiveContrastValue) 
     } 
   }
   
