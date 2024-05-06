@@ -858,6 +858,16 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
     stop(paste0('Only ', sum(geneSpace %in% rownames(seuratObj)), ' gene(s) overlapped between geneSpace (length ', length(geneSpace),') and the assay (size ', length(rownames(seuratObj)),'). With Seurat V5 there must be more than one feature'))
   }
   
+  #Sanitize negativeContrastValue and positiveContrastValue, since the user is unlikely to know that values need to be compatible with a post-make.names() call to the variables from the design matrix. 
+  if (negativeContrastValue != gsub("_", ".", (make.names(negativeContrastValue)))) { 
+    negativeContrastValue <- gsub("_", ".", make.names(negativeContrastValue)) 
+  } 
+  if (!is.null(positiveContrastValue)) {
+    if (positiveContrastValue != gsub("_", ".", (make.names(positiveContrastValue)))) { 
+      positiveContrastValue <- gsub("_", ".", make.names(positiveContrastValue)) 
+    } 
+  }
+  
   #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
   design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol)
   #similarly, parse these arguments for setting up a logicList
