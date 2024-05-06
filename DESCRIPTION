@@ -89,7 +89,8 @@ Imports:
     pacman,
     circlize, 
     conover.test, 
-    colorspace
+    colorspace, 
+    forcats
 Suggests:
     devtools,
     testthat (>= 2.1.0),

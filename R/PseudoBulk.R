@@ -536,8 +536,13 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
     for (contrast_column in attr(design, "contrast_columns")){
       #check if the contrast column in the parent Seurat object needs sanitizing before populating seuratObj.positive.contrast and seuratObj.negative.contrast downstream.
       if (!all(seuratObj@meta.data[,contrast_column] == make.names(seuratObj@meta.data[,contrast_column]))){
-        seuratObj@meta.data[,contrast_column] <- make.names(seuratObj@meta.data[,contrast_column])
+        print("Converting metadata columns to a make.names() format. Hyphens, spaces, underscores, and other non-alphanumeric characters will be converted to periods. Factor levels will be retained.")
+        if (is.factor(seuratObj@meta.data[,contrast_column])) {
+          seuratObj@meta.data[,contrast_column] <- forcats::fct_relabel(seuratObj@meta.data[,contrast_column], ~gsub("_", ".", make.names(.)))
+        } else {
+          seuratObj@meta.data[,contrast_column] <- gsub("_", ".", make.names(seuratObj@meta.data[,contrast_column]))
         }
+      }
       #if the contrasts have only just been initialized, don't use an underscore delimiter when concatenating.
       if (is.null(positive_contrast)){
         positive_contrast <- x[,paste0("positive_contrast_", contrast_column)]
@@ -554,8 +559,18 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       #TODO: ensure the first contrast column in DesignModelMatrix is non-numeric.
       print("Filtering cells...")
       if(!any(grepl("^[0-9]",seuratObj.positive.contrast@meta.data[,contrast_column])) | !any(grepl("^[0-9]",seuratObj.negative.contrast@meta.data[,contrast_column]))){
-        seuratObj.positive.contrast@meta.data[,contrast_column] <- gsub("_", ".", make.names(seuratObj.positive.contrast@meta.data[,contrast_column]))
-        seuratObj.negative.contrast@meta.data[,contrast_column] <- gsub("_", ".", make.names(seuratObj.negative.contrast@meta.data[,contrast_column]))
+        #check for factor ordering on the positive contrast Seurat object and make.names() if necessary
+        if (is.factor(seuratObj.positive.contrast@meta.data[,contrast_column] )) {
+            seuratObj.positive.contrast@meta.data[,contrast_column]  <- forcats::fct_relabel(seuratObj.positive.contrast@meta.data[,contrast_column], ~gsub("_", ".", make.names(.)))
+          } else {
+            seuratObj.positive.contrast@meta.data[,contrast_column] <- gsub("_", ".", make.names(seuratObj.positive.contrast@meta.data[,contrast_column]))
+          }
+        #check for factor ordering on the negative contrast Seurat object and make.names() if necessary
+        if (is.factor(seuratObj.negative.contrast@meta.data[,contrast_column] )) {
+          seuratObj.negative.contrast@meta.data[,contrast_column]  <- forcats::fct_relabel(seuratObj.negative.contrast@meta.data[,contrast_column], ~gsub("_", ".", make.names(.)))
+        } else {
+          seuratObj.negative.contrast@meta.data[,contrast_column] <- gsub("_", ".", make.names(seuratObj.negative.contrast@meta.data[,contrast_column]))
+        }
       }
       seuratObj.contrast <-tryCatch(
         {
