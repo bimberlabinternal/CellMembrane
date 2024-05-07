@@ -117,6 +117,39 @@ test_that("Logic gate study design works", {
   testthat::expect_true(ncol(heatmap_list$matrix) == 3)
 })
 
+test_that("Non-alphanumeric characters do not break pseudobulking pipeline", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  testthat::expect_equal(ncol(seuratObj), expected = 1557) #check that test seuratObj doesn't change
+  #add fabricated study metadata with odd characters in the metadata fields
+  seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("cont-rol", "vaccine One", "vaccine_Two", "un$vax"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy", "day_4"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
+  
+  pbulk <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint","subject"))
+  genes <- rownames(pbulk)[1:10]
+  
+  heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes, 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "cont-rol", 
+                                         sampleIdCol = 'subject')
+  heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes, 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "vaccine One", 
+                                         sampleIdCol = 'subject')
+  heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes, 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "un$vax", 
+                                         sampleIdCol = 'subject')
+  heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes, 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "vaccine_Two", 
+                                         sampleIdCol = 'subject')
+  })
+
 test_that("Feature Selection by GLM works", {
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   testthat::expect_equal(ncol(seuratObj), expected = 1557) #check that test seuratObj doesn't change
