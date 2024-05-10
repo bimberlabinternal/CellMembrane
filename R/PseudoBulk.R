@@ -152,6 +152,25 @@ PseudobulkSeurat <- function(seuratObj,
     a <- Seurat::NormalizeData(a, verbose = FALSE, assay = assayName)
   }
   
+  # Makes a new DF with the expression percentage per gene per KeyField.
+  counts <- Seurat::GetAssayData(seuratObj, assay = "RNA", slot = "counts")
+  percentages <- data.frame(matrix(ncol = length(colnames(a)), nrow = length(rownames(a))))
+  colnames(percentages) <- colnames(a)
+  rownames(percentages) <- rownames(a)
+  
+  for(keyfield in colnames(a)) {
+    # Obtains cell IDs from keyfield.
+    cellsIDs <- rownames(seuratObj@meta.data[seuratObj$KeyField == keyfield,])
+    # Obtains percentages per gene.
+    cellsData <- rowSums(as.data.frame(counts[,cellsIDs]) > 0) / a@meta.data[rownames(a@meta.data) == keyfield,"TotalCells"]
+    # Adds percentage column to data frame.
+    percentages[,keyfield] <- cellsData
+  }
+  
+  # Adds percentages as a new assay.
+  pct_assay <- CreateAssay5Object(counts = percentages)
+  a[["pct"]] <- pct_assay
+  
   return(a)
 }
 
