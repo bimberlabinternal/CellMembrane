@@ -542,6 +542,14 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
   
   if (!("counts" %in% SeuratObject::Layers(seuratObj))) {
     stop("Could not find the 'counts' layer in the supplied Seurat Object.")
+  } 
+  
+  #Check for extraneous assays and remove them
+  if (!all(Assays(seuratObj) %in% assayName)) {
+    extraAssays <- Assays(seuratObj)[!Assays(seuratObj) %in% assayName]
+    for (extraAssay in extraAssays) {
+      seuratObj[[extraAssay]] <- NULL
+    }
   }
   
   results <- future.apply::future_lapply(split(contrasts, 1:nrow(contrasts)), future.seed = GetSeed(), FUN = function(x){
