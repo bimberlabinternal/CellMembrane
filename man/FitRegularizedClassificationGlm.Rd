@@ -10,7 +10,7 @@ FitRegularizedClassificationGlm(
   rescale = TRUE,
   numberOfVariableFeatures = 3000,
   assay = "RNA",
-  slot = "scale.data",
+  layer = "scale.data",
   devianceCutoff = 0.8,
   split = NULL,
   returnModelAndSplits = F
@@ -27,7 +27,7 @@ FitRegularizedClassificationGlm(
 
 \item{assay}{Seurat Object's assay}
 
-\item{slot}{Slot within the Seurat object assay. Recommended to be "scale.data".}
+\item{layer}{layer within the Seurat object assay. Recommended to be "scale.data".}
 
 \item{devianceCutoff}{Tolerance for model error when deciding how much regularization should be performed. 1 = no tolerance for error, 0 = intercept only, no genes used for prediction.}
 

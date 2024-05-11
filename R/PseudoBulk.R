@@ -97,7 +97,7 @@ PseudobulkSeurat <- function(seuratObj,
   Seurat::Idents(seuratObj) <- seuratObj$KeyField
   
   # This generates the mean() of counts. Even though we want sum(), this is a convenient way to ensure all other
-  a <- Seurat::AverageExpression(seuratObj, group.by = 'KeyField', return.seurat = T, verbose = F, slot = 'counts', assays = assays)
+  a <- Seurat::AverageExpression(seuratObj, group.by = 'KeyField', return.seurat = T, verbose = F, layer = 'counts', assays = assays)
   
   metaGrouped <- unique(seuratObj@meta.data[,c('KeyField', groupFields),drop = FALSE])
   rownames(metaGrouped) <- metaGrouped$KeyField
@@ -144,16 +144,16 @@ PseudobulkSeurat <- function(seuratObj,
   
   # Convert mean into sum:
   for (assayName in names(a@assays)) {
-    m <- Seurat::GetAssayData(a, assay = assayName, slot = 'counts')
+    m <- Seurat::GetAssayData(a, assay = assayName, layer = 'counts')
     m2 <- m %*% diag(a$TotalCells)
     rownames(m2) <- rownames(m)
     colnames(m2) <- colnames(m)
-    a <- Seurat::SetAssayData(a, assay = assayName, slot = 'counts', new.data = Seurat::as.sparse(m2))
+    a <- Seurat::SetAssayData(a, assay = assayName, layer = 'counts', new.data = Seurat::as.sparse(m2))
     a <- Seurat::NormalizeData(a, verbose = FALSE, assay = assayName)
   }
   
   # Makes a new DF with the expression percentage per gene per KeyField.
-  counts <- Seurat::GetAssayData(seuratObj, assay = "RNA", slot = "counts")
+  counts <- Seurat::GetAssayData(seuratObj, assay = "RNA", layer = "counts")
   percentages <- data.frame(matrix(ncol = length(colnames(a)), nrow = length(rownames(a))))
   colnames(percentages) <- colnames(a)
   rownames(percentages) <- rownames(a)
@@ -168,7 +168,7 @@ PseudobulkSeurat <- function(seuratObj,
   }
   
   # Adds percentages as a new assay.
-  pct_assay <- CreateAssay5Object(counts = percentages)
+  pct_assay <- SeuratObject::CreateAssay5Object(counts = Seurat::as.sparse(percentages))
   a[["pct"]] <- pct_assay
   
   return(a)
@@ -227,7 +227,7 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
 #' @export
 PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1, legacy = FALSE, plotBCV = TRUE){
   #convert seurat object to SingleCellExperiment for edgeR
-  sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')), colData = seuratObj@meta.data)
+  sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts')), colData = seuratObj@meta.data)
   
   #filter out lowly expressed genes
   if (!is.null(minCountsPerGene)) {
@@ -1060,7 +1060,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
 #' @param rescale The feature selection will optimize for "heatmap-interpretable genes" so the features are intended to be scaled. If TRUE, this will rescale the variable features.
 #' @param numberOfVariableFeatures A parameter to select how many features should be selected as variable for scaling, by default, all genes will be used. 
 #' @param assay Seurat Object's assay
-#' @param slot Slot within the Seurat object assay. Recommended to be "scale.data".
+#' @param layer layer within the Seurat object assay. Recommended to be "scale.data".
 #' @param devianceCutoff Tolerance for model error when deciding how much regularization should be performed. 1 = no tolerance for error, 0 = intercept only, no genes used for prediction.
 #' @param split the option to provide a previous model's training/testing set. This is necessary if you're performing multiple iterations of model fitting. 
 #' @param returnModelAndSplits A boolean option to return a list containing the fitted model and training/testing splits in addition to the useful features. 
@@ -1074,7 +1074,7 @@ FitRegularizedClassificationGlm <- function(seuratObj,
                                             rescale = TRUE,
                                             numberOfVariableFeatures = 3000,
                                             assay = "RNA",
-                                            slot = "scale.data",
+                                            layer = "scale.data",
                                             devianceCutoff = 0.8,
                                             split = NULL, 
                                             returnModelAndSplits = F) {
@@ -1105,12 +1105,12 @@ FitRegularizedClassificationGlm <- function(seuratObj,
   }
   #convert the scale.data matrix to include a labeled classification column
   target_labeled_data <-
-    #merge the seuratObj's requested slot (converted to dense just in case a non-scale.data slot was used)
+    #merge the seuratObj's requested layer (converted to dense just in case a non-scale.data layer was used)
     merge(
       Matrix::t(as.matrix(Seurat::GetAssayData(
         seuratObj,
         assay = assay,
-        slot = slot
+        layer = layer
       ))),
       seuratObj@meta.data |>
         dplyr::select(dplyr::all_of(metadataVariableForClassification)),
