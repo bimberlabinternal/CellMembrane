@@ -6,7 +6,9 @@ test_that("Pseudobulk works", {
   pseudo <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.2)), nrow(pseudo@meta.data))
   expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo@assays$RNA))
-  
+  expect_equal(64488, max(pseudo@assays$RNA$counts))
+  expect_equal(21.9, mean(as.matrix(pseudo@assays$RNA$counts), na.rm = TRUE), tolerance = 0.0001)
+
   pseudo2 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assays = c('RNA'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.4)), nrow(pseudo2@meta.data))
   expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo2@assays$RNA))
