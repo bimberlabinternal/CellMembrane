@@ -328,7 +328,7 @@ MergeSplitLayers <- function(seuratObj) {
 
 		if (inherits(seuratObj[[assayName]], 'Assay5')) {
 			print(paste0('Joining layers: ', assayName))
-			seuratObj[[assayName]] <- SeuratObject::JoinLayers(seuratObj[[assayName]], layers = SeuratObject::Layers(seuratObj[[assayName]]))
+			seuratObj[[assayName]] <- SeuratObject::JoinLayers(seuratObj[[assayName]], layers = unique(gsub(".\\d+$", "", SeuratObject::Layers(seuratObj[[assayName]]))))
 			print(paste0('After join: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 		} else {
 			print(paste0('Not an assay5 object, not joining layers: ', assayName))
