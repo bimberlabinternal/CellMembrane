@@ -23,11 +23,24 @@ set.seed(pkg.env$RANDOM_SEED)
   return(cc.genes)
 }
 
-.GetSPhaseGenes <- function(){
+#' @title Get S Phase Genes
+#' @export
+#' @return The default list of S phase genes
+GetSPhaseGenes <- function(){
   return (.GetCCGenes()[1:43])
 }
 
-.GetG2MGenes <- function() {
+#' @title Get G2M Phase Genes
+#' @param alternateGenes If true, the genes will be based on: https://hbctraining.github.io/scRNA-seq_online/lessons/cell_cycle_scoring.html
+#' @export
+#' @return The default list of G2M phase genes
+GetG2MGenes <- function(alternateGenes = FALSE) {
+  if (alternateGenes) {
+    # based on: https://hbctraining.github.io/scRNA-seq_online/lessons/cell_cycle_scoring.html
+    # https://raw.githubusercontent.com/hbc/tinyatlas/master/cell_cycle/Homo_sapiens.csv
+    return(c('ANLN','ANP32E','AURKA','AURKB','BIRC5','BUB1','CBX5','CCNB2','CDC20','CDC25C','CDCA2','CDCA3','CDCA8','CDK1','CENPA','CENPE','CENPF','CKAP2','CKAP2L','CKAP5','CKS1B','CKS2','CTCF','DLGAP5','ECT2','G2E3','GAS2L3','GTSE1','HJURP','HMGB2','HMMR','JPT1','KIF11','KIF20B','KIF23','KIF2C','LBR','MKI67','NCAPD2','NDC80','NEK2','NUF2','NUSAP1','PIMREG','PSRC1','RANGAP1','SMC4','TACC3','TMPO','TOP2A','TPX2','TTK','TUBB4B','UBE2C'))
+  }
+
   return(unique(c(g2m.genes.orig, .GetCCGenes()[44:97])))
 }
 
@@ -398,8 +411,8 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       c <- 0
       dat <- asinh(a+b*dat) + c
 
-      dat <- Seurat::NormalizeData(dat, normalization.method = 'CLR', margin = margin, verbose = FALSE)
-      ad <- Seurat::SetAssayData(ad, slot = 'data', new.data = Seurat::as.sparse(dat))
+      dat <- Seurat::NormalizeData(Seurat::as.sparse(dat), normalization.method = 'CLR', margin = margin, verbose = FALSE)
+      ad <- Seurat::SetAssayData(ad, slot = 'data', new.data = dat)
     } else {
       ad <- Seurat::NormalizeData(ad, normalization.method = 'CLR', margin = margin, verbose = FALSE)
     }
@@ -412,7 +425,17 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
   }
 
   normalizedMat <- normalizedMat[,colnames(seuratObj)]
-  seuratObj <- Seurat::SetAssayData(seuratObj, assay = sourceAssay, slot = 'data', new.data = as.sparse(normalizedMat))
+
+  assayObj <- Seurat::GetAssay(seuratObj, assay = sourceAssay)
+  if (nrow(assayObj) != nrow(normalizedMat) || any(rownames(assayObj)  != rownames(normalizedMat))) {
+    rawCounts <- Seurat::GetAssayData(assayObj, slot = 'counts')
+    rawCounts <- rawCounts[rownames(normalizedMat),]
+    assayObj <- Seurat::CreateAssayObject(counts = rawCounts)
+  }
+
+  assayObj <- Seurat::SetAssayData(assayObj, slot = 'data', new.data = as.sparse(normalizedMat))
+  seuratObj[[sourceAssay]] <- NULL  # Reset this first to avoid warning
+  seuratObj[[sourceAssay]] <- assayObj
   seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = sourceAssay)
 
   if (calculatePerFeatureUCell) {
@@ -478,4 +501,37 @@ GetAssayMetadataSlotName <- function(assayObj) {
   }
 
   return(mat)
+}
+
+#' @title GetMsigdbGeneSet
+#'
+#' @description a slightly extended escape::getGeneSet wrapper to deal with one-step gene set parsing, which can't parse hierarchical gene sets (C5 + GO:BP) and non-hierarchical gene sets (hallmark, C2 itself, etc) at the same time. 
+#' @param msigdbGeneSets a character vector of gene sets that is either a top level msigdb gene set name (e.g. "H" for hallmark or "C2" for curated gene sets), or a common hierarchical gene set in a large top level (e.g. C5;BP for GO:BP annotations.)
+#' @return a named list of gene sets fetched by msigdbr. 
+GetMsigdbGeneSet <- function(msigdbGeneSets = "H") {
+  #initialize gene set
+  GS <- c()
+  #ensure msigdbGeneSets is formatted properly to parse. 
+  if (all(!is.null(msigdbGeneSets), !is.na(msigdbGeneSets), !(length(msigdbGeneSets) == 0))) {
+    #require vector. customGeneSets needs to be a list, so this could be a point of confusion
+    if (!is.vector(msigdbGeneSets)) {
+      stop("msigdbGeneSets is not a vector. Please coerce it to a vector of supported characters.")
+    }
+    ##GO:BP and other hierarchical gene sets require subcategories to be passed with them, so we should parse those individually and concatenate afterwards. I think each of these need to be individually supported.
+    #check if all gene sets are non-hierarchical
+    if (all(msigdbGeneSets %in% c("H", paste0("C", 1:8)))) {
+      #fetch non-hierarchical gene sets
+      GS <- c(GS, escape::getGeneSets(library = msigdbGeneSets))
+    } else if ("GO:BP" %in% msigdbGeneSets & all(msigdbGeneSets[msigdbGeneSets != "GO:BP"] %in% c("H", paste0("C", 1:8)))) {
+      #remove GO:BP from the list and fetch hierarchical gene set.
+      msigdbGeneSets <- msigdbGeneSets[msigdbGeneSets != "GO:BP"]
+      GS_GO_BP <- escape::getGeneSets(library = "C5", subcategory = "BP")
+      #fetch non-hierarchical gene sets and concatenate gene sets
+      GS <- c(GS, c(escape::getGeneSets(library = msigdbGeneSets), GS_GO_BP))
+    } else {
+      #if the msigdb gene set is hierarchical but unsupported, throw error: 
+      unsupportedGeneSets <- msigdbGeneSets[!(msigdbGeneSets %in% c("GO:BP", "H", paste0("C", 1:8)))]
+      stop(paste0(unsupportedGeneSets, " in msigdbGeneSets are unsupported. Please ensure msigdbGeneSets is any of: H, GO:BP, ", paste0(", C", 1:8), ". Please ensure your requested geneSet is listed, add the gene set to the customGeneSets argument, or contact members of the Bimber Lab to add a gene set."))
+    }
+  }
 }

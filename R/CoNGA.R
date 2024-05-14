@@ -1,6 +1,6 @@
 
 utils::globalVariables(
-  names = c('barcode', 'clusters_gex', 'clusters_tcr', 'nndists_gex', 'nndists_tcr', 'is_invariant', 'conga_scores', 'conga_fdr_values', "sample_div"),
+  names = c('barcode', 'clusters_gex', 'clusters_tcr', 'nndists_gex', 'nndists_tcr', 'is_invariant', 'conga_scores', 'conga_fdr_values', 'raw_clonotype_id', 'sample_div'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -180,7 +180,6 @@ SeuratToCoNGA <- function(seuratObj,
 #'                 order1 = 1, order2 = 200)
 #' }
 #' @export
-
 PlotDiversity <- function(conga_clones_file = "./clones_file.txt",
                      outputFile, 
                      order1 = 1,
@@ -225,3 +224,31 @@ PlotDiversity <- function(conga_clones_file = "./clones_file.txt",
     tidyr::pivot_longer(cols = y, names_to = "sample_div", values_to = "y") |> 
     ggplot(aes(x = order, y = y)) + geom_line(aes(color = sample_div)) + egg::theme_article()
 }
+
+#' @title Append Clone Properties
+#' @param seuratObj The Seurat object to append clone properties to
+#' @param tcrClonesFile The 10x clonotypes file for this Seurat object. Single lanes can use the CellRanger/Vloupe contigs CSV file. Merged lanes need to merge these files and modify them to create unique cellbarcodes and clonotype names, such as the code from Rdiscvr::CreateMergedTcrClonotypeFile().
+#' @param groupingFields A list of fields used to group cells by sample, which establishes librarySize
+#' @description A function to append clone properties to a Seurat object
+#' @export
+QuantifyTcrClones <- function(seuratObj, tcrClonesFile, groupingFields = 'cDNA_ID') {
+  
+  # Append clonotypeID to seuratObj metadata
+  df <- read.csv(tcrClonesFile) |> select(barcode, raw_clonotype_id) |> unique()
+  meta <- seuratObj@meta.data |> select()
+  meta$barcode <- rownames(meta)
+  merged <- left_join(meta, df, by = "barcode")
+  seuratObj <- AddMetaData(seuratObj, merged$raw_clonotype_id, col.name = "clonotypeID")
+  
+  # Calculate and append clone properties to seuratObj metadata
+  groupingFieldsWithClone <- c(groupingFields, 'clonotypeID')
+  meta2 <- seuratObj@meta.data |> select(all_of(groupingFieldsWithClone)) |> group_by(across(all_of(groupingFieldsWithClone))) |> mutate(counts = n())
+  meta2$counts <- ifelse(is.na(meta2$clonotypeID), NA, meta2$counts)
+  meta2 <- meta2 |> group_by(across(all_of(groupingFields))) |> mutate(libSize = n())
+  meta2$prop <- meta2$counts/meta2$libSize
+  seuratObj <- AddMetaData(seuratObj, meta2$prop, col.name = "cloneProportion")
+  seuratObj <- AddMetaData(seuratObj, meta2$counts, col.name = "cloneSize")
+  
+  return(seuratObj)
+}
+

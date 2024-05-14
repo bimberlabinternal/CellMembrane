@@ -5,23 +5,23 @@
 \title{FilterPseudobulkContrasts}
 \usage{
 FilterPseudobulkContrasts(
-  logic_list = NULL,
+  logicList = NULL,
   design = NULL,
-  use_require_identical_logic = T,
-  require_identical_fields = NULL,
-  filtered_contrasts_output_file = "./filtered_contrasts.tsv"
+  useRequireIdenticalLogic = T,
+  requireIdenticalFields = NULL,
+  filteredContrastsOutputFile = "./filtered_contrasts.tsv"
 )
 }
 \arguments{
-\item{logic_list}{The list that defines the study design. Please see examples for the setup and use. This list be a list of lists where each sub-list has three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor. The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.}
+\item{logicList}{The list that defines the study design. Please see examples for the setup and use. This list be a list of lists where each sub-list has three entries. The first defines the metadata field (e.g. Tissue or Timepoint) to which the logic gate will be applied. The second defines the logic gate that will be used for that field (one of: all (AND), any (OR), xor, nand, nor, or xnor. The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.}
 
 \item{design}{a design/model matrix returned by DesignModelMatrix().}
 
-\item{use_require_identical_logic}{Whether or not to apply require_identical logic using require_identical_fields. It is possible to use logic gates to keep metadata fields constant, but using this saves time & effort/iteration.}
+\item{useRequireIdenticalLogic}{Whether or not to apply require_identical logic using requireIdenticalFields. It is possible to use logic gates to keep metadata fields constant, but using this saves time & effort/iteration.}
 
-\item{require_identical_fields}{The metadata columns of the SeuratObj that you wish to keep constant. For example: defining "Tissue" in this vector would filter all contrasts comparing Liver to PBMC, as their tissue is not identical.}
+\item{requireIdenticalFields}{The metadata columns of the SeuratObj that you wish to keep constant. For example: defining "Tissue" in this vector would filter all contrasts comparing Liver to PBMC, as their tissue is not identical.}
 
-\item{filtered_contrasts_output_file}{The file to write the list of filtered contrasts to (one pair of samples per row, separated into their metadata fields).}
+\item{filteredContrastsOutputFile}{The file to write the list of filtered contrasts to (one pair of samples per row, separated into their metadata fields).}
 }
 \value{
 A dataframe of pairwise contrasts, with column names indicating the directionality (positive vs negative) and associated metadata column (inferred by contrast_columns).
@@ -56,19 +56,19 @@ design <- DesignModelMatrix(pseudobulked_seuratObj,
 #The first element defines the metadata column or field that will be used for filtering. 
 #The second defines the logic gate (AND -> any, OR -> any, xor, xnor, nand, nor). 
 #The third defines the specific value of the metadata field that will be tested for equivalence against the positive and negative contrasts within the gate.
-logic_list <- list(
+logicList <- list(
                     list('Challenge', 'xor', 'Mock.challenged'), 
                     list('SampleType', 'all', 'Necropsy')
             )
 
 
-#Finally, enumerate all possible contrasts, then filter and return them according to the study design defined by logic_list.
-#If you want to perform "Like-vs-Like" contrasts (i.e. T cell vs T cell within a cell_type metadata field), specify those columns as required to be identical and set use_require_identical_logic to TRUE.
-filtered_contrasts <- FilterPseudobulkContrasts(logic_list = logic_list, 
+#Finally, enumerate all possible contrasts, then filter and return them according to the study design defined by logicList.
+#If you want to perform "Like-vs-Like" contrasts (i.e. T cell vs T cell within a cell_type metadata field), specify those columns as required to be identical and set useRequireIdenticalLogic to TRUE.
+filtered_contrasts <- FilterPseudobulkContrasts(logicList = logicList, 
                                                 design = design, 
-                                                use_require_identical_logic = T, 
-                                                require_identical_fields = c('Tissue','cell_type', 'SampleType'), 
-                                                filtered_contrasts_output_file = './filtered_contrasts.tsv')
+                                                useRequireIdenticalLogic = T, 
+                                                requireIdenticalFields = c('Tissue','cell_type', 'SampleType'), 
+                                                filteredContrastsOutputFile = './filtered_contrasts.tsv')
                                                 
 }
 }

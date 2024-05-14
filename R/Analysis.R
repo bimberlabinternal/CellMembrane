@@ -2,7 +2,8 @@
 #' @importFrom stats cor 
 
 utils::globalVariables(
-  names = c('ClusterProportion', 'Proportion', 'SizeFactor', 'XY_Key', 'Y_Key'),
+  names = c('ClusterProportion', 'Proportion', 'SizeFactor', 'XY_Key', 'Y_Key', 'ClusterCount',  
+            'comparisons', 'T_statistic', 'P_val_adj', 'Group1', 'Group2', 'stars'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -231,3 +232,216 @@ MakeEnrichmentDotPlot <- function(seuratObj,
   
   return(P1)
 }
+
+#' @title CalculateClusterEnrichment
+#'
+#' @description A function that calculates the enrichment of a cluster under a given treatment variable. 
+#' @param seuratObj The Seurat object containing a subjectField, clusterField, and treatmentField. Please see the individual arguments for more information.
+#' @param subjectField The column of the Seurat object's metadata that contains the subject field. This field should denote individual samples that are independently collected.
+#' @param clusterField The column of the Seurat object's metadata that contains the clustering field. This field should denote cluster membership, generally given by louvain/leiden clustering, but any subject-independent clustering method is valid.  
+#' @param treatmentField The column of the Seurat object's metadata that contains the treatment field. This field should denote the treatment of the subject, and should be the primary variable of interest within your study. 
+#' @param alternative A passthrough variable to wilcox.test. If "greater", the alternative hypothesis is that the difference in medians is greater than the null hypothesis. If "less", the alternative hypothesis is that the difference in medians is less than the null hypothesis. If "two.sided", the alternative hypothesis is that the difference in medians is simply "different" from the null hypothesis. In the case of the wilcoxon rank sum (e.g. paired = FALSE), this will test the difference of the medians, rather than the medians themselves. 
+#' @param pValueCutoff The p-value cutoff for significance.
+#' @param showPlots A boolean that determines if the cluster significance should be shown in a DimPlot.
+#' @param paired A passthrough variable to wilcox.test. If TRUE, the function will perform a paired Wilcoxon test. If FALSE, the function will perform an unpaired Wilcoxon test. If you're testing (for instance, timepoint) enrichment on repeated measures, this should be TRUE. If you're testing different treatments on different subjects, this should be FALSE. If set to "infer", the function will attempt to infer the correct value based on the name of the treatment field. Specifically, this will search for "time" in your treatment field. If it finds it, it will set paired = TRUE. If it doesn't, it will set paired = FALSE.
+#' @param removePriorPvalues A boolean that determines if the prior p-values should be removed from the Seurat object metadata. It's likely that you'll want to iteratively compute significance on different metadata fields, so this is set to TRUE by default and will remove the Cluster_pValue and Cluster_p_adj fields from the Seurat object's metadata.
+#' @param postHocTest A boolean that determines if a post-hoc test should be performed. If TRUE, the function will perform a Conover-Iman post-hoc test to determine which pairs of treatmentField groups are significantly different from each other.
+#' @return A Seurat object with the p-values of the clusters in the metadata columns Cluster_pValue and Cluster_p_adj. If showPlots = TRUE, a DimPlot will be shown with significant clusters highlighted.
+#' @examples 
+#'  \dontrun{
+#'  seuratObj <- CalculateClusterEnrichment(seuratObj,
+#'                                        clusterField = "ClusterNames_0.4",
+#'                                        treatmentField = "vaccine_cohort",
+#'                                        subjectField = "SubjectId",
+#'                                        paired = "infer", 
+#'                                        showPlots = TRUE)
+#'                                        }
+#' @export
+
+CalculateClusterEnrichment <- function(seuratObj,
+                                       subjectField = 'SubjectId',
+                                       clusterField = 'ClusterNames_0.2',
+                                       treatmentField = NULL,
+                                       alternative = 'two.sided',
+                                       pValueCutoff = 0.05,
+                                       showPlots = TRUE, 
+                                       paired = "infer", 
+                                       removePriorPvalues = TRUE, 
+                                       postHocTest = TRUE
+){
+  # test for validity of metadata fields within the seurat object
+  # treatmentField
+  if (is.null(treatmentField)) {
+    stop('treatmentField is set to NULL, please specify a valid treatmentField. treatmentField should should denote the treatment of the subject, such as drug or vaccine administration, and should be the primary variable of interest within your study. Timepoint-based metadata fields are also valid values of treatmentField.')
+  } else if (!treatmentField %in% colnames(seuratObj@meta.data)) {
+    stop(paste0('treatmentField: ', treatmentField, ' not found in the seuratObject metadata columns. Please check the spelling and case sensitivity.'))
+  } else if (any(grepl(" - ", seuratObj@meta.data[[treatmentField]]))) {
+    stop(paste0('treatmentField: ', treatmentField , ' has entries (', paste0(unique(seuratObj@meta.data[grepl(" - ", seuratObj@meta.data[[treatmentField]]), treatmentField]), collapse = ', '), ') that contain a " - " character. Please change the entries containing the  " - " characters from treatmentField to any other delimiting values.'))
+  }
+  # subjectField
+  if (!subjectField %in% colnames(seuratObj@meta.data)) {
+    stop(paste0('subjectField: ', subjectField, ' not found in the seuratObject metadata columns. For Prime-Seq Seurat objects, this should be "SubjectId". Please check the spelling and case sensitivity.'))
+  }
+  # clusterField 
+  if (!clusterField %in% colnames(seuratObj@meta.data)) {
+    stop(paste0('clusterField: ', clusterField, ' not found in the seuratObject metadata columns. For Prime-Seq Seurat objects, this should be "ClusterNames_X" where X is a resolution parameter between 0.2 and 1.2.'))
+  }
+  # alternative
+  if (!alternative %in% c('greater', 'less', 'two.sided')) {
+    stop(paste0('alternative: ', alternative, ' is not an valid value. Please use one of: "greater", "less", or "two.sided" based on your definition of "enrichment". See ?wilcox.test for more information.'))
+  }
+  # pvalueCutoff
+  if (!is.numeric(pValueCutoff)) {
+    stop(paste0('pValueCutoff: ', pValueCutoff, ' is not a numeric value. Please specify a numeric value for pValueCutoff. This field is only used for plotting a DimPlot if showPlots = TRUE.'))
+  }
+  # showPlots
+  if (!is.logical(showPlots)) {
+    stop(paste0('showPlots: ', showPlots, ' is not a boolean. Please specify showPlots = TRUE or showPlots = FALSE. If TRUE, a DimPlot will be shown with significant clusters highlighted.'))
+  }
+  # paired
+  # If the paired variable is set to infer, attempt to infer the correct value based on the name of the treatment field. If it's a timepoint field, it's likely paired.
+  if (paired == "infer") {
+    if (grepl("time", tolower(treatmentField))) {
+      message(paste0("Inferred paired = TRUE based on treatmentField = ", treatmentField))
+      paired <- TRUE
+    } else {
+      message(paste0("Inferred paired = FALSE based on treatmentField = ", treatmentField))
+      paired <- FALSE
+    }
+  }
+  # removePriorPvalues
+  if (!is.logical(removePriorPvalues)) {
+    stop(paste0('removePriorPvalues: ', removePriorPvalues, ' is not a boolean. Please specify removePriorPvalues = TRUE or removePriorPvalues = FALSE. If TRUE, the p-values from prior runs of CalculateClusterEnrichment will be removed from the Seurat object metadata.'))
+  }
+  
+  # Remove prior p-values added by CalculateClusterEnrichment if removePriorPvalues = TRUE.
+  if (removePriorPvalues) {
+    message(paste0("Removing Cluster_pValue and Cluster_p_adj columns from the metadata in preparation for computing new p-values based on treatmentField: ", treatmentField, " and clusterField: ", clusterField, "."))
+    seuratObj$Cluster_pValue <- NULL
+    seuratObj$Cluster_p_adj <- NULL
+  }
+  
+  # Calculate the total number of cells in the cluster
+  clusterProportionsDataFrame <- seuratObj@meta.data %>% 
+    dplyr::group_by(!!rlang::sym(clusterField)) %>%
+    dplyr::mutate(ClusterCount = n()) %>% 
+    dplyr::group_by(!!rlang::sym(clusterField), !!rlang::sym(subjectField), !!rlang::sym(treatmentField)) %>% 
+    dplyr::reframe(SubjectClusterProportion = n()/ClusterCount) %>% 
+    unique.data.frame()
+  #instantiate a dataframe to store the enrichment statistics
+  enrichmentDataFrame <- data.frame()
+  
+  #check the number of treatment groups and infer a non-parametric test
+  if (length(unique(seuratObj@meta.data[[treatmentField]])) == 1) {
+    stop(paste0('Only one treatment group found in treatmentField: ', treatmentField, ". Comparisons between groups are impossible with only one group."))
+  } else if (length(unique(seuratObj@meta.data[[treatmentField]])) > 2) { 
+    message("More than two treatment groups found. Kruskal-Wallis rank sum test will be performed.")
+    #loop through each cluster and perform kruskal-wallis test
+    for (cluster in unique(clusterProportionsDataFrame[[clusterField]])) { 
+      clusterProportionsSubset <- clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster,]
+      clusterProportions <- clusterProportionsSubset$SubjectClusterProportion
+      groupMembership <- clusterProportionsSubset[[treatmentField]]
+      #calculate p values
+      pValue <- stats::kruskal.test(clusterProportions, groupMembership, alternative = alternative)$p.value
+      enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, Cluster_pValue = pValue))
+    }
+    #adjust p values
+    enrichmentDataFrame$Cluster_p_adj <- p.adjust(enrichmentDataFrame$Cluster_pValue, n = nrow(enrichmentDataFrame))
+    #if specified, a post hoc test will be performed on each significant cluster from the Kruskal-Wallis test.
+    if (postHocTest) { 
+      for (cluster in unique(clusterProportionsDataFrame[[clusterField]])) { 
+        if (enrichmentDataFrame[enrichmentDataFrame$clusterField == cluster,]$Cluster_p_adj < pValueCutoff) {
+          # do testing 
+          pairwise_test <- conover.test::conover.test(unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, "SubjectClusterProportion"]),
+                                             unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, treatmentField]))
+          pairwise_test_plotting_dataframe <- data.frame(comparisons = pairwise_test$comparisons, 
+                                                T_statistic = pairwise_test$`T`, 
+                                                P_val_adj = pairwise_test$`P.adjusted`) %>% 
+            tidyr::separate(comparisons, into = c("Group1", "Group2"), sep = " - ") %>% 
+            dplyr::mutate(stars = dplyr::case_when(P_val_adj < 0.001 ~ "***", 
+                                     P_val_adj < 0.01 ~ "**", 
+                                     P_val_adj < 0.05 ~ "*", 
+                                     TRUE ~ ""))
+          enrichmentPlot <- ggplot2::ggplot(pairwise_test_plotting_dataframe, ggplot2::aes(x = Group1, y = Group2, fill = T_statistic)) + 
+            ggplot2::geom_tile() + 
+            colorspace::scale_fill_continuous_diverging(palette = "Blue-Red 3", l1 = 30, l2 = 100, p1 = .9, p2 = 1.2) + 
+            ggplot2::geom_text(aes(label=stars), color="black", size=5) +
+            egg::theme_article() + 
+            ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1, hjust = 1)) + 
+            patchwork::plot_annotation(title = paste0("Cluster ", cluster, " Enrichment"),
+                                       subtitle = "Contrast for T statistic is Group1 - Group2")
+          if (showPlots){
+            print(enrichmentPlot)
+          }
+        }
+      }
+    }
+    
+  } else if (length(unique(seuratObj@meta.data[[treatmentField]])) == 2) {
+    if (paired) { 
+      message("Two treatment groups found and paired data was either specified or inferred. Pairwise wilcoxon signed rank test will be performed.")
+      #perform wilcoxon signed rank test for each cluster 
+      for (cluster in unique(clusterProportionsDataFrame[[clusterField]])) { 
+        clusterProportionsSubset <- clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster,]
+        groupOneProportions <- clusterProportionsSubset[clusterProportionsSubset[[treatmentField]] == unique(clusterProportionsSubset[[treatmentField]])[1],]$SubjectClusterProportion
+        groupTwoProportions <- clusterProportionsSubset[clusterProportionsSubset[[treatmentField]] == unique(clusterProportionsSubset[[treatmentField]])[2],]$SubjectClusterProportion
+        #if a subject is missing from one of the groups, we need to impute the missing percentage with a zero. 
+        #I can't figure out a way to pass a "TreatmentGroup by Subjects" table succinctly to dplyr::complete, but it will be really obvious at this stage, so we can impute. 
+        if (length(groupOneProportions) != length(groupTwoProportions)) {
+          if (length(groupOneProportions) > length(groupTwoProportions)) {
+            groupTwoProportions <- c(groupTwoProportions, rep(0, length(groupOneProportions) - length(groupTwoProportions)))
+          } else {
+            groupOneProportions <- c(groupOneProportions, rep(0, length(groupTwoProportions) - length(groupOneProportions)))
+          }
+        }
+        #calculate p values. 
+        pValue <- wilcox.test(groupOneProportions, groupTwoProportions, paired = TRUE, alternative = alternative)$p.value
+        enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, Cluster_pValue = pValue))
+      }
+      #adjust p values
+      enrichmentDataFrame$Cluster_p_adj <- p.adjust(enrichmentDataFrame$Cluster_pValue, n = nrow(enrichmentDataFrame))
+    } else {
+      message("Two treatment groups found and unpaired data was either specified or inferred. Wilcoxon rank sum test will be performed.")
+      #perform Wilcoxon rank sum test for each cluster 
+      for (cluster in unique(clusterProportionsDataFrame[[clusterField]])) { 
+        clusterProportionsSubset <- clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster,]
+        groupOneProportions <- clusterProportionsSubset[clusterProportionsSubset[[treatmentField]] == unique(clusterProportionsSubset[[treatmentField]])[1],]$SubjectClusterProportion
+        groupTwoProportions <- clusterProportionsSubset[clusterProportionsSubset[[treatmentField]] == unique(clusterProportionsSubset[[treatmentField]])[2],]$SubjectClusterProportion
+        #if a subject is missing from one of the groups, we need to impute the missing percentage with a zero. 
+        #I can't figure out a way to pass a "TreatmentGroup by Subjects" table succinctly to dplyr::complete, but it will be really obvious at this stage, so we can impute. 
+        if (length(groupOneProportions) != length(groupTwoProportions)) {
+          if (length(groupOneProportions) > length(groupTwoProportions)) {
+            groupTwoProportions <- c(groupTwoProportions, rep(0, length(groupOneProportions) - length(groupTwoProportions)))
+          } else {
+            groupOneProportions <- c(groupOneProportions, rep(0, length(groupTwoProportions) - length(groupOneProportions)))
+          }
+        }
+        #calculate p values. 
+        pValue <- wilcox.test(groupOneProportions, groupTwoProportions, paired = FALSE, alternative = alternative)$p.value
+        enrichmentDataFrame <- rbind(enrichmentDataFrame, data.frame(clusterField = cluster, Cluster_pValue = pValue))
+      }
+      #adjust p values
+      enrichmentDataFrame$Cluster_p_adj <- p.adjust(enrichmentDataFrame$Cluster_pValue, n = nrow(enrichmentDataFrame))
+    }
+  }
+  #add cell barcodes to metadata if they aren't present
+  if (!"CellBarcode" %in% colnames(seuratObj@meta.data)) { 
+    message("CellBarcode not found in metadata. Adding CellBarcode to metadata.")
+    seuratObj@meta.data$CellBarcode <- rownames(seuratObj@meta.data)
+  }
+  #merge the enrichmentDataFrame with the Seurat object metadata to populate p values in the metadata
+  metadata <- merge(seuratObj@meta.data, enrichmentDataFrame[, c("Cluster_pValue", "Cluster_p_adj", "clusterField")], by.x = clusterField, by.y =  'clusterField')
+  rownames(metadata) <- metadata$CellBarcode
+  #populate P values
+  seuratObj <- AddMetaData(seuratObj, metadata = metadata)
+  
+  #show a DimPlot of significant clusters
+  if (showPlots) { 
+    print(Seurat::DimPlot(seuratObj, cells.highlight = metadata$CellBarcode[metadata$Cluster_p_adj < pValueCutoff]) + ggplot2::ggtitle("Significant Clusters"))
+    }
+  return(seuratObj)
+}
+
+
+
+

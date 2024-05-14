@@ -19,8 +19,7 @@ jobs:
       matrix:
         config:
           - {os: 22.04, r: 'devel', bioc: 'devel'}
-          - {os: 22.04, r: '4.3', bioc: '3.18'}
-          - {os: 22.04, r: '4.3', bioc: '3.17', pkgdown: "true"}
+          - {os: 22.04, r: '4.3', bioc: '3.18', pkgdown: "true"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -45,9 +44,9 @@ jobs:
           sudo apt-get update && sudo apt-get install -yq libharfbuzz-dev libfribidi-dev python3 python3-pip libsodium-dev libcurl4-openssl-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
-          python3 -m pip install --user umap-learn phate
-          python3 -m pip install --user git+https://github.com/broadinstitute/CellBender.git
           python3 -m pip install --user git+https://github.com/kmayerb/tcrdist3.git@0.2.2
+          python3 -m pip install --user umap-learn phate sctour scikit-misc
+
 
       - name: Setup CoNGA
         run: |
@@ -117,6 +116,9 @@ jobs:
           # See: https://stackoverflow.com/questions/77370659/error-failed-to-collect-lazy-table-caused-by-error-in-db-collect-using
           # TODO: Updating to BiocFileCache 2.10.1 should ultimately fix this. This manifests in SingleR
           if (Sys.getenv("R_BIOC_VERSION") < '3.18') { devtools::install_version("dbplyr", version = "2.3.4") }
+          # TODO: this is to fix the as_cholmod_sparse' not provided by package 'Matrix' errors. This should ultimately be removed
+          install.packages('Matrix', type = 'source', force = TRUE, repos = 'https://cran.wustl.edu/')
+          install.packages('irlba', type = 'source', force = TRUE, repos = 'https://cran.wustl.edu/')
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}

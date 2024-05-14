@@ -78,6 +78,20 @@ Imports:
     glmnet, 
     flexmix,
     data.table
+    jsonlite,
+    scMetabolism,
+    dbscan,
+    geometry,
+    CSCORE,
+    WGCNA,
+    escape (>= 1.99.0),
+    GSVA (>= 1.51.5),
+    dynamicTreeCut, 
+    pacman,
+    circlize, 
+    conover.test, 
+    colorspace, 
+    forcats
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -88,7 +102,7 @@ Suggests:
     pkgdown,
     org.Hs.eg.db,
     org.Mmu.eg.db
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
@@ -98,17 +112,22 @@ Remotes:
     marchinilab/SDAtools,
     marchinilab/dropsim,
     drisso/RUVSeq,
-    carmonalab/UCell
+    carmonalab/UCell,
+    wu-yc/scMetabolism,
+    davidcsterratt/geometry/pkg,
+    ChangSuBiostats/CS-CORE,
+    ncborcherding/escape,
+    rcastelo/GSVA
 Config/reticulate:
   list(
     packages = list(
-      list(package = "cellbender"),
-      list(package = "phate")
+      list(package = "phate"),
+      list(package = "sctour")
     )
   )
 Collate: 
     'Analysis.R'
-    'CellBender.R'
+    'CSCore.R'
     'Preprocessing.R'
     'Utils.R'
     'CiteSeq.R'
@@ -124,3 +143,7 @@ Collate:
     'Spatial.R'
     'Vision.R'
     'data.R'
+    'escape.R'
+    'scMetabolism.R'
+    'sctour.R'
+VignetteBuilder: knitr

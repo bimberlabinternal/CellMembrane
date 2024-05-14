@@ -1,14 +1,16 @@
 context("scRNAseq")
 
 test_that("ClrNormalizeByGroup works as expected", {
-    set.seed(CellMembrane::GetSeed())
+  set.seed(CellMembrane::GetSeed())
 
-    seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 
-    # This is primarily to ensure it runs w/o error:
-    seuratObj <- ClrNormalizeByGroup(seuratObj, groupingVar = 'ClusterNames_0.2', assayName = 'RNA', targetAssayName = 'ADT2')
-    expect_equal(7.258214, max(Seurat::GetAssayData(seuratObj, assay = 'ADT2', slot = 'data')), tolerance = 0.001)
+  # This is primarily to ensure it runs w/o error:
+  seuratObj <- ClrNormalizeByGroup(seuratObj, groupingVar = 'ClusterNames_0.2', assayName = 'RNA', targetAssayName = 'ADT2')
+  expect_equal(7.258214, max(Seurat::GetAssayData(seuratObj, assay = 'ADT2', slot = 'data')), tolerance = 0.001)
 
+  seuratObj <- ClrNormalizeByGroup(seuratObj, groupingVar = 'ClusterNames_0.2', assayName = 'RNA', targetAssayName = 'ADT2', featureInclusionList = c(rownames(seuratObj@assays$RNA)[1:20]))
+  expect_equal(3.135941, max(Seurat::GetAssayData(seuratObj, assay = 'ADT2', slot = 'data')), tolerance = 0.001)
 })
 
 test_that("AddNewMetaColumn works as expected", {
@@ -34,5 +36,17 @@ test_that("AddNewMetaColumn works as expected", {
                                  formulavector = c(nCount_RNA > 1e10 ~ "High", 
                                                    nCount_RNA < 1000 ~ "Low"), 
                                  defaultname = "Mid"))
+})
+
+test_that("GetMsigdbGeneSet works as expected", {
+  #I think we might add GO:MF in the future, so this serves as a gotcha to check the codebase more fully to ensure compatibility
+  testthat::expect_error(GetMsigdbGeneSet(msigdbGeneSets = "GO:MF"))
+  #if this fails, then MsigDB added a "C9" category, and the Utils function GetMsigdbGeneSet needs to be updated to include C9
+  testthat::expect_error(GetMsigdbGeneSet(msigdbGeneSets = "C9"))
+  #These are pretty vague checks to make sure the fetch works, but don't impose any length restrictions. 
+  testthat::expect_no_error(GetMsigdbGeneSet(msigdbGeneSets = "GO:BP"))
+  testthat::expect_no_error(GetMsigdbGeneSet(msigdbGeneSets = "H"))
+  #I really doubt hallmark will change size, but if it changes a lot, we should know. 
+  testthat::expect_equal(length(names(GetMsigdbGeneSet(msigdbGeneSets = "H"))), expected =  50)
 })
 

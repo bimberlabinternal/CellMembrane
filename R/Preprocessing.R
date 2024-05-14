@@ -197,7 +197,7 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 	for (datasetId in names(seuratObjs)) {
 		if (is.null(seuratObj)) {
-			seuratObj <- seuratObjs[[datasetId]]
+			seuratObj <- .MergeSplitLayersIfNeeded(seuratObjs[[datasetId]])
 			if (!is.null(expectedDefaultAssay)) {
 				DefaultAssay(seuratObj) <- expectedDefaultAssay
 			}
@@ -240,15 +240,8 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 			}
 
 			# NOTE: if collapse = TRUE is ever supported, we should use this.
-			seuratObj <- merge(x = seuratObj, y = seuratObjs[[datasetId]], project = projectName, merge.data = merge.data)
-
-			# NOTE: in Seurat 5.x, the default is to rename layers (i.e. counts.1 and counts.2). Collapse=TRUE avoids this.
-			for (assayName in Seurat::Assays(seuratObj)) {
-				assayObj <- seuratObj[[assayName]]
-				if (inherits(assayObj, 'Assay5')) {
-					seuratObj[[assayName]] <- SeuratObject::JoinLayers(assayObj)
-				}
-			}
+			seuratObj <- merge(x = seuratObj, y = .MergeSplitLayersIfNeeded(seuratObjs[[datasetId]]), project = projectName, merge.data = merge.data)
+			seuratObj <- .MergeSplitLayersIfNeeded(seuratObj)
 
 			seuratObjs[[datasetId]] <- NULL
 			if (doGC) {
@@ -257,19 +250,99 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 
 			if (hasGeneId) {
 				if (any(is.na(geneIds1)) & !any(is.na(geneIds2))) {
+					if (length(geneIds2) != nrow(seuratObj[[assayName]])) {
+						stop(paste0('Adding geneIds2 of length that differs from assay: ', length(geneIds2), ' vs. ', nrow(seuratObj[[assayName]])))
+					}
+					names(geneIds2) <- rownames(seuratObj[[assayName]])
 					seuratObj[[assayName]] <- AddMetaData(seuratObj[[assayName]], metadata = geneIds2, col.name = 'GeneId')
 				} else if (!any(is.na(geneIds1)) & any(is.na(geneIds2))) {
+					if (length(geneIds1) != nrow(seuratObj[[assayName]])) {
+						stop(paste0('Adding geneIds1 of length that differs from assay: ', length(geneIds1), ' vs. ', nrow(seuratObj[[assayName]])))
+					}
+					names(geneIds1) <- rownames(seuratObj[[assayName]])
+
 					seuratObj[[assayName]] <- AddMetaData(seuratObj[[assayName]], metadata = geneIds1, col.name = 'GeneId')
 				} else if (!any(is.na(geneIds1)) & !any(is.na(geneIds2))) {
 					if (any(geneIds1 != geneIds2)) {
 						stop('Gene IDs did not match between seurat objects!')
 					}
+
+					names(geneIds1) <- rownames(seuratObj[[assayName]])
 					seuratObj[[assayName]] <- AddMetaData(seuratObj[[assayName]], metadata = geneIds1, col.name = 'GeneId')
 				} else {
+					names(geneIds1) <- rownames(seuratObj[[assayName]])
 					seuratObj[[assayName]] <- AddMetaData(seuratObj[[assayName]], metadata = geneIds1, col.name = 'GeneId')
 				}
 			}
 		}
+	}
+
+	seuratObj <- .MergeSplitLayersIfNeeded(seuratObj)
+
+	print(paste0('Merge complete, layers:'))
+	for (assayName in names(seuratObj@assays)) {
+		print(paste0(assayName, ': ', paste0(SeuratObject::Layers(seuratObj, assay = assayName), collapse = ', ')))
+	}
+
+	return(seuratObj)
+}
+
+.MergeSplitLayersIfNeeded <- function(seuratObj) {
+	if (HasSplitLayers(seuratObj)) {
+		return(MergeSplitLayers(seuratObj))
+	}
+
+	return(seuratObj)
+}
+
+#' @title HasSplitLayers
+#'
+#' @param seuratObj The seurat object
+#' @return A boolean indicating whether the object has split layers
+#' @export
+HasSplitLayers <- function(seuratObj) {
+	for (assayName in Seurat::Assays(seuratObj)) {
+		if (length(suppressWarnings(SeuratObject::Layers(seuratObj, assay = assayName, search = 'counts'))) > 1) {
+			return(TRUE)
+		}
+
+		if (length(suppressWarnings(SeuratObject::Layers(seuratObj, assay = assayName, search = 'data'))) > 1) {
+			return(TRUE)
+		}
+	}
+
+	return(FALSE)
+}
+
+#' @title MergeSplitLayers
+#'
+#' @param seuratObj The seurat object
+#' @return The updated seurat object
+#' @export
+MergeSplitLayers <- function(seuratObj) {
+	# NOTE: in Seurat 5.x, the default is to rename layers (i.e. counts.1 and counts.2). Collapse=TRUE avoids this, but this is not supported yet
+	for (assayName in Seurat::Assays(seuratObj)) {
+		print(paste0('Inspecting assay layers: ', assayName))
+		print(paste0('Layers: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
+		print(paste0('Class: ', class(seuratObj[[assayName]])[1]))
+
+		if (inherits(seuratObj[[assayName]], 'Assay5')) {
+			print(paste0('Joining layers: ', assayName))
+			seuratObj[[assayName]] <- SeuratObject::JoinLayers(seuratObj[[assayName]])
+			print(paste0('After join: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
+		} else {
+			print(paste0('Not an assay5 object, not joining layers: ', assayName))
+			print(seuratObj)
+		}
+
+		if (HasSplitLayers(seuratObj)) {
+			print(paste0('Remaining layers: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
+			stop('Layers were not joined!')
+		}
+	}
+
+	if (HasSplitLayers(seuratObj)) {
+		stop(paste0('This seurat object has split layers'))
 	}
 
 	return(seuratObj)

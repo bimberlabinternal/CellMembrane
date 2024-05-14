@@ -6,10 +6,13 @@
 \usage{
 CellCycleScoring_UCell(
   seuratObj,
-  s.features,
-  g2m.features,
-  set.ident = FALSE,
+  outputFieldName = "Phase",
+  min.genes = 10,
+  s.genes = GetSPhaseGenes(),
+  g2m.genes = GetG2MGenes(TRUE),
   assayName = "RNA",
+  min.score.G2M = 0.02,
+  min.score.S = 0.02,
   facetField = "ClusterNames_0.2",
   ncores = 1
 )
@@ -17,13 +20,19 @@ CellCycleScoring_UCell(
 \arguments{
 \item{seuratObj}{The seurat object}
 
-\item{s.features}{A vector of features associated with S phase}
+\item{outputFieldName}{The name of the meta.data field to store results}
 
-\item{g2m.features}{A vector of features associated with G2M phase}
+\item{min.genes}{If less than min.genes are shared between the seurat object and the reference cell cycle genes, this method will abort.}
 
-\item{set.ident}{If true, sets identity to phase assignments}
+\item{s.genes}{A vector of features associated with S phase}
+
+\item{g2m.genes}{A vector of features associated with G2M phase}
 
 \item{assayName}{The name of the assay}
+
+\item{min.score.G2M}{The minimum UCell score needed to consider a cell positive for G2M}
+
+\item{min.score.S}{The minimum UCell score needed to consider a cell positive for S}
 
 \item{facetField}{If not NA, a plot will be produced summarizing S.Core and G2M.Score, faceted by this value.}
 
