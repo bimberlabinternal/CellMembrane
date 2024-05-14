@@ -147,20 +147,26 @@ PseudobulkSeurat <- function(seuratObj,
     percentages <- NULL
     for (keyfield in colnames(a)) {
       pcts <- counts[,rownames(seuratObj@meta.data[seuratObj$KeyField == keyfield,])]
+      nCells <- ncol(pcts)
       pcts <- apply(pcts, MARGIN = 1, FUN = function(x) {
         return(sum(x > 0))
       })
       
-      pcts <- matrix(pcts, ncol = length(pcts))
-      colnames(pcts) <- rownames(counts)
-      rownames(pcts) <- keyfield
-      pcts <- pcts / length(pcts)
+      pcts <- matrix(pcts, nrow = length(pcts))
+      pcts <- pcts / nCells
+      rownames(pcts) <- rownames(counts)
+      colnames(pcts) <- keyfield
 
       percentages <- cbind(percentages, pcts)
     }
 
-    # Ensure order preserved:
-    percentages <- percentages[,colnames(counts)]
+    if (any(colnames(percentages) != colnames(a))) {
+      stop('The columns on the pct.expression object do not match the parent seurat object')
+    }
+
+    if (any(rownames(percentages) != rownames(a))) {
+      stop('The rows on the pct.expression object do not match the parent seurat object')
+    }
 
     # Adds percentages as a new assay.
     SeuratObject::LayerData(a, assay = assayName, layer = 'pct.expression') <- Seurat::as.sparse(percentages)
