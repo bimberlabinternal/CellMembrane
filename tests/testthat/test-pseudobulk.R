@@ -8,11 +8,15 @@ test_that("Pseudobulk works", {
   expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo@assays$RNA))
   expect_equal(64488, max(pseudo@assays$RNA$counts))
   expect_equal(21.9, mean(as.matrix(pseudo@assays$RNA$counts), na.rm = TRUE), tolerance = 0.0001)
-
+  
+  ld <- SeuratObject::LayerData(pseudo, layer = 'pct.expression', assay = 'RNA')
+  expect_equal(508, max(ld))
+  expect_equal(9.01, mean(as.matrix(ld), na.rm = TRUE), tolerance = 0.001)
+  
   pseudo2 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assays = c('RNA'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.4)), nrow(pseudo2@meta.data))
   expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo2@assays$RNA))
-  
+
   pseudo3 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assays = c('RNA'), additionalFieldsToAggregate = c('G2M.Score', 'p.mito'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.4)), nrow(pseudo3@meta.data))
   expect_equal(max(pseudo3$G2M.Score_mean, na.rm = T), -0.007676878)

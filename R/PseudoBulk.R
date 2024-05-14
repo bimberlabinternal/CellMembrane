@@ -69,25 +69,20 @@ PseudobulkSeurat <- function(seuratObj,
       
       #We use 0 as a cluster index, and which() returns integer(0) if no clusters satisfy the check, so set these to NA to prevent accidental filtering.
       #if they're not zero, then we need to zero index them (they're currently indexed as via the column indexing of KL_divergences, which starts at 1)
-      if (length(abnormal_RNA_clusters_index) == 0){
-        abnormal_RNA_clusters_index <- NA
-      } else {
+      if (length(abnormal_RNA_clusters_index) > 0){
         abnormal_RNA_clusters_index <- abnormal_RNA_clusters_index - 1
-      
-      
-      
-      metadata <- seuratObj@meta.data %>% 
-        dplyr::mutate(nCount_RNA_Stratification = dplyr::case_when(!!sym(stratificationGroupingField) %in% abnormal_RNA_clusters_index ~ "AbnormalRNACounts",
-                                                                   !(!!sym(stratificationGroupingField) %in% abnormal_RNA_clusters_index) ~ "NormalRNACounts"))
-      seuratObj <- Seurat::AddMetaData(seuratObj, metadata = metadata)
-      groupFields <- c(groupFields, "nCount_RNA_Stratification")     
-      print(paste0("Abnormal RNA count distributions detected at grouping field ", stratificationGroupingField, ". Breaking. No further grouping fields will be evaluated."))
-      break
+
+        metadata <- seuratObj@meta.data %>%
+          dplyr::mutate(nCount_RNA_Stratification = dplyr::case_when(!!sym(stratificationGroupingField) %in% abnormal_RNA_clusters_index ~ "AbnormalRNACounts",
+                                                                     !(!!sym(stratificationGroupingField) %in% abnormal_RNA_clusters_index) ~ "NormalRNACounts"))
+        seuratObj <- Seurat::AddMetaData(seuratObj, metadata = metadata)
+        groupFields <- c(groupFields, "nCount_RNA_Stratification")
+        print(paste0("Abnormal RNA count distributions detected at grouping field ", stratificationGroupingField, ". Breaking. No further grouping fields will be evaluated."))
+        break
       }
     }
   }
-  
-  
+
   # TODO: perhaps filtering on saturation, min.counts or other features??
   seuratObj$KeyField <- unname(apply(seuratObj@meta.data[,groupFields,drop = FALSE], 1, function(y){
     # NOTE: AverageExpression will convert underscores to hyphens in the sample names anyway, so proactively do this here
@@ -96,8 +91,8 @@ PseudobulkSeurat <- function(seuratObj,
   
   Seurat::Idents(seuratObj) <- seuratObj$KeyField
   
-  # This generates the mean() of counts. Even though we want sum(), this is a convenient way to ensure all other
-  a <- Seurat::AverageExpression(seuratObj, group.by = 'KeyField', return.seurat = T, verbose = F, slot = 'counts', assays = assays)
+  # This generates the sum of counts
+  a <- Seurat::AggregateExpression(seuratObj, group.by = 'KeyField', return.seurat = T, verbose = F, assays = assays)
   
   metaGrouped <- unique(seuratObj@meta.data[,c('KeyField', groupFields),drop = FALSE])
   rownames(metaGrouped) <- metaGrouped$KeyField
@@ -116,7 +111,7 @@ PseudobulkSeurat <- function(seuratObj,
   metaGrouped <- metaGrouped[,names(metaGrouped) != 'KeyField',drop = FALSE]
   a <- Seurat::AddMetaData(a, metaGrouped)
   
-  totals <- as.data.frame(seuratObj@meta.data %>% dplyr::group_by(KeyField) %>% dplyr::summarise(TotalCells = n()))
+  totals <- as.data.frame(seuratObj@meta.data %>% dplyr::group_by(KeyField) %>% dplyr::summarise(TotalCells = dplyr::n()))
   rownames(totals) <- totals$KeyField
   
   a <- Seurat::AddMetaData(a, totals[,'TotalCells',drop = FALSE])
@@ -142,16 +137,31 @@ PseudobulkSeurat <- function(seuratObj,
           ggtitle('Total Cells/Sample')
   )
   
-  # Convert mean into sum:
+  # Normalize and store pct.expression for each assay:
   for (assayName in names(a@assays)) {
-    m <- Seurat::GetAssayData(a, assay = assayName, slot = 'counts')
-    m2 <- m %*% diag(a$TotalCells)
-    rownames(m2) <- rownames(m)
-    colnames(m2) <- colnames(m)
-    a <- Seurat::SetAssayData(a, assay = assayName, slot = 'counts', new.data = Seurat::as.sparse(m2))
     a <- Seurat::NormalizeData(a, verbose = FALSE, assay = assayName)
+
+    # Makes a new matrix with the expression percentage per gene per KeyField.
+    counts <- Seurat::GetAssayData(seuratObj, assay = assayName, layer = "counts")
+
+    percentages <- NULL
+    for (keyfield in colnames(a)) {
+      pcts <- counts[,rownames(seuratObj@meta.data[seuratObj$KeyField == keyfield,])]
+      pcts <- apply(pcts, MARGIN = 1, FUN = function(x) {
+        return(sum(x > 0))
+      })
+      
+      pcts <- matrix(pcts, ncol = length(pcts))
+      colnames(pcts) <- rownames(counts)
+      rownames(pcts) <- keyfield
+
+      percentages <- rbind(percentages, pcts)
+    }
+
+    # Adds percentages as a new assay.
+    SeuratObject::LayerData(a, assay = assayName, layer = 'pct.expression') <- Seurat::as.sparse(t(percentages))
   }
-  
+
   return(a)
 }
 
@@ -208,7 +218,7 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
 #' @export
 PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1, legacy = FALSE, plotBCV = TRUE){
   #convert seurat object to SingleCellExperiment for edgeR
-  sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')), colData = seuratObj@meta.data)
+  sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts')), colData = seuratObj@meta.data)
   
   #filter out lowly expressed genes
   if (!is.null(minCountsPerGene)) {
@@ -396,7 +406,7 @@ FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequir
   
   #Sanitize the logicList's criterion field according to the make.names() usage in the DesignModelMatrix (where it will compare the str_split(column) values)
   #The metadata's name field is fetched from a raw value stored in attr(design, "contrast_columns"), so it doesn't need to be fixed. 
-  for (logicListIndex in 1:length(logicList)){
+  for (logicListIndex in seq_along(logicList)){
     logicList[[logicListIndex]][[3]] <- gsub("_", ".", make.names(logicList[[logicListIndex]]))[[3]]
   }
   
@@ -406,7 +416,7 @@ FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequir
   #initialize contrast indices vector (to be used to subset the total contrast list after filtering).
   filtered_contrast_indices <- c()
   #iterate through all of the contrasts, filter those that don't satisfy the logic gates/requireIdenticalFields logic.
-  for (row_index in 1:nrow(contrasts)){
+  for (row_index in seq_len(nrow(contrasts))){
     #define the relevant metadata fields for each side of the contrast.
     positive_contrast <- unlist(strsplit(contrasts[row_index,1], split = "_"))
     names(positive_contrast) <- contrast_columns
@@ -415,7 +425,7 @@ FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequir
     
     #define iterator to track how many logic gates were passed for the contrast pair.
     gates_satisfied <- 0
-    for (logic_gate_index in 1:length(logicList)){
+    for (logic_gate_index in seq_along(logicList)){
       #define variables to set up the logic gate from logicList.
       field_to_check <- logicList[[logic_gate_index]][[1]]
       gate <- logicList[[logic_gate_index]][[2]]
@@ -474,7 +484,7 @@ FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequir
   #initialize a dataframe to store the filtered contrasts.
   filteredContrastsDataframe <- data.frame()
   #iterate through the filtered contrasts and coerce the matrix into a data frame. 
-  for(contrast_index in 1:nrow(contrasts)){
+  for (contrast_index in seq_len(nrow(contrasts))){
     #split the contrasts by _ and coerce into a dataframe. 
     temporary_data_frame <- t(as.data.frame(unlist(strsplit(contrasts[contrast_index,], split = "_"))))
     #assign the column names of the dataframe via the ordering supplied by contrast_columns.
@@ -525,7 +535,15 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
     stop("Could not find the 'counts' layer in the supplied Seurat Object.")
   }
   
-  results <- future.apply::future_lapply(split(contrasts, 1:nrow(contrasts)), future.seed = GetSeed(), FUN = function(x){
+  #Check for extraneous assays and remove them
+  if (!all(Assays(seuratObj) %in% assayName)) {
+    extraAssays <- Assays(seuratObj)[!Assays(seuratObj) %in% assayName]
+    for (extraAssay in extraAssays) {
+      seuratObj[[extraAssay]] <- NULL
+    }
+  }
+  
+  results <- future.apply::future_lapply(split(contrasts, seq_len(nrow(contrasts))), future.seed = GetSeed(), FUN = function(x){
     #initialize two Seurat objects, one to be subset according to the positive contrasts, and one to be subset according to the negative contrast. These will be merged downstream.
     seuratObj.positive.contrast <- seuratObj
     seuratObj.negative.contrast <- seuratObj
@@ -586,14 +604,6 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       #After filtering, each side of the contrast needs to have more than 1 sample or the estimated dispersion will be NA and the GLM fitting will fail. 
       #This only tests the last contrast column for >1 samples, but this should be sufficient. If a contrast yielded a subset with no samples remaining, it should error in the trycatch and seuratObj should be NULL. 
       if (all(table(seuratObj.contrast@meta.data[,contrast_column]) > 1)) {
-        #convert seurat object to SingleCellExperiment for edgeR
-        sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj.contrast, assay = assayName, layer = "counts")), colData = seuratObj.contrast@meta.data)
-        
-        #filter out lowly expressed genes
-        if (!is.null(minCountsPerGene)) {
-          sce <- sce[rowSums(as.matrix(SingleCellExperiment::counts(sce))) > minCountsPerGene, ]
-        }
-
         filtered_design_matrix <- DesignModelMatrix(seuratObj.contrast,
                                                     contrast_columns = attr(design, "contrast_columns"),
                                                     sampleIdCol = attr(design, "sampleIdCol"))
@@ -603,7 +613,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
         contrast <- limma::makeContrasts(contrasts = contrast_name, levels = colnames(filtered_design_matrix))
         result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold, test.use = test.use, showPlots = showPlots)
         #if no DEGs are returned, then spoof the table with a "null DEG".
-        if(nrow(result$differential_expression$table)==0){
+        if (nrow(result$differential_expression$table)==0){
           print(paste0("empty DE results for contrast:", contrast_name))
           result <- list()
           result$differential_expression$table <- data.frame(logFC = 0,
@@ -971,7 +981,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
                        labels = colnames(heatmap_matrix)))
     #force a symmetric and zero-centered color scale
     heatmap_extreme_value <- max(abs(min(heatmap_matrix)), abs(max(heatmap_matrix)))
-    col_fun = circlize::colorRamp2(c(-abs(heatmap_extreme_value), 0, abs(heatmap_extreme_value)), c("dodgerblue3", "white", "red"))
+    col_fun <- circlize::colorRamp2(c(-abs(heatmap_extreme_value), 0, abs(heatmap_extreme_value)), c("dodgerblue3", "white", "red"))
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
                                        name = "Log Fold Changes", 
@@ -992,7 +1002,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
                        labels = unique(labels_df[,1])))
     #force a symmetric and zero-centered color scale
     heatmap_extreme_value <- max(abs(min(heatmap_matrix)), abs(max(heatmap_matrix)))
-    col_fun = circlize::colorRamp2(c(-abs(heatmap_extreme_value), 0, abs(heatmap_extreme_value)), c("dodgerblue3", "white", "red"))
+    col_fun <- circlize::colorRamp2(c(-abs(heatmap_extreme_value), 0, abs(heatmap_extreme_value)), c("dodgerblue3", "white", "red"))
     
     heatmap <- ComplexHeatmap::Heatmap(heatmap_matrix,
                             column_labels = labels_df[,2],
@@ -1041,7 +1051,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
 #' @param rescale The feature selection will optimize for "heatmap-interpretable genes" so the features are intended to be scaled. If TRUE, this will rescale the variable features.
 #' @param numberOfVariableFeatures A parameter to select how many features should be selected as variable for scaling, by default, all genes will be used. 
 #' @param assay Seurat Object's assay
-#' @param slot Slot within the Seurat object assay. Recommended to be "scale.data".
+#' @param layer layer within the Seurat object assay. Recommended to be "scale.data".
 #' @param devianceCutoff Tolerance for model error when deciding how much regularization should be performed. 1 = no tolerance for error, 0 = intercept only, no genes used for prediction.
 #' @param split the option to provide a previous model's training/testing set. This is necessary if you're performing multiple iterations of model fitting. 
 #' @param returnModelAndSplits A boolean option to return a list containing the fitted model and training/testing splits in addition to the useful features. 
@@ -1055,7 +1065,7 @@ FitRegularizedClassificationGlm <- function(seuratObj,
                                             rescale = TRUE,
                                             numberOfVariableFeatures = 3000,
                                             assay = "RNA",
-                                            slot = "scale.data",
+                                            layer = "scale.data",
                                             devianceCutoff = 0.8,
                                             split = NULL, 
                                             returnModelAndSplits = F) {
@@ -1086,12 +1096,12 @@ FitRegularizedClassificationGlm <- function(seuratObj,
   }
   #convert the scale.data matrix to include a labeled classification column
   target_labeled_data <-
-    #merge the seuratObj's requested slot (converted to dense just in case a non-scale.data slot was used)
+    #merge the seuratObj's requested layer (converted to dense just in case a non-scale.data layer was used)
     merge(
       Matrix::t(as.matrix(Seurat::GetAssayData(
         seuratObj,
         assay = assay,
-        slot = slot
+        layer = layer
       ))),
       seuratObj@meta.data |>
         dplyr::select(dplyr::all_of(metadataVariableForClassification)),
