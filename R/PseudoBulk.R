@@ -622,6 +622,19 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
         #format contrast using limma
         contrast <- limma::makeContrasts(contrasts = contrast_name, levels = colnames(filtered_design_matrix))
         result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold, test.use = test.use, showPlots = showPlots)
+        
+        #calculate the percentage of expression for each gene in each side of the contrast
+        percentages <- NULL
+        for (sample in seuratObj.contrast$sample_identifier) {
+          percentages.positive.contrast <- SeuratObject::GetAssayData(seuratObj.positive.contrast, layer = 'pct.expression', assay = assayName)
+          positive_cells_positive_contrast <- as.matrix(percentages.positive.contrast) %*% seuratObj.positive.contrast@meta.data$TotalCells / sum(seuratObj.positive.contrast@meta.data$TotalCells)
+          percentages.negative.contrast <- SeuratObject::GetAssayData(seuratObj.negative.contrast, layer = 'pct.expression', assay = assayName)
+          negative_cells_positive_contrast <- as.matrix(percentages.negative.contrast) %*% seuratObj.negative.contrast@meta.data$TotalCells / sum(seuratObj.negative.contrast@meta.data$TotalCells)
+        }
+        #add the percentage of expression within each contrast (pct.1 is the positive contrast, pct.2 is the negative contrast) to the result
+        result$differential_expression$table$pct.1 <- positive_cells_positive_contrast[result$differential_expression$table$gene,]
+        result$differential_expression$table$pct.2 <- negative_cells_positive_contrast[result$differential_expression$table$gene,]
+        
         #if no DEGs are returned, then spoof the table with a "null DEG".
         if (nrow(result$differential_expression$table)==0){
           print(paste0("empty DE results for contrast:", contrast_name))
@@ -630,6 +643,8 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
                                      logCPM = 0,
                                      `F` = 1,
                                      PValue = 1,
+                                     pct.1 = 0, 
+                                     pct.2 = 0,
                                      FDR = 1,
                                      gene = "none")
         }
@@ -640,6 +655,8 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
                                    logCPM = 0,
                                    `F` = 1,
                                    PValue = 1,
+                                   pct.1 = 0, 
+                                   pct.2 = 0,
                                    FDR = 1,
                                    gene = "none")
       }
@@ -651,6 +668,8 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
                                  logCPM = 0,
                                  `F` = 1,
                                  PValue = 1,
+                                 pct.1 = 0, 
+                                 pct.2 = 0,
                                  FDR = 1,
                                  gene = "none")
     }
@@ -1049,7 +1068,9 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
   #swap the contrast names
   split_contrast_names <- strsplit(swapped_tibble$contrast_name, split = '-')
   swapped_tibble$contrast_name <- sapply(split_contrast_names, FUN = function(x) { paste0(x[2], "-", x[1])})
-  
+  #swap the percentage expression values
+  swapped_tibble$pct.1 <- tibble$pct.2
+  swapped_tibble$pct.2 <- tibble$pct.1
   return(swapped_tibble)
 }
 
