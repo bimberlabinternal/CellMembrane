@@ -154,12 +154,16 @@ PseudobulkSeurat <- function(seuratObj,
       pcts <- matrix(pcts, ncol = length(pcts))
       colnames(pcts) <- rownames(counts)
       rownames(pcts) <- keyfield
+      pcts <- pcts / length(pcts)
 
-      percentages <- rbind(percentages, pcts)
+      percentages <- cbind(percentages, pcts)
     }
 
+    # Ensure order preserved:
+    percentages <- percentages[,colnames(counts)]
+
     # Adds percentages as a new assay.
-    SeuratObject::LayerData(a, assay = assayName, layer = 'pct.expression') <- Seurat::as.sparse(t(percentages))
+    SeuratObject::LayerData(a, assay = assayName, layer = 'pct.expression') <- Seurat::as.sparse(percentages)
   }
 
   return(a)
