@@ -625,13 +625,13 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
         
         #calculate the percentage of expression for each gene in each side of the contrast
         percentages.positive.contrast <- SeuratObject::GetAssayData(seuratObj.positive.contrast, layer = 'pct.expression', assay = assayName)
-        positive_cells_positive_contrast <- as.matrix(percentages.positive.contrast) %*% seuratObj.positive.contrast@meta.data$TotalCells / sum(seuratObj.positive.contrast@meta.data$TotalCells)
+        percentages.positive.contrast <- as.matrix(percentages.positive.contrast) %*% seuratObj.positive.contrast@meta.data$TotalCells / sum(seuratObj.positive.contrast@meta.data$TotalCells)
         percentages.negative.contrast <- SeuratObject::GetAssayData(seuratObj.negative.contrast, layer = 'pct.expression', assay = assayName)
-        negative_cells_positive_contrast <- as.matrix(percentages.negative.contrast) %*% seuratObj.negative.contrast@meta.data$TotalCells / sum(seuratObj.negative.contrast@meta.data$TotalCells)
+        percentages.negative.contrast <- as.matrix(percentages.negative.contrast) %*% seuratObj.negative.contrast@meta.data$TotalCells / sum(seuratObj.negative.contrast@meta.data$TotalCells)
         
         #add the percentage of expression within each contrast (pct.1 is the positive contrast, pct.2 is the negative contrast) to the result
-        result$differential_expression$table$pct.1 <- positive_cells_positive_contrast[result$differential_expression$table$gene,]
-        result$differential_expression$table$pct.2 <- negative_cells_positive_contrast[result$differential_expression$table$gene,]
+        result$differential_expression$table$pct.1 <- percentages.positive.contrast[result$differential_expression$table$gene,]
+        result$differential_expression$table$pct.2 <- percentages.negative.contrast[result$differential_expression$table$gene,]
         
         #if no DEGs are returned, then spoof the table with a "null DEG".
         if (nrow(result$differential_expression$table)==0){
