@@ -624,13 +624,11 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
         result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold, test.use = test.use, showPlots = showPlots)
         
         #calculate the percentage of expression for each gene in each side of the contrast
-        percentages <- NULL
-        for (sample in seuratObj.contrast$sample_identifier) {
-          percentages.positive.contrast <- SeuratObject::GetAssayData(seuratObj.positive.contrast, layer = 'pct.expression', assay = assayName)
-          positive_cells_positive_contrast <- as.matrix(percentages.positive.contrast) %*% seuratObj.positive.contrast@meta.data$TotalCells / sum(seuratObj.positive.contrast@meta.data$TotalCells)
-          percentages.negative.contrast <- SeuratObject::GetAssayData(seuratObj.negative.contrast, layer = 'pct.expression', assay = assayName)
-          negative_cells_positive_contrast <- as.matrix(percentages.negative.contrast) %*% seuratObj.negative.contrast@meta.data$TotalCells / sum(seuratObj.negative.contrast@meta.data$TotalCells)
-        }
+        percentages.positive.contrast <- SeuratObject::GetAssayData(seuratObj.positive.contrast, layer = 'pct.expression', assay = assayName)
+        positive_cells_positive_contrast <- as.matrix(percentages.positive.contrast) %*% seuratObj.positive.contrast@meta.data$TotalCells / sum(seuratObj.positive.contrast@meta.data$TotalCells)
+        percentages.negative.contrast <- SeuratObject::GetAssayData(seuratObj.negative.contrast, layer = 'pct.expression', assay = assayName)
+        negative_cells_positive_contrast <- as.matrix(percentages.negative.contrast) %*% seuratObj.negative.contrast@meta.data$TotalCells / sum(seuratObj.negative.contrast@meta.data$TotalCells)
+        
         #add the percentage of expression within each contrast (pct.1 is the positive contrast, pct.2 is the negative contrast) to the result
         result$differential_expression$table$pct.1 <- positive_cells_positive_contrast[result$differential_expression$table$gene,]
         result$differential_expression$table$pct.2 <- negative_cells_positive_contrast[result$differential_expression$table$gene,]
