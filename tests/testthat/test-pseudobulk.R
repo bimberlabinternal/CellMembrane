@@ -97,6 +97,8 @@ test_that("Logic gate study design works", {
   testthat::expect_equal(length(DE_results), expected = 15)
   #9008 "DEGs" in the first contrast (note overly permissive DEG thresholds)
   testthat::expect_equal(nrow(DE_results$`1`), expected = 9008)
+  #test that pct.1 and pct.2 are present in the DE results
+  testthat::expect_true(all(c("pct.1", "pct.2") %in%  colnames(DE_results$`1`)))
   
   barPlot <- PseudobulkingBarPlot(filteredContrasts = DE_results, 
                        metadataFilterList = NULL
@@ -121,6 +123,14 @@ test_that("Logic gate study design works", {
   testthat::expect_true(typeof(heatmap_list$heatmap) == "S4")
   #test that the heatmap matrix has 3 columns
   testthat::expect_true(ncol(heatmap_list$matrix) == 3)
+  #test that pseudobulk heatmap subsetting works. 
+  testthat::expect_no_error(PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes[genes!="PRF1"], 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "control", 
+                                         sampleIdCol = 'subject', 
+                                         subsetExpression = "vaccine_cohort %in% c('unvax', 'vaccineOne')"
+  ))
 })
 
 test_that("Non-alphanumeric characters do not break pseudobulking pipeline", {
