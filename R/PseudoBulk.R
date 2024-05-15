@@ -880,10 +880,11 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @param showRowNames a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap. 
 #' @param sampleIdCol The metadata column denoting the variable containing the sample identifier (for grouping). 
 #' @param minCountsPerGene Passthrough variable for PerformGlmFit, used for filtering out lowly expressed genes. 
+#' @param subsetExpression An optional string containing an expression to subset the Seurat object. This is useful for selecting an exact subpopulation to in which to show DEGs. Please note that for string-based metadata fields, you will need to mix single and double quotes to ensure your expression is properly parsed. For instance, note the double quotes around the word unvax in this expression: subsetExpression = 'vaccine_cohort == "unvax"'. 
 #' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
 #' @export
 
-PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID', minCountsPerGene = 1) {
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID', minCountsPerGene = 1, subsetExpression = NULL) {
   #sanity check arguments
   if (is.null(contrastField)) {
     stop("Please define a contrastField. This is a metadata variable (supplied to groupFields during PseudobulkSeurat()) that will be displayed on the top of the heatmap.")
@@ -916,6 +917,14 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
   } else if (sum(geneSpace %in% rownames(seuratObj)) <= 1) {
     stop(paste0('Only ', sum(geneSpace %in% rownames(seuratObj)), ' gene(s) overlapped between geneSpace (length ', length(geneSpace),') and the assay (size ', length(rownames(seuratObj)),'). With Seurat V5 there must be more than one feature'))
   }
+  
+  if (!is.null(subsetExpression)) { 
+    if (!rlang::is_string(subsetExpression)) {
+      stop("Error: subsetExpression must be a string containing the expression you wish to pass to the subset function. An example of a valid subsetExpression is: subsetExpression = 'ClusterNames_0.2 == 0'. For string matching, you may mix single and double quotes to ensure your expression is properly parsed. For more details, please see the documentation ?PseudobulkingDEHeatmap.")
+    } else {
+      seuratObj <- subset(seuratObj, cells = eval(parse(text = paste0("Seurat::WhichCells(seuratObj, expression = ", subsetExpression, ")"))))
+    }
+      }
   
   #Sanitize negativeContrastValue and positiveContrastValue, since the user is unlikely to know that values need to be compatible with a post-make.names() call to the variables from the design matrix. 
   if (negativeContrastValue != .RemoveSpecialCharacters(negativeContrastValue)) { 
