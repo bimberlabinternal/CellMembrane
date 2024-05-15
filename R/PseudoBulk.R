@@ -14,7 +14,7 @@ utils::globalVariables(
 #' @description Aggregates raw counts in the seurat object, generating a new seurat object where each same has the sum of the counts, grouped by the desired variables
 #' @param seuratObj The seurat object
 #' @param groupFields The set of fields on which to group
-#' @param assays The assays to aggregate
+#' @param assayToAggregate The assay to aggregate
 #' @param additionalFieldsToAggregate An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.
 #' @param metaFieldCollapseCharacter The character to use when concatenating metadata fields together to form the sample key field
 #' @param nCountRnaStratification A boolean determining whether or not automatic outlier detection of clusters with abnormal nCount_RNA should be detected.
@@ -23,7 +23,7 @@ utils::globalVariables(
 #' @export
 PseudobulkSeurat <- function(seuratObj, 
                              groupFields, 
-                             assays = NULL, 
+                             assayToAggregate = Seurat::DefaultAssay(seuratObj),
                              additionalFieldsToAggregate = NULL, 
                              metaFieldCollapseCharacter = '|', 
                              nCountRnaStratification = F, 
@@ -92,7 +92,12 @@ PseudobulkSeurat <- function(seuratObj,
   Seurat::Idents(seuratObj) <- seuratObj$KeyField
   
   # This generates the sum of counts
-  a <- Seurat::AggregateExpression(seuratObj, group.by = 'KeyField', return.seurat = T, verbose = F, assays = assays)
+  a <- Seurat::AggregateExpression(seuratObj, group.by = 'KeyField', return.seurat = T, verbose = F, assays = assayToAggregate)
+  if (class(Seurat::GetAssay(a, assay = assayToAggregate))[1] != 'Assay5') {
+    print('Updating assay object to assay5')
+    assay5 <- SeuratObject::CreateAssay5Object(counts = Seurat::GetAssayData(a, assay = assayToAggregate, layer = 'counts'))
+    a <- Seurat::SetAssayData(a, new.data = assay5, assay = assayToAggregate, layer = 'counts')
+  }
   
   metaGrouped <- unique(seuratObj@meta.data[,c('KeyField', groupFields),drop = FALSE])
   rownames(metaGrouped) <- metaGrouped$KeyField
