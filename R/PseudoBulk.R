@@ -306,7 +306,7 @@ PerformDifferentialExpression <- function(fit, contrast, contrast_name, logFC_th
   
   
   
-  pvalue_dist <- ggplot(differential_expression$table, aes( x= PValue)) + 
+  pvalue_dist <- ggplot(differential_expression$table, aes(x= PValue)) + 
     geom_histogram() + 
     ggtitle("PValue Distribution") + 
     egg::theme_article()
