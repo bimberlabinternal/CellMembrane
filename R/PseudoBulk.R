@@ -160,11 +160,11 @@ PseudobulkSeurat <- function(seuratObj,
       percentages <- cbind(percentages, pcts)
     }
 
-    if (any(colnames(percentages) != colnames(a))) {
+    if (any(colnames(percentages) != colnames(counts))) {
       stop('The columns on the pct.expression object do not match the parent seurat object')
     }
 
-    if (any(rownames(percentages) != rownames(a))) {
+    if (any(rownames(percentages) != rownames(counts))) {
       stop('The rows on the pct.expression object do not match the parent seurat object')
     }
 
