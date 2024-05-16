@@ -7,7 +7,7 @@
 PseudobulkSeurat(
   seuratObj,
   groupFields,
-  assays = NULL,
+  assayToAggregate = Seurat::DefaultAssay(seuratObj),
   additionalFieldsToAggregate = NULL,
   metaFieldCollapseCharacter = "|",
   nCountRnaStratification = F,
@@ -20,7 +20,7 @@ PseudobulkSeurat(
 
 \item{groupFields}{The set of fields on which to group}
 
-\item{assays}{The assays to aggregate}
+\item{assayToAggregate}{The assay to aggregate}
 
 \item{additionalFieldsToAggregate}{An option list of additional fields (which must be numeric). Per field, the mean per group will be computed and stored in the output object.}
 
