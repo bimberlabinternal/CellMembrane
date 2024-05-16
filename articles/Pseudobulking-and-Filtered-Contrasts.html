@@ -82,7 +82,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2024-05-14</h4>
+            <h4 data-toc-skip class="date">2024-05-16</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/HEAD/vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd" class="external-link"><code>vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd</code></a></small>
       <div class="hidden name"><code>Pseudobulking-and-Filtered-Contrasts.Rmd</code></div>
@@ -165,6 +165,51 @@ the Witten lab.</p>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/start%20pseudobulking-1.png" width="960"></p>
 </div>
 <div class="section level2">
+<h2 id="inspecting-the-pseudobulked-object-">Inspecting the Pseudobulked Object.<a class="anchor" aria-label="anchor" href="#inspecting-the-pseudobulked-object-"></a>
+</h2>
+<p>The pseudobulked Seurat object has two layers of interest: the
+<code>counts</code> layer and the <code>pct.expression</code> layer.
+Within the counts layer, you will find the sum of the gene expression
+for each gene across all cells from an individual (grouped on
+<code>sample_identifier</code>). The <code>pct.expression</code> layer
+is the percentage of cells from that individual that express the gene.
+For instance, if 1 out of 10 cells from a subject express a gene, the
+<code>pct.expression</code> will be 0.1.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#inspecting counts. The matrices are sparse, so zeroes are represented with the '.' character.</span></span>
+<span><span class="fu">GetAssayData</span><span class="op">(</span><span class="va">pbulk</span>, layer <span class="op">=</span> <span class="st">"counts"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span></span>
+<span><span class="co">#&gt; 3 x 3 sparse Matrix of class "dgCMatrix"</span></span>
+<span><span class="co">#&gt;        control|baseline|Subject.1.control.baseline</span></span>
+<span><span class="co">#&gt; SAMD11                                           .</span></span>
+<span><span class="co">#&gt; NOC2L                                            .</span></span>
+<span><span class="co">#&gt; KLHL17                                           .</span></span>
+<span><span class="co">#&gt;        control|baseline|Subject.2.control.baseline</span></span>
+<span><span class="co">#&gt; SAMD11                                           .</span></span>
+<span><span class="co">#&gt; NOC2L                                            1</span></span>
+<span><span class="co">#&gt; KLHL17                                           .</span></span>
+<span><span class="co">#&gt;        control|baseline|Subject.3.control.baseline</span></span>
+<span><span class="co">#&gt; SAMD11                                           .</span></span>
+<span><span class="co">#&gt; NOC2L                                            1</span></span>
+<span><span class="co">#&gt; KLHL17                                           1</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co">#inspecting pct.expression. This is also sparse, so unexpressed genes in a sample are represented with the '.' character.</span></span>
+<span><span class="fu">GetAssayData</span><span class="op">(</span><span class="va">pbulk</span>, layer <span class="op">=</span> <span class="st">"pct.expression"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span></span>
+<span><span class="co">#&gt; 3 x 3 sparse Matrix of class "dgCMatrix"</span></span>
+<span><span class="co">#&gt;        control|baseline|Subject.1.control.baseline</span></span>
+<span><span class="co">#&gt; SAMD11                                           .</span></span>
+<span><span class="co">#&gt; NOC2L                                            .</span></span>
+<span><span class="co">#&gt; KLHL17                                           .</span></span>
+<span><span class="co">#&gt;        control|baseline|Subject.2.control.baseline</span></span>
+<span><span class="co">#&gt; SAMD11                                  .         </span></span>
+<span><span class="co">#&gt; NOC2L                                   0.02941176</span></span>
+<span><span class="co">#&gt; KLHL17                                  .         </span></span>
+<span><span class="co">#&gt;        control|baseline|Subject.3.control.baseline</span></span>
+<span><span class="co">#&gt; SAMD11                                  .         </span></span>
+<span><span class="co">#&gt; NOC2L                                   0.02941176</span></span>
+<span><span class="co">#&gt; KLHL17                                  0.02941176</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="differential-expression-what-is-a-contrast">Differential Expression: What is a ‘Contrast’?<a class="anchor" aria-label="anchor" href="#differential-expression-what-is-a-contrast"></a>
 </h2>
 <p>Contrasts are comparisons of samples. When one discusses differential
@@ -174,7 +219,7 @@ compared to one another, we use a design matrix, which allows us to
 impose our experimental design onto the samples and group them
 appropriately to determine gene expression differences between the
 groups.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/DesignModelMatrix.html">DesignModelMatrix</a></span><span class="op">(</span><span class="va">pbulk</span>, contrast_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span><span class="op">)</span>, sampleIdCol <span class="op">=</span> <span class="st">"sample_identifier"</span><span class="op">)</span></span>
 <span></span>
@@ -196,7 +241,7 @@ groups.</p>
 multiple levels of experimental variables. Fitting a model downstream
 will require at minimum more than 1 data point per group, but more
 biological replication is better.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/DesignModelMatrix.html">DesignModelMatrix</a></span><span class="op">(</span><span class="va">pbulk</span>, contrast_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span>, <span class="st">"timepoint"</span><span class="op">)</span>, sampleIdCol <span class="op">=</span> <span class="st">"sample_identifier"</span><span class="op">)</span></span>
 <span></span>
 <span></span>
@@ -226,7 +271,7 @@ some kind of count-based distribution (poisson, quasipoisson, negative
 binomial) using packages such as DESeq2 or edgeR.</p>
 <p>Let’s define a contrast using just vaccine information and compare
 vaccine one and vaccine two:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/DesignModelMatrix.html">DesignModelMatrix</a></span><span class="op">(</span><span class="va">pbulk</span>, contrast_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span><span class="op">)</span>, sampleIdCol <span class="op">=</span> <span class="st">"sample_identifier"</span><span class="op">)</span></span>
 <span></span>
 <span></span>
@@ -244,12 +289,13 @@ vaccine one and vaccine two:</p>
 <span>                                                    labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Not in Group"</span>, <span class="st">"In Group"</span><span class="op">)</span></span>
 <span>                                                    <span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/design%20matrix%20for%20contrasts-1.png" width="960"></p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#fit a GLM using edgeR</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PerformGlmFit.html">PerformGlmFit</a></span><span class="op">(</span><span class="va">pbulk</span>, design <span class="op">=</span> <span class="va">design</span>, test.use <span class="op">=</span> <span class="st">"QLF"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/example%20contrast-1.png" width="700"></p>
-<pre><code><span><span class="co">#&gt; NULL</span></span>
-<span></span>
+<pre><code><span><span class="co">#&gt; NULL</span></span></code></pre>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="co"># Define Contrast using the notation Group1 - Group2. </span></span>
 <span><span class="co"># Genes that are upregulated in group 1 will have a positive log fold change</span></span>
 <span><span class="co"># while genes upregulated in group 2 will have a negative log fold change.</span></span>
@@ -266,7 +312,7 @@ vaccine one and vaccine two:</p>
 <span>  test.use <span class="op">=</span> <span class="st">"QLF"</span>,</span>
 <span>  showPlots <span class="op">=</span> <span class="cn">T</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
+<span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/example%20contrast-2.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/example%20contrast-3.png" width="700"></p>
 </div>
 <div class="section level2">
@@ -274,14 +320,15 @@ vaccine one and vaccine two:</p>
 </h2>
 <p>In larger studies where you have several experimental variables, the
 number of possible comparisons grow combinatorially.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#single level design matrix</span></span>
 <span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/DesignModelMatrix.html">DesignModelMatrix</a></span><span class="op">(</span><span class="va">pbulk</span>, contrast_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span><span class="op">)</span>, sampleIdCol <span class="op">=</span> <span class="st">"sample_identifier"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#6 possible contrasts with a single level design</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/combn.html" class="external-link">combn</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">design</span><span class="op">)</span>,m <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 6</span></span>
-<span></span>
+<span><span class="co">#&gt; [1] 6</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="co">#two-level design matrix</span></span>
 <span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/DesignModelMatrix.html">DesignModelMatrix</a></span><span class="op">(</span><span class="va">pbulk</span>, contrast_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span>, <span class="st">"timepoint"</span><span class="op">)</span>, sampleIdCol <span class="op">=</span> <span class="st">"sample_identifier"</span><span class="op">)</span></span>
 <span></span>
@@ -300,7 +347,7 @@ investigate vaccineOne over my time course. However, I also know that
 the effect of the vaccine could vary over time, so I want to make sure
 that I only compare the vaccineOne to either unvax or control within a
 given timepoint.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">logicList</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span>, <span class="st">"xor"</span>, <span class="st">"vaccineOne"</span><span class="op">)</span>, </span>
 <span>                   <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span>, <span class="st">"nor"</span>, <span class="st">"vaccineTwo"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#We can easily visualize the list of lists as a dataframe to inspect the logic gates.</span></span>
@@ -316,7 +363,7 @@ vaccineOne), and neither of the contrasts can have vaccineTwo in them
 across the contrasts, we can pass <code>'timepoint'</code> to the
 <code>'requireIdenticalFields'</code> argument in the
 <code>FilterPseudobulkContrasts</code>.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">filtered_contrasts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FilterPseudobulkContrasts.html">FilterPseudobulkContrasts</a></span><span class="op">(</span>logicList <span class="op">=</span> <span class="va">logicList</span>, </span>
 <span>                                                          design <span class="op">=</span> <span class="va">design</span>, </span>
 <span>                                                          useRequireIdenticalLogic <span class="op">=</span> <span class="cn">T</span>, </span>
@@ -349,7 +396,7 @@ the basic edgeR QLF differential expression function on each of these
 contrasts. This will print the biological coefficient of variation plot
 for each subset so you can grossly interpret whether or not the model
 fitting is suitable.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">DE_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RunFilteredContrasts.html">RunFilteredContrasts</a></span><span class="op">(</span>seuratObj <span class="op">=</span> <span class="va">pbulk</span>, </span>
 <span>                       filteredContrastsDataframe <span class="op">=</span> <span class="va">filtered_contrasts</span>, </span>
 <span>                       design <span class="op">=</span> <span class="va">design</span>,</span>
@@ -366,7 +413,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_baseline-vaccineOne_baseline"</span></span>
@@ -375,7 +422,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_baseline-vaccineOne_baseline"</span></span>
@@ -387,7 +434,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_day4-vaccineOne_day4"</span></span>
@@ -396,7 +443,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_day4-vaccineOne_day4"</span></span>
@@ -408,7 +455,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_necropsy-vaccineOne_necropsy"</span></span>
@@ -417,7 +464,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_necropsy-vaccineOne_necropsy"</span></span>
@@ -429,7 +476,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  unvax_baseline-vaccineOne_baseline"</span></span>
@@ -438,7 +485,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_baseline-vaccineOne_baseline"</span></span>
@@ -450,7 +497,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  unvax_day4-vaccineOne_day4"</span></span>
@@ -459,7 +506,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_day4-vaccineOne_day4"</span></span>
@@ -471,7 +518,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  unvax_necropsy-vaccineOne_necropsy"</span></span>
@@ -480,7 +527,7 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_necropsy-vaccineOne_necropsy"</span></span>
@@ -494,7 +541,7 @@ fitting is suitable.</p>
 the volcano plots (if desired) only, and they perform no filtering on
 genes in the <code>DE_results</code> list.</p>
 <p>Permissive thresholds (on one contrast):</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">permissive_contrast</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RunFilteredContrasts.html">RunFilteredContrasts</a></span><span class="op">(</span>seuratObj <span class="op">=</span> <span class="va">pbulk</span>, </span>
 <span>                       filteredContrastsDataframe <span class="op">=</span> <span class="va">filtered_contrasts</span><span class="op">[</span><span class="fl">4</span>,<span class="op">]</span>, </span>
 <span>                       design <span class="op">=</span> <span class="va">design</span>,</span>
@@ -512,7 +559,7 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  unvax_baseline-vaccineOne_baseline"</span></span>
@@ -521,7 +568,7 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_baseline-vaccineOne_baseline"</span></span>
@@ -529,7 +576,7 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-3.png" width="700"></p>
 <p>Stricter thresholds (on one contrast):</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">strict_contrast</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RunFilteredContrasts.html">RunFilteredContrasts</a></span><span class="op">(</span>seuratObj <span class="op">=</span> <span class="va">pbulk</span>, </span>
 <span>                       filteredContrastsDataframe <span class="op">=</span> <span class="va">filtered_contrasts</span><span class="op">[</span><span class="fl">4</span>,<span class="op">]</span>, </span>
 <span>                       design <span class="op">=</span> <span class="va">design</span>,</span>
@@ -547,7 +594,7 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  unvax_baseline-vaccineOne_baseline"</span></span>
@@ -556,7 +603,7 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_baseline-vaccineOne_baseline"</span></span>
@@ -564,7 +611,7 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Strict%20Thresholds-3.png" width="700"></p>
 <p>The results of these fits are collected in an indexed list.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">`1`</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                       logFC   logCPM        F       PValue        FDR</span></span>
 <span><span class="co">#&gt; ENSMMUG00000013779 2.506728 7.947134 28.94198 1.478122e-06 0.01327945</span></span>
@@ -573,34 +620,41 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; CCL4               1.134007 8.081421 16.07607 1.799530e-04 0.29304599</span></span>
 <span><span class="co">#&gt; JUND               3.465299 5.807931 15.97362 1.840914e-04 0.29304599</span></span>
 <span><span class="co">#&gt; MYL9               5.043884 5.761552 15.99637 1.957119e-04 0.29304599</span></span>
-<span><span class="co">#&gt;                                  gene                        contrast_name</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779 ENSMMUG00000013779 control_baseline-vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; PPBP                             PPBP control_baseline-vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466 ENSMMUG00000045466 control_baseline-vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; CCL4                             CCL4 control_baseline-vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; JUND                             JUND control_baseline-vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; MYL9                             MYL9 control_baseline-vaccineOne_baseline</span></span>
-<span><span class="co">#&gt;                    positive_contrast   negative_contrast</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779  control_baseline vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; PPBP                control_baseline vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466  control_baseline vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; CCL4                control_baseline vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; JUND                control_baseline vaccineOne_baseline</span></span>
-<span><span class="co">#&gt; MYL9                control_baseline vaccineOne_baseline</span></span>
-<span><span class="co">#&gt;                    positive_contrast_vaccine_cohort positive_contrast_timepoint</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779                          control                    baseline</span></span>
-<span><span class="co">#&gt; PPBP                                        control                    baseline</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466                          control                    baseline</span></span>
-<span><span class="co">#&gt; CCL4                                        control                    baseline</span></span>
-<span><span class="co">#&gt; JUND                                        control                    baseline</span></span>
-<span><span class="co">#&gt; MYL9                                        control                    baseline</span></span>
-<span><span class="co">#&gt;                    negative_contrast_vaccine_cohort negative_contrast_timepoint</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779                       vaccineOne                    baseline</span></span>
-<span><span class="co">#&gt; PPBP                                     vaccineOne                    baseline</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466                       vaccineOne                    baseline</span></span>
-<span><span class="co">#&gt; CCL4                                     vaccineOne                    baseline</span></span>
-<span><span class="co">#&gt; JUND                                     vaccineOne                    baseline</span></span>
-<span><span class="co">#&gt; MYL9                                     vaccineOne                    baseline</span></span></code></pre></div>
+<span><span class="co">#&gt;                                  gene       pct.1       pct.2</span></span>
+<span><span class="co">#&gt; ENSMMUG00000013779 ENSMMUG00000013779 0.100000000 0.077519380</span></span>
+<span><span class="co">#&gt; PPBP                             PPBP 0.007692308 0.000000000</span></span>
+<span><span class="co">#&gt; ENSMMUG00000045466 ENSMMUG00000045466 0.053846154 0.000000000</span></span>
+<span><span class="co">#&gt; CCL4                             CCL4 0.246153846 0.162790698</span></span>
+<span><span class="co">#&gt; JUND                             JUND 0.107692308 0.007751938</span></span>
+<span><span class="co">#&gt; MYL9                             MYL9 0.030769231 0.000000000</span></span>
+<span><span class="co">#&gt;                                           contrast_name positive_contrast</span></span>
+<span><span class="co">#&gt; ENSMMUG00000013779 control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; PPBP               control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; ENSMMUG00000045466 control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; CCL4               control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; JUND               control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; MYL9               control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt;                      negative_contrast positive_contrast_vaccine_cohort</span></span>
+<span><span class="co">#&gt; ENSMMUG00000013779 vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; PPBP               vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; ENSMMUG00000045466 vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; CCL4               vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; JUND               vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; MYL9               vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt;                    positive_contrast_timepoint negative_contrast_vaccine_cohort</span></span>
+<span><span class="co">#&gt; ENSMMUG00000013779                    baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; PPBP                                  baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; ENSMMUG00000045466                    baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; CCL4                                  baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; JUND                                  baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; MYL9                                  baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt;                    negative_contrast_timepoint</span></span>
+<span><span class="co">#&gt; ENSMMUG00000013779                    baseline</span></span>
+<span><span class="co">#&gt; PPBP                                  baseline</span></span>
+<span><span class="co">#&gt; ENSMMUG00000045466                    baseline</span></span>
+<span><span class="co">#&gt; CCL4                                  baseline</span></span>
+<span><span class="co">#&gt; JUND                                  baseline</span></span>
+<span><span class="co">#&gt; MYL9                                  baseline</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -613,13 +667,13 @@ or not the genes are unique (red or dark blue) to their contrast or
 shared across the contrasts (orange, light blue). Please note, the
 thresholds are used to determine if the genes are differentially
 expressed or not within each contrast.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">barplot_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PseudobulkingBarPlot.html">PseudobulkingBarPlot</a></span><span class="op">(</span><span class="va">DE_results</span>, </span>
 <span>                                        title <span class="op">=</span> <span class="st">"Vaccine One vs Unvaxxed/Control"</span>, </span>
 <span>                                        logFC_threshold <span class="op">=</span> <span class="fl">0</span>, </span>
 <span>                                        FDR_threshold <span class="op">=</span> <span class="fl">.5</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Create%20Permissive%20Bar%20Plot-1.png" width="700"></p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">barplot_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PseudobulkingBarPlot.html">PseudobulkingBarPlot</a></span><span class="op">(</span><span class="va">DE_results</span>, </span>
 <span>                                        title <span class="op">=</span> <span class="st">"Vaccine One vs Unvaxxed/Control"</span>, </span>
 <span>                                        logFC_threshold <span class="op">=</span> <span class="fl">0.1</span>, </span>
@@ -628,7 +682,7 @@ expressed or not within each contrast.</p>
 <p>Further annotation of the bar plot requires some custom code, but can
 be formatted like so using the data frame returned from
 <code>PseudobulkingBarPlot</code>:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
@@ -637,8 +691,9 @@ be formatted like so using the data frame returned from
 <span><span class="co">#&gt;     filter, lag</span></span>
 <span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#inspect dataframe column names to determine how the fill aesthetic needs to be specified for the geom_tile() calls. </span></span>
 <span><span class="va">barplot_results</span><span class="op">$</span><span class="va">dataframe</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -648,8 +703,9 @@ be formatted like so using the data frame returned from
 <span><span class="co">#&gt;  [7] "negative_contrast_timepoint"       "number_of_positive_nonunique_DEGs"</span></span>
 <span><span class="co">#&gt;  [9] "number_of_positive_unique_DEGs"    "number_of_negative_nonunique_DEGs"</span></span>
 <span><span class="co">#&gt; [11] "number_of_negative_unique_DEGs"    "total_DEGs"                       </span></span>
-<span><span class="co">#&gt; [13] "DEG_Magnitude"</span></span>
-<span></span>
+<span><span class="co">#&gt; [13] "DEG_Magnitude"</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="va">metadata_tiles</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">barplot_results</span><span class="op">$</span><span class="va">dataframe</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="co">#define a custom scale for timepoint metadata</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/grDevices/palettes.html" class="external-link">hcl.colors</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html" class="external-link">n_distinct</a></span><span class="op">(</span><span class="va">pbulk</span><span class="op">$</span><span class="va">timepoint</span><span class="op">)</span>, palette <span class="op">=</span> <span class="st">"Purples 3"</span><span class="op">)</span><span class="op">)</span>, guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>order <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">+</span></span>
@@ -679,7 +735,7 @@ be formatted like so using the data frame returned from
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Annotate%20bar%20Plot-1.png" width="700"></p>
 <p>Then, you can add these plots together using patchwork to annotate
 the contrasts shown in the Pseudobulking Bar Plot.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="op">(</span><span class="va">barplot_results</span><span class="op">$</span><span class="va">barPlot</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">metadata_tiles</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"Differential Expression Contrasts"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">DEG_Magnitude</span>, scales <span class="op">=</span> <span class="st">"free_x"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_layout.html" class="external-link">plot_layout</a></span><span class="op">(</span>guides <span class="op">=</span> <span class="st">'collect'</span><span class="op">)</span></span></code></pre></div>
@@ -699,7 +755,7 @@ gene expression cutoffs so we’re working with a smaller gene space. You
 can also use other feature selection algorithms such as CellMembrane’s
 <code><a href="../reference/FitRegularizedClassificationGlm.html">FitRegularizedClassificationGlm()</a></code> or other machine learning
 approaches to determine appropriate gene sets.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#bind the list into a dataframe using thresholds to determine the differentially expressed genes</span></span>
 <span><span class="va">DEGs</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">logFC</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
@@ -707,13 +763,33 @@ approaches to determine appropriate gene sets.</p>
 <span></span>
 <span><span class="co">#select all of the genes that are differentially expressed in any contrast across the transcriptome</span></span>
 <span><span class="va">genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">DEGs</span><span class="op">$</span><span class="va">gene</span><span class="op">)</span></span></code></pre></div>
+<p>One can also filter based on the number of cells that express the
+gene in each contrast. You can use this to bias towards genes that are
+expressed in a larger proportion of cells in one of the experimental
+conditions (i.e. “marker genes”), or to ensure that the gene is
+expressed in many cells, rather than acutely in a few cells. Within the
+<code>DE_results</code> dataframes, <code>pct.1</code> refers to the
+proportion of cells that express the gene in the first group of the
+contrast (i.e. positive contrast), and <code>pct.2</code> refers to the
+proportion of cells that express the gene in the second group of the
+contrast (i.e. negative contrast).</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">DEGs_no_rare_cells</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">logFC</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">FDR</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">pct.1</span> <span class="op">&gt;</span> <span class="fl">0.1</span> <span class="op">&amp;</span> <span class="va">pct.2</span> <span class="op">&gt;</span> <span class="fl">0.1</span><span class="op">)</span> <span class="co"># an example of filtering for genes that have at least 10% of cells expressing the gene in each group.</span></span>
+<span></span>
+<span><span class="va">DEGs_more_common_in_positive_contrast</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">logFC</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">FDR</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">pct.1</span> <span class="op">-</span> <span class="va">pct.2</span> <span class="op">&gt;</span> <span class="fl">0.25</span><span class="op">)</span> <span class="co"># an example of filtering for genes that have at least 25% more cells expressing the gene in the positive contrast than the negative contrast.</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="create-the-heatmap-on-just-the-degs">Create the heatmap on just the DEGs<a class="anchor" aria-label="anchor" href="#create-the-heatmap-on-just-the-degs"></a>
 </h3>
 <p>Then, we can make a heatmap on just the differentially expressed
 genes so we can interpret their expression in relation to our vaccine
 groups.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">heatmap_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PseudobulkingDEHeatmap.html">PseudobulkingDEHeatmap</a></span><span class="op">(</span>seuratObj <span class="op">=</span> <span class="va">pbulk</span>, </span>
 <span>                       geneSpace <span class="op">=</span> <span class="va">genes</span>, </span>
 <span>                       contrastField <span class="op">=</span> <span class="st">"vaccine_cohort"</span>, </span>
@@ -728,7 +804,7 @@ groups.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control-unvax"</span></span>
@@ -740,7 +816,7 @@ groups.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control-vaccineOne"</span></span>
@@ -752,14 +828,14 @@ groups.</p>
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control-vaccineTwo"</span></span>
 <span><span class="co">#&gt; NULL</span></span></code></pre>
 <p>We can compare the gene log fold changes over the vaccine cohorts and
 find gene modules that are consistently upregulated.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">heatmap_list</span><span class="op">$</span><span class="va">heatmap</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/show%20first%20heatmap-1.png" width="700"></p>
 </div>
@@ -770,7 +846,7 @@ find gene modules that are consistently upregulated.</p>
 transcriptomics in subjects over time after treatment. We can pass that
 information as a <code>subgroupingVariable</code> to
 <code>PseudobulkingDEHeatmap</code>.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">heatmap_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PseudobulkingDEHeatmap.html">PseudobulkingDEHeatmap</a></span><span class="op">(</span>seuratObj <span class="op">=</span> <span class="va">pbulk</span>, </span>
 <span>                       geneSpace <span class="op">=</span> <span class="va">genes</span>, </span>
 <span>                       contrastField <span class="op">=</span> <span class="st">"vaccine_cohort"</span>, </span>
@@ -786,7 +862,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_baseline-unvax_baseline"</span></span>
@@ -795,7 +871,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_baseline-unvax_baseline"</span></span>
@@ -807,7 +883,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_baseline-vaccineOne_baseline"</span></span>
@@ -816,7 +892,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_baseline-vaccineOne_baseline"</span></span>
@@ -828,7 +904,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_baseline-vaccineTwo_baseline"</span></span>
@@ -837,7 +913,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_baseline-vaccineTwo_baseline"</span></span>
@@ -849,7 +925,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_day4-unvax_day4"</span></span>
@@ -858,7 +934,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_day4-unvax_day4"</span></span>
@@ -870,7 +946,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_day4-vaccineOne_day4"</span></span>
@@ -879,7 +955,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_day4-vaccineOne_day4"</span></span>
@@ -891,7 +967,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_day4-vaccineTwo_day4"</span></span>
@@ -900,7 +976,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_day4-vaccineTwo_day4"</span></span>
@@ -912,7 +988,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_necropsy-unvax_necropsy"</span></span>
@@ -921,7 +997,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_necropsy-unvax_necropsy"</span></span>
@@ -933,7 +1009,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_necropsy-vaccineOne_necropsy"</span></span>
@@ -942,7 +1018,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_necropsy-vaccineOne_necropsy"</span></span>
@@ -954,7 +1030,7 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  control_necropsy-vaccineTwo_necropsy"</span></span>
@@ -963,14 +1039,14 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
 <span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
 <span><span class="co">#&gt; [1] "Joining layers: RNA"</span></span>
-<span><span class="co">#&gt; [1] "After join: scale.data,data,counts,pct.expression.1,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_necropsy-vaccineTwo_necropsy"</span></span>
 <span><span class="co">#&gt; NULL</span></span></code></pre>
 <p>Now, we can interpret the changes within vaccine cohorts and over
 time!</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">heatmap_list</span><span class="op">$</span><span class="va">heatmap</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/show%20second%20heatmap-1.png" width="768"></p>
 </div>

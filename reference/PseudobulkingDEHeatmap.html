@@ -73,7 +73,8 @@
 <span>  showRowNames <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  assayName <span class="op">=</span> <span class="st">"RNA"</span>,</span>
 <span>  sampleIdCol <span class="op">=</span> <span class="st">"cDNA_ID"</span>,</span>
-<span>  minCountsPerGene <span class="op">=</span> <span class="fl">1</span></span>
+<span>  minCountsPerGene <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  subsetExpression <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -117,6 +118,10 @@
 
 <dt>minCountsPerGene</dt>
 <dd><p>Passthrough variable for PerformGlmFit, used for filtering out lowly expressed genes.</p></dd>
+
+
+<dt>subsetExpression</dt>
+<dd><p>An optional string containing an expression to subset the Seurat object. This is useful for selecting an exact subpopulation to in which to show DEGs. Please note that for string-based metadata fields, you will need to mix single and double quotes to ensure your expression is properly parsed. For instance, note the double quotes around the word unvax in this expression: subsetExpression = 'vaccine_cohort == "unvax"'.</p></dd>
 
 </dl></div>
     <div id="value">
