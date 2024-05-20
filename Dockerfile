@@ -14,6 +14,8 @@ RUN cd /CellMembrane \
     # TODO: this is to fix the as_cholmod_sparse' not provided by package 'Matrix' errors. This should ultimately be removed
     && Rscript -e "install.packages('Matrix', type = 'source', force = TRUE, repos = 'https://cran.wustl.edu/')" \
     && Rscript -e "install.packages('irlba', type = 'source', force = TRUE, repos = 'https://cran.wustl.edu/')" \
+    # TODO: the loe package is a dependency of VISION and others, but this package has been removed from CRAN. This is a bit of a hack:
+    remotes::install_github('https://github.com/cran/loe') \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
