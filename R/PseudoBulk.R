@@ -151,6 +151,10 @@ PseudobulkSeurat <- function(seuratObj,
 
     percentages <- NULL
     for (keyfield in colnames(a)) {
+      if (sum(seuratObj$KeyField == keyfield) == 0) {
+        stop(paste0('There are no cells in the seuratObj where KeyField equals: ', keyfield))
+      }
+
       pcts <- counts[,rownames(seuratObj@meta.data[seuratObj$KeyField == keyfield,])]
       nCells <- ncol(pcts)
       pcts <- apply(pcts, MARGIN = 1, FUN = function(x) {
