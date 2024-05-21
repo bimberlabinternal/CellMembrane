@@ -12,7 +12,7 @@ PseudobulkSeurat(
   metaFieldCollapseCharacter = "|",
   nCountRnaStratification = F,
   stratificationGroupingFields = c("ClusterNames_0.2", "ClusterNames_0.4",
-    "ClusterNames_0.6", "ClusterNames_0.8", "ClusterNames1.2")
+    "ClusterNames_0.6", "ClusterNames_0.8", "ClusterNames_1.2")
 )
 }
 \arguments{
