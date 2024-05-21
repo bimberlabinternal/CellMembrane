@@ -27,7 +27,7 @@ PseudobulkSeurat <- function(seuratObj,
                              additionalFieldsToAggregate = NULL, 
                              metaFieldCollapseCharacter = '|', 
                              nCountRnaStratification = F, 
-                             stratificationGroupingFields = c("ClusterNames_0.2", "ClusterNames_0.4", "ClusterNames_0.6", "ClusterNames_0.8", "ClusterNames1.2")) {
+                             stratificationGroupingFields = c("ClusterNames_0.2", "ClusterNames_0.4", "ClusterNames_0.6", "ClusterNames_0.8", "ClusterNames_1.2")) {
   if (!all(groupFields %in% names(seuratObj@meta.data))) {
     missing <- groupFields[!groupFields %in% names(seuratObj@meta.data)]
     stop(paste0('All fields from groupFields must be in seuratObj@meta.data. Missing: ', paste0(missing, collapse = ',')))
@@ -155,7 +155,7 @@ PseudobulkSeurat <- function(seuratObj,
         stop(paste0('There are no cells in the seuratObj where KeyField equals: ', keyfield))
       }
 
-      pcts <- counts[,rownames(seuratObj@meta.data[seuratObj$KeyField == keyfield,])]
+      pcts <- counts[,rownames(seuratObj@meta.data[seuratObj$KeyField == keyfield,,drop = FALSE])]
       nCells <- ncol(pcts)
       pcts <- apply(pcts, MARGIN = 1, FUN = function(x) {
         return(sum(x > 0))
