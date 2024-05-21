@@ -77,7 +77,6 @@ Imports:
     glmnet, 
     flexmix,
     jsonlite,
-    scMetabolism,
     dbscan,
     geometry,
     CSCORE,
@@ -110,7 +109,6 @@ Remotes:
     marchinilab/dropsim,
     drisso/RUVSeq,
     carmonalab/UCell,
-    wu-yc/scMetabolism,
     davidcsterratt/geometry/pkg,
     ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
@@ -140,6 +138,5 @@ Collate:
     'Spatial.R'
     'data.R'
     'escape.R'
-    'scMetabolism.R'
     'sctour.R'
 VignetteBuilder: knitr
