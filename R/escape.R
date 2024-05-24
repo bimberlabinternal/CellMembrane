@@ -56,6 +56,8 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
                                  min.size = 0,
                                  assay = assayName,
                                  new.assay.name = outputAssayName)
+  
+  seuratObj@assays[[outputAssayName]] <- SeuratObject::CreateAssay5Object(counts = Seurat::GetAssayData(seuratObj, assay = outputAssayName, layer = 'data'))
 
   seuratObj <- .NormalizeEscape(seuratObj, assayToNormalize = outputAssayName, assayForLibrarySize = assayName)
   
@@ -126,7 +128,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
 }
 
 .NormalizeEscape <- function(seuratObj, assayToNormalize, assayForLibrarySize = 'RNA', scale.factor = 1e4) {
-  toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, slot = 'counts')
+  toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, layer = 'counts')
   assayForLibrarySizeData <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, slot = 'counts')
 
   if (any(colnames(toNormalize) != colnames(assayForLibrarySize))) {
@@ -139,12 +141,16 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
   for (i in seq_len(length.out = ncells)) {
     x <- toNormalize[, i]
     librarySize <- sum(assayForLibrarySizeData[, i])
+    if (any(is.na(x))) {
+      x[is.na(x)] <- 0
+    }
 
+    # TODO: what about negative numbers?    
     xnorm <- log1p(x = x / librarySize * scale.factor)
     toNormalize[, i] <- xnorm
   }
 
-  seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, slot = 'data', new.data = toNormalize)
+  seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, layer = 'data', new.data = toNormalize)
 
   return(seuratObj)
 }
