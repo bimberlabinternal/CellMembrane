@@ -57,7 +57,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
                                  assay = assayName,
                                  new.assay.name = outputAssayName)
   
-  seuratObj@assays[[outputAssayName]] <- SeuratObject::CreateAssay5Object(counts = Seurat::GetAssayData(seuratObj, assay = outputAssayName, layer = 'data'))
+  seuratObj <- SeuratObject::SetAssayData(seuratObj, assay = outputAssayName, layer = 'counts', new.data = SeuratObject::GetAssayData(seuratObj, assay = outputAssayName, layer = 'data'))
 
   seuratObj <- .NormalizeEscape(seuratObj, assayToNormalize = outputAssayName, assayForLibrarySize = assayName)
   
