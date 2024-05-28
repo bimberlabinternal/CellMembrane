@@ -79,11 +79,22 @@ Imports:
     flexmix,
     jsonlite,
     scMetabolism,
+    dbscan,
+    geometry,
+    CSCORE,
+    WGCNA,
+    escape (>= 1.99.0),
+    GSVA (>= 1.51.5),
+    dynamicTreeCut, 
+    pacman,
+    circlize,
     presto,
     msigdbr,
     fgsea,
     clusterProfiler,
-    babelgene
+    babelgene,
+    conover.test, 
+    colorspace
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -106,18 +117,21 @@ Remotes:
     drisso/RUVSeq,
     carmonalab/UCell,
     wu-yc/scMetabolism,
+    davidcsterratt/geometry/pkg,
+    ChangSuBiostats/CS-CORE,
+    ncborcherding/escape,
+    rcastelo/GSVA,
     immunogenomics/presto
 Config/reticulate:
   list(
     packages = list(
-      list(package = "cellbender"),
       list(package = "phate"),
       list(package = "sctour")
     )
   )
 Collate: 
     'Analysis.R'
-    'CellBender.R'
+    'CSCore.R'
     'Preprocessing.R'
     'Utils.R'
     'CiteSeq.R'
@@ -134,5 +148,7 @@ Collate:
     'Spatial.R'
     'Vision.R'
     'data.R'
+    'escape.R'
     'scMetabolism.R'
     'sctour.R'
+VignetteBuilder: knitr

@@ -9,6 +9,7 @@ MergeSeuratObjs(
   projectName,
   merge.data = FALSE,
   expectedDefaultAssay = "RNA",
+  excludedAssays = c("UCellRanks"),
   enforceUniqueCells = TRUE,
   errorOnBarcodeSuffix = FALSE,
   doGC = FALSE,
@@ -23,6 +24,8 @@ MergeSeuratObjs(
 \item{merge.data}{Passed directly to Seurat::merge}
 
 \item{expectedDefaultAssay}{If not null, the DefaultAssay on the resulting seurat object will be set to this}
+
+\item{excludedAssays}{An optional list of assay names to drop prior to merge.}
 
 \item{enforceUniqueCells}{If true, all inputs must have unique cellbarcodes.}
 

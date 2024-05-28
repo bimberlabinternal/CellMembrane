@@ -7,8 +7,8 @@ test_that("Cell cycle gene data OK", {
 
 	expect_equal(length(g2m.genes.orig), 200)
 
-	expect_equal(length(CellMembrane:::.GetG2MGenes(TRUE)), 54)
- 	expect_equal(length(CellMembrane:::.GetG2MGenes(FALSE)), 223)
+	expect_equal(length(GetG2MGenes(TRUE)), 54)
+ 	expect_equal(length(GetG2MGenes(FALSE)), 223)
 })
 
 test_that("CD genes data OK", {

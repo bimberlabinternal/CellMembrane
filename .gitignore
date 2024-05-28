@@ -10,3 +10,4 @@ CellMembrane.Rproj
 .shelf/*
 install.bat
 docs
+inst/doc
