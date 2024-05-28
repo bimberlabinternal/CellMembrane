@@ -148,7 +148,10 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
     toNormalize[, i] <- x / librarySize
   }
 
+  scaledData <- scale(toNormalize, margin = 2)
+
   seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, layer = 'data', new.data = toNormalize)
+  seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, layer = 'scale.data', new.data = scaledData)
 
   return(seuratObj)
 }
