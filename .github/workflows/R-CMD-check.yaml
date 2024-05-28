@@ -114,6 +114,9 @@ jobs:
           # See: https://stackoverflow.com/questions/77370659/error-failed-to-collect-lazy-table-caused-by-error-in-db-collect-using
           # TODO: Updating to BiocFileCache 2.10.1 should ultimately fix this. This manifests in SingleR
           if (Sys.getenv("R_BIOC_VERSION") < '3.18') { devtools::install_version("dbplyr", version = "2.3.4") }
+          # TODO: this is to fix the as_cholmod_sparse' not provided by package 'Matrix' errors. This should ultimately be removed
+          install.packages('Matrix', type = 'source', force = TRUE, repos = 'https://cran.wustl.edu/')
+          install.packages('irlba', type = 'source', force = TRUE, repos = 'https://cran.wustl.edu/')
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}

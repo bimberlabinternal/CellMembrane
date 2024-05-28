@@ -6,12 +6,18 @@ test_that("Pseudobulk works", {
   pseudo <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.2'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.2)), nrow(pseudo@meta.data))
   expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo@assays$RNA))
+  expect_equal(64488, max(pseudo@assays$RNA$counts))
+  expect_equal(21.9, mean(as.matrix(pseudo@assays$RNA$counts), na.rm = TRUE), tolerance = 0.0001)
   
-  pseudo2 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assays = c('RNA'))
+  ld <- SeuratObject::LayerData(pseudo, layer = 'pct.expression', assay = 'RNA')
+  expect_equal(1, max(ld))
+  expect_equal(0.0261, mean(as.matrix(ld), na.rm = TRUE), tolerance = 0.001)
+  
+  pseudo2 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assayToAggregate = c('RNA'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.4)), nrow(pseudo2@meta.data))
   expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo2@assays$RNA))
-  
-  pseudo3 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assays = c('RNA'), additionalFieldsToAggregate = c('G2M.Score', 'p.mito'))
+
+  pseudo3 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assayToAggregate = c('RNA'), additionalFieldsToAggregate = c('G2M.Score', 'p.mito'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.4)), nrow(pseudo3@meta.data))
   expect_equal(max(pseudo3$G2M.Score_mean, na.rm = T), -0.007676878)
   expect_equal(min(pseudo3$G2M.Score_mean, na.rm = T), -0.02633076)
@@ -91,6 +97,8 @@ test_that("Logic gate study design works", {
   testthat::expect_equal(length(DE_results), expected = 15)
   #9008 "DEGs" in the first contrast (note overly permissive DEG thresholds)
   testthat::expect_equal(nrow(DE_results$`1`), expected = 9008)
+  #test that pct.1 and pct.2 are present in the DE results
+  testthat::expect_true(all(c("pct.1", "pct.2") %in%  colnames(DE_results$`1`)))
   
   barPlot <- PseudobulkingBarPlot(filteredContrasts = DE_results, 
                        metadataFilterList = NULL
@@ -115,7 +123,48 @@ test_that("Logic gate study design works", {
   testthat::expect_true(typeof(heatmap_list$heatmap) == "S4")
   #test that the heatmap matrix has 3 columns
   testthat::expect_true(ncol(heatmap_list$matrix) == 3)
+  #test that pseudobulk heatmap subsetting works. 
+  testthat::expect_no_error(PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes[genes!="PRF1"], 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "control", 
+                                         sampleIdCol = 'subject', 
+                                         subsetExpression = "vaccine_cohort %in% c('unvax', 'vaccineOne')"
+  ))
 })
+
+test_that("Non-alphanumeric characters do not break pseudobulking pipeline", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  testthat::expect_equal(ncol(seuratObj), expected = 1557) #check that test seuratObj doesn't change
+  #add fabricated study metadata with odd characters in the metadata fields
+  seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("cont-rol", "vaccine One", "vaccine_Two", "un$vax"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy", "day_4"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
+  
+  pbulk <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint","subject"))
+  genes <- rownames(pbulk)[1:10]
+  
+  heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes, 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "cont-rol", 
+                                         sampleIdCol = 'subject')
+  heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes, 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "vaccine One", 
+                                         sampleIdCol = 'subject')
+  heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes, 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "un$vax", 
+                                         sampleIdCol = 'subject')
+  heatmap_list <- PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes, 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "vaccine_Two", 
+                                         sampleIdCol = 'subject')
+  })
 
 test_that("Feature Selection by GLM works", {
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
