@@ -18,7 +18,8 @@ FindClustersAndDimRedux(
   max.tsne.iter = 10000,
   tsne.perplexity = 30,
   umap.densmap = FALSE,
-  clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2, useLeiden = FALSE)
+  clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2),
+  useLeiden = FALSE
 )
 }
 \arguments{

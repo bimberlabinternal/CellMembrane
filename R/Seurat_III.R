@@ -603,8 +603,8 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
                                    umap.method = 'uwot', umap.metric = NULL,
                                    umap.n.neighbors = NULL, umap.min.dist = NULL, umap.spread = NULL, seed.use = GetSeed(),
                                    umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30, umap.densmap = FALSE,
-  clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2,
-                         useLeiden = FALSE) ){
+  clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2),
+                         useLeiden = FALSE){
 
   dimsToUse <- .GetDimsToUse(seuratObj, dimsToUse = dimsToUse, minDimsToUse = minDimsToUse)
 
