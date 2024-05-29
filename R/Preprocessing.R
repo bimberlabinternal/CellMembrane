@@ -340,7 +340,7 @@ MergeSplitLayers <- function(seuratObj) {
 			print(seuratObj)
 		}
 
-		if (HasSplitLayers(seuratObj, assayName = assayName)) {
+		if (HasSplitLayers(seuratObj, assaysToTest = assayName)) {
 			print(paste0('Remaining layers: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 			stop('Layers were not joined!')
 		}

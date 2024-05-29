@@ -596,20 +596,25 @@ RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.siz
 #' @param max.tsne.iter The value of max_iter to provide to RunTSNE.  Increasing can help large datasets.
 #' @param tsne.perplexity tSNE perplexity. Passed directly to Seurat::RunTSNE(), but CellMembrane:::.InferPerplexityFromSeuratObj() corrects it if need be based dataset dims.
 #' @param clusterResolutions A vector of clustering resolutions, default is (0.2, 0.4, 0.6, 0.8, 1.2).
+#' @param useLeiden If true, Leiden clustering (FindClusters algorithm = 4) will be used. Otherwise it will default to algorithm = 1 (Louvain).
 #' @return A modified Seurat object.
 #' @export
 FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = NULL,
                                    umap.method = 'uwot', umap.metric = NULL,
                                    umap.n.neighbors = NULL, umap.min.dist = NULL, umap.spread = NULL, seed.use = GetSeed(),
                                    umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30, umap.densmap = FALSE,
-  clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2) ){
+  clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2,
+                         useLeiden = FALSE) ){
 
   dimsToUse <- .GetDimsToUse(seuratObj, dimsToUse = dimsToUse, minDimsToUse = minDimsToUse)
 
   seuratObj <- FindNeighbors(object = seuratObj, dims = dimsToUse, verbose = FALSE)
 
+  clusterMethod <- ifelse(ncol(seuratObj) > 5000, yes = 'igraph', no = 'matrix')
+  algorithm <- ifelse(useLeiden, yes = 4, no = 1)
+
   for (resolution in clusterResolutions){
-    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE, random.seed = seed.use)
+    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE, random.seed = seed.use, method = clusterMethod, algorithm = algorithm)
     seuratObj[[paste0("ClusterNames_", resolution)]] <- Idents(object = seuratObj)
   }
 
@@ -990,7 +995,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     ans <- c()
     ix <- 0
     iy <- 0
-    for (i in 1:length(u)) {
+    for (i in seq_along(u)) {
       if (u[i] < 0.00001 || u[i] > 1) {
         print('closest point does not fall within the line segment, take the shorter distance to an endpoint')
         ix <- lineMagnitude(px[i], py[i], x1[i], y1[i])
@@ -1018,7 +1023,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
   y <- sort(y, decreasing = T)
 
   # Add an index to argument values for easy plotting
-  DF <- data.frame(x = 1:length(y), y = y)
+  DF <- data.frame(x = seq_along(y), y = y)
   fit <- lm(y ~ x, DF[c(1,nrow(DF)),]) # 2 point 'fit'
   m <- coef(fit)[2]
   b <- coef(fit)[1]
@@ -1095,7 +1100,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
   varianceStandardizedField <- NULL
   vstVariableField <- NULL
-  for (idx in 1:length(varianceStandardizedFields)) {
+  for (idx in seq_along(varianceStandardizedFields)) {
     fn1 <- varianceStandardizedFields[idx]
     fn2 <- vstVariableFields[idx]
     if (fn1 %in% names(df) && fn2 %in% names(df)) {

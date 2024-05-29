@@ -68,7 +68,7 @@ test_that("Seurat processing works as expected", {
   expect_equal(nrow(utils::read.table(vgFile, sep = '\t', header = F)), 2000)
   unlink(vgFile)
 
-  seuratObj <- FindClustersAndDimRedux(seuratObj)
+  seuratObj <- FindClustersAndDimRedux(seuratObj, useLeiden = TRUE)
   expect_equal(ncol(seuratObj), 487)
   expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 6)
 
