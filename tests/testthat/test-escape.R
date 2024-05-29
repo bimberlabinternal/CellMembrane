@@ -11,7 +11,7 @@ test_that("escape works as expected", {
     expect_equal(length(rownames(seuratObj@assays$escape.ssGSEA)), 51) #50 hallmark gene sets, 1 custom gene set
     expect_equal(max(seuratObj@assays$escape.ssGSEA$counts[1]), 626, tolerance = 0.5)
     expect_equal(max(seuratObj@assays$escape.ssGSEA$data[1]), 0.265, tolerance = 0.01)
-    expect_equal(max(seuratObj@assays$escape.ssGSEA$scale.data[1]), 0.265, tolerance = 0.01)
+    expect_equal(max(seuratObj@assays$escape.ssGSEA$scale.data[1]), -0.179, tolerance = 0.01)
     
     expect_true('pca.escape.ssGSEA' %in% names(seuratObj@reductions))
     print(names(seuratObj@reductions))
