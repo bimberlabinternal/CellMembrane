@@ -36,6 +36,9 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v2
 
+      - name: Install pdflatex
+        run: sudo apt-get install texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
+
       - name: Install packages
         if: runner.os != 'Windows'
         # libharfbuzz-dev libfribidi-dev are added to fix textshaping install error
