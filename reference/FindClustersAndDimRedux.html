@@ -77,7 +77,8 @@
 <span>  max.tsne.iter <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>  tsne.perplexity <span class="op">=</span> <span class="fl">30</span>,</span>
 <span>  umap.densmap <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  clusterResolutions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.4</span>, <span class="fl">0.6</span>, <span class="fl">0.8</span>, <span class="fl">1.2</span><span class="op">)</span></span>
+<span>  clusterResolutions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.4</span>, <span class="fl">0.6</span>, <span class="fl">0.8</span>, <span class="fl">1.2</span><span class="op">)</span>,</span>
+<span>  useLeiden <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -137,6 +138,10 @@
 
 <dt>clusterResolutions</dt>
 <dd><p>A vector of clustering resolutions, default is (0.2, 0.4, 0.6, 0.8, 1.2).</p></dd>
+
+
+<dt>useLeiden</dt>
+<dd><p>If true, Leiden clustering (FindClusters algorithm = 4) will be used. Otherwise it will default to algorithm = 1 (Louvain).</p></dd>
 
 </dl></div>
     <div id="value">
