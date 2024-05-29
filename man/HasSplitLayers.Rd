@@ -4,10 +4,12 @@
 \alias{HasSplitLayers}
 \title{HasSplitLayers}
 \usage{
-HasSplitLayers(seuratObj)
+HasSplitLayers(seuratObj, assaysToTest = NULL)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
+
+\item{assaysToTest}{An option list of assays to test}
 }
 \value{
 A boolean indicating whether the object has split layers

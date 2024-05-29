@@ -68,16 +68,16 @@ test_that("Seurat processing works as expected", {
   expect_equal(nrow(utils::read.table(vgFile, sep = '\t', header = F)), 2000)
   unlink(vgFile)
 
-  seuratObj <- FindClustersAndDimRedux(seuratObj)
+  seuratObj <- FindClustersAndDimRedux(seuratObj, useLeiden = TRUE)
   expect_equal(ncol(seuratObj), 487)
-  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 6)
+  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 7)
 
   #Note: Seurat::PercentageFeatureSet returns 0-100.  our code is currently a fraction (0-1.0)
   expect_true(max(seuratObj$p.mito) < 1.0)
   expect_true(max(seuratObj$p.mito) > 0)
 
   seuratObj0 <- FindClustersAndDimRedux(seuratObj, minDimsToUse = 12)
-  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 6)
+  expect_equal(length(unique(seuratObj0$ClusterNames_0.6)), 6)
   rm(seuratObj0)
 
   mf <- paste0(outPrefix, '.markers.txt')
@@ -86,7 +86,7 @@ test_that("Seurat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 856)
+  expect_equal(nrow(df), 868)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
