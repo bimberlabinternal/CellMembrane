@@ -47,7 +47,6 @@ Imports:
     SoupX,
     hdf5r,
     phytools,
-    VISION,
     rentrez,
     RIRA,
     UCell (>= 2.6.0),
@@ -79,7 +78,6 @@ Imports:
     flexmix,
     data.table,
     jsonlite,
-    scMetabolism,
     dbscan,
     geometry,
     CSCORE,
@@ -107,13 +105,11 @@ URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
     niaid/dsb,
-    YosefLab/VISION,
     bimberlabinternal/RIRA,
     marchinilab/SDAtools,
     marchinilab/dropsim,
     drisso/RUVSeq,
     carmonalab/UCell,
-    wu-yc/scMetabolism,
     davidcsterratt/geometry/pkg,
     ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
@@ -141,9 +137,7 @@ Collate:
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'Spatial.R'
-    'Vision.R'
     'data.R'
     'escape.R'
-    'scMetabolism.R'
     'sctour.R'
 VignetteBuilder: knitr
