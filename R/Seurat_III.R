@@ -614,8 +614,7 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
   algorithm <- ifelse(useLeiden, yes = 4, no = 1)
 
   for (resolution in clusterResolutions){
-    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE, random.seed = seed.use, method = clusterMethod, algorithm = algorithm)
-    seuratObj[[paste0("ClusterNames_", resolution)]] <- Idents(object = seuratObj)
+    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE, random.seed = seed.use, method = clusterMethod, algorithm = algorithm, cluster.name = paste0("ClusterNames_", resolution))
   }
 
   perplexity <- .InferPerplexityFromSeuratObj(seuratObj, perplexity = tsne.perplexity)
