@@ -740,6 +740,11 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
   #tag the genes as either up or down regulated
   filteredContrastsResults <- .addRegulationInformationAndFilterDEGs(filteredContrastsResults, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold)
   
+  #check for DEGs. If there are none, raise an error. 
+  if (all(unique(filteredContrastsResults$n_DEG %in% c(0)))) {
+    stop("All of the genes in all of the contrasts failed to pass the FDR and logFC thresholds. You can consider adjusting the logFC_threshold and FDR_threshold arguments, but this is a reasonable result (i.e. no DEGs) when you are comparing very similar samples.")
+  }
+  
   #Further filter contrasts associated with a list of vectors (metadataFilterList).
   if (!is.null(metadataFilterList)) {
     if (!is.list(metadataFilterList)) {
