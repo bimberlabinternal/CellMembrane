@@ -10,14 +10,14 @@ test_that("Pseudobulk works", {
   expect_equal(21.9, mean(as.matrix(pseudo@assays$RNA$counts), na.rm = TRUE), tolerance = 0.0001)
   
   ld <- SeuratObject::LayerData(pseudo, layer = 'pct.expression', assay = 'RNA')
-  expect_equal(508, max(ld))
-  expect_equal(9.01, mean(as.matrix(ld), na.rm = TRUE), tolerance = 0.001)
+  expect_equal(1, max(ld))
+  expect_equal(0.0261, mean(as.matrix(ld), na.rm = TRUE), tolerance = 0.001)
   
-  pseudo2 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assays = c('RNA'))
+  pseudo2 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assayToAggregate = c('RNA'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.4)), nrow(pseudo2@meta.data))
   expect_equal(nrow(seuratObj@assays$RNA), nrow(pseudo2@assays$RNA))
 
-  pseudo3 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assays = c('RNA'), additionalFieldsToAggregate = c('G2M.Score', 'p.mito'))
+  pseudo3 <- PseudobulkSeurat(seuratObj, groupFields = c('ClusterNames_0.4'), assayToAggregate = c('RNA'), additionalFieldsToAggregate = c('G2M.Score', 'p.mito'))
   expect_equal(length(unique(seuratObj$ClusterNames_0.4)), nrow(pseudo3@meta.data))
   expect_equal(max(pseudo3$G2M.Score_mean, na.rm = T), -0.007676878)
   expect_equal(min(pseudo3$G2M.Score_mean, na.rm = T), -0.02633076)
@@ -97,6 +97,8 @@ test_that("Logic gate study design works", {
   testthat::expect_equal(length(DE_results), expected = 15)
   #9008 "DEGs" in the first contrast (note overly permissive DEG thresholds)
   testthat::expect_equal(nrow(DE_results$`1`), expected = 9008)
+  #test that pct.1 and pct.2 are present in the DE results
+  testthat::expect_true(all(c("pct.1", "pct.2") %in%  colnames(DE_results$`1`)))
   
   barPlot <- PseudobulkingBarPlot(filteredContrasts = DE_results, 
                        metadataFilterList = NULL
@@ -121,6 +123,14 @@ test_that("Logic gate study design works", {
   testthat::expect_true(typeof(heatmap_list$heatmap) == "S4")
   #test that the heatmap matrix has 3 columns
   testthat::expect_true(ncol(heatmap_list$matrix) == 3)
+  #test that pseudobulk heatmap subsetting works. 
+  testthat::expect_no_error(PseudobulkingDEHeatmap(seuratObj = pbulk, 
+                                         geneSpace = genes[genes!="PRF1"], 
+                                         contrastField = "vaccine_cohort", 
+                                         negativeContrastValue = "control", 
+                                         sampleIdCol = 'subject', 
+                                         subsetExpression = "vaccine_cohort %in% c('unvax', 'vaccineOne')"
+  ))
 })
 
 test_that("Non-alphanumeric characters do not break pseudobulking pipeline", {

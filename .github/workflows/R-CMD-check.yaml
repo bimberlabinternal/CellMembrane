@@ -36,6 +36,9 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v2
 
+      - name: Install pdflatex
+        run: sudo apt-get install texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
+
       - name: Install packages
         if: runner.os != 'Windows'
         # libharfbuzz-dev libfribidi-dev are added to fix textshaping install error
@@ -45,8 +48,7 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
           python3 -m pip install --user git+https://github.com/kmayerb/tcrdist3.git@0.2.2
-          python3 -m pip install --user umap-learn phate sctour scikit-misc
-
+          python3 -m pip install --user umap-learn phate sctour scikit-misc leidenalg
 
       - name: Setup CoNGA
         run: |

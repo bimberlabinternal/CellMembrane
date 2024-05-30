@@ -298,10 +298,15 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 #' @title HasSplitLayers
 #'
 #' @param seuratObj The seurat object
+#' @param assaysToTest An option list of assays to test
 #' @return A boolean indicating whether the object has split layers
 #' @export
-HasSplitLayers <- function(seuratObj) {
-	for (assayName in Seurat::Assays(seuratObj)) {
+HasSplitLayers <- function(seuratObj, assaysToTest = NULL) {
+	if (all(is.null(assaysToTest))) {
+		assaysToTest <- Seurat::Assays(seuratObj)
+	}
+
+	for (assayName in assaysToTest) {
 		if (length(suppressWarnings(SeuratObject::Layers(seuratObj, assay = assayName, search = 'counts'))) > 1) {
 			return(TRUE)
 		}
@@ -328,14 +333,14 @@ MergeSplitLayers <- function(seuratObj) {
 
 		if (inherits(seuratObj[[assayName]], 'Assay5')) {
 			print(paste0('Joining layers: ', assayName))
-			seuratObj[[assayName]] <- SeuratObject::JoinLayers(seuratObj[[assayName]])
+			seuratObj[[assayName]] <- SeuratObject::JoinLayers(seuratObj[[assayName]], layers = unique(gsub(".\\d+$", "", SeuratObject::Layers(seuratObj[[assayName]]))))
 			print(paste0('After join: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 		} else {
 			print(paste0('Not an assay5 object, not joining layers: ', assayName))
 			print(seuratObj)
 		}
 
-		if (HasSplitLayers(seuratObj)) {
+		if (HasSplitLayers(seuratObj, assaysToTest = assayName)) {
 			print(paste0('Remaining layers: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 			stop('Layers were not joined!')
 		}
