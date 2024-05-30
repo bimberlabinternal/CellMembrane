@@ -332,8 +332,9 @@ MergeSplitLayers <- function(seuratObj) {
 		print(paste0('Class: ', class(seuratObj[[assayName]])[1]))
 
 		if (inherits(seuratObj[[assayName]], 'Assay5')) {
-			print(paste0('Joining layers: ', assayName))
-			seuratObj[[assayName]] <- SeuratObject::JoinLayers(seuratObj[[assayName]], layers = unique(gsub(".\\d+$", "", SeuratObject::Layers(seuratObj[[assayName]]))))
+			toJoin <- .FindLayersToJoin(seuratObj, assayName)
+			print(paste0('Joining layers: ', assayName, ', ', paste0(toJoin, collapse = ';')))
+			seuratObj[[assayName]] <- SeuratObject::JoinLayers(seuratObj[[assayName]], layers = toJoin)
 			print(paste0('After join: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 		} else {
 			print(paste0('Not an assay5 object, not joining layers: ', assayName))
@@ -419,4 +420,23 @@ LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayFo
 	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, slot = 'data', new.data = toNormalize)
 
 	return(seuratObj)
+}
+
+.FindLayersToJoin <- function(seuratObj, assayName) {
+	layerNames <- SeuratObject::Layers(seuratObj, assay = assayName)
+	layerBasenames <- sapply(layerNames, function(x){
+		x <- unlist(strsplit(x, split = '\\.'))
+		if (length(x) == 1) {
+			return(NA)
+		}
+
+		# Drop the final suffix, on the assumption the initial piece is the layer basename, and the final element is projectName:
+		return(paste0(x[-length(x)], collapse = '.'))
+	})
+
+	# Any duplicated basenames inducate a split layer:
+	layerBasenames <- layerBasenames[!is.na(layerBasenames)]
+	layerBasenames <- unique(layerBasenames[duplicated(layerBasenames)])
+
+	return(unlist(layerBasenames))
 }
