@@ -90,10 +90,14 @@ test_that("Assumptions about Seurat layers are true", {
   expect_false(inherits(assayA, 'Assay5'))
 
   assayB <- SeuratObject::CreateAssayObject(Seurat::GetAssayData(seuratObj[['RNA']], layer = 'counts'))
-  colnames(assayA) <- paste0('B_', colnames(assayB))
+  colnames(assayB) <- paste0('B_', colnames(assayB))
+  
+  assayC <- SeuratObject::CreateAssayObject(Seurat::GetAssayData(seuratObj[['RNA']], layer = 'counts'))
+  colnames(assayC) <- paste0('C_', colnames(assayC))
 
   assay5A <- SeuratObject::CreateAssay5Object(Seurat::GetAssayData(assayA, layer = 'counts'))
   assay5B <- SeuratObject::CreateAssay5Object(Seurat::GetAssayData(assayB, layer = 'counts'))
+  assay5C <- SeuratObject::CreateAssay5Object(Seurat::GetAssayData(assayC, layer = 'counts'))
   expect_true(inherits(assay5A, 'Assay5'))
   expect_false(inherits(assay5A, 'Assay'))
   
@@ -108,4 +112,20 @@ test_that("Assumptions about Seurat layers are true", {
   expect_equal(c('counts'), SeuratObject::Layers(merge5))
   expect_true(inherits(merge5, 'Assay5'))
   expect_false(inherits(merge5, 'Assay'))
+
+  seurat5a <- SeuratObject::CreateSeuratObject(project = 'Proj1', counts = SeuratObject::SetAssayData(assay5A, layer = 'layer', new.data = Seurat::GetAssayData(assay5A, layer = 'counts')))
+  seurat5b <- SeuratObject::CreateSeuratObject(project = 'Proj2', counts = SeuratObject::SetAssayData(assay5B, layer = 'layer', new.data = Seurat::GetAssayData(assay5B, layer = 'counts')))
+  seurat5c <- SeuratObject::CreateSeuratObject(project = 'Proj3', counts = SeuratObject::SetAssayData(assay5C, layer = 'layer', new.data = Seurat::GetAssayData(assay5C, layer = 'counts')))
+  
+  merge5v2 <- merge(seurat5a, list(Proj2 = seurat5b, Proj3 = seurat5c), collapse = FALSE)
+   
+  expect_equal(c('counts.Proj1', 'counts.Proj2', 'counts.Proj3', 'layer.Proj1', 'layer.Proj2', 'layer.Proj3'), SeuratObject::Layers(merge5v2))
+  
+  merge5v2Joined <- SeuratObject::JoinLayers(merge5v2)
+  expect_equal(c('counts', 'layer.Proj1', 'layer.Proj2', 'layer.Proj3'), SeuratObject::Layers(merge5v2Joined))
+  
+  merge5v2Joined <- SeuratObject::JoinLayers(merge5v2, layers = .FindLayersToJoin(merge5v2, 'RNA'))
+  expect_equal(c('counts', 'layer'), sort(SeuratObject::Layers(merge5v2Joined)))
 })
+
+

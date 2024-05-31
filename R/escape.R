@@ -113,8 +113,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
 
   origIdents <- Idents(seuratObj)
   for (resolutionToUse in resolutionsToUse) {
-    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName)
-    seuratObj[[paste0('ClusterNames.', assayName, '_', resolutionToUse)]] <- Idents(object = seuratObj)
+    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
   }
   Idents(seuratObj) <- origIdents
 
@@ -140,18 +139,21 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
 
   for (i in seq_len(length.out = ncells)) {
     x <- toNormalize[, i]
-    librarySize <- sum(assayForLibrarySizeData[, i])
     if (any(is.na(x))) {
+      warning('NAs were found in the escape data!')
       x[is.na(x)] <- 0
+    }
+
+    librarySize <- sum(assayForLibrarySizeData[, i], na.rm = TRUE)
+    if (librarySize == 0) {
+      stop(paste0('librarySize was zero for: ', colnames(seuratObj)[i]))
     }
 
     toNormalize[, i] <- x / librarySize
   }
 
-  scaledData <- t(scale(t(toNormalize)))
-
   seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, layer = 'data', new.data = toNormalize)
-  seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, layer = 'scale.data', new.data = scaledData)
+  seuratObj <- Seurat::ScaleData(seuratObj, assay = assayToNormalize)
 
   return(seuratObj)
 }
