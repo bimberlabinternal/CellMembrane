@@ -223,13 +223,6 @@ CalculateTcrDiversity <- function(inputData,
     stop('The tcrdist3 python package has not been installed! If you believe it has been installed, run reticulate::import("tcrdist") to get more information and debug')
   }
   
-  if (is.null(conga_clones_file)){
-    stop("conga_clones_file is NULL. Please supply a csv file.")
-  } else if (!file.exists(conga_clones_file)){
-    stop("conga_clones_file does not exist. Please ensure your path specification is correct.")
-  }
-
-  #normalize paths in case they were specified using non-absolute paths.
   conga_clones_file <- tempfile()
   write.table(df, file = conga_clones_file, sep = '\t', row.names = FALSE, quote = FALSE)
 
