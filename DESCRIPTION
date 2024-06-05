@@ -77,7 +77,6 @@ Imports:
     mlr3,
     glmnet, 
     flexmix,
-    data.table
     jsonlite,
     scMetabolism,
     dbscan,

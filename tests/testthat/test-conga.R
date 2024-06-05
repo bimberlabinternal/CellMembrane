@@ -57,7 +57,7 @@ test_that("RunConga works", {
   unlink("./tmpoutput", recursive = TRUE)
 })
 
-test_that("PlotDiversity works", {
+test_that("CalculateTcrDiversity works", {
   if (!reticulate::py_module_available('tcrdist')) {
     print('tcrdist3 module not found, debugging:')
     print(reticulate::py_list_packages())
@@ -74,17 +74,20 @@ test_that("PlotDiversity works", {
     warning('The python tcrdist3 module has not been installed!')
     return()
   }
-  
-  PlotDiversity(conga_clones_file = "../testdata/clones_file.txt",
+
+  dat <- read.table("../testdata/clones_file.txt", sep = '\t', header = TRUE)
+  dat <- dat[c('clone_id', 'va_gene', 'vb_gene', 'cdr3a', 'cdr3b')]
+  names(dat) <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa')
+  dat$sampleId <- unlist(sapply(sampleId, function(x){
+    return(unlist(strsplit(x = x, split = '_'))[1])
+  }))
+  dat <- dat[!is.na(dat$v_a_gene) & !is.na(dat$v_b_gene) & !is.na(dat$cdr3_a_aa) & !is.na(dat$cdr3_b_aa),]
+  df <- CalculateTcrDiversity(dat,
                 outputFile = "../testdata/tmpoutput/diversity_output.csv",
                 order1 = 1,
                 order2 = 200)
-  #test that the output file exists (i.e that PlotDiversity worked).
-  testthat::expect_true(file.exists("../testdata/tmpoutput/diversity_output.csv"))
-  df <- read.csv("../testdata/tmpoutput/diversity_output.csv")
-  #test that the output file has correct number of rows.
+
   testthat::expect_equal(nrow(df), 199)
-  unlink("./tmpoutput", recursive = TRUE)
 })
 
 test_that("QuantifyTcrClones  works", {

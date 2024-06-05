@@ -166,24 +166,54 @@ SeuratToCoNGA <- function(seuratObj,
                                overwrite = TRUE)
 }
 
-#' @title Plot Diversity
+#' @title Calculate TCR diversity from a seurat object
 #'
-#' @description Plot a diversity profile for each library in the data
-#' @param conga_clones_file The output clones file from CoNGA (named clones_file.txt).
-#' @param outputFile The output file containing the data used for generating diversity profiles.
+#' @description Calculate TCR a diversity profile for each library in the data
+#' @param seuratObj A seurat object with the following columns: TRA, TRA_V, TRA_J, TRB, TRB_V, TRB_J
+#' @param groupField The field that defines sample groups.
 #' @param order1 The minimum order for calculating the generalized Simpson entropy.
 #' @param order2 The maximum order for calculating the generalized Simpson entropy.
+#' @return A data frame with the results
 #' @examples
-#' \dontrun{
-#'   PlotDiversity(conga_clones_file = "./clones_file.txt",
-#'                 outputFile = "./diversity_output.csv", 
-#'                 order1 = 1, order2 = 200)
-#' }
 #' @export
-PlotDiversity <- function(conga_clones_file = "./clones_file.txt",
-                     outputFile, 
+CalculateTcrDiversityFromSeurat <- function(seuratObj,
+                          groupField,
+                          order1 = 1,
+                          order2 = 200) {
+
+  cols <- c(groupField, c('TRA_V', 'TRB_V', 'TRA', 'TRB'))
+  if (!all(cols %in% names(seuratObj@meta.data))) {
+    missing <- cols[! cols %in% names(seuratObj@meta.data)]
+    stop(paste0('The following columns were missing: ', paste0(missing, collapse = ',')))
+  }
+
+  df <- seuratObj@meta.data[cols]
+  names(df) <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa')
+  df <- df %>% dplyr::filter(!is.na(v_a_gene) & !is.na(v_b_gene) & !is.na(cdr3_a_aa) & !is.na(cdr3_b_aa))
+  print(paste0('Total cells with paired a/b TCR data: ', nrow(df), ', out of ', ncol(seuratObj), ' input cells'))
+
+  return(CalculateTcrDiversity(df, order1 = order1, order2 = order2))
+}
+
+#' @title Calculate TCR diversity
+#'
+#' @description Plot a diversity profile for each library in the data
+#' @param inputData The a data frame with the columns: sampleId, v_a_gene, v_b_gene, cdr3_a_aa, and cdr3_b_aa
+#' @param order1 The minimum order for calculating the generalized Simpson entropy.
+#' @param order2 The maximum order for calculating the generalized Simpson entropy.
+#' @return A data frame with the results
+#' @examples
+#' @export
+CalculateTcrDiversity <- function(inputData,
                      order1 = 1,
                      order2 = 200) {
+
+  cols <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa')
+  if (!all(cols %in% names(inputData))) {
+    missing <- cols[! cols %in% names(inputData)]
+    stop(paste0('The following columns were missing: ', paste0(missing, collapse = ',')))
+  }
+
   #check python requirements
   if (!reticulate::py_available(initialize = TRUE)) {
     stop(paste0('Python/reticulate not configured. Run "reticulate::py_config()" to initialize python'))
@@ -200,14 +230,16 @@ PlotDiversity <- function(conga_clones_file = "./clones_file.txt",
   }
 
   #normalize paths in case they were specified using non-absolute paths.
-  conga_clones_file <- R.utils::getAbsolutePath(conga_clones_file)
-  outputFile <- R.utils::getAbsolutePath(outputFile)
-  
-  #copy calculate_Diversity.py in inst/scripts and supply custom arguments 
+  conga_clones_file <- tempfile()
+  write.table(df, file = conga_clones_file, sep = '\t', row.names = FALSE, quote = FALSE)
+
+  #copy calculate_Diversity.py in inst/scripts and supply custom arguments
   str <- readr::read_file(system.file("scripts/calculate_Diversity.py", package = "CellMembrane"))
-  script <- tempfile()
-  readr::write_file(str, script)
-  
+  scriptFile <- tempfile()
+  readr::write_file(str, scriptFile)
+
+  outputFile <- tempfile()
+
   newstr <- paste0("calculate_Diversity(conga_clones_file = '", conga_clones_file,
                    "', outputFile = '", outputFile,
                    "', order1 = '", order1,
@@ -215,14 +247,22 @@ PlotDiversity <- function(conga_clones_file = "./clones_file.txt",
                    "')")
   
   #write the new arguments into the script and execute
-  readr::write_file(newstr, script, append = TRUE)
-  system2(reticulate::py_exe(), script)
+  readr::write_file(newstr, scriptFile, append = TRUE)
+  system2(reticulate::py_exe(), scriptFile)
   
   df <- read.csv(outputFile)
+
   y <- grep("Z_[0-9]+", colnames(df), value = T)
-  df |> select(c("order", y)) |>
+  print(df |> select(c("order", y)) |>
     tidyr::pivot_longer(cols = y, names_to = "sample_div", values_to = "y") |> 
     ggplot(aes(x = order, y = y)) + geom_line(aes(color = sample_div)) + egg::theme_article()
+  )
+
+  unlink(conga_clones_file)
+  unlink(scriptFile)
+  unlink(outputFile)
+
+  return(df)
 }
 
 #' @title Append Clone Properties
