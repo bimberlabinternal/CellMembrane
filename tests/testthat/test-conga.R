@@ -83,7 +83,6 @@ test_that("CalculateTcrDiversity works", {
   }))
   dat <- dat[!is.na(dat$v_a_gene) & !is.na(dat$v_b_gene) & !is.na(dat$cdr3_a_aa) & !is.na(dat$cdr3_b_aa),]
   df <- CalculateTcrDiversity(dat,
-                outputFile = "../testdata/tmpoutput/diversity_output.csv",
                 order1 = 1,
                 order2 = 200)
 
