@@ -12,7 +12,7 @@ CalculateTcrDiversityFromSeurat(
 )
 }
 \arguments{
-\item{seuratObj}{A seurat object with the following columns: TRA, TRA_V, TRA_J, TRB, TRB_V, TRB_J}
+\item{seuratObj}{A seurat object with the following columns: TRA, TRA_V, TRB, TRB_V}
 
 \item{groupField}{The field that defines sample groups.}
 

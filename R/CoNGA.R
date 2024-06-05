@@ -169,7 +169,7 @@ SeuratToCoNGA <- function(seuratObj,
 #' @title Calculate TCR diversity from a seurat object
 #'
 #' @description Calculate TCR a diversity profile for each library in the data
-#' @param seuratObj A seurat object with the following columns: TRA, TRA_V, TRA_J, TRB, TRB_V, TRB_J
+#' @param seuratObj A seurat object with the following columns: TRA, TRA_V, TRB, TRB_V
 #' @param groupField The field that defines sample groups.
 #' @param order1 The minimum order for calculating the generalized Simpson entropy.
 #' @param order2 The maximum order for calculating the generalized Simpson entropy.
@@ -224,7 +224,7 @@ CalculateTcrDiversity <- function(inputData,
   }
   
   conga_clones_file <- tempfile()
-  write.table(df, file = conga_clones_file, sep = '\t', row.names = FALSE, quote = FALSE)
+  write.table(inputData, file = conga_clones_file, sep = '\t', row.names = FALSE, quote = FALSE)
 
   #copy calculate_Diversity.py in inst/scripts and supply custom arguments
   str <- readr::read_file(system.file("scripts/calculate_Diversity.py", package = "CellMembrane"))
