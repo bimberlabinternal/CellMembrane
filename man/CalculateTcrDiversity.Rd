@@ -7,7 +7,7 @@
 CalculateTcrDiversity(inputData, order1 = 1, order2 = 200)
 }
 \arguments{
-\item{inputData}{The a data frame with the columns: sampleId, v_a_gene, v_b_gene, cdr3_a_aa, and cdr3_b_aa}
+\item{inputData}{The a data frame with the columns: sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa, and clone_size}
 
 \item{order1}{The minimum order for calculating the generalized Simpson entropy.}
 

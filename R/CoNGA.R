@@ -189,8 +189,10 @@ CalculateTcrDiversityFromSeurat <- function(seuratObj,
 
   df <- seuratObj@meta.data[cols]
   names(df) <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa')
-  df <- df %>% dplyr::filter(!is.na(v_a_gene) & !is.na(v_b_gene) & !is.na(cdr3_a_aa) & !is.na(cdr3_b_aa))
-  print(paste0('Total cells with paired a/b TCR data: ', nrow(df), ', out of ', ncol(seuratObj), ' input cells'))
+  df <- df %>% dplyr::filter(!is.na(v_a_gene) & !is.na(v_b_gene) & !is.na(cdr3_a_aa) & !is.na(cdr3_b_aa)) %>%
+    group_by(sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa) %>% summarize(clone_size = n())
+
+  print(paste0('Total cells with paired a/b TCR data: ', sum(df$clone_size), ', out of ', ncol(seuratObj), ' input cells'))
 
   return(CalculateTcrDiversity(df, order1 = order1, order2 = order2))
 }
@@ -198,7 +200,7 @@ CalculateTcrDiversityFromSeurat <- function(seuratObj,
 #' @title Calculate TCR diversity
 #'
 #' @description Plot a diversity profile for each library in the data
-#' @param inputData The a data frame with the columns: sampleId, v_a_gene, v_b_gene, cdr3_a_aa, and cdr3_b_aa
+#' @param inputData The a data frame with the columns: sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa, and clone_size
 #' @param order1 The minimum order for calculating the generalized Simpson entropy.
 #' @param order2 The maximum order for calculating the generalized Simpson entropy.
 #' @return A data frame with the results
@@ -208,7 +210,7 @@ CalculateTcrDiversity <- function(inputData,
                      order1 = 1,
                      order2 = 200) {
 
-  cols <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa')
+  cols <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa', 'clone_size')
   if (!all(cols %in% names(inputData))) {
     missing <- cols[! cols %in% names(inputData)]
     stop(paste0('The following columns were missing: ', paste0(missing, collapse = ',')))
