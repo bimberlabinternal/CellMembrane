@@ -78,7 +78,7 @@ test_that("CalculateTcrDiversity works", {
   dat <- read.table("../testdata/clones_file.txt", sep = '\t', header = TRUE)
   dat <- dat[c('clone_id', 'va_gene', 'vb_gene', 'cdr3a', 'cdr3b')]
   names(dat) <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa')
-  dat$sampleId <- unlist(sapply(sampleId, function(x){
+  dat$sampleId <- unlist(sapply(dat$sampleId, function(x){
     return(unlist(strsplit(x = x, split = '_'))[1])
   }))
   dat <- dat[!is.na(dat$v_a_gene) & !is.na(dat$v_b_gene) & !is.na(dat$cdr3_a_aa) & !is.na(dat$cdr3_b_aa),]
