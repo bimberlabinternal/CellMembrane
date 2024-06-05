@@ -70,6 +70,19 @@ seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "
 pbulk <- suppressWarnings(PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint", "sample_identifier")))
 ```
 
+## Inspecting the Pseudobulked Object.
+The pseudobulked Seurat object has two layers of interest: the `counts` layer and the `pct.expression` layer. Within the counts layer, you will find the sum of the gene expression for each gene across all cells from an individual (grouped on `sample_identifier`). The `pct.expression` layer is the percentage of cells from that individual that express the gene. For instance, if 1 out of 10 cells from a subject express a gene, the `pct.expression` will be 0.1. 
+
+```{r inspect pseudobulked object}
+#inspecting counts. The matrices are sparse, so zeroes are represented with the '.' character.
+GetAssayData(pbulk, layer = "counts")[1:3,1:3]
+
+#inspecting pct.expression. This is also sparse, so unexpressed genes in a sample are represented with the '.' character.
+GetAssayData(pbulk, layer = "pct.expression")[1:3,1:3]
+```
+
+
+
 ## Differential Expression: What is a 'Contrast'?
 
 Contrasts are comparisons of samples. When one discusses differential expression between two groups, that comparison is performed via a "contrast" between those two groups. To link which groups will be compared to one another, we use a design matrix, which allows us to impose our experimental design onto the samples and group them appropriately to determine gene expression differences between the groups. 
@@ -343,6 +356,23 @@ DEGs <- dplyr::bind_rows(DE_results) %>%
 #select all of the genes that are differentially expressed in any contrast across the transcriptome
 genes <- unique(DEGs$gene)
 ```
+
+One can also filter based on the number of cells that express the gene in each contrast. You can use this to bias towards genes that are expressed in a larger proportion of cells in one of the experimental conditions (i.e. "marker genes"), or to ensure that the gene is expressed in many cells, rather than acutely in a few cells. Within the `DE_results` dataframes, `pct.1` refers to the proportion of cells that express the gene in the first group of the contrast (i.e. positive contrast), and `pct.2` refers to the proportion of cells that express the gene in the second group of the contrast (i.e. negative contrast). 
+ 
+
+```{r filter DEGs for pct.expression}
+DEGs_no_rare_cells <- dplyr::bind_rows(DE_results) %>% 
+  dplyr::filter(abs(logFC) > 1) %>% 
+  dplyr::filter(FDR < 0.05) %>% 
+  dplyr::filter(pct.1 > 0.1 & pct.2 > 0.1) # an example of filtering for genes that have at least 10% of cells expressing the gene in each group.
+
+DEGs_more_common_in_positive_contrast <- dplyr::bind_rows(DE_results) %>% 
+  dplyr::filter(abs(logFC) > 1) %>% 
+  dplyr::filter(FDR < 0.05) %>% 
+  dplyr::filter(pct.1 - pct.2 > 0.25) # an example of filtering for genes that have at least 25% more cells expressing the gene in the positive contrast than the negative contrast.
+
+```
+
 
 ### Create the heatmap on just the DEGs
 

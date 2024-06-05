@@ -35,7 +35,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
     }
     #if the names are not provided in the custom gene sets, we should warn the user but we can label them here.
     if (is.null(names(customGeneSets))){
-      names(customGeneSets) <- paste0("CustomGeneSet", 1:length(customGeneSets))
+      names(customGeneSets) <- paste0("CustomGeneSet", seq_along(customGeneSets))
       warning("The customGeneSets list is unnamed. Naming the genesets with generic names such as: CustomGeneSet1, CustomGeneSet2 ...")
     }
 
@@ -56,6 +56,10 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
                                  min.size = 0,
                                  assay = assayName,
                                  new.assay.name = outputAssayName)
+  
+  seuratObj <- SeuratObject::SetAssayData(seuratObj, assay = outputAssayName, layer = 'counts', new.data = SeuratObject::GetAssayData(seuratObj, assay = outputAssayName, layer = 'data'))
+
+  seuratObj <- .NormalizeEscape(seuratObj, assayToNormalize = outputAssayName, assayForLibrarySize = assayName)
   
   #you may want to only score a couple of gene sets (e.g. msigdbGeneSets = NULL), in which case you need to determine the pca parameters to ensure it will run. 
   if (doPca) {
@@ -109,8 +113,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
 
   origIdents <- Idents(seuratObj)
   for (resolutionToUse in resolutionsToUse) {
-    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName)
-    seuratObj[[paste0('ClusterNames.', assayName, '_', resolutionToUse)]] <- Idents(object = seuratObj)
+    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
   }
   Idents(seuratObj) <- origIdents
 
@@ -119,6 +122,38 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
   seuratObj <- Seurat::RunUMAP(seuratObj, dims = dimsToUse, assay = assayName, reduction = pca.reduction.name, reduction.name = umap.reduction.name, reduction.key = umap.reduction.key, verbose = FALSE)
 
   print(DimPlot(seuratObj, reduction = umap.reduction.name))
+
+  return(seuratObj)
+}
+
+.NormalizeEscape <- function(seuratObj, assayToNormalize, assayForLibrarySize = 'RNA') {
+  toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, layer = 'counts')
+  assayForLibrarySizeData <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, slot = 'counts')
+
+  if (any(colnames(toNormalize) != colnames(assayForLibrarySize))) {
+    stop(paste0('The assayToNormalize and assayForLibrarySize do not have the same cell names!'))
+  }
+
+  margin <- 2
+  ncells <- dim(x = toNormalize)[margin]
+
+  for (i in seq_len(length.out = ncells)) {
+    x <- toNormalize[, i]
+    if (any(is.na(x))) {
+      warning('NAs were found in the escape data!')
+      x[is.na(x)] <- 0
+    }
+
+    librarySize <- sum(assayForLibrarySizeData[, i], na.rm = TRUE)
+    if (librarySize == 0) {
+      stop(paste0('librarySize was zero for: ', colnames(seuratObj)[i]))
+    }
+
+    toNormalize[, i] <- x / librarySize
+  }
+
+  seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, layer = 'data', new.data = toNormalize)
+  seuratObj <- Seurat::ScaleData(seuratObj, assay = assayToNormalize)
 
   return(seuratObj)
 }
