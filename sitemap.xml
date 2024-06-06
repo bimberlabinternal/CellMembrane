@@ -40,6 +40,12 @@
     <loc>/reference/CalculatePercentMito.html</loc>
   </url>
   <url>
+    <loc>/reference/CalculateTcrDiversity.html</loc>
+  </url>
+  <url>
+    <loc>/reference/CalculateTcrDiversityFromSeurat.html</loc>
+  </url>
+  <url>
     <loc>/reference/CalculateUcellPerFeature.html</loc>
   </url>
   <url>
