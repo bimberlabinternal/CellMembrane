@@ -174,7 +174,6 @@ SeuratToCoNGA <- function(seuratObj,
 #' @param order1 The minimum order for calculating the generalized Simpson entropy.
 #' @param order2 The maximum order for calculating the generalized Simpson entropy.
 #' @return A data frame with the results
-#' @examples
 #' @export
 CalculateTcrDiversityFromSeurat <- function(seuratObj,
                           groupField,
@@ -205,7 +204,6 @@ CalculateTcrDiversityFromSeurat <- function(seuratObj,
 #' @param order1 The minimum order for calculating the generalized Simpson entropy.
 #' @param order2 The maximum order for calculating the generalized Simpson entropy.
 #' @return A data frame with the results
-#' @examples
 #' @export
 CalculateTcrDiversity <- function(inputData,
                      order1 = 1,
