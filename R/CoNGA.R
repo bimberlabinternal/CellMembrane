@@ -190,7 +190,8 @@ CalculateTcrDiversityFromSeurat <- function(seuratObj,
   df <- seuratObj@meta.data[cols]
   names(df) <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa')
   df <- df %>% dplyr::filter(!is.na(v_a_gene) & !is.na(v_b_gene) & !is.na(cdr3_a_aa) & !is.na(cdr3_b_aa)) %>%
-    group_by(sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa) %>% summarize(clone_size = n())
+    dplyr::group_by(sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa) %>%
+    dplyr::summarize(clone_size = n())
 
   print(paste0('Total cells with paired a/b TCR data: ', sum(df$clone_size), ', out of ', ncol(seuratObj), ' input cells'))
 
