@@ -57,6 +57,38 @@ test_that("RunConga works", {
   unlink("./tmpoutput", recursive = TRUE)
 })
 
+test_that("CalculateTcrDiversity works", {
+  if (!reticulate::py_module_available('tcrdist')) {
+    print('tcrdist3 module not found, debugging:')
+    print(reticulate::py_list_packages())
+    if ('tcrdist' %in% reticulate::py_list_packages()$package) {
+      tryCatch({
+        reticulate::import('tcrdist')
+      }, error = function(e){
+        print("Error with reticulate::import('tcrdist')")
+        print(conditionMessage(e))
+        traceback()
+      })
+    }
+    
+    warning('The python tcrdist3 module has not been installed!')
+    return()
+  }
+
+  dat <- read.table("../testdata/clones_file.txt", sep = '\t', header = TRUE)
+  dat <- dat[c('clone_id', 'clone_size', 'va_gene', 'vb_gene', 'cdr3a', 'cdr3b')]
+  names(dat) <- c('sampleId', 'clone_size', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa')
+  dat$sampleId <- unlist(sapply(dat$sampleId, function(x){
+    return(unlist(strsplit(x = x, split = '_'))[1])
+  }))
+  dat <- dat[!is.na(dat$v_a_gene) & !is.na(dat$v_b_gene) & !is.na(dat$cdr3_a_aa) & !is.na(dat$cdr3_b_aa),]
+  df <- CalculateTcrDiversity(dat,
+                order1 = 1,
+                order2 = 200)
+
+  testthat::expect_equal(nrow(df), 199)
+})
+
 test_that("QuantifyTcrClones  works", {
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS("../testdata/seuratOutput.rds")))
   seuratObj <- QuantifyTcrClones(seuratObj, "../testdata/tcr_df.csv", groupingFields = 'ClusterNames_0.2')
@@ -65,3 +97,4 @@ test_that("QuantifyTcrClones  works", {
   expect_equal(max(seuratObj$cloneProportion, na.rm = TRUE), 0.151, tolerance = 0.001)
 })
   
+
