@@ -88,7 +88,10 @@ Imports:
     circlize, 
     conover.test, 
     colorspace, 
-    forcats
+    forcats, 
+    progressr, 
+    future, 
+    twosamples
 Suggests:
     devtools,
     testthat (>= 2.1.0),

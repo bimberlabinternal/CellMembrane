@@ -8,11 +8,12 @@
   seuratObj = seuratObj,
   geneSets,
   method = "dts",
-  groups = 5000,
+  groupSize = 5000,
   assay = "RNA",
   layer = "counts",
   outputAssayName = "ssGSEA.alternative",
-  parallelWorkers = 4
+  parallelWorkers = 4,
+  timing = FALSE
 )
 }
 \arguments{
@@ -22,8 +23,6 @@
 
 \item{method}{The method to use for ssGSEA. The dts, wass, and ks methods from the twosamples package are supported.}
 
-\item{groups}{The number of groups to split the data into for parallel processing.}
-
 \item{assay}{The assay to use.}
 
 \item{layer}{The layer to use.}
@@ -31,6 +30,10 @@
 \item{outputAssayName}{The name of the assay to store the results in.}
 
 \item{parallelWorkers}{The number of parallel workers/cores to use.}
+
+\item{timing}{If TRUE, the time taken to run the function will be printed.}
+
+\item{groups}{The number of groups to split the data into for parallel processing.}
 }
 \value{
 A Seurat object with the ssGSEA scores stored in the specified assay.

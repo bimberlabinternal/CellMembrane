@@ -9,6 +9,7 @@
 #' @param layer The layer to use.
 #' @param outputAssayName The name of the assay to store the results in.
 #' @param parallelWorkers The number of parallel workers/cores to use.
+#' @param timing If TRUE, the time taken to run the function will be printed.
 #' @examples 
 #' \dontrun{
 #' # Load the Seurat object
@@ -25,11 +26,12 @@
 .AlternativeSsgseaSeurat <- function(seuratObj = seuratObj, 
                                      geneSets, 
                                      method = "dts", 
-                                     groups = 5000, 
+                                     groupSize = 5000, 
                                      assay = "RNA", 
                                      layer = 'counts', 
                                      outputAssayName = "ssGSEA.alternative", 
-                                     parallelWorkers = 4) {
+                                     parallelWorkers = 4, 
+                                     timing = FALSE) {
   # basic checks for the validity of the Seurat object
   if (is.null(seuratObj)) {
     stop('Error: seuratObj not found. Please define a Seurat Object containing a count matrix.')
@@ -63,30 +65,56 @@
     }
     future::plan("multisession", workers = min(parallelWorkers, future::availableCores()-1))
   }
+  
+  if (timing) {
+    start_time <- Sys.time()
+  }
   # Create a progress handler to print a progress bar
-  progressr::handlers("txtprogressbar")
+  progressr::handlers(list(
+    progressr::handler_progress(
+      format   = ":spin :current/:total (:message) [:bar] :percent in :elapsed ETA: :eta",
+      width    = 75,
+      complete = "+"
+    )))
   
   progressr::with_progress({
+    # Calculate the number of groups to split the data into for parallel processing. If you supply a negative number, it will default to 1 group.
+    numberOfGroups <- max(ceiling(ncol(countMatrix)/groupSize),1)
     # Set the total number of progress steps
-    p <- progressr::progressor(steps = length(geneSets))
-    # Run ssGSEA for each gene set
-    scores_list <- future.apply::future_lapply(names(geneSets), function(gene_set_name) {
-      # Get the gene set & enforce that the gene sets exist
-      gene_set <- unlist(geneSets[gene_set_name])
-      gene_set <- gene_set[gene_set %in% rownames(countMatrix)]
-      # 
-      scores <- .computeSsgseaScores(gene_set, countMatrix, method)
-      names(scores) <- colnames(countMatrix)
-      # update the progress bar
-      p()
+    p <- progressr::progressor(steps = length(geneSets) * numberOfGroups)
+    subsetScoresList <- list()
+    for (group in seq_along(1:numberOfGroups)) {
+      # Subset the count matrix to a managable size for parallelization
+      # the first index is a max(1, ...) to prevent a zero index
+      # the second index is a min(..., ncol(countMatrix)) to prevent an index out of bounds error
+      subsetMatrix <- countMatrix[, (max(1,(group-1)*groupSize+1)):min(group*groupSize, ncol(countMatrix))]
+      # Run ssGSEA for each gene set
+      individualGroupScoresList <- future.apply::future_lapply(names(geneSets), function(gene_set_name) {
+        # Get the gene set & enforce that the gene sets exist
+        gene_set <- unlist(geneSets[gene_set_name])
+        gene_set <- gene_set[gene_set %in% rownames(subsetMatrix)]
+        # 
+        tmpScores <- .computeSsgseaScores(gene_set, subsetMatrix, method)
+        names(tmpScores) <- colnames(subsetMatrix)
+        # update the progress bar
+        p()
+        
+        return(tmpScores)
+      }, future.seed=1234)
       
-      return(scores)
-    }, future.seed=1234)
-    
-    # Convert the list of vectors to a matrix
-    scores <- do.call(rbind, scores_list)
-    rownames(scores) <- names(geneSets)
+      # Convert the list of vectors to a matrix
+      individualGroupScores <- do.call(rbind, individualGroupScoresList)
+      rownames(individualGroupScores) <- names(geneSets)
+      #store the subset scores in a list to be combined after iterating through all groups
+      subsetScoresList[[group]] <- individualGroupScores
+    }
+    # Combine the subset scores into a single matrix
+    scores <- do.call(cbind, subsetScoresList)
   })
+  if (timing) {
+    end_time <- Sys.time()
+    print(end_time - start_time)
+  }
   
   seuratObj[[outputAssayName]] <- Seurat::CreateAssayObject(counts = Seurat::as.sparse(scores))
   return(seuratObj)
@@ -116,7 +144,7 @@
   } else if (method == 'ks') {
     distance <- twosamples::ks_stat(ranks_set, ranks_all)
   } else {
-    stop('Method ', method, ' not supported')
+    stop('Method: ', method, ' not supported')
   }
   
   # Return the dts distance as the enrichment score
