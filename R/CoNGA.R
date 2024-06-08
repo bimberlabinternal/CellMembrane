@@ -1,6 +1,6 @@
 
 utils::globalVariables(
-  names = c('barcode', 'clusters_gex', 'clusters_tcr', 'nndists_gex', 'nndists_tcr', 'is_invariant', 'conga_scores', 'conga_fdr_values', 'raw_clonotype_id'),
+  names = c('barcode', 'clusters_gex', 'clusters_tcr', 'nndists_gex', 'nndists_tcr', 'is_invariant', 'conga_scores', 'conga_fdr_values', 'raw_clonotype_id', 'sample_div'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -166,6 +166,99 @@ SeuratToCoNGA <- function(seuratObj,
                                overwrite = TRUE)
 }
 
+#' @title Calculate TCR diversity from a seurat object
+#'
+#' @description Calculate TCR a diversity profile for each library in the data
+#' @param seuratObj A seurat object with the following columns: TRA, TRA_V, TRB, TRB_V
+#' @param groupField The field that defines sample groups.
+#' @param order1 The minimum order for calculating the generalized Simpson entropy.
+#' @param order2 The maximum order for calculating the generalized Simpson entropy.
+#' @return A data frame with the results
+#' @export
+CalculateTcrDiversityFromSeurat <- function(seuratObj,
+                          groupField,
+                          order1 = 1,
+                          order2 = 200) {
+
+  cols <- c(groupField, c('TRA_V', 'TRB_V', 'TRA', 'TRB'))
+  if (!all(cols %in% names(seuratObj@meta.data))) {
+    missing <- cols[! cols %in% names(seuratObj@meta.data)]
+    stop(paste0('The following columns were missing: ', paste0(missing, collapse = ',')))
+  }
+
+  df <- seuratObj@meta.data[cols]
+  names(df) <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa')
+  df <- df %>% dplyr::filter(!is.na(v_a_gene) & !is.na(v_b_gene) & !is.na(cdr3_a_aa) & !is.na(cdr3_b_aa)) %>%
+    dplyr::group_by(sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa) %>%
+    dplyr::summarize(clone_size = n())
+
+  print(paste0('Total cells with paired a/b TCR data: ', sum(df$clone_size), ', out of ', ncol(seuratObj), ' input cells'))
+
+  return(CalculateTcrDiversity(df, order1 = order1, order2 = order2))
+}
+
+#' @title Calculate TCR diversity
+#'
+#' @description Plot a diversity profile for each library in the data
+#' @param inputData The a data frame with the columns: sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa, and clone_size
+#' @param order1 The minimum order for calculating the generalized Simpson entropy.
+#' @param order2 The maximum order for calculating the generalized Simpson entropy.
+#' @return A data frame with the results
+#' @export
+CalculateTcrDiversity <- function(inputData,
+                     order1 = 1,
+                     order2 = 200) {
+
+  cols <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa', 'clone_size')
+  if (!all(cols %in% names(inputData))) {
+    missing <- cols[! cols %in% names(inputData)]
+    stop(paste0('The following columns were missing: ', paste0(missing, collapse = ',')))
+  }
+
+  #check python requirements
+  if (!reticulate::py_available(initialize = TRUE)) {
+    stop(paste0('Python/reticulate not configured. Run "reticulate::py_config()" to initialize python'))
+  }
+  
+  if (!reticulate::py_module_available('tcrdist')) {
+    stop('The tcrdist3 python package has not been installed! If you believe it has been installed, run reticulate::import("tcrdist") to get more information and debug')
+  }
+  
+  conga_clones_file <- tempfile()
+  write.table(inputData, file = conga_clones_file, sep = '\t', row.names = FALSE, quote = FALSE)
+
+  #copy calculate_Diversity.py in inst/scripts and supply custom arguments
+  str <- readr::read_file(system.file("scripts/calculate_Diversity.py", package = "CellMembrane"))
+  scriptFile <- tempfile()
+  readr::write_file(str, scriptFile)
+
+  outputFile <- tempfile()
+
+  newstr <- paste0("calculate_Diversity(conga_clones_file = '", conga_clones_file,
+                   "', outputFile = '", outputFile,
+                   "', order1 = '", order1,
+                   "', order2 = '", order2,
+                   "')")
+  
+  #write the new arguments into the script and execute
+  readr::write_file(newstr, scriptFile, append = TRUE)
+  system2(reticulate::py_exe(), scriptFile)
+  
+  df <- read.csv(outputFile)
+
+  y <- grep("Z_[0-9]+", colnames(df), value = T)
+  print(df |> select(c("order", y)) |>
+    tidyr::pivot_longer(cols = y, names_to = "sample_div", values_to = "y") |> 
+    ggplot(aes(x = order, y = y)) + geom_line(aes(color = sample_div)) + egg::theme_article()
+  )
+
+  unlink(conga_clones_file)
+  unlink(scriptFile)
+  unlink(outputFile)
+
+  return(df)
+}
+
 #' @title Append Clone Properties
 #' @param seuratObj The Seurat object to append clone properties to
 #' @param tcrClonesFile The 10x clonotypes file for this Seurat object. Single lanes can use the CellRanger/Vloupe contigs CSV file. Merged lanes need to merge these files and modify them to create unique cellbarcodes and clonotype names, such as the code from Rdiscvr::CreateMergedTcrClonotypeFile().
@@ -192,3 +285,4 @@ QuantifyTcrClones <- function(seuratObj, tcrClonesFile, groupingFields = 'cDNA_I
   
   return(seuratObj)
 }
+
