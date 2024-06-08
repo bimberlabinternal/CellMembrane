@@ -11,7 +11,8 @@
   groups = 5000,
   assay = "RNA",
   layer = "counts",
-  outputAssayName = "ssGSEA.alternative"
+  outputAssayName = "ssGSEA.alternative",
+  parallelWorkers = 4
 )
 }
 \arguments{
@@ -28,6 +29,11 @@
 \item{layer}{The layer to use.}
 
 \item{outputAssayName}{The name of the assay to store the results in.}
+
+\item{parallelWorkers}{The number of parallel workers/cores to use.}
+}
+\value{
+A Seurat object with the ssGSEA scores stored in the specified assay.
 }
 \description{
 This function will run a modified version of ssGSEA.
