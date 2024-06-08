@@ -139,4 +139,5 @@ Collate:
     'data.R'
     'escape.R'
     'sctour.R'
+    'ssGSEA_Alternatives.R'
 VignetteBuilder: knitr
