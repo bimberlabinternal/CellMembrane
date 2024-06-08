@@ -298,10 +298,15 @@ PerformEmptyDrops <- function(seuratRawData, emptyDropNIters, fdrThreshold=0.001
 #' @title HasSplitLayers
 #'
 #' @param seuratObj The seurat object
+#' @param assaysToTest An option list of assays to test
 #' @return A boolean indicating whether the object has split layers
 #' @export
-HasSplitLayers <- function(seuratObj) {
-	for (assayName in Seurat::Assays(seuratObj)) {
+HasSplitLayers <- function(seuratObj, assaysToTest = NULL) {
+	if (all(is.null(assaysToTest))) {
+		assaysToTest <- Seurat::Assays(seuratObj)
+	}
+
+	for (assayName in assaysToTest) {
 		if (length(suppressWarnings(SeuratObject::Layers(seuratObj, assay = assayName, search = 'counts'))) > 1) {
 			return(TRUE)
 		}
@@ -327,17 +332,17 @@ MergeSplitLayers <- function(seuratObj) {
 		print(paste0('Class: ', class(seuratObj[[assayName]])[1]))
 
 		if (inherits(seuratObj[[assayName]], 'Assay5')) {
-			print(paste0('Joining layers: ', assayName))
-			seuratObj[[assayName]] <- SeuratObject::JoinLayers(seuratObj[[assayName]], layers = unique(gsub(".\\d+$", "", SeuratObject::Layers(seuratObj[[assayName]]))))
+			toJoin <- .FindLayersToJoin(seuratObj, assayName)
+			print(paste0('Joining layers: ', assayName, ', ', paste0(toJoin, collapse = ';')))
+			seuratObj[[assayName]] <- SeuratObject::JoinLayers(seuratObj[[assayName]], layers = toJoin)
 			print(paste0('After join: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 		} else {
 			print(paste0('Not an assay5 object, not joining layers: ', assayName))
 			print(seuratObj)
 		}
 
-		if (HasSplitLayers(seuratObj)) {
-			print(paste0('Remaining layers: ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
-			stop('Layers were not joined!')
+		if (HasSplitLayers(seuratObj, assaysToTest = assayName)) {
+			stop(paste0('Layers were not joined: ', assayName, ', ', paste0(SeuratObject::Layers(seuratObj[[assayName]]), collapse = ',')))
 		}
 	}
 
@@ -415,4 +420,23 @@ LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayFo
 	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, slot = 'data', new.data = toNormalize)
 
 	return(seuratObj)
+}
+
+.FindLayersToJoin <- function(seuratObj, assayName) {
+	layerNames <- SeuratObject::Layers(seuratObj, assay = assayName)
+	layerBasenames <- sapply(layerNames, function(x){
+		x <- unlist(strsplit(x, split = '\\.'))
+		if (length(x) == 1) {
+			return(NA)
+		}
+
+		# Drop the final suffix, on the assumption the initial piece is the layer basename, and the final element is projectName:
+		return(paste0(x[-length(x)], collapse = '.'))
+	})
+
+	# Any duplicated basenames inducate a split layer:
+	layerBasenames <- layerBasenames[!is.na(layerBasenames)]
+	layerBasenames <- unique(layerBasenames[duplicated(layerBasenames)])
+
+	return(unlist(layerBasenames))
 }
