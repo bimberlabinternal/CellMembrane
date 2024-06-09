@@ -4,7 +4,7 @@
 #' @param seuratObj A Seurat object.
 #' @param geneSets A list of gene sets to run ssGSEA on. The gene sets should be named lists of gene symbols.
 #' @param method The method to use for ssGSEA. The dts, wass, and ks methods from the twosamples package are supported.
-#' @param groups The number of groups to split the data into for parallel processing.
+#' @param groupSize The number of groups to split the data into for parallel processing.
 #' @param assay The assay to use.
 #' @param layer The layer to use.
 #' @param outputAssayName The name of the assay to store the results in.
