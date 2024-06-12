@@ -596,6 +596,7 @@ RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.siz
 #' @param max.tsne.iter The value of max_iter to provide to RunTSNE.  Increasing can help large datasets.
 #' @param tsne.perplexity tSNE perplexity. Passed directly to Seurat::RunTSNE(), but CellMembrane:::.InferPerplexityFromSeuratObj() corrects it if need be based dataset dims.
 #' @param clusterResolutions A vector of clustering resolutions, default is (0.2, 0.4, 0.6, 0.8, 1.2).
+#' @param runTSNE If true, tSNE will be run. The default is UMAP alone.
 #' @param useLeiden If true, Leiden clustering (FindClusters algorithm = 4) will be used. Otherwise it will default to algorithm = 1 (Louvain).
 #' @return A modified Seurat object.
 #' @export
@@ -603,7 +604,7 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
                                    umap.method = 'uwot', umap.metric = NULL,
                                    umap.n.neighbors = NULL, umap.min.dist = NULL, umap.spread = NULL, seed.use = GetSeed(),
                                    umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30, umap.densmap = FALSE,
-  clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2),
+  clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2, runTSNE = FALSE),
                          useLeiden = FALSE){
 
   dimsToUse <- .GetDimsToUse(seuratObj, dimsToUse = dimsToUse, minDimsToUse = minDimsToUse)
@@ -617,14 +618,16 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
     seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE, random.seed = seed.use, method = clusterMethod, algorithm = algorithm, cluster.name = paste0("ClusterNames_", resolution))
   }
 
-  perplexity <- .InferPerplexityFromSeuratObj(seuratObj, perplexity = tsne.perplexity)
-  seuratObj <- RunTSNE(object = seuratObj,
-									dims.use = dimsToUse,
-                                    seed.use = seed.use,
-									check_duplicates = FALSE,
-									perplexity = perplexity,
-									reduction.key = 'rnaTSNE_',
-									max_iter = max.tsne.iter)
+  if (runTSNE) {
+    perplexity <- .InferPerplexityFromSeuratObj(seuratObj, perplexity = tsne.perplexity)
+    seuratObj <- RunTSNE(object = seuratObj,
+                                      dims.use = dimsToUse,
+                                      seed.use = seed.use,
+                                      check_duplicates = FALSE,
+                                      perplexity = perplexity,
+                                      reduction.key = 'rnaTSNE_',
+                                      max_iter = max.tsne.iter)
+  }
 
   seuratObj <- .RunUMAP(seuratObj,
         dimsToUse = dimsToUse,
