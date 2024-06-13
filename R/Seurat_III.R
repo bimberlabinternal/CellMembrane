@@ -644,7 +644,8 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 
   seuratObj <- .ClearSeuratCommands(seuratObj)
 
-  for (reduction in c('tsne', 'umap')){
+  toPlot <- ifelse(runTSNE, yes = c('tsne', 'umap'), no = 'umap')
+  for (reduction in toPlot){
     plotLS <- list()
     i <- 0
     for (res in as.character(clusterResolutions)){
