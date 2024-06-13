@@ -18,12 +18,13 @@
 #' # Get geneSets
 #' geneSets <- escape::getGeneSets(library = "H")
 #' # Run the alternative ssGSEA
-#' seuratObj <- .AlternativeSsgseaSeurat(seuratObj, geneSets = geneSets)
+#' seuratObj <- AlternativeSsgseaSeurat(seuratObj, geneSets = geneSets)
 #' }
+#' @export
 #' @return A Seurat object with the ssGSEA scores stored in the specified assay.
 
 
-.AlternativeSsgseaSeurat <- function(seuratObj = seuratObj, 
+AlternativeSsgseaSeurat <- function(seuratObj = seuratObj, 
                                      geneSets, 
                                      method = "dts", 
                                      groupSize = 5000, 
