@@ -19,6 +19,7 @@ FindClustersAndDimRedux(
   tsne.perplexity = 30,
   umap.densmap = FALSE,
   clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2),
+  runTSNE = FALSE,
   useLeiden = FALSE
 )
 }
@@ -50,6 +51,8 @@ FindClustersAndDimRedux(
 \item{umap.densmap}{Passed directly to Seurat::RunUMAP}
 
 \item{clusterResolutions}{A vector of clustering resolutions, default is (0.2, 0.4, 0.6, 0.8, 1.2).}
+
+\item{runTSNE}{If true, tSNE will be run. The default is UMAP alone.}
 
 \item{useLeiden}{If true, Leiden clustering (FindClusters algorithm = 4) will be used. Otherwise it will default to algorithm = 1 (Louvain).}
 }
