@@ -730,12 +730,13 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 #' @param datasetName An optional label for this dataset. If provided, this will be appended to the resulting table.
 #' @param assayName The assay to use.
 #' @param verbose Passed to Seurat::FindMarkers
+#' @param doPairwise If true, rather than use Seurat::FindAllMarkers, the code will iterate each pair of values and generate a list of DEGs from these comparisons. This can help identify markers highly differentially expressed between some groups, but shared between others.
 #' @return A DT::datatable object with the top markers, suitable for printing
 #' @importFrom dplyr %>% coalesce group_by summarise filter top_n select everything
 #' @import DESeq2
 #' @import MAST
 #' @export
-Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, minPct = 0.1, minDiffPct = -Inf, datasetName = NULL, assayName = 'RNA', verbose = FALSE) {
+Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, minPct = 0.1, minDiffPct = -Inf, datasetName = NULL, assayName = 'RNA', verbose = FALSE, doPairwise = FALSE) {
   if (is.null(assayName)) {
     assayName <- Seurat::DefaultAssay(seuratObj)
     print(paste0('Using default assay: ', assayName))
@@ -758,61 +759,116 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
 
     for (test in testsToUse) {
       print(paste0('Running using test: ', test))
-      tryCatch({
-        tMarkers <- FindAllMarkers(object = seuratObj, assay = assayName, only.pos = onlyPos, logfc.threshold = foldChangeThreshold, min.pct = minPct, min.diff.pct = minDiffPct, verbose = verbose, test.use = test, random.seed = GetSeed())
-        if (nrow(tMarkers) == 0) {
-          print(paste0('No genes returned, skipping: ', test))
-        } else {
-          tMarkers$test <- test
-          tMarkers$groupField <- fieldName
-          tMarkers$cluster <- as.character(tMarkers$cluster)
+      if (doPairwise) {
+        vals <- sort(unique(seuratObj@meta.data[[fieldName]]))
+        for (val1 in vals) {
+          for (val2 in vals) {
+            if (val1 == val2) {
+              next
+            }
 
-          logFcField <- ifelse('avg_log2FC' %in% colnames(tMarkers), yes = 'avg_log2FC', no = 'avg_logFC')
+            #CellMembrane::Find_Markers(seuratObj = seuratObj, identFields = c(fieldName), outFile = markerFile, testsToUse = c('wilcox'), minPct = 0.25, minDiffPct = 0.1)
+            dat <- Seurat::FindMarkers(seuratObj, assay = assayName, ident.1 = val1, ident.2 = val2, group.by = fieldName, test.use = test, min.diff.pct = minDiffPct, min.pct = minPct, random.seed = GetSeed(), verbose = verbose)
+            dat$test <- test
+            dat$groupField <- fieldName
+            dat$gene <- rownames(dat)
+            dat$group1 <- val1
+            dat$group2 <- val2
+
+            markerDat <- rbind(markerDat, dat)
+          }
+
           if (test == 'roc') {
             toBind <- data.frame(
-              groupField = tMarkers$groupField,
-              test = as.character(tMarkers$test),
-              cluster = as.character(tMarkers$cluster),
-              gene = as.character(tMarkers$gene),
-              pct.1 = tMarkers$pct.1,
-              pct.2 = tMarkers$pct.2,
+              groupField = markerDat$groupField,
+              test = as.character(markerDat$test),
+              group1 = as.character(markerDat$group1),
+              group2 = as.character(markerDat$group2),
+              gene = as.character(markerDat$gene),
+              pct.1 = markerDat$pct.1,
+              pct.2 = markerDat$pct.2,
               avg_logFC = NA,
               p_val_adj = NA,
-              myAUC = tMarkers$myAUC,
-              power = tMarkers$power,
-              avg_diff = tMarkers$avg_diff, stringsAsFactors=FALSE
+              myAUC = markerDat$myAUC,
+              power = markerDat$power,
+              avg_diff = markerDat$avg_diff, stringsAsFactors=FALSE
             )
           } else {
             toBind <- data.frame(
-              groupField = tMarkers$groupField,
-              test = as.character(tMarkers$test),
-              cluster = as.character(tMarkers$cluster),
-              gene = as.character(tMarkers$gene),
-              pct.1 = tMarkers$pct.1,
-              pct.2 = tMarkers$pct.2,
-              avg_logFC = tMarkers[[logFcField]],
-              p_val_adj = tMarkers$p_val_adj,
+              groupField = markerDat$groupField,
+              test = as.character(markerDat$test),
+              group1 = as.character(markerDat$group1),
+              group2 = as.character(markerDat$group2),
+              gene = as.character(markerDat$gene),
+              pct.1 = markerDat$pct.1,
+              pct.2 = markerDat$pct.2,
+              avg_logFC = markerDat[[logFcField]],
+              p_val_adj = markerDat$p_val_adj,
               myAUC = NA,
               power = NA,
               avg_diff = NA, stringsAsFactors=FALSE
             )
           }
 
-          print(paste0('Total genes returned: ', nrow(toBind)))
-
-          if (all(is.null(seuratObj.markers))) {
-            seuratObj.markers <- toBind
-          } else {
-            seuratObj.markers <- rbind(seuratObj.markers, toBind)
-          }
+          seuratObj.markers <- rbind(seuratObj.markers, toBind)
         }
-      }, error = function(e){
-        print(paste0('Error running test: ', test))
-        print(conditionMessage(e))
-        traceback()
-        print(utils::str(tMarkers))
-        print(utils::str(seuratObj.markers))
-      })
+      } else {
+        tryCatch({
+          tMarkers <- FindAllMarkers(object = seuratObj, assay = assayName, only.pos = onlyPos, logfc.threshold = foldChangeThreshold, min.pct = minPct, min.diff.pct = minDiffPct, verbose = verbose, test.use = test, random.seed = GetSeed())
+          if (nrow(tMarkers) == 0) {
+            print(paste0('No genes returned, skipping: ', test))
+          } else {
+            tMarkers$test <- test
+            tMarkers$groupField <- fieldName
+            tMarkers$cluster <- as.character(tMarkers$cluster)
+
+            logFcField <- ifelse('avg_log2FC' %in% colnames(tMarkers), yes = 'avg_log2FC', no = 'avg_logFC')
+            if (test == 'roc') {
+              toBind <- data.frame(
+                groupField = tMarkers$groupField,
+                test = as.character(tMarkers$test),
+                cluster = as.character(tMarkers$cluster),
+                gene = as.character(tMarkers$gene),
+                pct.1 = tMarkers$pct.1,
+                pct.2 = tMarkers$pct.2,
+                avg_logFC = NA,
+                p_val_adj = NA,
+                myAUC = tMarkers$myAUC,
+                power = tMarkers$power,
+                avg_diff = tMarkers$avg_diff, stringsAsFactors=FALSE
+              )
+            } else {
+              toBind <- data.frame(
+                groupField = tMarkers$groupField,
+                test = as.character(tMarkers$test),
+                cluster = as.character(tMarkers$cluster),
+                gene = as.character(tMarkers$gene),
+                pct.1 = tMarkers$pct.1,
+                pct.2 = tMarkers$pct.2,
+                avg_logFC = tMarkers[[logFcField]],
+                p_val_adj = tMarkers$p_val_adj,
+                myAUC = NA,
+                power = NA,
+                avg_diff = NA, stringsAsFactors=FALSE
+              )
+            }
+
+            print(paste0('Total genes returned: ', nrow(toBind)))
+
+            if (all(is.null(seuratObj.markers))) {
+              seuratObj.markers <- toBind
+            } else {
+              seuratObj.markers <- rbind(seuratObj.markers, toBind)
+            }
+          }
+        }, error = function(e){
+          print(paste0('Error running test: ', test))
+          print(conditionMessage(e))
+          traceback()
+          print(utils::str(tMarkers))
+          print(utils::str(seuratObj.markers))
+        })
+      }
     }
   }
 
