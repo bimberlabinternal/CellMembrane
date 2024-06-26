@@ -108,6 +108,7 @@ Remotes:
     marchinilab/SDAtools,
     marchinilab/dropsim,
     drisso/RUVSeq,
+    carmonalab/UCell,
     davidcsterratt/geometry/pkg,
     ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
