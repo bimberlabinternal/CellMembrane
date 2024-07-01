@@ -775,42 +775,40 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
             dat$group1 <- val1
             dat$group2 <- val2
 
-            markerDat <- rbind(markerDat, dat)
-          }
+            if (test == 'roc') {
+              toBind <- data.frame(
+                groupField = dat$groupField,
+                test = as.character(dat$test),
+                group1 = as.character(dat$group1),
+                group2 = as.character(dat$group2),
+                gene = as.character(dat$gene),
+                pct.1 = dat$pct.1,
+                pct.2 = dat$pct.2,
+                avg_logFC = NA,
+                p_val_adj = NA,
+                myAUC = dat$myAUC,
+                power = dat$power,
+                avg_diff = dat$avg_diff, stringsAsFactors=FALSE
+              )
+            } else {
+              toBind <- data.frame(
+                groupField = dat$groupField,
+                test = as.character(dat$test),
+                group1 = as.character(dat$group1),
+                group2 = as.character(dat$group2),
+                gene = as.character(dat$gene),
+                pct.1 = dat$pct.1,
+                pct.2 = dat$pct.2,
+                avg_logFC = dat[[logFcField]],
+                p_val_adj = dat$p_val_adj,
+                myAUC = NA,
+                power = NA,
+                avg_diff = NA, stringsAsFactors=FALSE
+              )
+            }
 
-          if (test == 'roc') {
-            toBind <- data.frame(
-              groupField = markerDat$groupField,
-              test = as.character(markerDat$test),
-              group1 = as.character(markerDat$group1),
-              group2 = as.character(markerDat$group2),
-              gene = as.character(markerDat$gene),
-              pct.1 = markerDat$pct.1,
-              pct.2 = markerDat$pct.2,
-              avg_logFC = NA,
-              p_val_adj = NA,
-              myAUC = markerDat$myAUC,
-              power = markerDat$power,
-              avg_diff = markerDat$avg_diff, stringsAsFactors=FALSE
-            )
-          } else {
-            toBind <- data.frame(
-              groupField = markerDat$groupField,
-              test = as.character(markerDat$test),
-              group1 = as.character(markerDat$group1),
-              group2 = as.character(markerDat$group2),
-              gene = as.character(markerDat$gene),
-              pct.1 = markerDat$pct.1,
-              pct.2 = markerDat$pct.2,
-              avg_logFC = markerDat[[logFcField]],
-              p_val_adj = markerDat$p_val_adj,
-              myAUC = NA,
-              power = NA,
-              avg_diff = NA, stringsAsFactors=FALSE
-            )
+            seuratObj.markers <- rbind(seuratObj.markers, toBind)
           }
-
-          seuratObj.markers <- rbind(seuratObj.markers, toBind)
         }
       } else {
         tryCatch({
