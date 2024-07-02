@@ -767,7 +767,6 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
               next
             }
 
-            #CellMembrane::Find_Markers(seuratObj = seuratObj, identFields = c(fieldName), outFile = markerFile, testsToUse = c('wilcox'), minPct = 0.25, minDiffPct = 0.1)
             dat <- Seurat::FindMarkers(seuratObj, assay = assayName, ident.1 = val1, ident.2 = val2, group.by = fieldName, test.use = test, min.diff.pct = minDiffPct, min.pct = minPct, random.seed = GetSeed(), verbose = verbose)
             dat$test <- test
             dat$groupField <- fieldName
