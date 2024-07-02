@@ -878,7 +878,13 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
     print('No significant markers were found')
     return()
   } else {
-    seuratObj.markers$cluster <- naturalsort::naturalfactor(seuratObj.markers$cluster)
+    if (!doPairwise) {
+      seuratObj.markers$cluster <- naturalsort::naturalfactor(seuratObj.markers$cluster)
+    } else {
+      seuratObj.markers$group1 <- naturalsort::naturalfactor(seuratObj.markers$group1)
+      seuratObj.markers$group2 <- naturalsort::naturalfactor(seuratObj.markers$group2)
+    }
+
     toWrite <- seuratObj.markers %>% filter(p_val_adj < pValThreshold) %>% filter(avg_logFC > foldChangeThreshold)
     if (nrow(toWrite) == 0) {
       print('No significant markers were found')
@@ -896,31 +902,42 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
           next
         }
 
-        print(ggplot(toPlot, aes(x = pct.1, y = pct.2, size = avg_logFC, color = cluster)) +
-                geom_point(alpha = 0.5) +
-                ggtitle(paste0('DE Genes: ', fieldName)) +
-                egg::theme_presentation(base_size = 12)
-        )
+        allGenes <- NULL
+        if (!doPairwise) {
+          print(ggplot(toPlot, aes(x = pct.1, y = pct.2, size = avg_logFC, color = cluster)) +
+                  geom_point(alpha = 0.5) +
+                  ggtitle(paste0('DE Genes: ', fieldName)) +
+                  egg::theme_presentation(base_size = 12)
+          )
 
-        topGene <- toPlot %>% group_by(cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
-        if (length(unique(topGene$gene)) < 3) {
-          print('Too few genes, skipping heatmap')
-          next
+          topGene <- toPlot %>% group_by(cluster, test) %>% top_n(numGenesToPrint, avg_logFC)
+          if (length(unique(topGene$gene)) < 3) {
+            print('Too few genes, skipping heatmap')
+            next
+          }
+          allGenes <- rbind(allGenes, topGene)
+
+          avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', assays = assayName, return.seurat = T)
+          avgSeurat <- NormalizeData(avgSeurat, verbose = FALSE)
+
+          # Genes as columns:
+          mat <- t(as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data')))
+          plot(ComplexHeatmap::Heatmap(mat %>% scale_mat(scale = 'column'),
+                                       column_title = fieldName,
+                                       row_names_side = "left",
+                                       row_dend_side = "right",
+                                       col = Seurat::BlueAndRed(10),
+                                       column_names_side = "top",
+                                       column_dend_side = "bottom"
+          ))
+        } else {
+          topGene <- toPlot %>% group_by(group1, group2, test) %>% top_n(numGenesToPrint, avg_logFC)
+          if (length(unique(topGene$gene)) < 3) {
+            print('Too few genes, skipping heatmap')
+            next
+          }
+          allGenes <- rbind(allGenes, topGene)
         }
-
-        avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', assays = assayName, return.seurat = T)
-        avgSeurat <- NormalizeData(avgSeurat, verbose = FALSE)
-
-        # Genes as columns:
-        mat <- t(as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data')))
-        plot(ComplexHeatmap::Heatmap(mat %>% scale_mat(scale = 'column'),
-          column_title = fieldName,
-          row_names_side = "left",
-          row_dend_side = "right",
-          col = Seurat::BlueAndRed(10),
-          column_names_side = "top",
-          column_dend_side = "bottom"
-        ))
       }
 
       #Note: return the datatable, so it will be printed correctly by Rmarkdown::render()
@@ -930,11 +947,11 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
         escape = FALSE,
         extensions = 'Buttons',
         options = list(
-        dom = 'Bfrtip',
-        pageLength = 25,
-        scrollX = TRUE,
-        buttons = c('excel', "csv")
-                           )
+          dom = 'Bfrtip',
+          pageLength = 25,
+          scrollX = TRUE,
+          buttons = c('excel', "csv")
+         )
       ))
     }
   }
