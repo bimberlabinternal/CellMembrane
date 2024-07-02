@@ -17,7 +17,8 @@ Find_Markers(
   minDiffPct = -Inf,
   datasetName = NULL,
   assayName = "RNA",
-  verbose = FALSE
+  verbose = FALSE,
+  doPairwise = FALSE
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ Find_Markers(
 \item{assayName}{The assay to use.}
 
 \item{verbose}{Passed to Seurat::FindMarkers}
+
+\item{doPairwise}{If true, rather than use Seurat::FindAllMarkers, the code will iterate each pair of values and generate a list of DEGs from these comparisons. This can help identify markers highly differentially expressed between some groups, but shared between others.}
 }
 \value{
 A DT::datatable object with the top markers, suitable for printing

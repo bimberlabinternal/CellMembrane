@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
+from scipy.sparse import csr_matrix
 
 def run_sctour(GEXfile, metafile, exclusion_json_path, ptime_out_file):
     adataObj = sc.read_10x_h5(GEXfile)
@@ -18,7 +19,8 @@ def run_sctour(GEXfile, metafile, exclusion_json_path, ptime_out_file):
     adataObj = adataObj[cells, :]
     adataObj.obs['ClusterNames_0.2'] = info.loc[cells, 'ClusterNames_0.2'].copy()
     adataObj.obs['SubjectId'] = info.loc[cells, 'SubjectId'].copy()
-    adataObj.shape
+
+    adataObj.X = csr_matrix(adataObj.X)
     adataObj.X = round(adataObj.X).astype(np.float32)
     adataObj.obs['Population'] = info.loc[cells, 'Population'].copy()
     adataObj.obs['TandNK_ActivationCore_UCell'] = info.loc[cells, 'TandNK_ActivationCore_UCell'].copy()

@@ -91,6 +91,17 @@ test_that("Seurat processing works as expected", {
 
   unlink(mf)
 
+  # Now using pairwise:
+  dt <- Find_Markers(seuratObj, identFields = c(resolutionToUse), outFile = mf, testsToUse = c('wilcox', 't'), datasetName = 'Label', doPairwise = TRUE)
+  expect_equal(dt$x$caption, '<caption>Top DE Genes: Label</caption>')
+  dt
+
+  df <- utils::read.table(mf, sep = '\t', header = T)
+  expect_equal(nrow(df), 868)
+  expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
+
+  unlink(mf)
+
   sf <- paste0(outPrefix, '.summary.txt')
   WriteSummaryMetrics(seuratObj, file = sf)
 
