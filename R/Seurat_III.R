@@ -775,6 +775,7 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
             dat$group1 <- val1
             dat$group2 <- val2
 
+            logFcField <- ifelse('avg_log2FC' %in% colnames(tMarkers), yes = 'avg_log2FC', no = 'avg_logFC')
             if (test == 'roc') {
               toBind <- data.frame(
                 groupField = dat$groupField,
