@@ -1,4 +1,3 @@
-from pathlib import Path
 import sctour as sct
 import scanpy as sc
 import numpy as np
