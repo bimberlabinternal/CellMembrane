@@ -1,4 +1,3 @@
-from pathlib import Path
 import sctour as sct
 import scanpy as sc
 import numpy as np
@@ -18,7 +17,7 @@ def run_sctour(GEXfile, metafile, exclusion_json_path, ptime_out_file):
     adataObj = adataObj[cells, :]
     adataObj.obs['ClusterNames_0.2'] = info.loc[cells, 'ClusterNames_0.2'].copy()
     adataObj.obs['SubjectId'] = info.loc[cells, 'SubjectId'].copy()
-    adataObj.shape
+
     adataObj.X = round(adataObj.X).astype(np.float32)
     adataObj.obs['Population'] = info.loc[cells, 'Population'].copy()
     adataObj.obs['TandNK_ActivationCore_UCell'] = info.loc[cells, 'TandNK_ActivationCore_UCell'].copy()
@@ -28,6 +27,11 @@ def run_sctour(GEXfile, metafile, exclusion_json_path, ptime_out_file):
     sc.pp.highly_variable_genes(adataObj, flavor='seurat_v3', n_top_genes=2000, subset=True, inplace=False)
     
     adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))]
+    print(adataObj)
+    print(adataObj.X)
+
+    # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
+    adataObj = adataObj.raw.to_adata()
     tnode = sct.train.Trainer(adataObj)
     tnode.train()
     adataObj.obs['ptime'] = tnode.get_time()
