@@ -27,11 +27,20 @@ def run_sctour(GEXfile, metafile, exclusion_json_path, ptime_out_file):
     sc.pp.highly_variable_genes(adataObj, flavor='seurat_v3', n_top_genes=2000, subset=True, inplace=False)
     
     adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))]
+
+    # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
+    if adataObj.is_view:
+        print('AnnData object is a view, converting')
+        adataObj = adataObj.copy()
+
+    if adataObj.X.is_view:
+        print('AnnData.X object is a view, converting')
+        adataObj.X = adataObj.X.copy()
+
+    print('Anndata object:')
     print(adataObj)
     print(adataObj.X)
 
-    # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
-    adataObj = adataObj.raw.to_adata()
     tnode = sct.train.Trainer(adataObj)
     tnode.train()
     adataObj.obs['ptime'] = tnode.get_time()
