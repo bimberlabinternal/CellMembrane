@@ -30,8 +30,17 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
     sc.pp.filter_genes(adataObj, min_cells=20)
     sc.pp.highly_variable_genes(adataObj, flavor='seurat_v3', n_top_genes=2000, subset=True, inplace=False)
 
+    # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
+    if adataObj.is_view:
+        print('AnnData object is a view, converting')
+        adataObj = adataObj.copy()
+
+    if adataObj.X.is_view:
+        print('AnnData.X object is a view, converting')
+        adataObj.X = adataObj.X.copy()
+
     #train model
-    tnode = sct.train.Trainer(adataObj.copy(), random_state = random_state)
+    tnode = sct.train.Trainer(adataObj, random_state = random_state)
     tnode.train()
 
     #apply model to get pseudotime (ptime)
