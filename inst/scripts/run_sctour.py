@@ -26,7 +26,7 @@ def run_sctour(GEXfile, metafile, exclusion_json_path, ptime_out_file):
     sc.pp.filter_genes(adataObj, min_cells=20)
     sc.pp.highly_variable_genes(adataObj, flavor='seurat_v3', n_top_genes=2000, subset=True, inplace=False)
     
-    adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))]
+    adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))].copy()
 
     # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
     if adataObj.is_view:
