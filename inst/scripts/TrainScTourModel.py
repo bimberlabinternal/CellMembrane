@@ -7,6 +7,9 @@ import json
 
 def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_name, embedding_out_file, ptime_out_file, random_state = 0):
     print('Running scTour to train model')
+    print('scanpy version: ' + sc.__version__)
+    print('pandas version: ' + pd.__version__)
+    print('sctour version: ' + sct.__version__)
 
     #read gene expression matrix and exclusion list
     adataObj = sc.read_10x_h5(GEXfile)
@@ -28,7 +31,7 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
     sc.pp.highly_variable_genes(adataObj, flavor='seurat_v3', n_top_genes=2000, subset=True, inplace=False)
 
     #train model
-    tnode = sct.train.Trainer(adataObj, random_state = random_state)
+    tnode = sct.train.Trainer(adataObj.copy(), random_state = random_state)
     tnode.train()
 
     #apply model to get pseudotime (ptime)
