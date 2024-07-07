@@ -23,7 +23,7 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
 
         #apply exclusion list
         toKeep = list(set(adataObj.var_names) - set(exclusionList))
-        adataObj = adataObj[:, toKeep]
+        adataObj = adataObj[:, toKeep].copy()
 
     #basic preprocessing to population metadata fields that scTour expects
     sc.pp.calculate_qc_metrics(adataObj, percent_top=None, log1p=False, inplace=True)
@@ -34,10 +34,6 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
     if adataObj.is_view:
         print('AnnData object is a view, converting')
         adataObj = adataObj.copy()
-
-    if adataObj.X.is_view:
-        print('AnnData.X object is a view, converting')
-        adataObj.X = adataObj.X.copy()
 
     #train model
     tnode = sct.train.Trainer(adataObj, random_state = random_state)
