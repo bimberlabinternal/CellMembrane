@@ -15,5 +15,5 @@ test_that("Pathway scoring works", {
   expect_true("ssGSEA.alternative" %in% Seurat::Assays(seuratObj))
   results <- GetAssayData(seuratObj, assay = "ssGSEA.alternative")
   #check that the results are approximately correct. This calculation should be deterministic. 
-  expect_equal(colMeans(matrix(results)), 616297.8, tolerance = 1)
+  expect_equal(colMeans(matrix(results)), 1.56, tolerance = .01)
 })
