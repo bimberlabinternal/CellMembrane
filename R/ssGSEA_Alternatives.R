@@ -27,7 +27,7 @@
 AlternativeSsgseaSeurat <- function(seuratObj = seuratObj, 
                                      geneSets, 
                                      method = "dts", 
-                                     groupSize = 5000, 
+                                     groupSize = 20000, 
                                      assay = "RNA", 
                                      layer = 'counts', 
                                      outputAssayName = "ssGSEA.alternative", 
@@ -134,16 +134,21 @@ AlternativeSsgseaSeurat <- function(seuratObj = seuratObj,
   genes_in_set <- gene_set
   
   # Subset the ranked genes for the gene set and all genes
-  ranks_all <- ranked_genes
-  ranks_set <- ranked_genes[genes_in_set]
+  ranks_all <- sort(ranked_genes)
+  ranks_set <- sort(ranked_genes[genes_in_set])
+  ecdf_all <- ecdf(ranks_all)
+  ecdf_set <- ecdf(ranks_set)
+  
+  ecdf_values_all <- unlist(lapply(seq(1:(nrow(countMatrix)/2)), function(i) ecdf_all(ranks_all[i])))
+  ecdf_values_set <- unlist(lapply(seq(1:(nrow(countMatrix)/2)), function(i) ecdf_set(ranks_all[i])))
   
   # Compute a distribution distance using the twosamples package
   if (method == 'dts') {
-    distance <- twosamples::dts_stat(ranks_set, ranks_all)
+    distance <- twosamples::dts_stat(ecdf_values_set, ecdf_values_all)
   } else if (method %in% c('wass', "wasserstein")) {
-    distance <- twosamples::wass_stat(ranks_set, ranks_all)
+    distance <- twosamples::wass_stat(ecdf_values_all,ecdf_values_set)
   } else if (method == 'ks') {
-    distance <- twosamples::ks_stat(ranks_set, ranks_all)
+    distance <- twosamples::ks_stat(ecdf_values_set, ecdf_values_all)
   } else {
     stop('Method: ', method, ' not supported')
   }
