@@ -138,9 +138,9 @@ AlternativeSsgseaSeurat <- function(seuratObj = seuratObj,
   ranks_set <- sort(ranked_genes[genes_in_set])
   ecdf_all <- ecdf(ranks_all)
   ecdf_set <- ecdf(ranks_set)
-  
-  ecdf_values_all <- unlist(lapply(seq(1:(nrow(countMatrix)/2)), function(i) ecdf_all(ranks_all[i])))
-  ecdf_values_set <- unlist(lapply(seq(1:(nrow(countMatrix)/2)), function(i) ecdf_set(ranks_all[i])))
+
+  ecdf_values_all <- unlist(lapply(seq(1:(nrow(countMatrix))), function(i) ecdf_all(ranks_all[i])))
+  ecdf_values_set <- unlist(lapply(seq(1:(nrow(countMatrix))), function(i) ecdf_set(ranks_all[i])))
   
   # Compute a distribution distance using the twosamples package
   if (method == 'dts') {

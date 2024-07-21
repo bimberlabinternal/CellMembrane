@@ -8,7 +8,7 @@ AlternativeSsgseaSeurat(
   seuratObj = seuratObj,
   geneSets,
   method = "dts",
-  groupSize = 5000,
+  groupSize = 20000,
   assay = "RNA",
   layer = "counts",
   outputAssayName = "ssGSEA.alternative",
