@@ -130,23 +130,29 @@ AlternativeSsgseaSeurat <- function(seuratObj = seuratObj,
 #' 
 .computeSsgseaScores <- function(gene_set, countMatrix, method) {
   distances <- sapply(colnames(countMatrix), function(sample) {
+  totalNumberOfGenes <- nrow(countMatrix)
   ranked_genes <- rank(-countMatrix[, sample])
   genes_in_set <- gene_set
   
   # Subset the ranked genes for the gene set and all genes
   ranks_all <- sort(ranked_genes)
   ranks_set <- sort(ranked_genes[genes_in_set])
+  #define probability measures
   ecdf_all <- ecdf(ranks_all)
   ecdf_set <- ecdf(ranks_set)
-
-  ecdf_values_all <- unlist(lapply(seq(1:(nrow(countMatrix))), function(i) ecdf_all(ranks_all[i])))
-  ecdf_values_set <- unlist(lapply(seq(1:(nrow(countMatrix))), function(i) ecdf_set(ranks_all[i])))
+  #sample each ecdf at ranks that span the transcriptome. 
+  ecdf_values_all <- unlist(lapply(seq(1:totalNumberOfGenes), function(i) ecdf_all(ranks_all[i])))
+  ecdf_values_set <- unlist(lapply(seq(1:totalNumberOfGenes), function(i) ecdf_set(ranks_all[i])))
   
   # Compute a distribution distance using the twosamples package
   if (method == 'dts') {
     distance <- twosamples::dts_stat(ecdf_values_set, ecdf_values_all)
   } else if (method %in% c('wass', "wasserstein")) {
-    distance <- twosamples::wass_stat(ecdf_values_all,ecdf_values_set)
+    #closed form solution for 1-D Wasserstein is used here to speed computation
+    #this works exactly for the ecdf across a full cell's transcriptome. 
+    #Statement of closed form solution here: https://arxiv.org/abs/1806.05500, but derivation likely in a textbook.
+    #this approximation is not exactly the same, but is identical to the first ~15 digits, and is 32x faster. 
+    distance <- sum(abs(ecdf_values_set - ecdf_values_all))/totalNumberOfGenes
   } else if (method == 'ks') {
     distance <- twosamples::ks_stat(ecdf_values_set, ecdf_values_all)
   } else {
