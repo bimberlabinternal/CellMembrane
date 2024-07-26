@@ -5,8 +5,20 @@ import pandas as pd
 import json
 
 
+#debugging some upstream package versions
+import scipy
+import networkx as nx
+import sys
+
 def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_name, embedding_out_file, ptime_out_file, random_state = 0):
     print('Running scTour to train model')
+    print('scanpy version: ' + sc.__version__)
+    print('pandas version: ' + pd.__version__)
+    print('sctour version: ' + sct.__version__)
+    print('scipy version: ' + scipy.__version__)
+    print('networkx version: ' + nx.__version__)
+    print('numpy version: ' + np.__version__)
+    print('Python version: ' + sys.version)
 
     #read gene expression matrix and exclusion list
     adataObj = sc.read_10x_h5(GEXfile)
@@ -20,12 +32,17 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
 
         #apply exclusion list
         toKeep = list(set(adataObj.var_names) - set(exclusionList))
-        adataObj = adataObj[:, toKeep]
+        adataObj = adataObj[:, toKeep].copy()
 
     #basic preprocessing to population metadata fields that scTour expects
     sc.pp.calculate_qc_metrics(adataObj, percent_top=None, log1p=False, inplace=True)
     sc.pp.filter_genes(adataObj, min_cells=20)
     sc.pp.highly_variable_genes(adataObj, flavor='seurat_v3', n_top_genes=2000, subset=True, inplace=False)
+
+    # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
+    if adataObj.X.getformat() == 'csr':
+        print('AnnData object is a csr matrix, converting to dense because scipy depreciated the .A shorthand')
+        adataObj.X = adataObj.X.toarray()
 
     #train model
     tnode = sct.train.Trainer(adataObj, random_state = random_state)
