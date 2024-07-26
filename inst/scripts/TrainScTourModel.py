@@ -40,9 +40,9 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
     sc.pp.highly_variable_genes(adataObj, flavor='seurat_v3', n_top_genes=2000, subset=True, inplace=False)
 
     # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
-    if adataObj.is_view:
-        print('AnnData object is a view, converting')
-        adataObj = adataObj.copy()
+    if adataObj.X.getformat() == 'csr':
+        print('AnnData object is a csr matrix, converting to dense because scipy depreciated the .A shorthand')
+        adataObj.X = adataObj.X.toarray()
 
     #train model
     tnode = sct.train.Trainer(adataObj, random_state = random_state)
