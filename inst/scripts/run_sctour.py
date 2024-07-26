@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 import json
 
 def run_sctour(GEXfile, metafile, exclusion_json_path, ptime_out_file):
+    print('scanpy version: ' + sc.__version__)
+    print('pandas version: ' + pd.__version__)
+    print('sctour version: ' + sct.__version__)
+
     adataObj = sc.read_10x_h5(GEXfile)
     info = pd.read_csv(metafile, sep=',', index_col=0)
     with open(exclusion_json_path) as f:
@@ -26,12 +30,21 @@ def run_sctour(GEXfile, metafile, exclusion_json_path, ptime_out_file):
     sc.pp.filter_genes(adataObj, min_cells=20)
     sc.pp.highly_variable_genes(adataObj, flavor='seurat_v3', n_top_genes=2000, subset=True, inplace=False)
     
-    adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))]
+    adataObj = adataObj[:, list(set(adataObj.var_names) - set(exclusionList))].copy()
+
+    # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
+    if adataObj.is_view:
+        print('AnnData object is a view, converting')
+        adataObj = adataObj.copy()
+
+    if adataObj.X.is_view:
+        print('AnnData.X object is a view, converting')
+        adataObj.X = adataObj.X.copy()
+
+    print('Anndata object:')
     print(adataObj)
     print(adataObj.X)
 
-    # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
-    adataObj = adataObj.raw.to_adata()
     tnode = sct.train.Trainer(adataObj)
     tnode.train()
     adataObj.obs['ptime'] = tnode.get_time()
