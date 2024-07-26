@@ -8,6 +8,7 @@ import json
 #debugging some upstream package versions
 import scipy
 import networkx as nx
+import sys
 
 def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_name, embedding_out_file, ptime_out_file, random_state = 0):
     print('Running scTour to train model')
@@ -17,7 +18,7 @@ def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_nam
     print('scipy version: ' + scipy.__version__)
     print('networkx version: ' + nx.__version__)
     print('numpy version: ' + np.__version__)
-    
+    print('Python version: ' + sys.version)
 
     #read gene expression matrix and exclusion list
     adataObj = sc.read_10x_h5(GEXfile)
