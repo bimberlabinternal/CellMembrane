@@ -8,6 +8,11 @@ def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     #read count data and variable genes
     adataObj = sc.read_10x_h5(GEXfile)
     adataObj.X = round(adataObj.X).astype(np.float32)
+    
+    # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
+    if adataObj.X.getformat() == 'csr':
+        print('AnnData object is a csr matrix, converting to dense because scipy depreciated the .A shorthand')
+        adataObj.X = adataObj.X.toarray()
 
     checkpoint = torch.load(model_file, map_location=torch.device('cpu'))
     model_adata = checkpoint['adata']
