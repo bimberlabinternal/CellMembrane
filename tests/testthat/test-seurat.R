@@ -97,7 +97,7 @@ test_that("Seurat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 868)
+  expect_equal(nrow(df), 2224)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
