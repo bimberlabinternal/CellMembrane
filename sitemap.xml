@@ -1,312 +1,106 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/articles/CellMembrane-Tutorial.html</loc>
-  </url>
-  <url>
-    <loc>/articles/Pseudobulking-and-Filtered-Contrasts.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/AddNewMetaColumn.html</loc>
-  </url>
-  <url>
-    <loc>/reference/AppendCiteSeq.html</loc>
-  </url>
-  <url>
-    <loc>/reference/AppendPerCellSaturation.html</loc>
-  </url>
-  <url>
-    <loc>/reference/AppendPerCellSaturationInBulk.html</loc>
-  </url>
-  <url>
-    <loc>/reference/AvgExpression.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CalculateClusterEnrichment.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CalculatePercentMito.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CalculateTcrDiversity.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CalculateTcrDiversityFromSeurat.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CalculateUcellPerFeature.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CellCycleScoring_UCell.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CiteSeqDimRedux.Dist.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CiteSeqDimRedux.PCA.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ClrNormalizeByGroup.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ConstructEnrichmentDataFrameAndDoStatistics.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CreateSeuratObj.html</loc>
-  </url>
-  <url>
-    <loc>/reference/DesignModelMatrix.html</loc>
-  </url>
-  <url>
-    <loc>/reference/DetectCellStructuresBasedOnCellType.html</loc>
-  </url>
-  <url>
-    <loc>/reference/DoLdaParameterScan.html</loc>
-  </url>
-  <url>
-    <loc>/reference/DownsampleSeurat.html</loc>
-  </url>
-  <url>
-    <loc>/reference/FeaturePlotAcrossReductions.html</loc>
-  </url>
-  <url>
-    <loc>/reference/FilterCloneNames.html</loc>
-  </url>
-  <url>
-    <loc>/reference/FilterPseudobulkContrasts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/FilterRawCounts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/FindClustersAndDimRedux.html</loc>
-  </url>
-  <url>
-    <loc>/reference/FindDoublets.html</loc>
-  </url>
-  <url>
-    <loc>/reference/Find_Markers.html</loc>
-  </url>
-  <url>
-    <loc>/reference/FitRegularizedClassificationGlm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetAssayMetadataSlotName.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetChiDF.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetG2MGenes.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetGeneIds.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetMsigdbGeneSet.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetSPhaseGenes.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetSeed.html</loc>
-  </url>
-  <url>
-    <loc>/reference/GetXYDataFromPlot.html</loc>
-  </url>
-  <url>
-    <loc>/reference/HasSplitLayers.html</loc>
-  </url>
-  <url>
-    <loc>/reference/HighlightCellsOnSeuratPlot.html</loc>
-  </url>
-  <url>
-    <loc>/reference/InspectSeurat.html</loc>
-  </url>
-  <url>
-    <loc>/reference/LogNormalizeUsingAlternateAssay.html</loc>
-  </url>
-  <url>
-    <loc>/reference/MakeEnrichmentDotPlot.html</loc>
-  </url>
-  <url>
-    <loc>/reference/MergeSeuratObjs.html</loc>
-  </url>
-  <url>
-    <loc>/reference/MergeSplitLayers.html</loc>
-  </url>
-  <url>
-    <loc>/reference/NanoString_Housekeeping_Normalization.html</loc>
-  </url>
-  <url>
-    <loc>/reference/NormalizeAndScale.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PerformDifferentialExpression.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PerformEmptyDropletFiltering.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PerformGlmFit.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PerformIntegration.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PlotAverageAdtCounts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PlotSdaCellScores.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PlotSeuratVariables.html</loc>
-  </url>
-  <url>
-    <loc>/reference/Plot_SDAScoresPerFeature.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PredictScTourPseudotime.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PseudobulkSeurat.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PseudobulkingBarPlot.html</loc>
-  </url>
-  <url>
-    <loc>/reference/PseudobulkingDEHeatmap.html</loc>
-  </url>
-  <url>
-    <loc>/reference/Q3_Normalization.html</loc>
-  </url>
-  <url>
-    <loc>/reference/QuantifyTcrClones.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RLE_Plot.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RUVg_Housekeeping_Normalization.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ReadAndFilter10xData.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RegressCellCycle.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RenameUsingCD.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ResolveLocGenes.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RunCoNGA.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RunCsCore.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RunEscape.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RunFilteredContrasts.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RunPHATE.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RunPcaSteps.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RunSDA.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RunSeuratWnn.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RunSingleR.html</loc>
-  </url>
-  <url>
-    <loc>/reference/RunUmapOnSDA.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SDAToSeuratMetadata.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SDAToSeuratReduction.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SDA_GO_Enrichment.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ScaleFeaturesIfNeeded.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ScoreCellCycle.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SetSeed.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SeuratToCoNGA.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SpatialNormalizeByGroup.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SplitSeurat.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SubsetSeurat.html</loc>
-  </url>
-  <url>
-    <loc>/reference/TrainSctourModel.html</loc>
-  </url>
-  <url>
-    <loc>/reference/UpdateMacaqueMmul10NcbiGeneSymbols.html</loc>
-  </url>
-  <url>
-    <loc>/reference/WriteCellBarcodes.html</loc>
-  </url>
-  <url>
-    <loc>/reference/WriteSummaryMetrics.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cdGenes.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-GenerateSizeFactor.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-RemoveSpecialCharacters.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-UpdateGeneModel.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-addRegulationInformationAndFilterDEGs.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-swapContrast.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/runLDA.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/articles/CellMembrane-Tutorial.html</loc></url>
+<url><loc>/articles/Pseudobulking-and-Filtered-Contrasts.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/AddNewMetaColumn.html</loc></url>
+<url><loc>/reference/AppendCiteSeq.html</loc></url>
+<url><loc>/reference/AppendPerCellSaturation.html</loc></url>
+<url><loc>/reference/AppendPerCellSaturationInBulk.html</loc></url>
+<url><loc>/reference/AvgExpression.html</loc></url>
+<url><loc>/reference/CalculateClusterEnrichment.html</loc></url>
+<url><loc>/reference/CalculatePercentMito.html</loc></url>
+<url><loc>/reference/CalculateTcrDiversity.html</loc></url>
+<url><loc>/reference/CalculateTcrDiversityFromSeurat.html</loc></url>
+<url><loc>/reference/CalculateUcellPerFeature.html</loc></url>
+<url><loc>/reference/CellCycleScoring_UCell.html</loc></url>
+<url><loc>/reference/CiteSeqDimRedux.Dist.html</loc></url>
+<url><loc>/reference/CiteSeqDimRedux.PCA.html</loc></url>
+<url><loc>/reference/ClrNormalizeByGroup.html</loc></url>
+<url><loc>/reference/ConstructEnrichmentDataFrameAndDoStatistics.html</loc></url>
+<url><loc>/reference/CreateSeuratObj.html</loc></url>
+<url><loc>/reference/DesignModelMatrix.html</loc></url>
+<url><loc>/reference/DetectCellStructuresBasedOnCellType.html</loc></url>
+<url><loc>/reference/DoLdaParameterScan.html</loc></url>
+<url><loc>/reference/DownsampleSeurat.html</loc></url>
+<url><loc>/reference/FeaturePlotAcrossReductions.html</loc></url>
+<url><loc>/reference/FilterCloneNames.html</loc></url>
+<url><loc>/reference/FilterPseudobulkContrasts.html</loc></url>
+<url><loc>/reference/FilterRawCounts.html</loc></url>
+<url><loc>/reference/FindClustersAndDimRedux.html</loc></url>
+<url><loc>/reference/FindDoublets.html</loc></url>
+<url><loc>/reference/Find_Markers.html</loc></url>
+<url><loc>/reference/FitRegularizedClassificationGlm.html</loc></url>
+<url><loc>/reference/GetAssayMetadataSlotName.html</loc></url>
+<url><loc>/reference/GetChiDF.html</loc></url>
+<url><loc>/reference/GetG2MGenes.html</loc></url>
+<url><loc>/reference/GetGeneIds.html</loc></url>
+<url><loc>/reference/GetMsigdbGeneSet.html</loc></url>
+<url><loc>/reference/GetSPhaseGenes.html</loc></url>
+<url><loc>/reference/GetSeed.html</loc></url>
+<url><loc>/reference/GetXYDataFromPlot.html</loc></url>
+<url><loc>/reference/HasSplitLayers.html</loc></url>
+<url><loc>/reference/HighlightCellsOnSeuratPlot.html</loc></url>
+<url><loc>/reference/InspectSeurat.html</loc></url>
+<url><loc>/reference/LogNormalizeUsingAlternateAssay.html</loc></url>
+<url><loc>/reference/MakeEnrichmentDotPlot.html</loc></url>
+<url><loc>/reference/MergeSeuratObjs.html</loc></url>
+<url><loc>/reference/MergeSplitLayers.html</loc></url>
+<url><loc>/reference/NanoString_Housekeeping_Normalization.html</loc></url>
+<url><loc>/reference/NormalizeAndScale.html</loc></url>
+<url><loc>/reference/PerformDifferentialExpression.html</loc></url>
+<url><loc>/reference/PerformEmptyDropletFiltering.html</loc></url>
+<url><loc>/reference/PerformGlmFit.html</loc></url>
+<url><loc>/reference/PerformIntegration.html</loc></url>
+<url><loc>/reference/PlotAverageAdtCounts.html</loc></url>
+<url><loc>/reference/PlotSdaCellScores.html</loc></url>
+<url><loc>/reference/PlotSeuratVariables.html</loc></url>
+<url><loc>/reference/Plot_SDAScoresPerFeature.html</loc></url>
+<url><loc>/reference/PredictScTourPseudotime.html</loc></url>
+<url><loc>/reference/PseudobulkSeurat.html</loc></url>
+<url><loc>/reference/PseudobulkingBarPlot.html</loc></url>
+<url><loc>/reference/PseudobulkingDEHeatmap.html</loc></url>
+<url><loc>/reference/Q3_Normalization.html</loc></url>
+<url><loc>/reference/QuantifyTcrClones.html</loc></url>
+<url><loc>/reference/RLE_Plot.html</loc></url>
+<url><loc>/reference/RUVg_Housekeeping_Normalization.html</loc></url>
+<url><loc>/reference/ReadAndFilter10xData.html</loc></url>
+<url><loc>/reference/RegressCellCycle.html</loc></url>
+<url><loc>/reference/RenameUsingCD.html</loc></url>
+<url><loc>/reference/ResolveLocGenes.html</loc></url>
+<url><loc>/reference/RunCoNGA.html</loc></url>
+<url><loc>/reference/RunCsCore.html</loc></url>
+<url><loc>/reference/RunEscape.html</loc></url>
+<url><loc>/reference/RunFilteredContrasts.html</loc></url>
+<url><loc>/reference/RunPHATE.html</loc></url>
+<url><loc>/reference/RunPcaSteps.html</loc></url>
+<url><loc>/reference/RunSDA.html</loc></url>
+<url><loc>/reference/RunSeuratWnn.html</loc></url>
+<url><loc>/reference/RunSingleR.html</loc></url>
+<url><loc>/reference/RunUmapOnSDA.html</loc></url>
+<url><loc>/reference/SDAToSeuratMetadata.html</loc></url>
+<url><loc>/reference/SDAToSeuratReduction.html</loc></url>
+<url><loc>/reference/SDA_GO_Enrichment.html</loc></url>
+<url><loc>/reference/ScaleFeaturesIfNeeded.html</loc></url>
+<url><loc>/reference/ScoreCellCycle.html</loc></url>
+<url><loc>/reference/SetSeed.html</loc></url>
+<url><loc>/reference/SeuratToCoNGA.html</loc></url>
+<url><loc>/reference/SpatialNormalizeByGroup.html</loc></url>
+<url><loc>/reference/SplitSeurat.html</loc></url>
+<url><loc>/reference/SubsetSeurat.html</loc></url>
+<url><loc>/reference/TrainSctourModel.html</loc></url>
+<url><loc>/reference/UpdateMacaqueMmul10NcbiGeneSymbols.html</loc></url>
+<url><loc>/reference/WriteCellBarcodes.html</loc></url>
+<url><loc>/reference/WriteSummaryMetrics.html</loc></url>
+<url><loc>/reference/cdGenes.html</loc></url>
+<url><loc>/reference/dot-GenerateSizeFactor.html</loc></url>
+<url><loc>/reference/dot-RemoveSpecialCharacters.html</loc></url>
+<url><loc>/reference/dot-UpdateGeneModel.html</loc></url>
+<url><loc>/reference/dot-addRegulationInformationAndFilterDEGs.html</loc></url>
+<url><loc>/reference/dot-swapContrast.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/runLDA.html</loc></url>
 </urlset>
+

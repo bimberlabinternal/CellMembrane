@@ -3,7 +3,7 @@
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]--></head><body data-spy="scroll" data-target="#toc">
-    
+
 
     <div class="container template-reference-topic">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -28,7 +28,7 @@
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
-     
+
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
@@ -41,20 +41,20 @@
       </ul><ul class="nav navbar-nav navbar-right"><li>
   <a href="https://github.com/BimberLabInternal/CellMembrane/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
-     
+
   </a>
 </li>
       </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Perform DimRedux on CiteSeq using PCA input</h1>
-    <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/HEAD/R/CiteSeq.R" class="external-link"><code>R/CiteSeq.R</code></a></small>
+    <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/master/R/CiteSeq.R" class="external-link"><code>R/CiteSeq.R</code></a></small>
     <div class="hidden name"><code>CiteSeqDimRedux.PCA.Rd</code></div>
     </div>
 
@@ -77,35 +77,37 @@
 
     <div id="arguments">
     <h2>Arguments</h2>
-    <dl><dt>seuratObj</dt>
+
+
+<dl><dt id="arg-seuratobj">seuratObj<a class="anchor" aria-label="anchor" href="#arg-seuratobj"></a></dt>
 <dd><p>The seurat object</p></dd>
 
 
-<dt>assayName</dt>
+<dt id="arg-assayname">assayName<a class="anchor" aria-label="anchor" href="#arg-assayname"></a></dt>
 <dd><p>The name of the assay holding the ADT data.</p></dd>
 
 
-<dt>print.plots</dt>
+<dt id="arg-print-plots">print.plots<a class="anchor" aria-label="anchor" href="#arg-print-plots"></a></dt>
 <dd><p>If true, QC plots will be printed</p></dd>
 
 
-<dt>performClrNormalization</dt>
+<dt id="arg-performclrnormalization">performClrNormalization<a class="anchor" aria-label="anchor" href="#arg-performclrnormalization"></a></dt>
 <dd><p>If true, Seurat's CLR normalization will be performed. Otherwise this expected data to be pre-normalized</p></dd>
 
 
-<dt>doUMAP</dt>
+<dt id="arg-doumap">doUMAP<a class="anchor" aria-label="anchor" href="#arg-doumap"></a></dt>
 <dd><p>If true, RunUMAP will be performed</p></dd>
 
 
-<dt>dimsToUse</dt>
+<dt id="arg-dimstouse">dimsToUse<a class="anchor" aria-label="anchor" href="#arg-dimstouse"></a></dt>
 <dd><p>An optional vector of PCs to use in tSNE/UMAP</p></dd>
 
 
-<dt>adtWhitelist</dt>
+<dt id="arg-adtwhitelist">adtWhitelist<a class="anchor" aria-label="anchor" href="#arg-adtwhitelist"></a></dt>
 <dd><p>An optional vector of ADTs that will be included in PCA. If NULL, all will be used.</p></dd>
 
 
-<dt>adtBlacklist</dt>
+<dt id="arg-adtblacklist">adtBlacklist<a class="anchor" aria-label="anchor" href="#arg-adtblacklist"></a></dt>
 <dd><p>An optional vector of ADTs that will be excluded from PCA. If NULL, all will be used.</p></dd>
 
 </dl></div>
@@ -122,15 +124,15 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
       </footer></div>
 
-  
 
 
-  
+
+
 
   </body></html>
 
