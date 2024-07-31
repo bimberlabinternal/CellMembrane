@@ -121,10 +121,11 @@ Config/reticulate:
     )
   )
 Collate: 
+    'Utils.R'
+    'ADTs.R'
     'Analysis.R'
     'CSCore.R'
     'Preprocessing.R'
-    'Utils.R'
     'CiteSeq.R'
     'CoNGA.R'
     'Doublets.R'
