@@ -13,7 +13,10 @@ triageADTsAndClassifyCells(
   minimumCounts = 200,
   minimumCells = 20,
   plots = T,
-  whitelist = NULL
+  whitelist = NULL,
+  peakdist_sd_ratio = 0.1,
+  scaled_mode_antimode_threshold = 0.1,
+  peakheight_ratio_threshold = 20
 )
 }
 \arguments{
@@ -34,6 +37,12 @@ triageADTsAndClassifyCells(
 \item{plots}{If TRUE, plots will be generated.}
 
 \item{whitelist}{A vector of library IDs to run the classification on. If NULL, all libraries will be run.}
+
+\item{peakdist_sd_ratio}{An upper bound of acceptable peak distance divided by the standard deviation of the ADT.}
+
+\item{scaled_mode_antimode_threshold}{The threshold for the scaled mode-antimode distance.}
+
+\item{peakheight_ratio_threshold}{The threshold for the peak height ratio.}
 }
 \description{
 This function will classify cells within a Seurat object based on characteristics relating to the bimodality of an ADT.
