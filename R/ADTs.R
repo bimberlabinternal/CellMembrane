@@ -17,6 +17,9 @@
 #' @param minimumCells A lower bound on the number of cells recovered from a library to attempt classification.
 #' @param plots If TRUE, plots will be generated.
 #' @param whitelist A vector of library IDs to run the classification on. If NULL, all libraries will be run.
+#' @param peakdist_sd_ratio An upper bound of acceptable peak distance divided by the standard deviation of the ADT.
+#' @param scaled_mode_antimode_threshold The threshold for the scaled mode-antimode distance.
+#' @param peakheight_ratio_threshold The threshold for the peak height ratio.
 #' @export
 
 triageADTsAndClassifyCells <- function(seuratObj, 
@@ -27,7 +30,10 @@ triageADTsAndClassifyCells <- function(seuratObj,
                                        minimumCounts = 200, 
                                        minimumCells = 20, 
                                        plots = T, 
-                                       whitelist = NULL
+                                       whitelist = NULL, 
+                                       peakdist_sd_ratio = 0.1,
+                                       scaled_mode_antimode_threshold = 0.1,
+                                       peakheight_ratio_threshold = 20
 ){
   if (!is.logical(plots)) {
     stop("The 'plots' argument must be TRUE or FALSE.")
