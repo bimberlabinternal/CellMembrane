@@ -48,4 +48,12 @@ test_that("Cluster enrichment works", {
                                           treatmentField = "timepoint",
                                           subjectField = "subject",
                                           paired = "infer"))
+  # Test ClusteredDotPlot
+  dotplot <- ClusteredDotPlot(seuratObj, 
+                   features = c("CD3E", "CD8A"),
+                   groupFields = c("vaccine_cohort"), 
+                   scaling = "row")
+  #test that the plot was created and the name is correct
+  testthat::expect_true(dotplot@name == "Scaled\nExpr.")
+  
 })
