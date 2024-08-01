@@ -89,7 +89,7 @@ Imports:
     conover.test, 
     colorspace, 
     forcats, 
-    BioBase
+    Biobase
 Suggests:
     devtools,
     testthat (>= 2.1.0),
