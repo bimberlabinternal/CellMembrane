@@ -456,6 +456,10 @@ CalculateClusterEnrichment <- function(seuratObj,
 
 ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.2", assay = "RNA", ggplotify = TRUE, scaling = 'row', layer = 'data') {
   #Sanity checks
+  #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
+  if (length(features) == 0) {
+    stop("The features argument is empty. Please specify a non-empty vector of features.")
+  }
   #check that features are both valid and force them to be unique. 
   if (!all(features %in% rownames(Seurat::GetAssayData(seuratObj, slot = 'data')))) {
     warning(paste0('Features not found in Seurat object: ', paste0(features[!features %in% rownames(Seurat::GetAssayData(seuratObj, layer = layer))], collapse = ', ')))
