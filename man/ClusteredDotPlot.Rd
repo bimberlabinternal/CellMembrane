@@ -26,6 +26,8 @@ ClusteredDotPlot(
 \item{ggplotify}{A boolean that determines if the ComplexHeatmap object should be converted to a ggplot object.}
 
 \item{scaling}{The scaling method for the heatmap. Options are "row", "column", or none.}
+
+\item{layer}{The layer of the Seurat object that holds the relevant expression data.}
 }
 \description{
 A function that generates a clustered dot plot with a heatmap of scaled expression.

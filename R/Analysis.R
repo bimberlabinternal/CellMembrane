@@ -452,6 +452,7 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param assay The assay to plot.
 #' @param ggplotify A boolean that determines if the ComplexHeatmap object should be converted to a ggplot object.
 #' @param scaling The scaling method for the heatmap. Options are "row", "column", or none.
+#' @param layer The layer of the Seurat object that holds the relevant expression data. 
 #' @export
 
 ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.2", assay = "RNA", ggplotify = TRUE, scaling = 'row', layer = 'data') {
