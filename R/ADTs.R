@@ -56,6 +56,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
     ids <- ids[ids %in% whitelist]
   }
   #initalize vectors to hold statistics to be used for classification
+  calls <- c()
   decay_vector <- c()
   diff_vector <- c()
   peakheight_ratio_vector <- c()
@@ -101,6 +102,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
       peak2 <- sorted[2]
       antimode <- sorted[3]
       peakheight_ratio <- peak1/peak2
+      minval <- min(library_adt_submatrix[adtToInspect,])
       scaled_mode_antimode <- abs((antimode - peak2)/(antimode - minval))
     } else {
       #if locmodes failed, set heuristics to NA
