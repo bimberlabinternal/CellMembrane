@@ -88,7 +88,8 @@ Imports:
     circlize, 
     conover.test, 
     colorspace, 
-    forcats
+    forcats, 
+    multimode
 Suggests:
     devtools,
     testthat (>= 2.1.0),
