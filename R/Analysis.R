@@ -481,7 +481,7 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
   if (!all(features %in% rownames(Seurat::GetAssayData(seuratObj, slot = 'data')))) {
     warning(paste0('Features not found in Seurat object: ', paste0(features[!features %in% rownames(Seurat::GetAssayData(seuratObj, layer = layer))], collapse = ', ')))
   }
-  if (!all(Biobase::isUnique(features))) {
+  if (any(duplicated(features))) {
     warning(paste0('Features supplied are not unique. Duplicates will be removed.'))
     features <- unique(features)
   }
