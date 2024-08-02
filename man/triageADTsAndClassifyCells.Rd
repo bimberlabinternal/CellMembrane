@@ -6,7 +6,7 @@
 \usage{
 triageADTsAndClassifyCells(
   seuratObj,
-  adtToInspect = "CD4",
+  adtwhitelist = NULL,
   assay = "ADT",
   layer = "data",
   libraryIdentificationColumn = "cDNA_ID",
@@ -22,7 +22,7 @@ triageADTsAndClassifyCells(
 \arguments{
 \item{seuratObj}{A Seurat object.}
 
-\item{adtToInspect}{The name of the ADT to inspect.}
+\item{adtwhitelist}{An optional vector of ADTs to be triaged and classified.}
 
 \item{assay}{The assay to use.}
 
