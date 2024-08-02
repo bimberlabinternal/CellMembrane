@@ -43,7 +43,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
   
   #harvest data from seurat object, and fix Idents to be equal to the libraryIdentificationColumn
   adtMatrix <- Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)
-
+  
   ids <- unique(seuratObj@meta.data[, libraryIdentificationColumn])
   
   #optionally, only select a few libraries to run on
@@ -101,34 +101,52 @@ triageADTsAndClassifyCells <- function(seuratObj,
     }
     # Iterate over all ADTs in cDNA_Id
     for (adt in adts) {
-    
+      
       library_adt_vector <- adtMatrix[adt,cells_in_library]
       #debugging
       if (plots) {
         hist(library_adt_vector, breaks = 100, main = cid)
       }
       
-      #try to find bimodality using locmodes
-      multimodeResult <- multimode::locmodes(library_adt_vector, mod0 = 2, lowsup=-5, uppsup = 5, n = 10000, display = plots)
-      #if mutlimode::locmodes succeeds (i.e. two modes and an antimode are not NA values), calculate heuristics
-      if (all(!is.na(multimodeResult$fvalue))) {
-        #TODO: sorting isn't really appropriate here, but maybe when Greg can implement his previous code that loops through the mod values, it will be necessary again. 
-        sorted <- multimodeResult$fvalue |> sort(decreasing = T)
-        peak1 <- sorted[1]
-        peak2 <- sorted[2]
-        antimode <- sorted[3]
-        peakheight_ratio <- peak1/peak2
-        minval <- min(library_adt_vector)
-        scaled_mode_antimode <- abs((antimode - peak2)/(antimode - minval))
-      } else {
-        #if locmodes failed, set heuristics to NA
-        peak1 <- NA
-        peak2 <- NA
-        antimode <- NA
-        peakheight_ratio <- NA
-        scaled_mode_antimode <- NA
-        call <- "Fail"
-        reason <- "Indeterminate"
+      for (mod0val in seq(2,10,1)) {
+        #try to find bimodality using locmodes
+        multimodeResult <- multimode::locmodes(library_adt_vector, mod0 = mod0val, lowsup=0, uppsup = 5, n = 10000, display = plots)
+        #if mutlimode::locmodes succeeds (i.e. two modes and an antimode are not NA values), calculate heuristics
+        if (sum(!is.na(multimodeResult$fvalue))>=3) {
+          #TODO: sorting isn't really appropriate here, but maybe when Greg can implement his previous code that loops through the mod values, it will be necessary again. 
+          density_ordered_modes <- order(multimodeResult$fvalue, decreasing = T)
+          sorted <- multimodeResult$fvalue[density_ordered_modes]
+          peak1 <- sorted[1]
+          peak2 <- sorted[2]
+          peak1_location <- multimodeResult$locations[density_ordered_modes][1]
+          peak2_location <- multimodeResult$locations[density_ordered_modes][2]
+          midpoint <- (peak1_location + peak2_location)/2
+          antimode_index <- which.min(multimodeResult$locations - midpoint)
+          antimode <- multimodeResult$fvalue[antimode_index]
+          antimode_location <- multimodeResult$locations[antimode_index]
+          peakheight_ratio <- peak1/peak2
+          minval <- min(multimodeResult$fvalue) + 1E-10
+          scaled_mode_antimode <- abs((antimode - peak2)/(antimode - minval))
+          
+          diff <- ((peak1_location - peak2_location)^2)/sd(library_adt_vector)
+          # if a valid solution is found to antimode identification, stop iterating mod0val and accept modes
+          if ((diff > peakdist_sd_ratio) & (scaled_mode_antimode > scaled_mode_antimode_threshold) & (peakheight_ratio < peakheight_ratio_threshold))  {
+            break
+          }
+          
+        } else if (sum(!is.na(multimodeResult$fvalue)) < 3 | mod0val < 10) {
+          mod0val <- mod0val + 1
+        }
+        else {
+          #if locmodes failed, set heuristics to NA
+          peak1 <- NA
+          peak2 <- NA
+          antimode <- NA
+          peakheight_ratio <- NA
+          scaled_mode_antimode <- NA
+          call <- "Fail"
+          reason <- "Indeterminate"
+        }
       }
       
       #apply bimodality heuristics
@@ -154,13 +172,13 @@ triageADTsAndClassifyCells <- function(seuratObj,
         
         if (length(unique(library_adt_vector)) > round(minimumCells/2, 0)) {
           #independent of locmodes, calculate autocorrelation and fit an exponential to model the decay rate of the autocorrelation wrt lag
-        p_acf <- pacf(quantile(library_adt_vector, probs = seq(0.01,1,0.001)), plot = plots)
-        data <- data.frame(p_acf = p_acf$acf, n = p_acf$lag)
-        
-        #this will warn that we're taking logs of negative numbers, but our primary interest is in the first few lags. After that, the autocorrelation will have smaller magnitudes and not matter nearly as much. 
-        #TODO: consider dropping data after the first lag where p_acf = 0
-        model <- suppressWarnings(lm(log(p_acf) ~ 0 + n, data = data))
-        decay = as.double(coef(model))}
+          p_acf <- pacf(quantile(library_adt_vector, probs = seq(0.01,1,0.001)), plot = plots)
+          data <- data.frame(p_acf = p_acf$acf, n = p_acf$lag)
+          
+          #this will warn that we're taking logs of negative numbers, but our primary interest is in the first few lags. After that, the autocorrelation will have smaller magnitudes and not matter nearly as much. 
+          #TODO: consider dropping data after the first lag where p_acf = 0
+          model <- suppressWarnings(lm(log(p_acf) ~ 0 + n, data = data))
+          decay = as.double(coef(model))}
       } else {
         decay <- NA
       }
@@ -169,31 +187,31 @@ triageADTsAndClassifyCells <- function(seuratObj,
       diff_vector <- c(diff_vector, diff)
       peakheight_ratio_vector <- c(peakheight_ratio_vector, peakheight_ratio)
       scaled_mode_antimode_vector <- c(scaled_mode_antimode_vector, scaled_mode_antimode)
-      peak1_density_vector <- c(peak1_density_vector, multimodeResult$fvalue[1])
-      peak2_density_vector <- c(peak2_density_vector, multimodeResult$fvalue[3])
-      antimode_density_vector <- c(antimode_density_vector, multimodeResult$fvalue[2])
-      peak1_location_vector <- c(peak1_location_vector, multimodeResult$locations[1])
-      peak2_location_vector <- c(peak2_location_vector, multimodeResult$locations[3])
-      antimode_location_vector <- c(antimode_location_vector, multimodeResult$locations[2])
+      peak1_density_vector <- c(peak1_density_vector, peak1)
+      peak2_density_vector <- c(peak2_density_vector, peak2)
+      antimode_density_vector <- c(antimode_density_vector, antimode)
+      peak1_location_vector <- c(peak1_location_vector, peak1_location)
+      peak2_location_vector <- c(peak2_location_vector, peak2_location)
+      antimode_location_vector <- c(antimode_location_vector, antimode_location)
       calls <- c(calls, call)
       reason_vector <- c(reason_vector, reason)
       cid_vector <- c(cid_vector, cid)
       adt_vector <- c(adt_vector, adt)
     }
-    }
-    return(data.frame(cDNA_ID = cid_vector,
-                      ADT = adt_vector,
-                      call = calls,
-                      reason = reason_vector,
-                      decay = decay_vector, 
-                      diff = diff_vector, 
-                      peakheight_ratio = peakheight_ratio_vector, 
-                      scaled_mode_antimode = scaled_mode_antimode_vector, 
-                      peak1_density = peak1_density_vector, 
-                      peak2_density = peak2_density_vector, 
-                      antimode_density = antimode_density_vector, 
-                      peak1_location = peak1_location_vector, 
-                      peak2_location = peak2_location_vector, 
-                      antimode_location = antimode_location_vector))
-    #TODO: use these features to classify cells, potentially returning a seurat object with classified cells. 
+  }
+  return(data.frame(cDNA_ID = cid_vector,
+                    ADT = adt_vector,
+                    call = calls,
+                    reason = reason_vector,
+                    decay = decay_vector, 
+                    diff = diff_vector, 
+                    peakheight_ratio = peakheight_ratio_vector, 
+                    scaled_mode_antimode = scaled_mode_antimode_vector, 
+                    peak1_density = peak1_density_vector, 
+                    peak2_density = peak2_density_vector, 
+                    antimode_density = antimode_density_vector, 
+                    peak1_location = peak1_location_vector, 
+                    peak2_location = peak2_location_vector, 
+                    antimode_location = antimode_location_vector))
+  #TODO: use these features to classify cells, potentially returning a seurat object with classified cells. 
 }
