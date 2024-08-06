@@ -18,7 +18,6 @@
 #' @param minimumCells A lower bound on the number of cells recovered from a library to attempt classification.
 #' @param plots If TRUE, plots will be generated.
 #' @param peakdist_sd_ratio An upper bound of acceptable peak distance divided by the standard deviation of the ADT.
-#' @param scaled_mode_antimode_threshold The threshold for the scaled mode-antimode distance.
 #' @param peakheight_ratio_threshold The threshold for the peak height ratio.
 #' @export
 
@@ -32,8 +31,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
                                        plots = T, 
                                        whitelist = NULL, 
                                        peakdist_sd_ratio = 0.1,
-                                       scaled_mode_antimode_threshold = 0.1,
-                                       peakheight_ratio_threshold = 20
+                                       peakheight_ratio_threshold = 50
 ){
   if (!is.logical(plots)) {
     stop("The 'plots' argument must be TRUE or FALSE.")
@@ -56,10 +54,10 @@ triageADTsAndClassifyCells <- function(seuratObj,
   }
   #initalize vectors to hold statistics to be used for classification
   calls <- c()
+  cells_vector <- c()
   decay_vector <- c()
   diff_vector <- c()
   peakheight_ratio_vector <- c()
-  scaled_mode_antimode_vector <- c()
   peak1_location_vector <- c()
   peak2_location_vector <- c()
   antimode_location_vector <- c()
@@ -83,12 +81,12 @@ triageADTsAndClassifyCells <- function(seuratObj,
       adts <- rownames(adtMatrix)
     }
     if (length(cells_in_library) <= minimumCells) {
+      cells_vector <- c(cells_vector, length(cells_in_library))
       reason_vector <- c(reason_vector, rep("Low Counts", length(adts)))
       calls <- c(calls, rep("Fail", length(adts)))
       decay_vector <- c(decay_vector, rep(NA, length(adts)))
       diff_vector <- c(diff_vector, rep(NA, length(adts)))
       peakheight_ratio_vector <- c(peakheight_ratio_vector, rep(NA, length(adts)))
-      scaled_mode_antimode_vector <- c(scaled_mode_antimode_vector, rep(NA, length(adts)))
       peak1_location_vector <- c(peak1_location_vector, rep(NA, length(adts)))
       peak2_location_vector <- c(peak2_location_vector, rep(NA, length(adts)))
       antimode_location_vector <- c(antimode_location_vector, rep(NA, length(adts)))
@@ -105,10 +103,9 @@ triageADTsAndClassifyCells <- function(seuratObj,
       library_adt_vector <- adtMatrix[adt,cells_in_library]
       #debugging
       if (plots) {
-        hist(library_adt_vector, breaks = 100, main = cid)
+        hist(library_adt_vector, breaks = 100, main = paste(cid, ", ", adt))
       }
-      
-      for (mod0val in seq(2,10,1)) {
+      for (mod0val in seq(2,8,1)) {
         #try to find bimodality using locmodes
         multimodeResult <- multimode::locmodes(library_adt_vector, mod0 = mod0val, lowsup=0, uppsup = 5, n = 10000, display = plots)
         #if mutlimode::locmodes succeeds (i.e. two modes and an antimode are not NA values), calculate heuristics
@@ -121,16 +118,13 @@ triageADTsAndClassifyCells <- function(seuratObj,
           peak1_location <- multimodeResult$locations[density_ordered_modes][1]
           peak2_location <- multimodeResult$locations[density_ordered_modes][2]
           midpoint <- (peak1_location + peak2_location)/2
-          antimode_index <- which.min(multimodeResult$locations - midpoint)
+          antimode_index <- which.min(abs(multimodeResult$locations - midpoint))
           antimode <- multimodeResult$fvalue[antimode_index]
           antimode_location <- multimodeResult$locations[antimode_index]
-          peakheight_ratio <- peak1/peak2
-          minval <- min(multimodeResult$fvalue) + 1E-10
-          scaled_mode_antimode <- abs((antimode - peak2)/(antimode - minval))
-          
+          peakheight_ratio <- (peak1-antimode)/(peak2-antimode)
           diff <- ((peak1_location - peak2_location)^2)/sd(library_adt_vector)
           # if a valid solution is found to antimode identification, stop iterating mod0val and accept modes
-          if ((diff > peakdist_sd_ratio) & (scaled_mode_antimode > scaled_mode_antimode_threshold) & (peakheight_ratio < peakheight_ratio_threshold))  {
+          if ((diff > peakdist_sd_ratio) & (peakheight_ratio < peakheight_ratio_threshold))  {
             break
           }
           
@@ -143,14 +137,13 @@ triageADTsAndClassifyCells <- function(seuratObj,
           peak2 <- NA
           antimode <- NA
           peakheight_ratio <- NA
-          scaled_mode_antimode <- NA
           call <- "Fail"
           reason <- "Indeterminate"
         }
       }
       
       #apply bimodality heuristics
-      if (!is.na(peakheight_ratio) & !is.na(scaled_mode_antimode)) {
+      if (!is.na(peakheight_ratio)) {
         df <- data.frame(locations = multimodeResult$locations, density = multimodeResult$fvalue) |> 
           dplyr::arrange(-density)
         
@@ -159,9 +152,6 @@ triageADTsAndClassifyCells <- function(seuratObj,
         if (diff < peakdist_sd_ratio) {
           call <- "Fail"
           reason <- "Diff Threshold"
-        } else if (scaled_mode_antimode < scaled_mode_antimode_threshold) {
-          call <- "Fail"
-          reason <- "Scaled Mode Antimode Threshold"
         } else if (peakheight_ratio > peakheight_ratio_threshold) {
           call <- "Fail"
           reason <- "Peak Height Ratio Threshold"
@@ -181,12 +171,14 @@ triageADTsAndClassifyCells <- function(seuratObj,
           decay = as.double(coef(model))}
       } else {
         decay <- NA
+        call <- "Fail"
+        reason <- "Probable ADT failure"
       }
       #store bimodality statistics
+      cells_vector <- c(cells_vector, length(cells_in_library))
       decay_vector <- c(decay_vector, decay)
       diff_vector <- c(diff_vector, diff)
       peakheight_ratio_vector <- c(peakheight_ratio_vector, peakheight_ratio)
-      scaled_mode_antimode_vector <- c(scaled_mode_antimode_vector, scaled_mode_antimode)
       peak1_density_vector <- c(peak1_density_vector, peak1)
       peak2_density_vector <- c(peak2_density_vector, peak2)
       antimode_density_vector <- c(antimode_density_vector, antimode)
@@ -203,10 +195,10 @@ triageADTsAndClassifyCells <- function(seuratObj,
                     ADT = adt_vector,
                     call = calls,
                     reason = reason_vector,
+                    cells = cells_vector,
                     decay = decay_vector, 
                     diff = diff_vector, 
                     peakheight_ratio = peakheight_ratio_vector, 
-                    scaled_mode_antimode = scaled_mode_antimode_vector, 
                     peak1_density = peak1_density_vector, 
                     peak2_density = peak2_density_vector, 
                     antimode_density = antimode_density_vector, 
