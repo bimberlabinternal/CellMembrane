@@ -5,6 +5,8 @@ on:
   push:
     branches: [ master, dev ]
   pull_request:
+  schedule:
+    - cron: "0 6 * * 3"
 
 name: R Build and Checks
 
@@ -55,7 +57,7 @@ jobs:
           python3 -m pip install --user scanpy
           cd ../
           git clone https://github.com/phbradley/conga.git conga
-          cd conga/tcrdist_cpp
+          cd conga/tcrdist_cpp  
           make
           cd ../../
           pip3 install -e conga
