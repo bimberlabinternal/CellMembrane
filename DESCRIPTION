@@ -88,7 +88,8 @@ Imports:
     circlize, 
     conover.test, 
     colorspace, 
-    forcats
+    forcats, 
+    multimode
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -99,7 +100,7 @@ Suggests:
     pkgdown,
     org.Hs.eg.db,
     org.Mmu.eg.db
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
@@ -121,10 +122,11 @@ Config/reticulate:
     )
   )
 Collate: 
+    'Utils.R'
+    'ADTs.R'
     'Analysis.R'
     'CSCore.R'
     'Preprocessing.R'
-    'Utils.R'
     'CiteSeq.R'
     'CoNGA.R'
     'Doublets.R'
