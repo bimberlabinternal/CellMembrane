@@ -11,7 +11,8 @@ ClusteredDotPlot(
   assay = "RNA",
   ggplotify = TRUE,
   scaling = "column",
-  layer = "data"
+  layer = "data",
+  forceRescaling = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ ClusteredDotPlot(
 \item{scaling}{The scaling method for the heatmap. Options are "row", "column", or none.}
 
 \item{layer}{The layer of the Seurat object that holds the relevant expression data.}
+
+\item{forceRescaling}{A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.}
 }
 \description{
 A function that generates a clustered dot plot with a heatmap of scaled expression.

@@ -453,6 +453,7 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param ggplotify A boolean that determines if the ComplexHeatmap object should be converted to a ggplot object.
 #' @param scaling The scaling method for the heatmap. Options are "row", "column", or none.
 #' @param layer The layer of the Seurat object that holds the relevant expression data. 
+#' @param forceRescaling A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.
 #' @export
 #' 
 #' @examples
@@ -470,8 +471,7 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' 
 #' }
 
-
-ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.2", assay = "RNA", ggplotify = TRUE, scaling = 'column', layer = 'data') {
+ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.2", assay = "RNA", ggplotify = TRUE, scaling = 'column', layer = 'data', forceRescaling = FALSE) {
   #Sanity checks
   #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
   if (length(features) == 0) {
@@ -501,19 +501,47 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
   if (!is.logical(ggplotify)) {
     stop(paste0('ggplotify: ', ggplotify, ' is not a boolean. Please specify ggplotify = TRUE or ggplotify = FALSE. If TRUE, the ComplexHeatmap object will be converted to a ggplot object.'))
   }
+  #check if forceRescaling is a boolean
+  if (!is.logical(forceRescaling)) {
+    stop(paste0('forceRescaling: ', forceRescaling, ' is not a boolean. Please specify forceRescaling = TRUE or forceRescaling = FALSE. If TRUE, the Seurat object will be rescaled to include the features in the scale.data layer if any are missing.'))
+  }
+  # we could support this, but I think if someone wants to do this, they should be visualizing the covariance matrix instead. 
+  if (layer == 'scale.data' & scaling != 'none') {
+    stop("Further scaling of the scale.data layer is not supported. Please set scaling = 'none' or use the 'counts' or 'data' layers.")
+  }
+  #if we need to interact with the scale.data layer, we need to perform a bunch of checks to ensure features are or are not in the layer. Store this for now, since Seurat::GetAssayData() might be slow 
+  if (layer == 'scale.data') {
+    scaleDataFeatures <- rownames(GetAssayData(seuratObj, layer = 'scale.data'))
+  }
+  # ensure features (already sanitized above) are in the scale.data layer for automatic scaling in the Seurat::AverageExpression() function below if using the scale.data layer.
+  # if not, offer to scale the data to include the features via the forceRescaling argument.
+  # INFO: the feature selection for AverageSeurat reports the features already present in the given layer, so we need to recompute ScaleData to add them if they're missing.
+  # see: https://github.com/satijalab/seurat/blob/1549dcb3075eaeac01c925c4b4bb73c73450fc50/R/utilities.R#L1511C32-L1511C38
+  # and: https://github.com/satijalab/seurat/blob/1549dcb3075eaeac01c925c4b4bb73c73450fc50/R/utilities.R#L1478C5-L1478C17
+  if (layer == 'scale.data' & !forceRescaling & !all(features %in% scaleDataFeatures)) {
+    warning("Some features (reported below) are missing from the Seurat object's scale.data layer. These will be omitted from the final dotplot. To include them, please set the forceRescaling = TRUE and re-run the ClusteredDotPlot function.")
+  } else if (layer == 'scale.data' & forceRescaling & !all(features %in% scaleDataFeatures)) {
+    message(paste0("Features ", paste0(features[!features %in% scaleDataFeatures], collapse = ', '), " were not found in the scale.data layer. Rescaling the Seurat object to include these features."))
+    seuratObj <- Seurat::ScaleData(seuratObj, features = features)
+    #reset scaleDataFeatures if the data was rescaled
+    scaleDataFeatures <- rownames(GetAssayData(seuratObj, layer = 'scale.data'))
+  } 
+  #AverageSeurat will fail with a cryptic matrix dimensionality error caused by accessing 0 or 1 features in the scale.data layer. Throw a more explicit error if that would fail.
+  if (layer == 'scale.data' & length(intersect(features, scaleDataFeatures)) <= 2){
+    stop("Less than two features would be present in the dot plot. Please set forceRescaling = TRUE to proceed with the scale.data layer, or use the 'data' or 'counts' and set the scaling argument to one of: 'column', 'row', or 'none'.")
+  }
   
-  #create averaged Seurat object for mean expression
+  #create averaged Seurat object for mean expression and subset features
   avgSeurat <- Seurat::AverageExpression(seuratObj, 
+                                         features = features,
                                          group.by = c(groupFields),
                                          layer = layer, 
                                          return.seurat = T,
-                                         assays = assay, )
+                                         assays = assay)
   
   #initialize the matrix for the heatmap
   mat <- Seurat::GetAssayData(avgSeurat, layer = layer)
-  #subset averaged expression matrix to requested features
-  mat <- mat[features,]
-
+  
   #scale, if requested (densifying in the process, if the matrix happens to be sparse)
   if (scaling %in% c('row', 'column')) {
     mat <- as.matrix(mat)  %>%
