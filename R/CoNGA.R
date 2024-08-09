@@ -246,7 +246,10 @@ CalculateTcrDiversity <- function(inputData,
   
   df <- read.csv(outputFile)
 
-  y <- grep("Z_[0-9]+", colnames(df), value = T)
+  y <- colnames(df)[grepl("^Z", colnames(df)) & !grepl("_LCL_|_UCL_", colnames(df))]
+  if (is.null(y) || length(y) == 0) {
+    stop('Parsing error in tcrdist3 output. No columns containing diversity metrics were found.')
+  }
   print(df |> select(c("order", y)) |>
     tidyr::pivot_longer(cols = y, names_to = "sample_div", values_to = "y") |> 
     ggplot(aes(x = order, y = y)) + geom_line(aes(color = sample_div)) + egg::theme_article()
