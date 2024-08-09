@@ -10,7 +10,7 @@ ClusteredDotPlot(
   groupFields = "ClusterNames_0.2",
   assay = "RNA",
   ggplotify = TRUE,
-  scaling = "row",
+  scaling = "column",
   layer = "data"
 )
 }
@@ -42,7 +42,7 @@ markers <- Seurat::FindAllMarkers(seuratObj)
 #filter markers to display the largest cluster identity markers according to average log fold change and differences in pct expression.
 strong_markers <- markers[abs(markers$avg_log2FC) > 3 & abs(markers$pct.1 - markers$pct.2) > 0.25, "gene"]
 
-dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'row', ggplotify = TRUE)
+dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column', ggplotify = TRUE)
 print(dotPlot)
 
 }

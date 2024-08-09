@@ -465,13 +465,13 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' #filter markers to display the largest cluster identity markers according to average log fold change and differences in pct expression.
 #' strong_markers <- markers[abs(markers$avg_log2FC) > 3 & abs(markers$pct.1 - markers$pct.2) > 0.25, "gene"]
 #' 
-#' dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'row', ggplotify = TRUE)
+#' dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column', ggplotify = TRUE)
 #' print(dotPlot)
 #' 
 #' }
 
 
-ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.2", assay = "RNA", ggplotify = TRUE, scaling = 'row', layer = 'data') {
+ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.2", assay = "RNA", ggplotify = TRUE, scaling = 'column', layer = 'data') {
   #Sanity checks
   #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
   if (length(features) == 0) {
@@ -507,14 +507,21 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
                                          group.by = c(groupFields),
                                          layer = layer, 
                                          return.seurat = T,
-                                         assays = assay)
+                                         assays = assay, )
+  
+  #initialize the matrix for the heatmap
+  mat <- Seurat::GetAssayData(avgSeurat, layer = layer)
+  #subset averaged expression matrix to requested features
+  mat <- mat[features,]
 
-  #scale, if requested
-  if (scaling != "none") {
-    mat <- as.matrix(Seurat::GetAssayData(avgSeurat, layer = layer))  %>%
-      pheatmap:::scale_mat(scale = scaling) %>%
+  #scale, if requested (densifying in the process, if the matrix happens to be sparse)
+  if (scaling %in% c('row', 'column')) {
+    mat <- as.matrix(mat)  %>%
+      Matrix::t() %>%
+      pheatmap:::scale_mat(scale = scaling) 
+  } else if (scaling == "none") {
+    mat <- as.matrix(mat) %>%
       Matrix::t()
-    mat <- mat[,features]
   }
   
   #harvest the percentage of cells expressing genes within the features vector from the Seurat::DotPlot output.
@@ -535,6 +542,16 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
                                    "gray85", 
                                    hcl.colors(palette = "Blue-Red 2", n = 20)[20]),
                                  space = "sRGB")
+  #Set the heatmap name according to scaling
+  if (scaling == 'row') {
+    name <- 'Scaled\nExpr. (Row)'
+  } else if (scaling == 'column') {
+    name <- 'Scaled\nExpr. (Column)'
+  } else {
+    #Average Seurat correctly averages the counts depending on the layer argument, but the transformation afterwards is also layer dependent and should be reported
+    name <- paste0(c('Unscaled\nExpr.\n(layer = ', layer,')'), collapse = '')
+  }
+  
   #create the heatmap
   #TODO: we could expose some of these parameters to the user if desired, but I think Greg's defaults are pretty good.
   suppressMessages(comp_heatmap <-
@@ -548,7 +565,7 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
                        border_gp = grid::gpar(col = "black", lty = 1),
                        height = nrow(mat)*unit(7, "mm"),
                        width = ncol(mat)*unit(7, "mm"),
-                       name = "Scaled\nExpr.",
+                       name = name,
                        show_column_names = TRUE,
                        show_column_dend = T,
                        show_row_names = T,
