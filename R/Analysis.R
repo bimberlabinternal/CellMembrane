@@ -527,7 +527,7 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
     scaleDataFeatures <- rownames(GetAssayData(seuratObj, layer = 'scale.data'))
   } 
   #AverageSeurat will fail with a cryptic matrix dimensionality error caused by accessing 0 or 1 features in the scale.data layer. Throw a more explicit error if that would fail.
-  if (layer == 'scale.data' & length(intersect(features, scaleDataFeatures)) <= 2){
+  if (layer == 'scale.data' && length(intersect(features, scaleDataFeatures)) <= 2){
     stop("Less than two features would be present in the dot plot. Please set forceRescaling = TRUE to proceed with the scale.data layer, or use the 'data' or 'counts' and set the scaling argument to one of: 'column', 'row', or 'none'.")
   }
   
