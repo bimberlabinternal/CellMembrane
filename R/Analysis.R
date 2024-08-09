@@ -518,9 +518,9 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
   # INFO: the feature selection for AverageSeurat reports the features already present in the given layer, so we need to recompute ScaleData to add them if they're missing.
   # see: https://github.com/satijalab/seurat/blob/1549dcb3075eaeac01c925c4b4bb73c73450fc50/R/utilities.R#L1511C32-L1511C38
   # and: https://github.com/satijalab/seurat/blob/1549dcb3075eaeac01c925c4b4bb73c73450fc50/R/utilities.R#L1478C5-L1478C17
-  if (layer == 'scale.data' & !forceRescaling & !all(features %in% scaleDataFeatures)) {
+  if (layer == 'scale.data' & !forceRescaling && !all(features %in% scaleDataFeatures)) {
     warning("Some features (reported below) are missing from the Seurat object's scale.data layer. These will be omitted from the final dotplot. To include them, please set the forceRescaling = TRUE and re-run the ClusteredDotPlot function.")
-  } else if (layer == 'scale.data' & forceRescaling & !all(features %in% scaleDataFeatures)) {
+  } else if (layer == 'scale.data' & forceRescaling && !all(features %in% scaleDataFeatures)) {
     message(paste0("Features ", paste0(features[!features %in% scaleDataFeatures], collapse = ', '), " were not found in the scale.data layer. Rescaling the Seurat object to include these features."))
     seuratObj <- Seurat::ScaleData(seuratObj, features = features)
     #reset scaleDataFeatures if the data was rescaled
