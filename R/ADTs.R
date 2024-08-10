@@ -2,6 +2,11 @@
 #' @import Seurat
 #' @import ggplot2
 
+utils::globalVariables(
+  names = c('cDNA_ID', 'ADT', 'reason', 'antimode_location'),
+  package = 'CellMembrane',
+  add = TRUE
+)
 
 
 #' @title Triage ADTs and Classify Cells
@@ -83,8 +88,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
                              plots = plots, 
                              adtwhitelist = adtWhitelist, 
                              whitelist = whitelist,
-                             peakdist_sd_ratio = peakdist_sd_ratio, 
-                             xdist_ratio_threshold = xdist_ratio_threshold)
+                             peakdist_sd_ratio = peakdist_sd_ratio)
   df <- .TriageADTs(df, 
                     minimumCells = minimumCells, 
                     peakdist_sd_ratio = peakdist_sd_ratio, 
@@ -199,7 +203,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
       library_counts_vector <- countsMatrix[adt, cells_in_library]
       #debugging
       if (plots) {
-        hist(library_adt_vector, breaks = 100, main = paste(cid, ", ", adt))
+        graphics::hist(library_adt_vector, breaks = 100, main = paste(cid, ", ", adt))
       }
       for (mod0val in seq(2,8,1)) {
         #try to find bimodality using locmodes
@@ -240,7 +244,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
       
       geom_mean <- exp(mean(log(library_counts_vector + 1)))
       stdev <- sd(library_adt_vector)
-      med <- median(library_adt_vector)
+      med <- stats::median(library_adt_vector)
       
       #store bimodality statistics
       cells_vector <- c(cells_vector, length(cells_in_library))
