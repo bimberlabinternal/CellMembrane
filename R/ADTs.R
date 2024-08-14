@@ -2,7 +2,11 @@
 #' @import Seurat
 #' @import ggplot2
 
-
+utils::globalVariables(	
+  names = c('cDNA_ID', 'ADT', 'reason', 'antimode_location'),	
+  package = 'CellMembrane',	
+  add = TRUE	
+)
 
 #' @title Triage ADTs and Classify Cells
 #' 
@@ -20,6 +24,7 @@
 #' @param peakdist_sd_ratio An upper bound of acceptable peak distance divided by the standard deviation of the ADT.
 #' @param peakheight_ratio_threshold The threshold for the peak height ratio.
 #' @param xdist_ratio_threshold The threshold for the peak1_antimode_distance/peak2_antimode_distance ratio.
+#' @param allowMissingADTs If TRUE, the function will attempt to remove ADTs from the whitelist that are not present in the Seurat object. If FALSE, the function will throw an error if any ADTs in the whitelist are not present in the Seurat object.
 #' @export
 
 triageADTsAndClassifyCells <- function(seuratObj,
@@ -29,11 +34,47 @@ triageADTsAndClassifyCells <- function(seuratObj,
                                        layer = 'data', 
                                        libraryIdentificationColumn = 'cDNA_ID', 
                                        minimumCounts = 200, 
-                                       minimumCells = 20, 
+                                       minimumCells = 200, 
                                        plots = T,
                                        peakdist_sd_ratio = 1,
                                        peakheight_ratio_threshold = 50,
-                                       xdist_ratio_threshold = 6){
+                                       xdist_ratio_threshold = 6,
+                                       allowMissingADTs = TRUE){
+  
+  #TODO: check the whitelist (rename to cellmask or something? TBD)	
+  
+  #check rules for allowing missing ADTs	
+  if (!is.logical(allowMissingADTs)) {	
+    stop("The 'allowMissingADTs' argument must be TRUE or FALSE.")	
+  }	
+  #check ADT whitelist, and optionally allow code to run if ADTs are missing	
+  if (!is.null(adtwhitelist) && !all(adtwhitelist %in% rownames(Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)))) {	
+    if (!any(adtwhitelist %in% rownames(Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)))) {	
+      stop(paste0("None of the ADTs in the whitelist were found in the Seurat object."))	
+    } else if (!allowMissingADTs) {	
+      stop(paste0("Some of the ADTs (", paste0(adtwhitelist[!(adtwhitelist %in% rownames(Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)))], collapse = ', ') , ") in the whitelist were not found in the Seurat object."))	
+    } else {	
+      warning(paste("ADT whitelist values:", paste0(unique(adtwhitelist[!(adtwhitelist %in% rownames(Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)))]), collapse = ", "), "were not found in the available ADTs of the Seurat object. These will be removed."))	
+      adtWhitelist <- adtwhitelist[(adtwhitelist %in% rownames(Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)))]	
+    }	
+  }	
+  #check Seurat arguments (assays, layers) 	
+  if (!assay %in% Seurat::Assays(seuratObj)) {	
+    stop(paste0("The assay: ", assay, " is not present in the Seurat object."))	
+  }	
+  if (!layer %in% SeuratObject::Layers(seuratObj)) {	
+    stop(paste0("The layer: ", layer, " is not present in the Seurat object."))	
+  }	
+  if (!libraryIdentificationColumn %in% colnames(seuratObj@meta.data)) { 	
+    stop(paste0("The libraryIdentificationColumn: ", libraryIdentificationColumn, " is not present in the Seurat object's metadata."))	
+  }	
+  #check validity of numeric arguments	
+  if (!all(is.numeric(c(minimumCounts, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold, xdist_ratio_threshold)))) {	
+    failing_arguments <- c("minimumCounts", "minimumCells", "peakdist_sd_ratio", "peakheight_ratio_threshold", "xdist_ratio_threshold")[!sapply(list(minimumCounts, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold, xdist_ratio_threshold), FUN = is.numeric)]	
+    failing_values <- c(minimumCounts, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold, xdist_ratio_threshold)[!sapply(list(minimumCounts, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold, xdist_ratio_threshold), FUN = is.numeric)]	
+    stop(paste0("The ", paste0(failing_arguments, collapse = ', '), " argument(s) must be numeric. Current value(s) is/are : " , paste0(failing_arguments ,":", failing_values, collapse = ', ')))	
+  }
+  
   if (!is.logical(plots)) {
     stop("The 'plots' argument must be TRUE or FALSE.")
   }
@@ -146,7 +187,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
       library_counts_vector <- countsMatrix[adt, cells_in_library]
       #debugging
       if (plots) {
-        hist(library_adt_vector, breaks = 100, main = paste(cid, ", ", adt))
+        graphics::hist(library_adt_vector, breaks = 100, main = paste(cid, ", ", adt))
       }
       for (mod0val in seq(2,8,1)) {
         #try to find bimodality using locmodes
@@ -187,7 +228,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
       
       geom_mean <- exp(mean(log(library_counts_vector + 1)))
       stdev <- sd(library_adt_vector)
-      med <- median(library_adt_vector)
+      med <- stats::median(library_adt_vector)
       
       #store bimodality statistics
       cells_vector <- c(cells_vector, length(cells_in_library))
