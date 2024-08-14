@@ -19,6 +19,7 @@
 <url><loc>/reference/CiteSeqDimRedux.Dist.html</loc></url>
 <url><loc>/reference/CiteSeqDimRedux.PCA.html</loc></url>
 <url><loc>/reference/ClrNormalizeByGroup.html</loc></url>
+<url><loc>/reference/ClusteredDotPlot.html</loc></url>
 <url><loc>/reference/ConstructEnrichmentDataFrameAndDoStatistics.html</loc></url>
 <url><loc>/reference/CreateSeuratObj.html</loc></url>
 <url><loc>/reference/DesignModelMatrix.html</loc></url>
