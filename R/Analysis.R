@@ -443,5 +443,172 @@ CalculateClusterEnrichment <- function(seuratObj,
 }
 
 
+#' @title ClusteredDotPlot
+#' 
+#' @description A function that generates a clustered dot plot with a heatmap of scaled expression.
+#' @param seuratObj The Seurat object that holds the data.
+#' @param features The features to plot.
+#' @param groupFields The metadata column that is used for grouping.
+#' @param assay The assay to plot.
+#' @param ggplotify A boolean that determines if the ComplexHeatmap object should be converted to a ggplot object.
+#' @param scaling The scaling method for the heatmap. Options are "row", "column", or none.
+#' @param layer The layer of the Seurat object that holds the relevant expression data. 
+#' @param forceRescaling A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.
+#' @export
+#' 
+#' @examples
+#' \dontrun{
+#' #set the seurat Idents for FindAllMarkers
+#' Seurat::Idents(seuratObj) <- "ClusterNames_0.2"
+#' 
+#' markers <- Seurat::FindAllMarkers(seuratObj)
+#' 
+#' #filter markers to display the largest cluster identity markers according to average log fold change and differences in pct expression.
+#' strong_markers <- markers[abs(markers$avg_log2FC) > 3 & abs(markers$pct.1 - markers$pct.2) > 0.25, "gene"]
+#' 
+#' dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column', ggplotify = TRUE)
+#' print(dotPlot)
+#' 
+#' }
+
+ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.2", assay = "RNA", ggplotify = TRUE, scaling = 'column', layer = 'data', forceRescaling = FALSE) {
+  #Sanity checks
+  #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
+  if (length(features) == 0) {
+    stop("The features argument is empty. Please specify a non-empty vector of features.")
+  }
+  #check that features are both valid and force them to be unique. 
+  if (!all(features %in% rownames(Seurat::GetAssayData(seuratObj, slot = 'data')))) {
+    warning(paste0('Features not found in Seurat object: ', paste0(features[!features %in% rownames(Seurat::GetAssayData(seuratObj, layer = layer))], collapse = ', ')))
+  }
+  if (any(duplicated(features))) {
+    warning(paste0('Features supplied are not unique. Duplicates will be removed.'))
+    features <- unique(features)
+  }
+  #check that groupFields are in the metadata
+  if (!all(groupFields %in% colnames(seuratObj@meta.data))) { 
+    stop(paste0('The following groupFields were not found in Seurat object metadata: ', paste0(groupFields[!groupFields %in% colnames(seuratObj@meta.data)], collapse = ', ')))
+  }
+  #check that scaling is supported
+  if (!scaling %in% c('row', 'column', 'none')) {
+    stop(paste0('Scaling method not supported: ', scaling, '. Please use one of: "row", "column", or "none".'))
+  }
+  #check assay
+  if (!assay %in% Seurat::Assays(seuratObj)) {
+    stop(paste0('Assay not found in Seurat object: ', assay))
+  }
+  #check ggplotify boolean
+  if (!is.logical(ggplotify)) {
+    stop(paste0('ggplotify: ', ggplotify, ' is not a boolean. Please specify ggplotify = TRUE or ggplotify = FALSE. If TRUE, the ComplexHeatmap object will be converted to a ggplot object.'))
+  }
+  #check if forceRescaling is a boolean
+  if (!is.logical(forceRescaling)) {
+    stop(paste0('forceRescaling: ', forceRescaling, ' is not a boolean. Please specify forceRescaling = TRUE or forceRescaling = FALSE. If TRUE, the Seurat object will be rescaled to include the features in the scale.data layer if any are missing.'))
+  }
+  # we could support this, but I think if someone wants to do this, they should be visualizing the covariance matrix instead. 
+  if (layer == 'scale.data' & scaling != 'none') {
+    stop("Further scaling of the scale.data layer is not supported. Please set scaling = 'none' or use the 'counts' or 'data' layers.")
+  }
+  #if we need to interact with the scale.data layer, we need to perform a bunch of checks to ensure features are or are not in the layer. Store this for now, since Seurat::GetAssayData() might be slow 
+  if (layer == 'scale.data') {
+    scaleDataFeatures <- rownames(GetAssayData(seuratObj, layer = 'scale.data'))
+  }
+  # ensure features (already sanitized above) are in the scale.data layer for automatic scaling in the Seurat::AverageExpression() function below if using the scale.data layer.
+  # if not, offer to scale the data to include the features via the forceRescaling argument.
+  # INFO: the feature selection for AverageSeurat reports the features already present in the given layer, so we need to recompute ScaleData to add them if they're missing.
+  # see: https://github.com/satijalab/seurat/blob/1549dcb3075eaeac01c925c4b4bb73c73450fc50/R/utilities.R#L1511C32-L1511C38
+  # and: https://github.com/satijalab/seurat/blob/1549dcb3075eaeac01c925c4b4bb73c73450fc50/R/utilities.R#L1478C5-L1478C17
+  if (layer == 'scale.data' & !forceRescaling && !all(features %in% scaleDataFeatures)) {
+    warning("Some features (reported below) are missing from the Seurat object's scale.data layer. These will be omitted from the final dotplot. To include them, please set the forceRescaling = TRUE and re-run the ClusteredDotPlot function.")
+  } else if (layer == 'scale.data' & forceRescaling && !all(features %in% scaleDataFeatures)) {
+    message(paste0("Features ", paste0(features[!features %in% scaleDataFeatures], collapse = ', '), " were not found in the scale.data layer. Rescaling the Seurat object to include these features."))
+    seuratObj <- Seurat::ScaleData(seuratObj, features = features)
+    #reset scaleDataFeatures if the data was rescaled
+    scaleDataFeatures <- rownames(GetAssayData(seuratObj, layer = 'scale.data'))
+  } 
+  #AverageSeurat will fail with a cryptic matrix dimensionality error caused by accessing 0 or 1 features in the scale.data layer. Throw a more explicit error if that would fail.
+  if (layer == 'scale.data' && length(intersect(features, scaleDataFeatures)) <= 2){
+    stop("Less than two features would be present in the dot plot. Please set forceRescaling = TRUE to proceed with the scale.data layer, or use the 'data' or 'counts' and set the scaling argument to one of: 'column', 'row', or 'none'.")
+  }
+  
+  #create averaged Seurat object for mean expression and subset features
+  avgSeurat <- Seurat::AverageExpression(seuratObj, 
+                                         features = features,
+                                         group.by = c(groupFields),
+                                         layer = layer, 
+                                         return.seurat = T,
+                                         assays = assay)
+  
+  #initialize the matrix for the heatmap
+  mat <- Seurat::GetAssayData(avgSeurat, layer = layer)
+  
+  #scale, if requested (densifying in the process, if the matrix happens to be sparse)
+  if (scaling %in% c('row', 'column')) {
+    mat <- as.matrix(mat)  %>%
+      Matrix::t() %>%
+      pheatmap:::scale_mat(scale = scaling) 
+  } else if (scaling == "none") {
+    mat <- as.matrix(mat) %>%
+      Matrix::t()
+  }
+  
+  #harvest the percentage of cells expressing genes within the features vector from the Seurat::DotPlot output.
+  #TODO: this works fine, but we have a version of this in the pseudobulking code. We could replace it if Seurat changes their dotplot. 
+  plt <- Seurat::DotPlot(seuratObj, features = features, group.by = groupFields, assay = assay)
+  pct <- plt$data %>%
+    dplyr::select(pct.exp, id, features.plot) |>
+    tidyr::pivot_wider(id_cols = features.plot, names_from = id, values_from = pct.exp) |>
+    as.data.frame()
+  row.names(pct) <- pct$features.plot
+  pct <- pct |>
+    dplyr::select(-features.plot) |>
+    as.matrix() |>
+    Matrix::t()
+  #Establish symmetric color scaling based on the extremes in the heatmap
+  col_RNA = circlize::colorRamp2(c(-max(abs(mat)), 0, max(abs(mat))),
+                                 c(hcl.colors(palette = "Blue-Red 2", n = 20)[1],
+                                   "gray85", 
+                                   hcl.colors(palette = "Blue-Red 2", n = 20)[20]),
+                                 space = "sRGB")
+  #Set the heatmap name according to scaling
+  if (scaling == 'row') {
+    name <- 'Scaled\nExpr. (Row)'
+  } else if (scaling == 'column') {
+    name <- 'Scaled\nExpr. (Column)'
+  } else {
+    #Average Seurat correctly averages the counts depending on the layer argument, but the transformation afterwards is also layer dependent and should be reported
+    name <- paste0(c('Unscaled\nExpr.\n(layer = ', layer,')'), collapse = '')
+  }
+  
+  #create the heatmap
+  #TODO: we could expose some of these parameters to the user if desired, but I think Greg's defaults are pretty good.
+  suppressMessages(comp_heatmap <-
+                     ComplexHeatmap::Heatmap(
+                       mat,
+                       cell_fun = function(j, i, x, y, width, height, fill) {
+                         grid::grid.circle(x = x, y = y, r = sqrt(pct[i,j])/30, default.units = "cm",
+                                           gp = grid::gpar(fill = col_RNA(mat[i, j])))
+                       },
+                       rect_gp = grid::gpar(type="none"),
+                       border_gp = grid::gpar(col = "black", lty = 1),
+                       height = nrow(mat)*unit(7, "mm"),
+                       width = ncol(mat)*unit(7, "mm"),
+                       name = name,
+                       show_column_names = TRUE,
+                       show_column_dend = T,
+                       show_row_names = T,
+                       cluster_rows = F, 
+                       cluster_columns = T,
+                       column_km = 1,
+                       row_km = 1, 
+                       row_names_side = "left", 
+                       column_names_rot = 45
+                     ))
+  if (ggplotify){
+    ggplotify::as.ggplot(comp_heatmap)
+  }
+  print(comp_heatmap)
+  return(comp_heatmap)
+}
 
 
