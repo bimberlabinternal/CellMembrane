@@ -252,14 +252,31 @@ triageADTsAndClassifyCells <- function(seuratObj,
       df_dx <- data.frame(x = dx$x, y = dx$y)
       max_y1 <- max(df_dx$y)
       max_y2 <- max(hist(library_adt_vector, breaks = 100, plot = F)$counts)
+      xdist_ratio <- round((abs(peak1_location - antimode_location))/(abs(peak2_location - antimode_location)),2)
+      
+      xlabel <- ifelse(length(cells_in_library) > minimumCells, "<span style = 'color:cornflowerblue;'>Number of Cells: </span>", "<span style = 'color:red;'>Number of Cells: </span>")
+      
+      titlepeak <- ifelse(peakheight_ratio < peakheight_ratio_threshold, "<span style = 'color:cornflowerblue;'>Peak Height Ratio: </span>", "<span style = 'color:red;'>Peak Height Ratio: </span>")
+      
+      titledist <- ifelse(xdist_ratio < xdist_ratio_threshold, "<span style = 'color:cornflowerblue;'>Peak-Antimode Distance Ratio: </span>", "<span style = 'color:red;'>Peak-Antimode Distance Ratio: </span>")
+      
+      titlediff <- ifelse(diff > peakdist_sd_ratio, "<span style = 'color:cornflowerblue;'>PeakDist-Variance Ratio: </span>", "<span style = 'color:red;'>PeakDist-Variance Ratio: </span>")
+      
+      
+      
       plt <- ggplot(as.data.frame(library_adt_vector), aes(x = library_adt_vector)) + 
         geom_histogram(bins = 100) + geom_line(data = df_dx, aes(x = dx$x, y=(max_y2/max_y1)*dx$y, color = "Density")) + 
-        geom_vline(xintercept = c(peak1_location, peak2_location)) +
-        geom_vline(xintercept = c(antimode_location), linetype = "dashed") +
-        labs(x = paste0("ADT Signal (", length(cells_in_library)," cells)"), y = "Density",
-             title = paste0("diff = ", round(diff, 2),", peakheight_ratio = ", round(peakheight_ratio,2),
-                            ", xdist_ratio = ", round((abs(peak1_location - antimode_location))/(abs(peak2_location - antimode_location)))),2) + 
-        egg::theme_article()
+        geom_vline(xintercept = c(peak1_location, peak2_location), color = "skyblue") +
+        geom_vline(xintercept = c(antimode_location), linetype = "dashed", color = "dodgerblue") +
+        # labs(x = paste0("ADT Signal (", length(cells_in_library)," cells)"), y = "Density",
+        labs(x = paste0("ADT Signal (", xlabel, length(cells_in_library),")"), y = "Density",
+             title = paste0(cid, "-", adt), subtitle = paste0(titlediff, round(diff, 2),", ", titlepeak, round(peakheight_ratio,2),
+                                                              ", ", titledist, xdist_ratio)) + 
+        egg::theme_article() + 
+        
+        theme(
+          axis.title.x = ggtext::element_markdown(),
+          plot.subtitle = ggtext::element_markdown())
       print(plt)
     }
   }
