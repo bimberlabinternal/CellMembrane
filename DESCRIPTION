@@ -89,7 +89,8 @@ Imports:
     conover.test, 
     colorspace, 
     forcats, 
-    multimode
+    multimode, 
+    ggtext
 Suggests:
     devtools,
     testthat (>= 2.1.0),
