@@ -81,7 +81,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
   
   df <- .CalculateStatistics(seuratObj = seuratObj, assay = assay, layer=layer, libraryIdentificationColumn=libraryIdentificationColumn,
                              minimumCounts=minimumCounts, minimumCells=minimumCells, plots=plots, adtwhitelist=adtwhitelist, whitelist=whitelist,
-                             peakdist_sd_ratio=peakdist_sd_ratio)
+                             peakdist_sd_ratio=peakdist_sd_ratio, xdist_ratio_threshold = xdist_ratio_threshold)
   df <- .TriageADTs(df = df, minimumCells=minimumCells, peakdist_sd_ratio=peakdist_sd_ratio, peakheight_ratio_threshold=peakheight_ratio_threshold, xdist_ratio_threshold=xdist_ratio_threshold)
   seuratObj <- .ClassifyCells(seuratObj=seuratObj, df=df, libraryIdentificationColumn=libraryIdentificationColumn, assay=assay, layer=layer, adtwhitelist=adtwhitelist)
   
@@ -101,8 +101,10 @@ triageADTsAndClassifyCells <- function(seuratObj,
 #' @param minimumCounts A lower bound on the number of reads in the ADT assay to attempt classification.
 #' @param minimumCells A lower bound on the number of cells recovered from a library to attempt classification.
 #' @param plots If TRUE, plots will be generated.
+#' @param verboseplots if TRUE, intermediate plots will be generated
 #' @param peakdist_sd_ratio An upper bound of acceptable peak distance divided by the standard deviation of the ADT.
 #' @param peakheight_ratio_threshold The threshold for the peak height ratio.
+#' @param xdist_ratio_threshold The threshold for the peak1_antimode_distance/peak2_antimode_distance ratio.
 
 .CalculateStatistics <- function(seuratObj,
                                  whitelist = NULL,
@@ -113,8 +115,10 @@ triageADTsAndClassifyCells <- function(seuratObj,
                                  minimumCounts = 200, 
                                  minimumCells = 20, 
                                  plots = T,
+                                 verboseplots = F,
                                  peakdist_sd_ratio = 1,
-                                 peakheight_ratio_threshold = 50){
+                                 peakheight_ratio_threshold = 50,
+                                 xdist_ratio_threshold = 6){
   
   #harvest data from seurat object, and fix Idents to be equal to the libraryIdentificationColumn
   adtMatrix <- Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)
@@ -186,12 +190,9 @@ triageADTsAndClassifyCells <- function(seuratObj,
       library_adt_vector <- adtMatrix[adt,cells_in_library]
       library_counts_vector <- countsMatrix[adt, cells_in_library]
       #debugging
-      if (plots) {
-        graphics::hist(library_adt_vector, breaks = 100, main = paste(cid, ", ", adt))
-      }
       for (mod0val in seq(2,8,1)) {
         #try to find bimodality using locmodes
-        multimodeResult <- multimode::locmodes(library_adt_vector, mod0 = mod0val, lowsup=0, uppsup = 10, n = 10000, display = plots)
+        multimodeResult <- multimode::locmodes(library_adt_vector, mod0 = mod0val, lowsup=0, uppsup = 10, n = 10000, display = verboseplots)
         #if mutlimode::locmodes succeeds (i.e. two modes and an antimode are not NA values), calculate heuristics
         if (sum(!is.na(multimodeResult$fvalue))>=3) {
           #TODO: sorting isn't really appropriate here, but maybe when Greg can implement his previous code that loops through the mod values, it will be necessary again. 
@@ -248,36 +249,39 @@ triageADTsAndClassifyCells <- function(seuratObj,
       mod0vec <- c(mod0vec, mod0val)
       bandwidth_vec <- c(bandwidth_vec, bandwidth)
       
-      dx <- density(library_adt_vector, bw =multimodeResult$cbw$bw)
-      df_dx <- data.frame(x = dx$x, y = dx$y)
-      max_y1 <- max(df_dx$y)
-      max_y2 <- max(hist(library_adt_vector, breaks = 100, plot = F)$counts)
-      xdist_ratio <- round((abs(peak1_location - antimode_location))/(abs(peak2_location - antimode_location)),2)
-      
-      xlabel <- ifelse(length(cells_in_library) > minimumCells, "<span style = 'color:cornflowerblue;'>Number of Cells: </span>", "<span style = 'color:red;'>Number of Cells: </span>")
-      
-      titlepeak <- ifelse(peakheight_ratio < peakheight_ratio_threshold, "<span style = 'color:cornflowerblue;'>Peak Height Ratio: </span>", "<span style = 'color:red;'>Peak Height Ratio: </span>")
-      
-      titledist <- ifelse(xdist_ratio < xdist_ratio_threshold, "<span style = 'color:cornflowerblue;'>Peak-Antimode Distance Ratio: </span>", "<span style = 'color:red;'>Peak-Antimode Distance Ratio: </span>")
-      
-      titlediff <- ifelse(diff > peakdist_sd_ratio, "<span style = 'color:cornflowerblue;'>PeakDist-Variance Ratio: </span>", "<span style = 'color:red;'>PeakDist-Variance Ratio: </span>")
-      
-      
-      
-      plt <- ggplot(as.data.frame(library_adt_vector), aes(x = library_adt_vector)) + 
-        geom_histogram(bins = 100) + geom_line(data = df_dx, aes(x = dx$x, y=(max_y2/max_y1)*dx$y, color = "Density")) + 
-        geom_vline(xintercept = c(peak1_location, peak2_location), color = "skyblue") +
-        geom_vline(xintercept = c(antimode_location), linetype = "dashed", color = "dodgerblue") +
-        # labs(x = paste0("ADT Signal (", length(cells_in_library)," cells)"), y = "Density",
-        labs(x = paste0("ADT Signal (", xlabel, length(cells_in_library),")"), y = "Density",
-             title = paste0(cid, "-", adt), subtitle = paste0(titlediff, round(diff, 2),", ", titlepeak, round(peakheight_ratio,2),
-                                                              ", ", titledist, xdist_ratio)) + 
-        egg::theme_article() + 
+      if (plots) {
+        # graphics::hist(library_adt_vector, breaks = 100, main = paste(cid, ", ", adt))
+        dx <- density(library_adt_vector, bw =multimodeResult$cbw$bw)
+        df_dx <- data.frame(x = dx$x, y = dx$y)
+        max_y1 <- max(df_dx$y)
+        max_y2 <- max(hist(library_adt_vector, breaks = 100, plot = F)$counts)
+        xdist_ratio <- round((abs(peak1_location - antimode_location))/(abs(peak2_location - antimode_location)),2)
         
-        theme(
-          axis.title.x = ggtext::element_markdown(),
-          plot.subtitle = ggtext::element_markdown())
-      print(plt)
+        xlabel <- ifelse(length(cells_in_library) > minimumCells, "<span style = 'color:cornflowerblue;'>Number of Cells: </span>", "<span style = 'color:red;'>Number of Cells: </span>")
+        
+        titlepeak <- ifelse(peakheight_ratio < peakheight_ratio_threshold, "<span style = 'color:cornflowerblue;'>Peak Height Ratio: </span>", "<span style = 'color:red;'>Peak Height Ratio: </span>")
+        
+        titledist <- ifelse(xdist_ratio < xdist_ratio_threshold, "<span style = 'color:cornflowerblue;'>Peak-Antimode Distance Ratio: </span>", "<span style = 'color:red;'>Peak-Antimode Distance Ratio: </span>")
+        
+        titlediff <- ifelse(diff > peakdist_sd_ratio, "<span style = 'color:cornflowerblue;'>PeakDist-Variance Ratio: </span>", "<span style = 'color:red;'>PeakDist-Variance Ratio: </span>")
+        
+        
+        
+        plt <- ggplot(as.data.frame(library_adt_vector), aes(x = library_adt_vector)) + 
+          geom_histogram(bins = 100) + geom_line(data = df_dx, aes(x = dx$x, y=(max_y2/max_y1)*dx$y, color = "Density")) + 
+          geom_vline(xintercept = c(peak1_location, peak2_location), color = "skyblue") +
+          geom_vline(xintercept = c(antimode_location), linetype = "dashed", color = "dodgerblue") +
+          # labs(x = paste0("ADT Signal (", length(cells_in_library)," cells)"), y = "Density",
+          labs(x = paste0("ADT Signal (", xlabel, length(cells_in_library),")"), y = "Density",
+               title = paste0(cid, "-", adt), subtitle = paste0(titlediff, round(diff, 2),", ", titlepeak, round(peakheight_ratio,2),
+                                                                ", ", titledist, xdist_ratio)) + 
+          egg::theme_article() + 
+          
+          theme(
+            axis.title.x = ggtext::element_markdown(),
+            plot.subtitle = ggtext::element_markdown())
+        print(plt)
+      }
     }
   }
   
@@ -325,6 +329,15 @@ triageADTsAndClassifyCells <- function(seuratObj,
     .default = "Fail"
   )
   
+  print(ggplot2::ggplot(df, aes(x = peak1_density, y = peak1_location, color = reason, shape = call)) +
+    geom_point() + egg::theme_article() + facet_wrap(~ADT))
+  
+  print(ggplot2::ggplot(df, aes(x = peak2_density, y = peak2_location, color = reason, shape = call)) + 
+    geom_point() + egg::theme_article() + facet_wrap(~ADT))
+  
+  print(ggplot2::ggplot(df, aes(x = antimode_density, y = antimode_location, color = reason, shape = call)) + 
+    geom_point() + egg::theme_article() + facet_wrap(~ADT))
+  
   return(df)
 }
 
@@ -354,7 +367,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
                                  values_from = c(reason, call, antimode_location))
   meta <- seuratObj@meta.data
   rn <- rownames(meta)
-  meta <- merge(meta, df_wider, by = libraryIdentificationColumn)
+  meta <- merge(meta, df_wider, by.y = "cDNA_ID", by.x = libraryIdentificationColumn)
   rownames(meta) <- rn
   seuratObj <- Seurat::AddMetaData(seuratObj, metadata = meta, col.name = colnames(df_wider |> dplyr::select(-cDNA_ID)))
   seuratObj <- Seurat::AddMetaData(seuratObj, metadata = data.frame(t(as.matrix(adtMatrix))), col.name = adts)
