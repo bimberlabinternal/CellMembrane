@@ -59,7 +59,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
       stop(paste0("Some of the ADTs (", paste0(adtwhitelist[!(adtwhitelist %in% rownames(Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)))], collapse = ', ') , ") in the whitelist were not found in the Seurat object."))	
     } else {	
       warning(paste("ADT whitelist values:", paste0(unique(adtwhitelist[!(adtwhitelist %in% rownames(Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)))]), collapse = ", "), "were not found in the available ADTs of the Seurat object. These will be removed."))	
-      adtWhitelist <- adtwhitelist[(adtwhitelist %in% rownames(Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)))]	
+      adtwhitelist <- adtwhitelist[(adtwhitelist %in% rownames(Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)))]	
     }	
   }	
   #check Seurat arguments (assays, layers) 	
