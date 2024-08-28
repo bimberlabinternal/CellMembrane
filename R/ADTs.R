@@ -154,8 +154,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
       warning(paste("ADT whitelist values:", paste0(unique(adtwhitelist[!(adtwhitelist %in% rownames(adtMatrix))]), collapse = ", "), "were not found in the available ADTs of the Seurat object. These will be ignored"))
     }
     adts <- adtwhitelist[(adtwhitelist %in% rownames(adtMatrix))]
-  }
-  else {
+  } else {
     adts <- rownames(adtMatrix)
   }
   
@@ -178,6 +177,13 @@ triageADTsAndClassifyCells <- function(seuratObj,
   mod0vec <- c()
   bandwidth_vec <- c()
   
+  #TODO: trim these if unused: 
+  under_threshold_density_vector <- c()
+  over_threshold_density_vector <- c()
+  under_threshold_percentage_vector <- c()
+  over_threshold_percentage_vector <- c()
+  
+  
   for (cid in ids) {
     cells_in_library <- colnames(seuratObj)[seuratObj@meta.data[[libraryIdentificationColumn]] == cid]
     # check library size and skip if too small
@@ -199,6 +205,13 @@ triageADTsAndClassifyCells <- function(seuratObj,
       med_vector <- c(med_vector, rep(NA, length(adts)))
       mod0vec <- c(mod0vec, rep(NA, length(adts)))
       bandwidth_vec <- c(bandwidth_vec, rep(NA, length(adts)))
+      
+      #TODO: trim these if unused
+      under_threshold_density_vector <- c(under_threshold_density_vector, rep(NA, length(adts)))
+      over_threshold_density_vector <- c(over_threshold_density_vector, rep(NA, length(adts)))
+      under_threshold_percentage_vector <- c(under_threshold_percentage_vector, rep(NA, length(adts)))
+      over_threshold_percentage_vector <- c(over_threshold_percentage_vector, rep(NA, length(adts)))
+      
       next
     }
     # Iterate over all ADTs in cDNA_Id
@@ -211,7 +224,6 @@ triageADTsAndClassifyCells <- function(seuratObj,
         multimodeResult <- multimode::locmodes(library_adt_vector, mod0 = mod0val, lowsup=0, uppsup = 10, n = 10000, display = verboseplots)
         #if mutlimode::locmodes succeeds (i.e. two modes and an antimode are not NA values), calculate heuristics
         if (sum(!is.na(multimodeResult$fvalue))>=3) {
-          #TODO: sorting isn't really appropriate here, but maybe when Greg can implement his previous code that loops through the mod values, it will be necessary again. 
           density_ordered_modes <- order(multimodeResult$fvalue, decreasing = T)
           sorted <- multimodeResult$fvalue[density_ordered_modes]
           peak1 <- sorted[1]
@@ -244,10 +256,26 @@ triageADTsAndClassifyCells <- function(seuratObj,
           bandwidth <- NA
         }
       }
-      
+      #compute library statistics (independent of bimodality results)
       geom_mean <- exp(mean(log(library_counts_vector + 1)))
       stdev <- sd(library_adt_vector)
       med <- stats::median(library_adt_vector)
+      
+      #compute bimodality-dependent statistics
+      #TODO: remove whatever doesn't get used for thresholding from here
+      if (!is.na(antimode_location)) {
+        #number of cells above and below the accepted threshold
+        under_threshold_density <- sum(library_adt_vector < antimode_location)
+        over_threshold_density <- sum(library_adt_vector > antimode_location)
+        #as percentages
+        under_threshold_percentage <- under_threshold_density/length(library_adt_vector)
+        over_threshold_percentage <- over_threshold_density/length(library_adt_vector)
+      } else {
+        under_threshold_density <- NA
+        over_threshold_density <- NA
+        under_threshold_percentage <- NA
+        over_threshold_percentage <- NA
+      }
       
       #store bimodality statistics
       cells_vector <- c(cells_vector, length(cells_in_library))
@@ -267,6 +295,12 @@ triageADTsAndClassifyCells <- function(seuratObj,
       med_vector <- c(med_vector, med)
       mod0vec <- c(mod0vec, mod0val)
       bandwidth_vec <- c(bandwidth_vec, bandwidth)
+      
+      #TODO: trim these if unused:
+      under_threshold_density_vector <- c(under_threshold_density_vector, under_threshold_density)
+      over_threshold_density_vector <- c(over_threshold_density_vector, over_threshold_density)
+      under_threshold_percentage_vector <- c(under_threshold_percentage_vector, under_threshold_percentage)
+      over_threshold_percentage_vector <- c(over_threshold_percentage_vector, over_threshold_percentage)
       
       if (plots) {
         # graphics::hist(library_adt_vector, breaks = 100, main = paste(cid, ", ", adt))
