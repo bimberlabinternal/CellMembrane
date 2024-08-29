@@ -27,6 +27,7 @@ utils::globalVariables(
 #' @param allowMissingADTs If TRUE, the function will attempt to remove ADTs from the whitelist that are not present in the Seurat object. If FALSE, the function will throw an error if any ADTs in the whitelist are not present in the Seurat object.
 #' @param troughheight_ratio_threshold The threshold for the peak2 - antimode to peak2 ratio.
 #' @param verboseplots if TRUE, intermediate plots will be generated
+#' @param antimode_loc_min The minimum antimode location.
 #' @export
 
 triageADTsAndClassifyCells <- function(seuratObj,
@@ -43,7 +44,8 @@ triageADTsAndClassifyCells <- function(seuratObj,
                                        peakheight_ratio_threshold = 50,
                                        troughheight_ratio_threshold = 0.3,
                                        xdist_ratio_threshold = 6,
-                                       allowMissingADTs = TRUE){
+                                       allowMissingADTs = TRUE,
+                                       antimode_loc_min = 1){
   
   #TODO: check the whitelist (rename to cellmask or something? TBD)	
   
@@ -89,12 +91,13 @@ triageADTsAndClassifyCells <- function(seuratObj,
                              plots=plots, verboseplots = verboseplots, adtwhitelist=adtwhitelist,
                              whitelist=whitelist, peakdist_sd_ratio=peakdist_sd_ratio,
                              xdist_ratio_threshold = xdist_ratio_threshold,
-                             troughheight_ratio_threshold = troughheight_ratio_threshold)
+                             troughheight_ratio_threshold = troughheight_ratio_threshold,
+                             antimode_loc_min = antimode_loc_min)
   df <- .TriageADTs(df = df, minimumCells=minimumCells, peakdist_sd_ratio=peakdist_sd_ratio,
                     peakheight_ratio_threshold=peakheight_ratio_threshold,
                     xdist_ratio_threshold=xdist_ratio_threshold,
                     troughheight_ratio_threshold = troughheight_ratio_threshold,
-                    plots=plots)
+                    plots=plots, antimode_loc_min = antimode_loc_min)
   seuratObj <- .ClassifyCells(seuratObj=seuratObj, df=df, libraryIdentificationColumn=libraryIdentificationColumn, assay=assay, layer=layer, adtwhitelist=adtwhitelist)
   
   return(seuratObj)
@@ -118,6 +121,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
 #' @param peakheight_ratio_threshold The threshold for the peak height ratio.
 #' @param troughheight_ratio_threshold The threshold for the peak2 - antimode to peak2 ratio.
 #' @param xdist_ratio_threshold The threshold for the peak1_antimode_distance/peak2_antimode_distance ratio.
+#' @param antimode_loc_min The minimum antimode location.
 
 .CalculateStatistics <- function(seuratObj,
                                  whitelist = NULL,
@@ -132,7 +136,8 @@ triageADTsAndClassifyCells <- function(seuratObj,
                                  peakdist_sd_ratio = 1,
                                  peakheight_ratio_threshold = 50,
                                  troughheight_ratio_threshold = 0.3,
-                                 xdist_ratio_threshold = 6){
+                                 xdist_ratio_threshold = 6,
+                                 antimode_loc_min = 1){
   
   #harvest data from seurat object, and fix Idents to be equal to the libraryIdentificationColumn
   adtMatrix <- Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)
@@ -221,7 +226,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
       #debugging
       for (mod0val in seq(2,8,1)) {
         #try to find bimodality using locmodes
-        multimodeResult <- multimode::locmodes(library_adt_vector, mod0 = mod0val, lowsup=0, uppsup = 10, n = 10000, display = verboseplots)
+        multimodeResult <- multimode::locmodes(library_adt_vector, mod0 = mod0val, lowsup=0.2, uppsup = 10, n = 10000, display = verboseplots)
         #if mutlimode::locmodes succeeds (i.e. two modes and an antimode are not NA values), calculate heuristics
         if (sum(!is.na(multimodeResult$fvalue))>=3) {
           density_ordered_modes <- order(multimodeResult$fvalue, decreasing = T)
@@ -239,7 +244,8 @@ triageADTsAndClassifyCells <- function(seuratObj,
           diff <- ((peak1_location - peak2_location)^2)/(sd(library_adt_vector)^2)
           bandwidth <- multimodeResult$cbw$bw
           # if a valid solution is found to antimode identification, stop iterating mod0val and accept modes
-          if ((diff > peakdist_sd_ratio) & (peakheight_ratio < peakheight_ratio_threshold) & troughheight_ratio > troughheight_ratio_threshold)  {
+          if ((diff > peakdist_sd_ratio) & (peakheight_ratio < peakheight_ratio_threshold) & 
+              troughheight_ratio > troughheight_ratio_threshold & antimode_location > antimode_loc_min)  {
             break
           }
         } else {
@@ -315,20 +321,25 @@ triageADTsAndClassifyCells <- function(seuratObj,
                          "<span style = 'color:red;'>Number of Cells: </span>")
         
         titlepeak <- ifelse(peakheight_ratio < peakheight_ratio_threshold,
-                            "<span style = 'color:cornflowerblue;'>Height Ratio: </span>",
-                            "<span style = 'color:red;'>Height Ratio: </span>")
+                            "<span style = 'color:cornflowerblue;'>Height: </span>",
+                            "<span style = 'color:red;'>Height: </span>")
         
         titledist <- ifelse(xdist_ratio < xdist_ratio_threshold,
-                            "<span style = 'color:cornflowerblue;'>Distance Ratio: </span>",
-                            "<span style = 'color:red;'>Distance Ratio: </span>")
+                            "<span style = 'color:cornflowerblue;'>Distance: </span>",
+                            "<span style = 'color:red;'>Distance: </span>")
         
         titlediff <- ifelse(diff > peakdist_sd_ratio,
-                            "<span style = 'color:cornflowerblue;'>Variance Ratio: </span>",
-                            "<span style = 'color:red;'>Variance Ratio: </span>")
+                            "<span style = 'color:cornflowerblue;'>Variance: </span>",
+                            "<span style = 'color:red;'>Variance: </span>")
         
         titletrough <- ifelse(troughheight_ratio > troughheight_ratio_threshold,
-                              "<span style = 'color:cornflowerblue;'>Trough Ratio: </span>",
-                              "<span style = 'color:red;'>Trough Ratio: </span>")
+                              "<span style = 'color:cornflowerblue;'>Valley: </span>",
+                              "<span style = 'color:red;'>Valley: </span>")
+        
+        title_minloc <- ifelse(antimode_location > antimode_loc_min,
+                               "<span style = 'color:cornflowerblue;'>Threshold: </span>",
+                               "<span style = 'color:red;'>Threshold: </span>"
+                               )
         
         plt <- ggplot(as.data.frame(library_adt_vector), aes(x = library_adt_vector)) + 
           geom_histogram(bins = 100) + geom_line(data = df_dx, aes(x = dx$x, y=(max_y2/max_y1)*dx$y, color = "Density")) + 
@@ -337,7 +348,8 @@ triageADTsAndClassifyCells <- function(seuratObj,
           # labs(x = paste0("ADT Signal (", length(cells_in_library)," cells)"), y = "Density",
           labs(x = paste0("ADT Signal (", xlabel, length(cells_in_library),")"), y = "Density",
                title = paste0(cid, "-", adt), subtitle = paste0(titlediff, round(diff, 2),", ", titlepeak, round(peakheight_ratio,2),
-                                                                ", ", titledist, xdist_ratio, "\n", titletrough, round(troughheight_ratio, 3))) + 
+                                                                ", ", titledist, xdist_ratio, ", ", titletrough, round(troughheight_ratio, 3),
+                                                                ", ", title_minloc, round(antimode_location, 2))) + 
           egg::theme_article() + 
           
           theme(
@@ -364,7 +376,12 @@ triageADTsAndClassifyCells <- function(seuratObj,
                     stdev = stdev_vector,
                     med = med_vector,
                     mod0val = mod0vec,
-                    bandwidth = bandwidth_vec))
+                    bandwidth = bandwidth_vec,
+                    under_density = under_threshold_density_vector,
+                    over_density = over_threshold_density_vector,
+                    under_percentage = under_threshold_percentage_vector,
+                    over_percentage = over_threshold_percentage_vector
+                    ))
 }
 
 #' @title Triage ADTs for classification
@@ -378,20 +395,23 @@ triageADTsAndClassifyCells <- function(seuratObj,
 #' @param xdist_ratio_threshold The threshold for the peak1_antimode_distance/peak2_antimode_distance ratio.
 #' @param troughheight_ratio_threshold The threshold for the peak2 - antimode to peak2 ratio.
 #' @param plots If TRUE, plots will be generated.
+#' @param antimode_loc_min The minimum antimode location.
 
 .TriageADTs <- function(df, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold,
-                        xdist_ratio_threshold, troughheight_ratio_threshold, plots){
+                        xdist_ratio_threshold, troughheight_ratio_threshold, plots, antimode_loc_min){
   print(paste0("minimumCells >  ", minimumCells))
   print(paste0("peakdist_sd_ratio > ", peakdist_sd_ratio))
   print(paste0("peakheight_ratio < ", peakheight_ratio_threshold))
   print(paste0("xdist_ratio < ", xdist_ratio_threshold))
   print(paste0("troughheight_ratio > ", troughheight_ratio_threshold))
+  print(paste0("antimode_loc > ", antimode_loc_min))
   
   
   df$xdist_ratio <- (abs(df$peak1_location - df$antimode_location))/(abs(df$peak2_location - df$antimode_location))
   df$reason <- dplyr::case_when(
     df$cells < minimumCells ~ "Too few cells",
     is.na(df$antimode_location) ~ "Probable ADT failure",
+    df$antimode_location < antimode_loc_min ~ "Low Antimode Location",
     df$peakheight_ratio > peakheight_ratio_threshold ~ "Peak Height Ratio",
     df$troughheight_ratio < troughheight_ratio_threshold ~ "Trough Height Ratio",
     df$diff < peakdist_sd_ratio ~ "Diff Threshold",
@@ -468,7 +488,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
   for (adt in adts) {
     seuratObj@meta.data[,paste0(adt, "_cellcall")] <- dplyr::case_when(
       seuratObj@meta.data[,adt] >= seuratObj@meta.data[,paste0("antimode_location_", adt)] & seuratObj@meta.data[,paste0("call_", adt)] == "Pass" ~ "Positive",
-      seuratObj@meta.data[,adt] < seuratObj@meta.data[,paste0("antimode_location_", adt)] & seuratObj@meta.data[,paste0("call_", adt)] == "Pass" ~ "Negative",
+      seuratObj@meta.data[,adt] <  seuratObj@meta.data[,paste0("antimode_location_", adt)] & seuratObj@meta.data[,paste0("call_", adt)] == "Pass" ~ "Negative",
       seuratObj@meta.data[,paste0("call_", adt)] == "Fail" ~ "Failed"
     )
   }
