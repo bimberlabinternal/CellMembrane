@@ -28,6 +28,8 @@ utils::globalVariables(
 #' @param troughheight_ratio_threshold The threshold for the peak2 - antimode to peak2 ratio.
 #' @param verboseplots if TRUE, intermediate plots will be generated
 #' @param antimode_loc_min The minimum antimode location.
+#' @param min_frac_under_threshold The minimum fraction of cells under the antimode.
+#' @param max_frac_under_threshold The minimum fraction of cells above the antimode.
 #' @export
 
 triageADTsAndClassifyCells <- function(seuratObj,
@@ -37,7 +39,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
                                        layer = 'data', 
                                        libraryIdentificationColumn = 'cDNA_ID', 
                                        minimumCounts = 200, 
-                                       minimumCells = 200, 
+                                       minimumCells = 350, 
                                        plots = T,
                                        verboseplots = F,
                                        peakdist_sd_ratio = 1,
@@ -45,7 +47,9 @@ triageADTsAndClassifyCells <- function(seuratObj,
                                        troughheight_ratio_threshold = 0.3,
                                        xdist_ratio_threshold = 6,
                                        allowMissingADTs = TRUE,
-                                       antimode_loc_min = 1){
+                                       antimode_loc_min = 0,
+                                       min_frac_under_threshold = 0.2,
+                                       max_frac_under_threshold = 0.98){
   
   #TODO: check the whitelist (rename to cellmask or something? TBD)	
   
@@ -75,9 +79,20 @@ triageADTsAndClassifyCells <- function(seuratObj,
     stop(paste0("The libraryIdentificationColumn: ", libraryIdentificationColumn, " is not present in the Seurat object's metadata."))	
   }	
   #check validity of numeric arguments	
-  if (!all(is.numeric(c(minimumCounts, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold, xdist_ratio_threshold)))) {	
-    failing_arguments <- c("minimumCounts", "minimumCells", "peakdist_sd_ratio", "peakheight_ratio_threshold", "xdist_ratio_threshold")[!sapply(list(minimumCounts, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold, xdist_ratio_threshold), FUN = is.numeric)]	
-    failing_values <- c(minimumCounts, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold, xdist_ratio_threshold)[!sapply(list(minimumCounts, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold, xdist_ratio_threshold), FUN = is.numeric)]	
+  if (!all(is.numeric(c(minimumCounts, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold, 
+                        xdist_ratio_threshold, antimode_loc_min, min_frac_under_threshold, max_frac_under_threshold)))) {	
+    failing_arguments <- c("minimumCounts", "minimumCells", "peakdist_sd_ratio",
+                           "peakheight_ratio_threshold", "xdist_ratio_threshold",
+                           "antimode_loc_min", "min_frac_under_threshold",
+                           "max_frac_under_threshold")[!sapply(list(minimumCounts, minimumCells, peakdist_sd_ratio,
+                                                                    peakheight_ratio_threshold, xdist_ratio_threshold,
+                                                                    antimode_loc_min, min_frac_under_threshold, max_frac_under_threshold), FUN = is.numeric)]	
+    failing_values <- c(minimumCounts, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold,
+                        xdist_ratio_threshold, antimode_loc_min, min_frac_under_threshold,
+                        max_frac_under_threshold)[!sapply(list(minimumCounts, minimumCells,
+                                                               peakdist_sd_ratio, peakheight_ratio_threshold,
+                                                               xdist_ratio_threshold, antimode_loc_min, min_frac_under_threshold,
+                                                               max_frac_under_threshold), FUN = is.numeric)]	
     stop(paste0("The ", paste0(failing_arguments, collapse = ', '), " argument(s) must be numeric. Current value(s) is/are : " , paste0(failing_arguments ,":", failing_values, collapse = ', ')))	
   }
   
@@ -90,14 +105,17 @@ triageADTsAndClassifyCells <- function(seuratObj,
                              minimumCounts=minimumCounts, minimumCells=minimumCells,
                              plots=plots, verboseplots = verboseplots, adtwhitelist=adtwhitelist,
                              whitelist=whitelist, peakdist_sd_ratio=peakdist_sd_ratio,
+                             peakheight_ratio_threshold = peakheight_ratio_threshold,
                              xdist_ratio_threshold = xdist_ratio_threshold,
                              troughheight_ratio_threshold = troughheight_ratio_threshold,
-                             antimode_loc_min = antimode_loc_min)
+                             antimode_loc_min = antimode_loc_min, min_frac_under_threshold = min_frac_under_threshold,
+                             max_frac_under_threshold = max_frac_under_threshold)
   df <- .TriageADTs(df = df, minimumCells=minimumCells, peakdist_sd_ratio=peakdist_sd_ratio,
                     peakheight_ratio_threshold=peakheight_ratio_threshold,
                     xdist_ratio_threshold=xdist_ratio_threshold,
                     troughheight_ratio_threshold = troughheight_ratio_threshold,
-                    plots=plots, antimode_loc_min = antimode_loc_min)
+                    plots=plots, antimode_loc_min = antimode_loc_min, min_frac_under_threshold = min_frac_under_threshold,
+                    max_frac_under_threshold = max_frac_under_threshold)
   seuratObj <- .ClassifyCells(seuratObj=seuratObj, df=df, libraryIdentificationColumn=libraryIdentificationColumn, assay=assay, layer=layer, adtwhitelist=adtwhitelist)
   
   return(seuratObj)
@@ -122,22 +140,26 @@ triageADTsAndClassifyCells <- function(seuratObj,
 #' @param troughheight_ratio_threshold The threshold for the peak2 - antimode to peak2 ratio.
 #' @param xdist_ratio_threshold The threshold for the peak1_antimode_distance/peak2_antimode_distance ratio.
 #' @param antimode_loc_min The minimum antimode location.
+#' @param min_frac_under_threshold The minimum fraction of cells under the antimode.
+#' @param max_frac_under_threshold The minimum fraction of cells above the antimode.
 
 .CalculateStatistics <- function(seuratObj,
-                                 whitelist = NULL,
-                                 adtwhitelist = NULL, 
-                                 assay = "ADT", 
-                                 layer = 'data', 
-                                 libraryIdentificationColumn = 'cDNA_ID', 
-                                 minimumCounts = 200, 
-                                 minimumCells = 20, 
-                                 plots = T,
-                                 verboseplots = F,
-                                 peakdist_sd_ratio = 1,
-                                 peakheight_ratio_threshold = 50,
-                                 troughheight_ratio_threshold = 0.3,
-                                 xdist_ratio_threshold = 6,
-                                 antimode_loc_min = 1){
+                                 whitelist,
+                                 adtwhitelist, 
+                                 assay, 
+                                 layer, 
+                                 libraryIdentificationColumn, 
+                                 minimumCounts, 
+                                 minimumCells, 
+                                 plots,
+                                 verboseplots,
+                                 peakdist_sd_ratio,
+                                 peakheight_ratio_threshold,
+                                 troughheight_ratio_threshold,
+                                 xdist_ratio_threshold,
+                                 antimode_loc_min,
+                                 min_frac_under_threshold,
+                                 max_frac_under_threshold){
   
   #harvest data from seurat object, and fix Idents to be equal to the libraryIdentificationColumn
   adtMatrix <- Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)
@@ -325,21 +347,26 @@ triageADTsAndClassifyCells <- function(seuratObj,
                             "<span style = 'color:red;'>Height: </span>")
         
         titledist <- ifelse(xdist_ratio < xdist_ratio_threshold,
-                            "<span style = 'color:cornflowerblue;'>Distance: </span>",
-                            "<span style = 'color:red;'>Distance: </span>")
+                            "<span style = 'color:cornflowerblue;'>Dist: </span>",
+                            "<span style = 'color:red;'>Dist: </span>")
         
         titlediff <- ifelse(diff > peakdist_sd_ratio,
-                            "<span style = 'color:cornflowerblue;'>Variance: </span>",
-                            "<span style = 'color:red;'>Variance: </span>")
+                            "<span style = 'color:cornflowerblue;'>Var: </span>",
+                            "<span style = 'color:red;'>Var: </span>")
         
         titletrough <- ifelse(troughheight_ratio > troughheight_ratio_threshold,
                               "<span style = 'color:cornflowerblue;'>Valley: </span>",
                               "<span style = 'color:red;'>Valley: </span>")
         
         title_minloc <- ifelse(antimode_location > antimode_loc_min,
-                               "<span style = 'color:cornflowerblue;'>Threshold: </span>",
-                               "<span style = 'color:red;'>Threshold: </span>"
+                               "<span style = 'color:cornflowerblue;'>Thresh: </span>",
+                               "<span style = 'color:red;'>Thresh: </span>"
                                )
+        
+        title_minpercunder <- ifelse(((under_threshold_percentage < min_frac_under_threshold) | (under_threshold_percentage > max_frac_under_threshold)),
+                                     "<span style = 'color:red;'>UnderThresh: </span>",
+                                     "<span style = 'color:cornflowerblue;'>UnderThresh: </span>"
+        )
         
         plt <- ggplot(as.data.frame(library_adt_vector), aes(x = library_adt_vector)) + 
           geom_histogram(bins = 100) + geom_line(data = df_dx, aes(x = dx$x, y=(max_y2/max_y1)*dx$y, color = "Density")) + 
@@ -349,7 +376,8 @@ triageADTsAndClassifyCells <- function(seuratObj,
           labs(x = paste0("ADT Signal (", xlabel, length(cells_in_library),")"), y = "Density",
                title = paste0(cid, "-", adt), subtitle = paste0(titlediff, round(diff, 2),", ", titlepeak, round(peakheight_ratio,2),
                                                                 ", ", titledist, xdist_ratio, ", ", titletrough, round(troughheight_ratio, 3),
-                                                                ", ", title_minloc, round(antimode_location, 2))) + 
+                                                                ", ", title_minloc, round(antimode_location, 2),
+                                                                ", ", title_minpercunder, round(under_threshold_percentage, 2))) + 
           egg::theme_article() + 
           
           theme(
@@ -396,26 +424,33 @@ triageADTsAndClassifyCells <- function(seuratObj,
 #' @param troughheight_ratio_threshold The threshold for the peak2 - antimode to peak2 ratio.
 #' @param plots If TRUE, plots will be generated.
 #' @param antimode_loc_min The minimum antimode location.
+#' @param min_frac_under_threshold The minimum fraction of cells under the antimode.
+#' @param max_frac_under_threshold The minimum fraction of cells above the antimode.
 
 .TriageADTs <- function(df, minimumCells, peakdist_sd_ratio, peakheight_ratio_threshold,
-                        xdist_ratio_threshold, troughheight_ratio_threshold, plots, antimode_loc_min){
+                        xdist_ratio_threshold, troughheight_ratio_threshold, plots, antimode_loc_min,
+                        min_frac_under_threshold, max_frac_under_threshold){
   print(paste0("minimumCells >  ", minimumCells))
   print(paste0("peakdist_sd_ratio > ", peakdist_sd_ratio))
   print(paste0("peakheight_ratio < ", peakheight_ratio_threshold))
   print(paste0("xdist_ratio < ", xdist_ratio_threshold))
   print(paste0("troughheight_ratio > ", troughheight_ratio_threshold))
   print(paste0("antimode_loc > ", antimode_loc_min))
+  print(paste0("min_frac_under > ", min_frac_under_threshold))
+  print(paste0("max_frac_under < ", max_frac_under_threshold))
   
   
   df$xdist_ratio <- (abs(df$peak1_location - df$antimode_location))/(abs(df$peak2_location - df$antimode_location))
   df$reason <- dplyr::case_when(
     df$cells < minimumCells ~ "Too few cells",
     is.na(df$antimode_location) ~ "Probable ADT failure",
-    df$antimode_location < antimode_loc_min ~ "Low Antimode Location",
+    df$under_percentage < min_frac_under_threshold ~ "Antimode too low",
+    df$under_percentage > max_frac_under_threshold ~ "Antimode too high",
     df$peakheight_ratio > peakheight_ratio_threshold ~ "Peak Height Ratio",
     df$troughheight_ratio < troughheight_ratio_threshold ~ "Trough Height Ratio",
     df$diff < peakdist_sd_ratio ~ "Diff Threshold",
     df$xdist_ratio > xdist_ratio_threshold ~ "Distance Ratio",
+    df$antimode_location < antimode_loc_min ~ "Low Antimode Location",
     .default = "Pass"
   )
   
@@ -432,25 +467,53 @@ triageADTsAndClassifyCells <- function(seuratObj,
             geom_point() + egg::theme_article() + facet_wrap(~ADT))
     
     print(ggplot2::ggplot(df, aes(x = antimode_density, y = antimode_location, color = reason, shape = call)) + 
+            geom_hline(yintercept = antimode_loc_min, linetype = "dashed", color = "dodgerblue") + 
             geom_point() + egg::theme_article() + facet_wrap(~ADT))
     
-    print(ggplot2::ggplot(df, aes(y = peakheight_ratio, x = troughheight_ratio, color = reason, shape = call)) +  
+    print(ggplot2::ggplot(df, aes(y = peakheight_ratio, x = troughheight_ratio, color = reason, shape = call)) +
+            geom_hline(yintercept = peakheight_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
+            geom_vline(xintercept = troughheight_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
             geom_point() + egg::theme_article() + scale_y_log10() + facet_wrap(~ADT))
     
     print(ggplot2::ggplot(df, aes(y = peakheight_ratio, x = diff, color = reason, shape = call))  + 
+            geom_hline(yintercept = peakheight_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
+            geom_vline(xintercept = peakdist_sd_ratio, linetype = "dashed", color = "dodgerblue") + 
             geom_point() + egg::theme_article() + scale_y_log10()  + scale_x_log10() + facet_wrap(~ADT))
     
     print(ggplot2::ggplot(df, aes(x = xdist_ratio, y = peakheight_ratio, color = reason, shape = call))  + 
+            geom_hline(yintercept = peakheight_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
+            geom_vline(xintercept = xdist_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
             geom_point() + egg::theme_article() + facet_wrap(~ADT) + scale_y_log10()  + scale_x_log10()) 
     
     print(ggplot2::ggplot(df, aes(x = troughheight_ratio, y = diff, color = reason, shape = call)) +
+            geom_vline(xintercept = troughheight_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
+            geom_hline(yintercept = peakdist_sd_ratio, linetype = "dashed", color = "dodgerblue") + 
             geom_point() + egg::theme_article() + facet_wrap(~ADT)  + scale_y_log10())
     
     print(ggplot2::ggplot(df, aes(x = troughheight_ratio, y = xdist_ratio, color = reason, shape = call)) +
+            geom_vline(xintercept = troughheight_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
+            geom_hline(yintercept = xdist_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
             geom_point() + egg::theme_article() + facet_wrap(~ADT)  + scale_y_log10())
     
     print(ggplot2::ggplot(df, aes(x = diff, y = xdist_ratio, color = reason, shape = call)) +
+            geom_vline(xintercept = peakdist_sd_ratio, linetype = "dashed", color = "dodgerblue") + 
+            geom_hline(yintercept = xdist_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
             geom_point() + egg::theme_article() + facet_wrap(~ADT)  + scale_y_log10()  + scale_x_log10())
+    
+    print(ggplot2::ggplot(df, aes(x = under_percentage, y = xdist_ratio, color = reason, shape = call)) +
+            geom_vline(xintercept = c(min_frac_under_threshold, max_frac_under_threshold), linetype = "dashed", color = "dodgerblue") + 
+            geom_hline(yintercept = xdist_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
+            geom_point() + egg::theme_article() + facet_wrap(~ADT)  + scale_y_log10())
+    
+    print(ggplot2::ggplot(df, aes(x = under_percentage, y = troughheight_ratio, color = reason, shape = call)) +
+            geom_vline(xintercept = c(min_frac_under_threshold, max_frac_under_threshold), linetype = "dashed", color = "dodgerblue") + 
+            geom_hline(yintercept = troughheight_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
+            geom_point() + egg::theme_article() + facet_wrap(~ADT))
+    
+    print(ggplot2::ggplot(df, aes(x = under_percentage, y = peakheight_ratio, color = reason, shape = call)) +
+            geom_vline(xintercept = c(min_frac_under_threshold, max_frac_under_threshold), linetype = "dashed", color = "dodgerblue") + 
+            geom_hline(yintercept = peakheight_ratio_threshold, linetype = "dashed", color = "dodgerblue") + 
+            geom_point() + egg::theme_article() + facet_wrap(~ADT)  + scale_y_log10())
   }
   return(df)
 }
