@@ -45,11 +45,10 @@ test_that("GetMsigdbGeneSet works as expected", {
   #if this fails, then MsigDB added a "C9" category, and the Utils function GetMsigdbGeneSet needs to be updated to include C9
   testthat::expect_error(GetMsigdbGeneSet(msigdbGeneSets = "C9"))
   
-  #These are pretty vague checks to make sure the fetch works, but don't impose any length restrictions. 
-  x <- CellMembrane:::GetMsigdbGeneSet(msigdbGeneSets = "GO:BP")
+  x <- GetMsigdbGeneSet(msigdbGeneSets = "GO:BP")
   testthat::expect_equal(length(x), 10)
   
-  y <- CellMembrane:::GetMsigdbGeneSet(msigdbGeneSets = "H")
+  y <- GetMsigdbGeneSet(msigdbGeneSets = "H")
   testthat::expect_equal(length(y), 50)
 })
 
