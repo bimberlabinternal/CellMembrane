@@ -40,7 +40,7 @@ test_that("AddNewMetaColumn works as expected", {
 
 test_that("GetMsigdbGeneSet works as expected", {
   #I think we might add GO:MF in the future, so this serves as a gotcha to check the codebase more fully to ensure compatibility
-  testthat::expect_error(GetMsigdbGeneSet(msigdbGeneSets = "GO:MF"))
+  testthat::expect_error(GetMsigdbGeneSet(msigdbGeneSets = "GO:XX"))
 
   #if this fails, then MsigDB added a "C9" category, and the Utils function GetMsigdbGeneSet needs to be updated to include C9
   testthat::expect_error(GetMsigdbGeneSet(msigdbGeneSets = "C9"))
