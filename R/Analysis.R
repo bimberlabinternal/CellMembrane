@@ -3,7 +3,7 @@
 
 utils::globalVariables(
   names = c('ClusterProportion', 'Proportion', 'SizeFactor', 'XY_Key', 'Y_Key', 'ClusterCount',  
-            'comparisons', 'T_statistic', 'P_val_adj', 'Group1', 'Group2', 'stars'),
+            'comparisons', 'T_statistic', 'P_val_adj', 'Group1', 'Group2', 'stars', 'pct.exp', 'features.plot'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -566,9 +566,9 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
     Matrix::t()
   #Establish symmetric color scaling based on the extremes in the heatmap
   col_RNA = circlize::colorRamp2(c(-max(abs(mat)), 0, max(abs(mat))),
-                                 c(hcl.colors(palette = "Blue-Red 2", n = 20)[1],
-                                   "gray85", 
-                                   hcl.colors(palette = "Blue-Red 2", n = 20)[20]),
+                                 c(grDevices::hcl.colors(palette = "Blue-Red 2", n = 20)[1],
+                                   "gray85",
+                                   grDevices::hcl.colors(palette = "Blue-Red 2", n = 20)[20]),
                                  space = "sRGB")
   #Set the heatmap name according to scaling
   if (scaling == 'row') {

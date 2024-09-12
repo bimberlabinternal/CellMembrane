@@ -3,7 +3,7 @@
 #' @import Seurat
 
 utils::globalVariables(
-  names = c('nCount_RNA', 'nFeature_RNA', 'p.mito', 'x', 'y', 'p_val_adj', 'avg_logFC', 'groupField', 'cluster', 'pct.1', 'pct.2', 'S.Score_UCell', 'G2M.Score_UCell', 'Phase', 'S.Score_UCell', 'G2M.Score_UCell', 'dims', 'stdev'),
+  names = c('nCount_RNA', 'nFeature_RNA', 'p.mito', 'x', 'y', 'p_val_adj', 'avg_logFC', 'groupField', 'cluster', 'pct.1', 'pct.2', 'S.Score_UCell', 'G2M.Score_UCell', 'Phase', 'S.Score_UCell', 'G2M.Score_UCell', 'dims', 'stdev', 'group1', 'group2'),
   package = 'CellMembrane',
   add = TRUE
 )

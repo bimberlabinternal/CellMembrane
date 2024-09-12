@@ -509,29 +509,28 @@ GetAssayMetadataSlotName <- function(assayObj) {
 #' @param msigdbGeneSets a character vector of gene sets that is either a top level msigdb gene set name (e.g. "H" for hallmark or "C2" for curated gene sets), or a common hierarchical gene set in a large top level (e.g. C5;BP for GO:BP annotations.)
 #' @return a named list of gene sets fetched by msigdbr. 
 GetMsigdbGeneSet <- function(msigdbGeneSets = "H") {
-  #initialize gene set
-  GS <- c()
-  #ensure msigdbGeneSets is formatted properly to parse. 
-  if (all(!is.null(msigdbGeneSets), !is.na(msigdbGeneSets), !(length(msigdbGeneSets) == 0))) {
-    #require vector. customGeneSets needs to be a list, so this could be a point of confusion
-    if (!is.vector(msigdbGeneSets)) {
-      stop("msigdbGeneSets is not a vector. Please coerce it to a vector of supported characters.")
+  allowableValues <- c("H", "GO", paste0("C", 1:8))
+
+  results <- c()
+  for (libraryName in msigdbGeneSets) {
+    subcategory <- NULL
+    if (grepl(pattern = ':', x = libraryName)) {
+      tokens <- unlist(strsplit(libraryName, split = ':'))
+      libraryName <- tokens[1]
+      subcategory <- tokens[2]
     }
-    ##GO:BP and other hierarchical gene sets require subcategories to be passed with them, so we should parse those individually and concatenate afterwards. I think each of these need to be individually supported.
-    #check if all gene sets are non-hierarchical
-    if (all(msigdbGeneSets %in% c("H", paste0("C", 1:8)))) {
-      #fetch non-hierarchical gene sets
-      GS <- c(GS, escape::getGeneSets(library = msigdbGeneSets))
-    } else if ("GO:BP" %in% msigdbGeneSets & all(msigdbGeneSets[msigdbGeneSets != "GO:BP"] %in% c("H", paste0("C", 1:8)))) {
-      #remove GO:BP from the list and fetch hierarchical gene set.
-      msigdbGeneSets <- msigdbGeneSets[msigdbGeneSets != "GO:BP"]
-      GS_GO_BP <- escape::getGeneSets(library = "C5", subcategory = "BP")
-      #fetch non-hierarchical gene sets and concatenate gene sets
-      GS <- c(GS, c(escape::getGeneSets(library = msigdbGeneSets), GS_GO_BP))
-    } else {
-      #if the msigdb gene set is hierarchical but unsupported, throw error: 
-      unsupportedGeneSets <- msigdbGeneSets[!(msigdbGeneSets %in% c("GO:BP", "H", paste0("C", 1:8)))]
-      stop(paste0(unsupportedGeneSets, " in msigdbGeneSets are unsupported. Please ensure msigdbGeneSets is any of: H, GO:BP, ", paste0(", C", 1:8), ". Please ensure your requested geneSet is listed, add the gene set to the customGeneSets argument, or contact members of the Bimber Lab to add a gene set."))
+
+    if (libraryName == 'GO') {
+      libraryName <- 'C5'
     }
+
+    if (! libraryName %in% allowableValues) {
+      stop(paste0('Unknown library: ', libraryName, '. Must be one of: ', paste0(allowableValues, collapse = ';')))
+    }
+
+    x <- escape::getGeneSets(library = libraryName, subcategory = subcategory)
+    results <- c(results, x)
   }
+
+  return(results)
 }
