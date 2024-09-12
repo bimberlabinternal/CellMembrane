@@ -527,6 +527,9 @@ GetMsigdbGeneSet <- function(msigdbGeneSets = "H") {
       msigdbGeneSets <- msigdbGeneSets[msigdbGeneSets != "GO:BP"]
       GS_GO_BP <- escape::getGeneSets(library = "C5", subcategory = "BP")
       #fetch non-hierarchical gene sets and concatenate gene sets
+      if (length(msigdbGeneSets) == 0) {
+        msigdbGeneSets <- NULL
+      }
       GS <- c(GS, c(escape::getGeneSets(library = msigdbGeneSets), GS_GO_BP))
     } else {
       #if the msigdb gene set is hierarchical but unsupported, throw error: 
