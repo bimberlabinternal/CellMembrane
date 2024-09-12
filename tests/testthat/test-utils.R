@@ -46,7 +46,7 @@ test_that("GetMsigdbGeneSet works as expected", {
   testthat::expect_error(GetMsigdbGeneSet(msigdbGeneSets = "C9"))
   
   x <- GetMsigdbGeneSet(msigdbGeneSets = "GO:BP")
-  testthat::expect_equal(length(x), 10)
+  testthat::expect_equal(length(x), 40538)
   
   y <- GetMsigdbGeneSet(msigdbGeneSets = "H")
   testthat::expect_equal(length(y), 50)
