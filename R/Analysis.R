@@ -552,6 +552,8 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
       Matrix::t()
   }
   
+  fullorder <- colnames(mat)
+  
   #harvest the percentage of cells expressing genes within the features vector from the Seurat::DotPlot output.
   #TODO: this works fine, but we have a version of this in the pseudobulking code. We could replace it if Seurat changes their dotplot. 
   plt <- Seurat::DotPlot(seuratObj, features = features, group.by = groupFields, assay = assay)
@@ -570,6 +572,9 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
                                    "gray85",
                                    grDevices::hcl.colors(palette = "Blue-Red 2", n = 20)[20]),
                                  space = "sRGB")
+  
+  pct <- pct[,fullorder]
+  
   #Set the heatmap name according to scaling
   if (scaling == 'row') {
     name <- 'Scaled\nExpr. (Row)'
