@@ -49,7 +49,9 @@ jobs:
           sudo apt-get update && sudo apt-get install -yq libharfbuzz-dev libfribidi-dev python3 python3-pip libsodium-dev libcurl4-openssl-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
-          python3 -m pip install --user --no-binary :all: umap-learn phate sctour scikit-misc leidenalg tcrdist3          
+          # NOTE: --no-binary was added to side-step a numpy version issue. This should be removed eventually
+          python3 -m pip install --user --no-binary :all: numpy pandas 
+          python3 -m pip install --user sctour tcrdist3 umap-learn phate leidenalg scikit-misc
 
       - name: Setup CoNGA
         run: |
