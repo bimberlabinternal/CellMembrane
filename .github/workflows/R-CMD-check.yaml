@@ -49,8 +49,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -yq libharfbuzz-dev libfribidi-dev python3 python3-pip libsodium-dev libcurl4-openssl-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install --user wheel setuptools
-          python3 -m pip install --user git+https://github.com/kmayerb/tcrdist3.git@0.2.2
-          python3 -m pip install --user umap-learn phate sctour scikit-misc leidenalg
+          python3 -m pip install --no-binary --user umap-learn phate sctour scikit-misc leidenalg tcrdist3          
 
       - name: Setup CoNGA
         run: |
