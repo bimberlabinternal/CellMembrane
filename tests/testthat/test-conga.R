@@ -15,7 +15,7 @@ test_that("RunConga works", {
     }
 
     warning('The python conga module has not been installed!')
-    return()
+    expect_true(reticulate::py_module_available('conga'))
   }
 
   #read data

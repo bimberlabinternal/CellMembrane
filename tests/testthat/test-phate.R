@@ -19,7 +19,7 @@ test_that("PHATE works as expected", {
         }
 
         warning('The python phate module has not been installed!')
-        return()
+        expect_true(reticulate::py_module_available('phate'))
     }
 
     set.seed(CellMembrane::GetSeed())
