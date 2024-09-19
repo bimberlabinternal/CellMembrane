@@ -12,12 +12,17 @@ triageADTsAndClassifyCells(
   layer = "data",
   libraryIdentificationColumn = "cDNA_ID",
   minimumCounts = 200,
-  minimumCells = 200,
+  minimumCells = 350,
   plots = T,
+  verboseplots = F,
   peakdist_sd_ratio = 1,
   peakheight_ratio_threshold = 50,
+  troughheight_ratio_threshold = 0.3,
   xdist_ratio_threshold = 6,
-  allowMissingADTs = TRUE
+  allowMissingADTs = TRUE,
+  antimode_loc_min = 0,
+  min_frac_under_threshold = 0.2,
+  max_frac_under_threshold = 0.98
 )
 }
 \arguments{
@@ -39,13 +44,23 @@ triageADTsAndClassifyCells(
 
 \item{plots}{If TRUE, plots will be generated.}
 
+\item{verboseplots}{if TRUE, intermediate plots will be generated}
+
 \item{peakdist_sd_ratio}{An upper bound of acceptable peak distance divided by the standard deviation of the ADT.}
 
 \item{peakheight_ratio_threshold}{The threshold for the peak height ratio.}
 
+\item{troughheight_ratio_threshold}{The threshold for the peak2 - antimode to peak2 ratio.}
+
 \item{xdist_ratio_threshold}{The threshold for the peak1_antimode_distance/peak2_antimode_distance ratio.}
 
 \item{allowMissingADTs}{If TRUE, the function will attempt to remove ADTs from the whitelist that are not present in the Seurat object. If FALSE, the function will throw an error if any ADTs in the whitelist are not present in the Seurat object.}
+
+\item{antimode_loc_min}{The minimum antimode location.}
+
+\item{min_frac_under_threshold}{The minimum fraction of cells under the antimode.}
+
+\item{max_frac_under_threshold}{The minimum fraction of cells above the antimode.}
 }
 \description{
 This function will classify cells within a Seurat object based on characteristics relating to the bimodality of an ADT.

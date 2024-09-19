@@ -6,16 +6,22 @@
 \usage{
 .CalculateStatistics(
   seuratObj,
-  whitelist = NULL,
-  adtwhitelist = NULL,
-  assay = "ADT",
-  layer = "data",
-  libraryIdentificationColumn = "cDNA_ID",
-  minimumCounts = 200,
-  minimumCells = 20,
-  plots = T,
-  peakdist_sd_ratio = 1,
-  peakheight_ratio_threshold = 50
+  whitelist,
+  adtwhitelist,
+  assay,
+  layer,
+  libraryIdentificationColumn,
+  minimumCounts,
+  minimumCells,
+  plots,
+  verboseplots,
+  peakdist_sd_ratio,
+  peakheight_ratio_threshold,
+  troughheight_ratio_threshold,
+  xdist_ratio_threshold,
+  antimode_loc_min,
+  min_frac_under_threshold,
+  max_frac_under_threshold
 )
 }
 \arguments{
@@ -37,9 +43,21 @@
 
 \item{plots}{If TRUE, plots will be generated.}
 
+\item{verboseplots}{if TRUE, intermediate plots will be generated}
+
 \item{peakdist_sd_ratio}{An upper bound of acceptable peak distance divided by the standard deviation of the ADT.}
 
 \item{peakheight_ratio_threshold}{The threshold for the peak height ratio.}
+
+\item{troughheight_ratio_threshold}{The threshold for the peak2 - antimode to peak2 ratio.}
+
+\item{xdist_ratio_threshold}{The threshold for the peak1_antimode_distance/peak2_antimode_distance ratio.}
+
+\item{antimode_loc_min}{The minimum antimode location.}
+
+\item{min_frac_under_threshold}{The minimum fraction of cells under the antimode.}
+
+\item{max_frac_under_threshold}{The minimum fraction of cells above the antimode.}
 }
 \description{
 This function will calculate metrics and produce a dataframe that will be used for classification by .TriageADTs

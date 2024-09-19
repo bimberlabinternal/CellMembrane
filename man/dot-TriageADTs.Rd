@@ -9,7 +9,12 @@
   minimumCells,
   peakdist_sd_ratio,
   peakheight_ratio_threshold,
-  xdist_ratio_threshold
+  xdist_ratio_threshold,
+  troughheight_ratio_threshold,
+  plots,
+  antimode_loc_min,
+  min_frac_under_threshold,
+  max_frac_under_threshold
 )
 }
 \arguments{
@@ -22,6 +27,16 @@
 \item{peakheight_ratio_threshold}{The threshold for the peak height ratio.}
 
 \item{xdist_ratio_threshold}{The threshold for the peak1_antimode_distance/peak2_antimode_distance ratio.}
+
+\item{troughheight_ratio_threshold}{The threshold for the peak2 - antimode to peak2 ratio.}
+
+\item{plots}{If TRUE, plots will be generated.}
+
+\item{antimode_loc_min}{The minimum antimode location.}
+
+\item{min_frac_under_threshold}{The minimum fraction of cells under the antimode.}
+
+\item{max_frac_under_threshold}{The minimum fraction of cells above the antimode.}
 }
 \description{
 This function will take in a dataframe and make calls on bimodality

@@ -116,6 +116,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
                     troughheight_ratio_threshold = troughheight_ratio_threshold,
                     plots=plots, antimode_loc_min = antimode_loc_min, min_frac_under_threshold = min_frac_under_threshold,
                     max_frac_under_threshold = max_frac_under_threshold)
+
   seuratObj <- .ClassifyCells(seuratObj=seuratObj, df=df, libraryIdentificationColumn=libraryIdentificationColumn, assay=assay, layer=layer, adtwhitelist=adtwhitelist)
   
   return(seuratObj)
@@ -547,7 +548,7 @@ triageADTsAndClassifyCells <- function(seuratObj,
   meta <- merge(meta, df_wider, by.y = "cDNA_ID", by.x = libraryIdentificationColumn)
   rownames(meta) <- meta$barcode
   seuratObj <- Seurat::AddMetaData(seuratObj, metadata = meta, col.name = colnames(df_wider |> dplyr::select(-cDNA_ID)))
-  seuratObj <- Seurat::AddMetaData(seuratObj, metadata = data.frame(t(as.matrix(adtMatrix))), col.name = adts)
+  seuratObj <- Seurat::AddMetaData(seuratObj, metadata = data.frame(t(as.matrix(adtMatrix)), check.names = F), col.name = adts)
   for (adt in adts) {
     seuratObj@meta.data[,paste0(adt, "_cellcall")] <- dplyr::case_when(
       seuratObj@meta.data[,adt] >= seuratObj@meta.data[,paste0("antimode_location_", adt)] & seuratObj@meta.data[,paste0("call_", adt)] == "Pass" ~ "Positive",
