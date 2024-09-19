@@ -88,7 +88,9 @@ Imports:
     circlize, 
     conover.test, 
     colorspace, 
-    forcats
+    forcats, 
+    multimode, 
+    ggtext
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -121,10 +123,11 @@ Config/reticulate:
     )
   )
 Collate: 
+    'Utils.R'
+    'ADTs.R'
     'Analysis.R'
     'CSCore.R'
     'Preprocessing.R'
-    'Utils.R'
     'CiteSeq.R'
     'CoNGA.R'
     'Doublets.R'
