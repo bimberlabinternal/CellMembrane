@@ -307,14 +307,14 @@ barplot_results$dataframe %>% colnames()
 
 metadata_tiles <- ggplot(barplot_results$dataframe) + 
   #define a custom scale for timepoint metadata
-  scale_fill_manual(values = rev(hcl.colors(n_distinct(pbulk$timepoint), palette = "Purples 3")), guide = guide_legend(order = 1))+
+  scale_fill_manual(values = rev(grDevices::hcl.colors(n_distinct(pbulk$timepoint), palette = "Purples 3")), guide = guide_legend(order = 1))+
   labs(fill = "Timepoint")+
   geom_tile(aes(x = reorder(contrast_name, -abs(total_DEGs)), y = 1, fill = barplot_results$dataframe$negative_contrast_timepoint)) +
   geom_tile(aes(x = reorder(contrast_name, -abs(total_DEGs)), y = 2, fill = barplot_results$dataframe$positive_contrast_timepoint)) +
   ggnewscale::new_scale_fill() +
   
   #define a custom scale for vaccine_cohort metadata
-  scale_fill_manual(values = rev(hcl.colors(n_distinct(pbulk$vaccine_cohort), palette = "Inferno")), guide = guide_legend(order = 1))+
+  scale_fill_manual(values = rev(grDevices::hcl.colors(n_distinct(pbulk$vaccine_cohort), palette = "Inferno")), guide = guide_legend(order = 1))+
   labs(fill = "Vaccine")+
   geom_tile(aes(x = reorder(contrast_name, -abs(total_DEGs)), y = 3, fill = barplot_results$dataframe$negative_contrast_vaccine_cohort)) +
   geom_tile(aes(x = reorder(contrast_name, -abs(total_DEGs)), y = 4, fill = barplot_results$dataframe$positive_contrast_vaccine_cohort)) +
