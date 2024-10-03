@@ -46,7 +46,7 @@ jobs:
         # libharfbuzz-dev libfribidi-dev are added to fix textshaping install error
         run: |
           # NOTE: libsodium-dev installed for VISION
-          sudo apt-get update && sudo apt-get install -yq libharfbuzz-dev libfribidi-dev python3 python3-pip libsodium-dev libcurl4-openssl-dev
+          sudo apt-get update && sudo apt-get install -yq libharfbuzz-dev libfribidi-dev python3 python3-pip libsodium-dev libcurl4-openssl-dev devscripts
           python3 -m pip install --user --upgrade pip
           python3 -m pip install --user wheel setuptools
           # NOTE: added to side-step a numpy version issue. This should be removed eventually. See: https://github.com/numpy/numpy/issues/26710
@@ -55,7 +55,7 @@ jobs:
 
       - name: Setup CoNGA
         run: |
-          python3 -m pip install scanpy
+          python3 -m pip install --user --upgrade scanpy
           cd ../
           git clone https://github.com/phbradley/conga.git conga
           cd conga/tcrdist_cpp  
