@@ -47,11 +47,11 @@ jobs:
         run: |
           # NOTE: libsodium-dev installed for VISION
           sudo apt-get update && sudo apt-get install -yq libharfbuzz-dev libfribidi-dev python3 python3-pip libsodium-dev libcurl4-openssl-dev
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --upgrade wheel setuptools
+          python3 -m pip install --user --upgrade pip
+          python3 -m pip install --user wheel setuptools
           # NOTE: added to side-step a numpy version issue. This should be removed eventually. See: https://github.com/numpy/numpy/issues/26710
-          python3 -m pip install numpy<2
-          python3 -m pip install sctour tcrdist3 umap-learn phate leidenalg scikit-misc
+          python3 -m pip install --user numpy<2
+          python3 -m pip install --user sctour tcrdist3 umap-learn phate leidenalg scikit-misc
 
       - name: Setup CoNGA
         run: |
