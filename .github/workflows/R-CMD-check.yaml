@@ -20,8 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: 24.04, r: 'devel', bioc: 'devel'}
-          - {os: 24.04, r: '4.3', bioc: '3.18', pkgdown: "true"}
+          - {os: 22.04, r: 'devel', bioc: 'devel'}
+          - {os: 22.04, r: '4.3', bioc: '3.18', pkgdown: "true"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
