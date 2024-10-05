@@ -52,6 +52,7 @@ jobs:
 
         # NOTE: added numpy<2 to side-step a numpy version issue. This should be removed eventually. See: https://github.com/numpy/numpy/issues/26710
       - name: Install python packages
+        run: |
           python3 -m pip install --user wheel
           python3 -m pip install --user numpy<=2.0.0
           python3 -m pip install --user sctour tcrdist3 umap-learn phate leidenalg scikit-misc
