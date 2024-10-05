@@ -48,8 +48,9 @@ jobs:
           # NOTE: libsodium-dev installed for VISION
           sudo apt-get update
           sudo apt-get install -yq libharfbuzz-dev libfribidi-dev libsodium-dev libcurl4-openssl-dev python3
-          sudo apt-get install -yq python3-pip python3-wheel python3-setuptools
+          sudo apt-get install -yq python3-pip python3-setuptools
           # NOTE: added to side-step a numpy version issue. This should be removed eventually. See: https://github.com/numpy/numpy/issues/26710
+          python3 -m pip install --user wheel
           python3 -m pip install --user numpy<2
           python3 -m pip install --user sctour tcrdist3 umap-learn phate leidenalg scikit-misc
 
