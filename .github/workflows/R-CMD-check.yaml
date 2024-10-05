@@ -51,7 +51,7 @@ jobs:
           sudo apt-get install -yq libharfbuzz-dev libfribidi-dev libsodium-dev libcurl4-openssl-dev python3
           sudo apt-get install -yq python3-pip python3-setuptools
           python3 -m pip install --user wheel
-          python3 -m pip install --user numpy<2.0.0
+          python3 -m pip install --user numpy<=2.0.0
           python3 -m pip install --user sctour tcrdist3 umap-learn phate leidenalg scikit-misc
 
       - name: Setup CoNGA
