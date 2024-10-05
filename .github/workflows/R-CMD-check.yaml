@@ -44,14 +44,14 @@ jobs:
       - name: Install packages
         if: runner.os != 'Windows'
         # libharfbuzz-dev libfribidi-dev are added to fix textshaping install error
-        # NOTE: added to side-step a numpy version issue. This should be removed eventually. See: https://github.com/numpy/numpy/issues/26710
+        # NOTE: added numpy<2 to side-step a numpy version issue. This should be removed eventually. See: https://github.com/numpy/numpy/issues/26710
         run: |
           # NOTE: libsodium-dev installed for VISION
           sudo apt-get update
           sudo apt-get install -yq libharfbuzz-dev libfribidi-dev libsodium-dev libcurl4-openssl-dev python3
           sudo apt-get install -yq python3-pip python3-setuptools
           python3 -m pip install --user wheel
-          python3 -m pip install --user numpy<2
+          python3 -m pip install --user numpy<2.0.0
           python3 -m pip install --user sctour tcrdist3 umap-learn phate leidenalg scikit-misc
 
       - name: Setup CoNGA
