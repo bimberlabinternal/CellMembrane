@@ -72,7 +72,7 @@ test_that("CalculateTcrDiversity works", {
     }
     
     warning('The python tcrdist3 module has not been installed!')
-    return()
+    expect_true(reticulate::py_module_available('conga'))
   }
 
   dat <- read.table("../testdata/clones_file.txt", sep = '\t', header = TRUE)
