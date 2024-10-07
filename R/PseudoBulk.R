@@ -1192,9 +1192,9 @@ FitRegularizedClassificationGlm <- function(seuratObj,
   print(table(target_labeled_data[[metadataVariableForClassification]]))
   print(split)
   print('TRAINING:')
-  print(target_labeled_data[[metadataVariableForClassification]][split$train])
+  print(table(target_labeled_data[[metadataVariableForClassification]][split$train]))
   print('TEST:')
-  print(target_labeled_data[[metadataVariableForClassification]][split$test])
+  print(table(target_labeled_data[[metadataVariableForClassification]][split$test]))
 
   #cv_glmnet to parameter scan regularization
   learner <- mlr3::lrn("classif.cv_glmnet")
