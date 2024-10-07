@@ -175,7 +175,8 @@ test_that("Feature Selection by GLM works", {
   seuratObj@meta.data[,"subject"] <- c(base::rep(1, length.out = 1000), base::rep(2, length.out = 557))
   #set up pseudobulking
   pbulk <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint","subject"))
-  
+  print('DEBUG!!')
+  table(colnames(pbulk))
   classification_results <- suppressWarnings(FitRegularizedClassificationGlm(pbulk, 
                                                           metadataVariableForClassification = "vaccine_cohort", 
                                                           returnModelAndSplits = T, 
