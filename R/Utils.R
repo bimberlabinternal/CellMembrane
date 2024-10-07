@@ -263,40 +263,67 @@ UpdateMacaqueMmul10NcbiGeneSymbols <- function(seuratObj, verbose = T){
 #' @description The accepts a vector of NCBI LOC gene IDs and returns a data frame with their description and aliases, queries from rentrez
 #' @param geneIds A vector of gene IDs, all of which must start with LOC
 #' @param maxBatchSize The max number of IDs for each query against NCBI
+#' @param useBabelGene a boolean determining if you want to query using babelgene's ortholog gene mapping.
 #' @export
-ResolveLocGenes <- function(geneIds, maxBatchSize = 100) {
+ResolveLocGenes <- function(geneIds, maxBatchSize = 100, useBabelGene = FALSE) {
   invalidIds <- geneIds[!grepl(geneIds, pattern = '^LOC')]
   if (length(invalidIds) > 0) {
-    stop('All genes must start with LOC: ', paste0(invalidIds, collapse = ';'))
+    warning('Non-LOC genes supplied. Removing these genes: ', paste0(invalidIds, collapse = ';'))
+    geneIds <- geneIds[!grepl(geneIds, pattern = '^LOC')]
   }
-
-  genesBatched <- .SplitIntoBatches(geneIds, batchSize = maxBatchSize)
-  print(paste0('Total batches: ', length(genesBatched)))
-
-  ret <- NULL
-  batchNum <- 0
-  for (geneBatch in genesBatched) {
-    batchNum <- batchNum + 1
-    print(paste0('Querying batch ', batchNum, ' of ', length(genesBatched)))
-
-    results <- rentrez::entrez_summary(db="gene", id = gsub(geneBatch, pattern = '^LOC', replacement = ''))
-    df <- do.call(rbind, lapply(results, FUN = function(x){
-      return(data.frame(Name = x$name, Description = x$description, Aliases = x$otheraliases))
-    }))
-
-    rownames(df) <- paste0('LOC', rownames(df))
-    df$GeneId <- rownames(df)
-
-    if (all(is.null(ret))) {
-      ret <- df
-    } else {
-      ret <- rbind(ret, df)
+  
+  if (!useBabelGene) {
+    genesBatched <- .SplitIntoBatches(geneIds, batchSize = maxBatchSize)
+    print(paste0('Total batches: ', length(genesBatched)))
+    
+    ret <- NULL
+    batchNum <- 0
+    for (geneBatch in genesBatched) {
+      batchNum <- batchNum + 1
+      print(paste0('Querying batch ', batchNum, ' of ', length(genesBatched)))
+      
+      batchIDs <- gsub(geneBatch, pattern = '^LOC', replacement = '')
+      results <- rentrez::entrez_summary(db="gene", id = batchIDs)
+      
+      if(length(batchIDs) == 1){
+        temp_results <- list()
+        temp_results[[results$uid]] <- results
+        results <- temp_results
+        rm(temp_results)
+      }
+      
+      df <- do.call(rbind, lapply(results, FUN = function(x){
+        return(data.frame(Name = x$name, Description = x$description, Aliases = x$otheraliases))
+      }))
+      
+      rownames(df) <- paste0('LOC', rownames(df))
+      df$GeneId <- rownames(df)
+      
+      if (all(is.null(ret))) {
+        ret <- df
+      } else {
+        ret <- rbind(ret, df)
+      }
     }
+    
+    # Ensure return order matches input:
+    ret <- ret[geneIds,]
+  } else {
+    #translate LOCs using babelgene
+    babelgene_translations <- babelgene::orthologs(geneIds, species = "Macaca mulatta", human = FALSE)
+    indices_to_drop <- c()
+    
+    for (symbol in babelgene_translations$symbol) {
+      if (sum(symbol == babelgene_translations$symbol) > 1 ) {
+        #keep the first translation "hit", but drop the rest
+        indices_to_drop <- unique(c(indices_to_drop, which(symbol == babelgene_translations$symbol)[2:length(which(symbol == babelgene_translations$symbol))]))
+      }
+    }
+    babelgene_translations <- babelgene_translations[!(rownames(babelgene_translations) %in% indices_to_drop),]
+    #return translation 
+    ret <- babelgene_translations
   }
-
-  # Ensure return order matches input:
-  ret <- ret[geneIds,]
-
+  
   return(ret)
 }
 

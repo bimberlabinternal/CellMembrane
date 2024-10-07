@@ -4,12 +4,14 @@
 \alias{ResolveLocGenes}
 \title{Resolve NCBI Loc Genes}
 \usage{
-ResolveLocGenes(geneIds, maxBatchSize = 100)
+ResolveLocGenes(geneIds, maxBatchSize = 100, useBabelGene = FALSE)
 }
 \arguments{
 \item{geneIds}{A vector of gene IDs, all of which must start with LOC}
 
 \item{maxBatchSize}{The max number of IDs for each query against NCBI}
+
+\item{useBabelGene}{a boolean determining if you want to query using babelgene's ortholog gene mapping.}
 }
 \description{
 The accepts a vector of NCBI LOC gene IDs and returns a data frame with their description and aliases, queries from rentrez
