@@ -1128,6 +1128,9 @@ FitRegularizedClassificationGlm <- function(seuratObj,
   if (!(metadataVariableForClassification %in% colnames(seuratObj@meta.data))){
     stop("Supplied metadataVariableForClassification not found in the seurat object's metadata. Please ensure your metadata column is spelled correctly and exists in seuratObj@meta.data.")
   }
+
+  set.seed(GetSeed())
+
   # rescale the input data (in case of an upstream subset since it was last rescaled).
   if (rescale) {
     if (is.null(numberOfVariableFeatures)) {
@@ -1187,7 +1190,11 @@ FitRegularizedClassificationGlm <- function(seuratObj,
 
   print('DEBUG!!!')
   print(table(target_labeled_data[[metadataVariableForClassification]]))
-  print(table(split$train))
+  print(split)
+  print('TRAINING:')
+  print(target_labeled_data[[metadataVariableForClassification]][split$train])
+  print('TEST:')
+  print(target_labeled_data[[metadataVariableForClassification]][split$test])
 
   #cv_glmnet to parameter scan regularization
   learner <- mlr3::lrn("classif.cv_glmnet")
