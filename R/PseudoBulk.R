@@ -1188,14 +1188,6 @@ FitRegularizedClassificationGlm <- function(seuratObj,
     split <- mlr3::partition(task_metadata_classification)
   }
 
-  print('DEBUG!!!')
-  print(table(target_labeled_data[[metadataVariableForClassification]]))
-  print(split)
-  print('TRAINING:')
-  print(table(target_labeled_data[[metadataVariableForClassification]][split$train]))
-  print('TEST:')
-  print(table(target_labeled_data[[metadataVariableForClassification]][split$test]))
-
   #cv_glmnet to parameter scan regularization
   learner <- mlr3::lrn("classif.cv_glmnet")
   learner$train(task = task_metadata_classification, row_ids = split$train)
