@@ -271,7 +271,7 @@ CalculateTcrDiversity <- function(inputData,
 QuantifyTcrClones <- function(seuratObj, tcrClonesFile, groupingFields = 'cDNA_ID') {
   
   # Append clonotypeID to seuratObj metadata
-  df <- read.csv(tcrClonesFile) |> select(tidyr::all_of(c(barcode, raw_clonotype_id))) |> unique()
+  df <- read.csv(tcrClonesFile) |> select(tidyr::all_of(c('barcode', 'raw_clonotype_id'))) |> unique()
   meta <- seuratObj@meta.data |> select()
   meta$barcode <- rownames(meta)
   merged <- left_join(meta, df, by = "barcode")
