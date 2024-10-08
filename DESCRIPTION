@@ -88,7 +88,8 @@ Imports:
     circlize, 
     conover.test, 
     colorspace, 
-    forcats
+    forcats,
+    presto
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -112,7 +113,8 @@ Remotes:
     davidcsterratt/geometry/pkg,
     ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
-    rcastelo/GSVA
+    rcastelo/GSVA,
+    immunogenomics/presto
 Config/reticulate:
   list(
     packages = list(
