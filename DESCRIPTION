@@ -88,7 +88,10 @@ Imports:
     circlize, 
     conover.test, 
     colorspace, 
-    forcats,
+    forcats, 
+    progressr, 
+    future, 
+    twosamples, 
     presto
 Suggests:
     devtools,
@@ -141,4 +144,5 @@ Collate:
     'data.R'
     'escape.R'
     'sctour.R'
+    'ssGSEA_Alternatives.R'
 VignetteBuilder: knitr
