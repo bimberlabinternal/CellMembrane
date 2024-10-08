@@ -250,7 +250,7 @@ CalculateTcrDiversity <- function(inputData,
   if (is.null(y) || length(y) == 0) {
     stop('Parsing error in tcrdist3 output. No columns containing diversity metrics were found.')
   }
-  print(df |> select(c("order", y)) |>
+  print(df |> select(tidyr::all_of(c("order", y))) |>
     tidyr::pivot_longer(cols = y, names_to = "sample_div", values_to = "y") |> 
     ggplot(aes(x = order, y = y)) + geom_line(aes(color = sample_div)) + egg::theme_article()
   )
@@ -271,7 +271,7 @@ CalculateTcrDiversity <- function(inputData,
 QuantifyTcrClones <- function(seuratObj, tcrClonesFile, groupingFields = 'cDNA_ID') {
   
   # Append clonotypeID to seuratObj metadata
-  df <- read.csv(tcrClonesFile) |> select(barcode, raw_clonotype_id) |> unique()
+  df <- read.csv(tcrClonesFile) |> select(tidyr::all_of(c('barcode', 'raw_clonotype_id'))) |> unique()
   meta <- seuratObj@meta.data |> select()
   meta$barcode <- rownames(meta)
   merged <- left_join(meta, df, by = "barcode")
@@ -279,7 +279,7 @@ QuantifyTcrClones <- function(seuratObj, tcrClonesFile, groupingFields = 'cDNA_I
   
   # Calculate and append clone properties to seuratObj metadata
   groupingFieldsWithClone <- c(groupingFields, 'clonotypeID')
-  meta2 <- seuratObj@meta.data |> select(all_of(groupingFieldsWithClone)) |> group_by(across(all_of(groupingFieldsWithClone))) |> mutate(counts = n())
+  meta2 <- seuratObj@meta.data |> select(tidyr::all_of(groupingFieldsWithClone)) |> group_by(across(all_of(groupingFieldsWithClone))) |> mutate(counts = n())
   meta2$counts <- ifelse(is.na(meta2$clonotypeID), NA, meta2$counts)
   meta2 <- meta2 |> group_by(across(all_of(groupingFields))) |> mutate(libSize = n())
   meta2$prop <- meta2$counts/meta2$libSize
