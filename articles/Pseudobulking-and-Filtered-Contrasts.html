@@ -81,7 +81,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2024-09-17</h4>
+            <h4 data-toc-skip class="date">2024-10-08</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/master/vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd" class="external-link"><code>vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd</code></a></small>
       <div class="hidden name"><code>Pseudobulking-and-Filtered-Contrasts.Rmd</code></div>
@@ -548,7 +548,7 @@ genes in the <code>DE_results</code> list.</p>
 <span>                       minCountsPerGene <span class="op">=</span> <span class="fl">1</span>, </span>
 <span>                       assayName <span class="op">=</span> <span class="st">"RNA"</span>, </span>
 <span>                       showPlots <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-1.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-2.png" width="700"></p>
+<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-1.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-2.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-3.png" width="700"></p>
 <pre><code><span><span class="co">#&gt; [1] "Contrast columns: vaccine_cohort" "Contrast columns: timepoint"     </span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  unvax-vaccineOne"</span></span>
 <span><span class="co">#&gt; [1] "Filtering cells..."</span></span>
@@ -571,7 +571,6 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_baseline-vaccineOne_baseline"</span></span>
 <span><span class="co">#&gt; NULL</span></span>
 <span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
-<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-3.png" width="700"></p>
 <p>Stricter thresholds (on one contrast):</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">strict_contrast</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RunFilteredContrasts.html">RunFilteredContrasts</a></span><span class="op">(</span>seuratObj <span class="op">=</span> <span class="va">pbulk</span>, </span>
@@ -583,7 +582,7 @@ genes in the <code>DE_results</code> list.</p>
 <span>                       minCountsPerGene <span class="op">=</span> <span class="fl">1</span>, </span>
 <span>                       assayName <span class="op">=</span> <span class="st">"RNA"</span>, </span>
 <span>                       showPlots <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Strict%20Thresholds-1.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Strict%20Thresholds-2.png" width="700"></p>
+<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Strict%20Thresholds-1.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Strict%20Thresholds-2.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Strict%20Thresholds-3.png" width="700"></p>
 <pre><code><span><span class="co">#&gt; [1] "Contrast columns: vaccine_cohort" "Contrast columns: timepoint"     </span></span>
 <span><span class="co">#&gt; [1] "Subsetting Cells for:  unvax-vaccineOne"</span></span>
 <span><span class="co">#&gt; [1] "Filtering cells..."</span></span>
@@ -606,7 +605,6 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_baseline-vaccineOne_baseline"</span></span>
 <span><span class="co">#&gt; NULL</span></span>
 <span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
-<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Strict%20Thresholds-3.png" width="700"></p>
 <p>The results of these fits are collected in an indexed list.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">`1`</span><span class="op">)</span></span>
@@ -1063,7 +1061,7 @@ time!</p>
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
       </footer>
