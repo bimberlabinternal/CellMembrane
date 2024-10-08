@@ -362,18 +362,8 @@ Group 2 = Cluster 0 in cluster resolution 1.2) by specifying the
 <code>ident.1</code>, <code>ident.2</code>, and the grouping field
 <code>group.by</code> arguments.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">markers</span> <span class="op">&lt;-</span> <span class="fu">FindMarkers</span><span class="op">(</span><span class="va">pbmc_small</span>, ident.1 <span class="op">=</span> <span class="fl">4</span>, ident.2 <span class="op">=</span> <span class="fl">0</span>, group.by <span class="op">=</span> <span class="st">"ClusterNames_1.2"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## For a (much!) faster implementation of the Wilcoxon Rank Sum Test,</span></span>
-<span><span class="co">## (default method for FindMarkers) please install the presto package</span></span>
-<span><span class="co">## --------------------------------------------</span></span>
-<span><span class="co">## install.packages('devtools')</span></span>
-<span><span class="co">## devtools::install_github('immunogenomics/presto')</span></span>
-<span><span class="co">## --------------------------------------------</span></span>
-<span><span class="co">## After installation of presto, Seurat will automatically use the more </span></span>
-<span><span class="co">## efficient implementation (no further action necessary).</span></span>
-<span><span class="co">## This message will be shown once per session</span></span></code></pre>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">markers</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">markers</span> <span class="op">&lt;-</span> <span class="fu">FindMarkers</span><span class="op">(</span><span class="va">pbmc_small</span>, ident.1 <span class="op">=</span> <span class="fl">4</span>, ident.2 <span class="op">=</span> <span class="fl">0</span>, group.by <span class="op">=</span> <span class="st">"ClusterNames_1.2"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">markers</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                  p_val avg_log2FC pct.1 pct.2    p_val_adj</span></span>
 <span><span class="co">## GP9       3.055940e-08  12.105216     1 0.000 7.028661e-06</span></span>
 <span><span class="co">## PF4       9.206983e-08   9.001797     1 0.042 2.117606e-05</span></span>
@@ -390,7 +380,7 @@ expression in cluster 4 than cluster 0.</p>
 <p>However, we can also perform a “Cluster 4 versus the rest of the
 data” comparison. We can leave <code>ident.2 = NULL</code> to specify
 that we want to do this one versus all comparison.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span> <span class="op">&lt;-</span> <span class="fu">FindMarkers</span><span class="op">(</span><span class="va">pbmc_small</span>, ident.1 <span class="op">=</span> <span class="fl">4</span>, ident.2 <span class="op">=</span> <span class="cn">NULL</span>, group.by <span class="op">=</span> <span class="st">"ClusterNames_1.2"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">markers</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##              p_val avg_log2FC pct.1 pct.2    p_val_adj</span></span>
@@ -410,7 +400,7 @@ markers.</p>
 <p>For information on the pipe symbol <code>%&gt;%</code> used below,
 seek information on ‘tidy data’ from Hadley Wickham and his
 <code>tidyverse</code>. (<a href="https://r4ds.hadley.nz/data-tidy.html" class="external-link uri">https://r4ds.hadley.nz/data-tidy.html</a>)</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html" class="external-link">p_load</a></span><span class="op">(</span><span class="va">dplyr</span><span class="op">)</span></span>
 <span><span class="va">markers</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">arrange</span><span class="op">(</span><span class="op">-</span><span class="va">avg_log2FC</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
@@ -422,7 +412,7 @@ seek information on ‘tidy data’ from Hadley Wickham and his
 <span><span class="co">## PF4    2.816457e-17  10.566582 1.000 0.014 6.477852e-15</span></span>
 <span><span class="co">## GNG11  2.816457e-17   9.503074 1.000 0.014 6.477852e-15</span></span>
 <span><span class="co">## CA2    4.017473e-15   8.760577 0.889 0.014 9.240187e-13</span></span></code></pre>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">markers</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">arrange</span><span class="op">(</span><span class="op">-</span><span class="va">avg_log2FC</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -438,10 +428,10 @@ markers of our platelet population, while GNLY, LST1, and HLA-DPA1
 should be expressed in other clusters Let’s visualize these using other
 standard Seurat functions: <code>DotPlot</code> and
 <code>VlnPlot</code>.</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">DotPlot</span><span class="op">(</span><span class="va">pbmc_small</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GP9"</span>, <span class="st">"PTCRA"</span>, <span class="st">"TMEM40"</span>, <span class="st">"LST1"</span>, <span class="st">"GNLY"</span>, <span class="st">"HLA-DPA1"</span><span class="op">)</span>, group.by <span class="op">=</span> <span class="st">"ClusterNames_1.2"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CellMembrane-Tutorial_files/figure-html/DotandVlnPlots-1.png" width="700"></p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">VlnPlot</span><span class="op">(</span><span class="va">pbmc_small</span>, features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GP9"</span>, <span class="st">"PTCRA"</span>, <span class="st">"TMEM40"</span>, <span class="st">"LST1"</span>, <span class="st">"GNLY"</span>, <span class="st">"HLA-DPA1"</span><span class="op">)</span>, group.by <span class="op">=</span> <span class="st">"ClusterNames_1.2"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="CellMembrane-Tutorial_files/figure-html/DotandVlnPlots-2.png" width="700"></p>
 <p>Visualizing your data through unsupervised clustering to find sources
