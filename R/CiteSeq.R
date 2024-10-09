@@ -533,7 +533,7 @@ CiteSeqDimRedux.Dist <- function(seuratObj, assayName = 'ADT', dist.method = "eu
 
 	if (performClrNormalization) {
 		seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
-	} else if (is.null(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) || length(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) == 0){
+	} else if (is.null(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'data')) || length(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'data')) == 0){
 		stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
 	} else {
 		print('Using pre-existing normalization')
@@ -541,7 +541,7 @@ CiteSeqDimRedux.Dist <- function(seuratObj, assayName = 'ADT', dist.method = "eu
 
 	#SNN:
 	print("Calculating Distance Matrix")
-	adt.data <- GetAssayData(seuratObj, assay = assayName, slot = "data")
+	adt.data <- GetAssayData(seuratObj, assay = assayName, layer = "data")
 	adt.dist <- dist(Matrix::t(adt.data), method = dist.method)
 	seuratObj[["adt_snn.dist"]]  <- FindNeighbors(adt.dist, verbose = FALSE)$snn
 
@@ -643,7 +643,7 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
 
 		if (performClrNormalization) {
 			seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
-		} else if (is.null(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) || length(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) == 0){
+		} else if (is.null(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'data')) || length(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'data')) == 0){
 			stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
 		} else {
 			print('Using pre-existing normalization')
@@ -764,7 +764,7 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), assayName = 'A
 }
 
 .PlotMarkerQc <- function(seuratObj, assayName = 'ADT') {
-	barcodeMatrix <- Seurat::GetAssayData(seuratObj, slot = 'counts', assay = assayName)
+	barcodeMatrix <- Seurat::GetAssayData(seuratObj, layer = 'counts', assay = assayName)
 	featuresToPlot <- .GetNonZeroFeatures(seuratObj, assayName)
 
 	setSize <- 2
@@ -823,14 +823,14 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), assayName = 'A
 #' @param margin This is provided to Seurat::NormalizeData()
 #' @param outFile If provided, the heatmap will be written to this file
 #' @export
-PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', slot = 'counts', outFile = NA, normalization.method = 'CLR', margin = 1) {
+PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', layer = 'counts', outFile = NA, normalization.method = 'CLR', margin = 1) {
 	for (fn in groupFields) {
-		avgSeurat <- Seurat::AverageExpression(seuratObj, return.seurat = T, group.by = fn, assays = assayName, slot = slot)
+		avgSeurat <- Seurat::AverageExpression(seuratObj, return.seurat = T, group.by = fn, assays = assayName, layer = slot)
 		if (!is.null(normalization.method)) {
 			avgSeurat <- NormalizeData(avgSeurat, normalization.method = normalization.method, margin = margin, verbose = FALSE)
 		}
 
-		mat <- t(as.matrix(GetAssayData(avgSeurat, slot = 'data')))
+		mat <- t(as.matrix(GetAssayData(avgSeurat, layer = 'data')))
 		mat <- mat[,colSums(mat) > 0]
 
 		P1 <- ComplexHeatmap::Heatmap(mat %>% scale_mat(scale = 'column'),
