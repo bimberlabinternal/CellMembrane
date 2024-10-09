@@ -5,16 +5,16 @@ test_that("Cite-Seq Normalization Works", {
 	adts$rowname <- adts$tagname
 	mat <- .LoadCiteSeqData('../testdata/raw_feature_bc_matrix', adtWhitelist = adts$tagname, featureMetadata = adts)
 
-	df <- data.frame(cellbarcode = colnames(mat), count = colSums(as.matrix(Seurat::GetAssayData(mat, slot = 'counts'))))
+	df <- data.frame(cellbarcode = colnames(mat), count = colSums(as.matrix(Seurat::GetAssayData(mat, layer = 'counts'))))
 	df <- dplyr::arrange(df, desc(count))
 	
 	seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
-	sc <- Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'counts')[,1:1000]
+	sc <- Seurat::GetAssayData(seuratObj, assay = 'RNA', layer = 'counts')[,1:1000]
 	colnames(sc) <- df$cellbarcode[1:1000]
 	seuratObj <- Seurat::CreateSeuratObject(counts = sc)
 	
 	ret <- .NormalizeDsbWithEmptyDrops(seuratObj, unfilteredAdtAssay = mat, emptyDropNIters = 1000)
-	expect_equal(nrow(Seurat::GetAssayData(ret, slot = 'counts')), nrow(adts))
+	expect_equal(nrow(Seurat::GetAssayData(ret, layer = 'counts')), nrow(adts))
 })
 
 test_that("Cite-Seq Append Works", {
@@ -60,7 +60,7 @@ test_that("Cite-Seq Append Works", {
 	seuratObjCite <- AppendCiteSeq(seuratObj = seuratObj, unfilteredMatrixDir = inputPath1, datasetId = NULL, normalizeMethod = NULL)
 	expect_equal(colnames(seuratObjCite@assays$ADT), colnames(seuratObj@assays$RNA))
 	expect_equal(rownames(seuratObjCite@assays$ADT), rownames(citeseqData1)[rownames(citeseqData1) != 'unmapped'])
-	data <- Seurat::GetAssayData(seuratObjCite, assay = 'ADT', slot = 'counts')
+	data <- Seurat::GetAssayData(seuratObjCite, assay = 'ADT', layer = 'counts')
 	expect_equal(max(data[,51:100]), 0) #These have no data
 	expect_equal(sum(data[,1:50] == 0), 32)
 	
@@ -72,14 +72,14 @@ test_that("Cite-Seq Append Works", {
 	seuratObjCite <- AppendCiteSeq(seuratObj = seuratObj, unfilteredMatrixDir = inputPath1, datasetId = '12345', normalizeMethod = NULL)
 	expect_equal(colnames(seuratObjCite@assays$ADT), colnames(seuratObj@assays$RNA))
 	expect_equal(rownames(seuratObjCite@assays$ADT), rownames(citeseqData1)[rownames(citeseqData1) != 'unmapped'])
-	data <- Seurat::GetAssayData(seuratObjCite, assay = 'ADT', slot = 'counts')
+	data <- Seurat::GetAssayData(seuratObjCite, assay = 'ADT', layer = 'counts')
 	expect_equal(max(data[,51:100]), 0) #These have no data
 	expect_equal(sum(data[,1:50] == 0), 32)
 	
 	# # #Now add again, existing assay present:
 	seuratObjCite2 <- AppendCiteSeq(seuratObj = seuratObjCite, unfilteredMatrixDir = inputPath2, datasetId  = '67890', minRowSum = 0, normalizeMethod = NULL)
-	d1 <- Seurat::GetAssayData(seuratObjCite, 'ADT', slot = 'counts')
-	d2 <- Seurat::GetAssayData(seuratObjCite2, 'ADT', slot = 'counts')
+	d1 <- Seurat::GetAssayData(seuratObjCite, 'ADT', layer = 'counts')
+	d2 <- Seurat::GetAssayData(seuratObjCite2, 'ADT', layer = 'counts')
 	expect_equal(d2[1:4,1:50], d1[1:4,1:50]) #The original data
 	expect_equal(max(d2[5:8,1:50]), 0)
 	expect_equal(nrow(d2), 8)
@@ -87,8 +87,8 @@ test_that("Cite-Seq Append Works", {
 	
 	# #This time with: differing sets of features:
 	seuratObjCite3 <- AppendCiteSeq(seuratObj = seuratObjCite, unfilteredMatrixDir = inputPath3, datasetId = '67890', minRowSum = 0, normalizeMethod = NULL)
-	d1 <- Seurat::GetAssayData(seuratObjCite, 'ADT', slot = 'counts')
-	d2 <- Seurat::GetAssayData(seuratObjCite3, 'ADT', slot = 'counts')
+	d1 <- Seurat::GetAssayData(seuratObjCite, 'ADT', layer = 'counts')
+	d2 <- Seurat::GetAssayData(seuratObjCite3, 'ADT', layer = 'counts')
 	expect_equal(nrow(d2), 5) #our new marker is added
 	expect_equal(d2[1:4,1:50], d1[1:4,1:50]) #The original data
 	expect_equal(max(d2[1:4,51:100]), 0) #not present in original

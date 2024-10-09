@@ -128,7 +128,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
 
 .NormalizeEscape <- function(seuratObj, assayToNormalize, assayForLibrarySize = 'RNA') {
   toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, layer = 'counts')
-  assayForLibrarySizeData <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, slot = 'counts')
+  assayForLibrarySizeData <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, layer = 'counts')
 
   if (any(colnames(toNormalize) != colnames(assayForLibrarySize))) {
     stop(paste0('The assayToNormalize and assayForLibrarySize do not have the same cell names!'))

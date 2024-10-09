@@ -31,11 +31,11 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     assay <- Seurat::DefaultAssay(seuratObj)
   }
 
-  if (length(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts')) == 0) {
+  if (length(Seurat::GetAssayData(seuratObj, assay = assay, layer = 'counts')) == 0) {
     print('Selected assay has no count data, trying RNA')
     assay <- 'RNA'
 
-    if (length(Seurat::GetAssayData(seuratObj, assay = assay, slot = 'counts')) == 0) {
+    if (length(Seurat::GetAssayData(seuratObj, assay = assay, layer = 'counts')) == 0) {
       warning('Unable to find counts for the seurat object, aborting SingleR')
       return(seuratObj)
     }
@@ -65,7 +65,8 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
         ref <- get(dataset)
       }, error = function(x){
         # Ignore
-        print(x)
+        warning('Error loading celldex')
+        warning(x)
       })
 
       if (is.null(ref)) {
@@ -88,7 +89,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
     seuratObjSubset <- Seurat::DietSeurat(seuratObj, assays = assay, counts = TRUE)
     seuratObjSubset <- subset(seuratObjSubset, features = genesPresent)
-    cellsToKeep <- colnames(seuratObjSubset)[Matrix::colSums(GetAssayData(object = seuratObjSubset, assay = assay, slot = "counts")) > 0]
+    cellsToKeep <- colnames(seuratObjSubset)[Matrix::colSums(GetAssayData(object = seuratObjSubset, assay = assay, layer = "counts")) > 0]
     if (length(cellsToKeep) != ncol(seuratObjSubset)) {
       print('Dropping cells with zero counts after feature subset')
       seuratObjSubset <- subset(seuratObjSubset, cells = cellsToKeep)
@@ -97,7 +98,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
     Seurat::DefaultAssay(seuratObjSubset) <- assay
 
     #Convert to SingleCellExperiment
-    sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = GetAssayData(object = seuratObjSubset, assay = assay, slot = "counts")))
+    sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = GetAssayData(object = seuratObjSubset, assay = assay, layer = "counts")))
     sce <- scuttle::logNormCounts(sce)
     rm(seuratObjSubset)
 
@@ -193,7 +194,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
       seuratObj <- .FilterLowCalls(seuratObj, fn, minFraction)
       seuratObj <- .FilterLowCalls(seuratObj, fn2, minFraction)
     }, error = function(e){
-      print(paste0('Error running singleR for dataset: ', dataset))
+      warning(paste0('Error running singleR for dataset: ', dataset))
       print(conditionMessage(e))
       traceback()
     })

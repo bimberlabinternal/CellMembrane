@@ -90,11 +90,11 @@ test_that("ScaleFeaturesIfNeeded works as expected", {
   
   seuratObj <- NormalizeAndScale(seuratObj, nVariableFeatures = 100)
 
-  toAdd <- rownames(seuratObj@assays$RNA)[!rownames(seuratObj@assays$RNA) %in% rownames(Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'scale.data'))][1:10]
-  toAdd <- c(toAdd, rownames(Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'scale.data'))[1:10])
+  toAdd <- rownames(seuratObj@assays$RNA)[!rownames(seuratObj@assays$RNA) %in% rownames(Seurat::GetAssayData(seuratObj, assay = 'RNA', layer = 'scale.data'))][1:10]
+  toAdd <- c(toAdd, rownames(Seurat::GetAssayData(seuratObj, assay = 'RNA', layer = 'scale.data'))[1:10])
   
   seuratObj2 <- ScaleFeaturesIfNeeded(seuratObj, toScale = toAdd)
-  expect_equal(200, nrow(Seurat::GetAssayData(seuratObj2, assay = 'RNA', slot = 'scale.data')))
+  expect_equal(200, nrow(Seurat::GetAssayData(seuratObj2, assay = 'RNA', layer = 'scale.data')))
 })
 
 test_that("Assay meta.data works for Seurat 4 and 5", {

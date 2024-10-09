@@ -8,7 +8,7 @@ PlotAverageAdtCounts(
   seuratObj,
   groupFields = c("ClusterNames_0.2", "ClusterNames_0.4", "ClusterNames_0.6"),
   assayName = "ADT",
-  slot = "counts",
+  layer = "counts",
   outFile = NA,
   normalization.method = "CLR",
   margin = 1

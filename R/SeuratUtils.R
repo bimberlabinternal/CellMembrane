@@ -379,12 +379,12 @@ FilterCloneNames <- function(seuratObj, minValue) {
 #' @param groupField The field on which to group. Must be present in seuratObj@meta.data
 #' @param slot The slot on which to calculate average expression
 #' @export
-AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
+AvgExpression <- function(seuratObj, groupField, layer = 'counts') {
 	if (!(groupField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not found in seuratObj: ', groupField))
 	}
 
-	ret <- Seurat::AverageExpression(seuratObj, assays = NULL, features = rownames(seuratObj), group.by = groupField, slot = slot, verbose = FALSE)
+	ret <- Seurat::AverageExpression(seuratObj, assays = NULL, features = rownames(seuratObj), group.by = groupField, layer = slot, verbose = FALSE)
 
 	df <- NULL
 	for (assay in names(ret)) {
@@ -417,7 +417,7 @@ AvgExpression <- function(seuratObj, groupField, slot = 'counts') {
 				stop(paste0('Incorrect assay subset. Expected: ', length(cellsWhitelist), ', actual: ', ncol(dat)))
 			}
 
-			toAdd[val] <- sum(Seurat::GetAssayData(dat, slot = slot))
+			toAdd[val] <- sum(Seurat::GetAssayData(dat, layer = slot))
 		}
 
 		toAdd <- .CheckColnamesAreNumeric(toAdd)
@@ -442,7 +442,7 @@ FeaturePlotAcrossReductions <- function(seuratObj, features, reductions = c('tsn
 	}
 
 	for (feature in features) {
-		dat <- Seurat::FetchData(seuratObj, vars = feature, slot = 'data')
+		dat <- Seurat::FetchData(seuratObj, vars = feature, layer = 'data')
 		if (all(is.na(dat)) || max(dat, na.rm = T) == 0) {
 			print(paste0('Skipping feature with zero/NA counts: ', feature))
 		}
@@ -728,7 +728,7 @@ InspectSeurat <- function(seuratObj, slotReportSize = 500000, commandReportSize 
 	for (assayName in names(seuratObj@assays)) {
 		print(paste0('Assay: ', assayName))
 		for (slotName in c('counts', 'data', 'scale.data')) {
-			dat <- Seurat::GetAssayData(seuratObj, assay = assayName, slot = slotName)
+			dat <- Seurat::GetAssayData(seuratObj, assay = assayName, layer = slotName)
 			print(paste0(' slot: ', slotName, ', size: ', format(utils::object.size(x = dat), units = 'auto')))
 
 			if (slotName != 'scale.data' && !is(dat, 'sparseMatrix')) {
@@ -780,13 +780,13 @@ InspectSeurat <- function(seuratObj, slotReportSize = 500000, commandReportSize 
 #' @param assayName The name of the assay to use.
 #' @export
 ScaleFeaturesIfNeeded <- function(seuratObj, toScale, assayName = 'RNA') {
-	notPresent <- toScale[!toScale %in% rownames(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data'))]
+	notPresent <- toScale[!toScale %in% rownames(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'scale.data'))]
 	print(paste0('Total features to scale: ', length(notPresent), ' of ', length(toScale)))
 
 	scaled2 <- Seurat::ScaleData(seuratObj@assays[[assayName]], features = notPresent)
-	scaled2 <- rbind(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data'), Seurat::GetAssayData(scaled2, slot = 'scale.data'))
-	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayName, slot = 'scale.data', new.data = scaled2)
-	print(dim(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'scale.data')))
+	scaled2 <- rbind(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'scale.data'), Seurat::GetAssayData(scaled2, layer = 'scale.data'))
+	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayName, layer = 'scale.data', new.data = scaled2)
+	print(dim(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'scale.data')))
 
 	return(seuratObj)
 }

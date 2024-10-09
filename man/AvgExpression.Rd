@@ -4,7 +4,7 @@
 \alias{AvgExpression}
 \title{Calculate Avg Expression}
 \usage{
-AvgExpression(seuratObj, groupField, slot = "counts")
+AvgExpression(seuratObj, groupField, layer = "counts")
 }
 \arguments{
 \item{seuratObj}{The seurat object}
