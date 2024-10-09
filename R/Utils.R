@@ -209,29 +209,29 @@ UpdateMacaqueMmul10NcbiGeneSymbols <- function(seuratObj, verbose = T){
     stop(paste0('Please provide a Seurat Object'))
   }
   for (assay in names(seuratObj@assays)){
-    for (slot in names(attributes(seuratObj@assays[[assay]]))){
+    for (layer in names(attributes(seuratObj@assays[[assay]]))){
       if (verbose){
-        print(paste("Updating Gene Names in Assay:", assay, "Slot:", slot))
+        print(paste("Updating Gene Names in Assay:", assay, "Slot:", layer))
       }
 
       #updating common gene expression slots
-      if (any(grepl(slot, c("counts", "data", "scale.data")))){
-        ad <- Seurat::GetAssayData(seuratObj, assay = assay, layer = slot)
+      if (any(grepl(layer, c("counts", "data", "scale.data")))){
+        ad <- Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)
         rownames(ad) <- .UpdateGeneModel(rownames(ad))
       }
 
       #updating variable features (expected to be a vector)
       if (layer == "var.features"){
-        attr(x = seuratObj@assays[[assay]], which = slot) <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot))
+        attr(x = seuratObj@assays[[assay]], which = layer) <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = layer))
       }
 
       #updating meta.features (expected to be a matrix)
       if (layer == "meta.features"){
-        rownames(attr(x = seuratObj@assays[[assay]], which = slot)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = slot)))
+        rownames(attr(x = seuratObj@assays[[assay]], which = layer)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = layer)))
         #feature metadata is tracked by assay, so this matrix could be empty.
         #This is an update that seems to be CellMembrane specific
-        if(dim(attr(x = seuratObj@assays[[assay]], which = slot))[[2]] != 0 & any(grepl("GeneId", names(attr(x = seuratObj@assays[[assay]], which = slot)))))
-          attr(x = seuratObj@assays[[assay]], which = slot)$GeneId <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot)$GeneId)
+        if(dim(attr(x = seuratObj@assays[[assay]], which = layer))[[2]] != 0 & any(grepl("GeneId", names(attr(x = seuratObj@assays[[assay]], which = layer)))))
+          attr(x = seuratObj@assays[[assay]], which = layer)$GeneId <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = layer)$GeneId)
       }
     }
   }

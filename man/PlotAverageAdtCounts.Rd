@@ -21,7 +21,7 @@ PlotAverageAdtCounts(
 
 \item{assayName}{The name of the assay holding data}
 
-\item{slot}{The assay slot to use for average expression data}
+\item{layer}{The assay layer to use for average expression data}
 
 \item{outFile}{If provided, the heatmap will be written to this file}
 

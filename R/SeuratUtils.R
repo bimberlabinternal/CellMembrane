@@ -377,14 +377,14 @@ FilterCloneNames <- function(seuratObj, minValue) {
 #' @description This is a wrapper around Seurat::AverageExpression, which computes the AverageExpression per group (all assays), then flattens this to a single data frame. It also saves library size and total cells per group.
 #' @param seuratObj The seurat object
 #' @param groupField The field on which to group. Must be present in seuratObj@meta.data
-#' @param slot The slot on which to calculate average expression
+#' @param layer The layer on which to calculate average expression
 #' @export
 AvgExpression <- function(seuratObj, groupField, layer = 'counts') {
 	if (!(groupField %in% names(seuratObj@meta.data))) {
 		stop(paste0('Field not found in seuratObj: ', groupField))
 	}
 
-	ret <- Seurat::AverageExpression(seuratObj, assays = NULL, features = rownames(seuratObj), group.by = groupField, layer = slot, verbose = FALSE)
+	ret <- Seurat::AverageExpression(seuratObj, assays = NULL, features = rownames(seuratObj), group.by = groupField, layer = layer, verbose = FALSE)
 
 	df <- NULL
 	for (assay in names(ret)) {
@@ -417,7 +417,7 @@ AvgExpression <- function(seuratObj, groupField, layer = 'counts') {
 				stop(paste0('Incorrect assay subset. Expected: ', length(cellsWhitelist), ', actual: ', ncol(dat)))
 			}
 
-			toAdd[val] <- sum(Seurat::GetAssayData(dat, layer = slot))
+			toAdd[val] <- sum(Seurat::GetAssayData(dat, layer = layer))
 		}
 
 		toAdd <- .CheckColnamesAreNumeric(toAdd)

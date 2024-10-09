@@ -11,7 +11,7 @@ AvgExpression(seuratObj, groupField, layer = "counts")
 
 \item{groupField}{The field on which to group. Must be present in seuratObj@meta.data}
 
-\item{slot}{The slot on which to calculate average expression}
+\item{layer}{The layer on which to calculate average expression}
 }
 \description{
 This is a wrapper around Seurat::AverageExpression, which computes the AverageExpression per group (all assays), then flattens this to a single data frame. It also saves library size and total cells per group.
