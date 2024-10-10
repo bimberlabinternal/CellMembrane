@@ -126,10 +126,10 @@ test_that("Seurat processing works as expected", {
 
 test_that("Seurat SCTransform works as expected", {
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
-  seuratObjSCT <- CreateSeuratObj(seuratData = Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'counts'), datasetId = '1234', datasetName = 'Set1')
+  seuratObjSCT <- CreateSeuratObj(seuratData = Seurat::GetAssayData(seuratObj, assay = 'RNA', layer = 'counts'), datasetId = '1234', datasetName = 'Set1')
 
   seuratObjSCT <- NormalizeAndScale(seuratObjSCT, useSCTransform = T)
-  expect_equal(length(rownames(Seurat::GetAssayData(seuratObjSCT, assay = 'SCT', slot = 'scale.data'))), length(rownames(Seurat::GetAssayData(seuratObjSCT, assay = 'SCT', slot = 'counts'))))
+  expect_equal(length(rownames(Seurat::GetAssayData(seuratObjSCT, assay = 'SCT', layer = 'scale.data'))), length(rownames(Seurat::GetAssayData(seuratObjSCT, assay = 'SCT', layer = 'counts'))))
   expect_equal(ncol(seuratObjSCT), ncol(seuratObj))
 })
 

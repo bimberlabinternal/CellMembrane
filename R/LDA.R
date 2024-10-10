@@ -84,7 +84,7 @@ runLDA <- function(seuratObj,
     seuratObj <- .DoNormalizationLda(seuratObj, normalizationMethod = normalizationMethod, varFeatures = varFeatures, assayName = assayName)
   }
 
-  Object.sparse <- Seurat::GetAssayData(seuratObj, slot = "data",assay = assayName)
+  Object.sparse <- Seurat::GetAssayData(seuratObj, layer = "data",assay = assayName)
   Object.sparse <- Object.sparse[Seurat::VariableFeatures(seuratObj, assay = assayName),]
 
   #convert data into the proper input format for lda.collapsed.gibbs.sampler
@@ -131,7 +131,7 @@ runLDA <- function(seuratObj,
 
 
 LDAelbowPlot <- function(ldaResults, seuratObj, assayName = "RNA") {
-  Object.sparse <- Seurat::GetAssayData(seuratObj, slot = "data", assay = assayName)
+  Object.sparse <- Seurat::GetAssayData(seuratObj, layer = "data", assay = assayName)
   Object.sparse <- Object.sparse[Seurat::VariableFeatures(seuratObj, assay = assayName),]
 
   #convert data into the proper input format for lda.collapsed.gibbs.sampler

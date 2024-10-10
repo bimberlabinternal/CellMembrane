@@ -161,7 +161,7 @@ SeuratToCoNGA <- function(seuratObj,
             to = R.utils::getAbsolutePath(paste0(seuratToCongaDir, "/TCRs.csv"), mustWork = FALSE),
             overwrite = T)
   
-  DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts'),
+  DropletUtils::write10xCounts(x = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts'),
                                path = R.utils::getAbsolutePath(paste0(seuratToCongaDir, "/GEX.h5"), mustWork = FALSE),
                                overwrite = TRUE)
 }
