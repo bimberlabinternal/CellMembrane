@@ -199,7 +199,7 @@ RunPHATE <- function(
   }
 
   if (!is.null(x = features)) {
-    data.use <- t(x = GetAssayData(object = object, slot = 'data', assay = assay)[features, ])
+    data.use <- t(x = GetAssayData(object = object, layer = 'data', assay = assay)[features, ])
   } else if (!is.null(x = dims)) {
     data.use <- Embeddings(object[[source]])[, dims]
     assay <- assay %||% DefaultAssay(object = object[[source]])

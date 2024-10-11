@@ -31,7 +31,7 @@ utils::globalVariables(
 #' @param sdaDebug This is passed directly to SDAtools::run_SDA()
 #' @export
 RunSDA <- function(seuratObj, outputFolder, numComps = 50, minCellsExpressingFeature = 0.01, perCellExpressionThreshold = 2, minFeatureCount = 1, featureInclusionList = NULL, featureExclusionList = NULL, maxFeaturesDiscarded = NULL, assayName = 'RNA', randomSeed = GetSeed(), minLibrarySize = 50, path.sda = 'sda_static_linux', max_iter = 10000, save_freq = 1000, nThreads = 1, storeGoEnrichment = FALSE, sdaDebug = FALSE) {
-  SerObj.DGE <- Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')
+  SerObj.DGE <- Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts')
 
   n_cells <- ncol(SerObj.DGE)
   if (n_cells > 250000) {

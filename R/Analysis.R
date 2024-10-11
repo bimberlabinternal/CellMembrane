@@ -478,7 +478,7 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
     stop("The features argument is empty. Please specify a non-empty vector of features.")
   }
   #check that features are both valid and force them to be unique. 
-  if (!all(features %in% rownames(Seurat::GetAssayData(seuratObj, slot = 'data')))) {
+  if (!all(features %in% rownames(Seurat::GetAssayData(seuratObj, layer = 'data')))) {
     warning(paste0('Features not found in Seurat object: ', paste0(features[!features %in% rownames(Seurat::GetAssayData(seuratObj, layer = layer))], collapse = ', ')))
   }
   if (any(duplicated(features))) {
@@ -567,12 +567,13 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
     as.matrix() |>
     Matrix::t()
   #Establish symmetric color scaling based on the extremes in the heatmap
-  col_RNA = circlize::colorRamp2(c(-max(abs(mat)), 0, max(abs(mat))),
-                                 c(grDevices::hcl.colors(palette = "Blue-Red 2", n = 20)[1],
-                                   "gray85",
-                                   grDevices::hcl.colors(palette = "Blue-Red 2", n = 20)[20]),
+  col_RNA = circlize::colorRamp2(quantile(c(-max(abs(mat)), 0, max(abs(mat)))),
+                                 c("#0000FFFF", #blue
+                                   "#7F53FDFF", #purple (pale)
+                                   "gray90", #very light gray
+                                   "#FF6948FF", #orangered/brick red
+                                   "#FF0000FF"), #red
                                  space = "sRGB")
-  
   pct <- pct[,fullorder]
   
   #Set the heatmap name according to scaling

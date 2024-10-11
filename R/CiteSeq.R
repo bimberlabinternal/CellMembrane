@@ -117,25 +117,25 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	}
 
 	replacementAssay <- NULL
-	for (slot in c('counts', 'data')) {
-		slotData <- GetAssayData(assayData, slot = slot)
-		if (is.null(slotData)) {
+	for (layer in c('counts', 'data')) {
+		layerData <- GetAssayData(assayData, layer = layer)
+		if (is.null(layerData)) {
 			next
 		}
 
 		# Add any new ADTs from this dataset, if needed:
-		missingMat <- matrix(rep(0, ncol(slotData) * length(featuresToAdd)), ncol = ncol(slotData), nrow = length(featuresToAdd))
+		missingMat <- matrix(rep(0, ncol(layerData) * length(featuresToAdd)), ncol = ncol(layerData), nrow = length(featuresToAdd))
 		rownames(missingMat) <- featuresToAdd
 		print(paste0('total ADT rows added to assay: ', length(featuresToAdd)))
-		slotData <- Seurat::as.sparse(rbind(slotData, missingMat))
-		slotData <- slotData[featureWhitelist, ]
+		layerData <- Seurat::as.sparse(rbind(layerData, missingMat))
+		layerData <- layerData[featureWhitelist, ]
 
 		if (is.null(replacementAssay)) {
 			args <- list()
-			args[[slot]] <- slotData
+			args[[layer]] <- layerData
 			replacementAssay <- rlang::invoke(Seurat::CreateAssayObject, args)
 		} else {
-			replacementAssay <- SetAssayData(object = replacementAssay, slot = slot, new.data = slotData)
+			replacementAssay <- SetAssayData(object = replacementAssay, layer = layer, new.data = layerData)
 		}
 	}
 
@@ -147,16 +147,16 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		stop("Feature set does not match, cannot reorder")
 	}
 
-	if (length(Seurat::GetAssayData(assayData, slot = 'counts'))) {
-		assayData <- Seurat::SetAssayData(assayData, slot = 'counts', new.data = Seurat::GetAssayData(assayData, slot = 'counts')[featureWhitelist, ])
+	if (length(Seurat::GetAssayData(assayData, layer = 'counts'))) {
+		assayData <- Seurat::SetAssayData(assayData, layer = 'counts', new.data = Seurat::GetAssayData(assayData, layer = 'counts')[featureWhitelist, ])
 	}
 
-	if (length(Seurat::GetAssayData(assayData, slot = 'data'))) {
-		assayData <- Seurat::SetAssayData(assayData, slot = 'data', new.data = Seurat::GetAssayData(assayData, slot = 'data')[featureWhitelist, ])
+	if (length(Seurat::GetAssayData(assayData, layer = 'data'))) {
+		assayData <- Seurat::SetAssayData(assayData, layer = 'data', new.data = Seurat::GetAssayData(assayData, layer = 'data')[featureWhitelist, ])
 	}
 
-	if (length(Seurat::GetAssayData(assayData, slot = 'scale.data'))) {
-		assayData <- Seurat::SetAssayData(assayData, slot = 'scale.data', new.data = Seurat::GetAssayData(assayData, slot = 'scale.data')[featureWhitelist, ])
+	if (length(Seurat::GetAssayData(assayData, layer = 'scale.data'))) {
+		assayData <- Seurat::SetAssayData(assayData, layer = 'scale.data', new.data = Seurat::GetAssayData(assayData, layer = 'scale.data')[featureWhitelist, ])
 	}
 
 	slot(assayData, GetAssayMetadataSlotName(assayData)) <- slot(assayData, GetAssayMetadataSlotName(assayData))[featureWhitelist]
@@ -169,16 +169,16 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		stop("Cell list does not match, cannot reorder")
 	}
 
-	if (length(Seurat::GetAssayData(assayData, slot = 'counts'))) {
-		assayData <- Seurat::SetAssayData(assayData, slot = 'counts', new.data = Seurat::GetAssayData(assayData, slot = 'counts')[, cellWhitelist])
+	if (length(Seurat::GetAssayData(assayData, layer = 'counts'))) {
+		assayData <- Seurat::SetAssayData(assayData, layer = 'counts', new.data = Seurat::GetAssayData(assayData, layer = 'counts')[, cellWhitelist])
 	}
 
-	if (length(Seurat::GetAssayData(assayData, slot = 'data'))) {
-		assayData <- Seurat::SetAssayData(assayData, slot = 'data', new.data = Seurat::GetAssayData(assayData, slot = 'data')[, cellWhitelist])
+	if (length(Seurat::GetAssayData(assayData, layer = 'data'))) {
+		assayData <- Seurat::SetAssayData(assayData, layer = 'data', new.data = Seurat::GetAssayData(assayData, layer = 'data')[, cellWhitelist])
 	}
 
-	if (length(Seurat::GetAssayData(assayData, slot = 'scale.data'))) {
-		assayData <- Seurat::SetAssayData(assayData, slot = 'scale.data', new.data = Seurat::GetAssayData(assayData, slot = 'scale.data')[, cellWhitelist])
+	if (length(Seurat::GetAssayData(assayData, layer = 'scale.data'))) {
+		assayData <- Seurat::SetAssayData(assayData, layer = 'scale.data', new.data = Seurat::GetAssayData(assayData, layer = 'scale.data')[, cellWhitelist])
 	}
 
 	return(assayData)
@@ -191,25 +191,25 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	}
 
 	replacementAssay <- NULL
-	for (slot in c('counts', 'data')) {
-		slotData <- GetAssayData(assayData, slot = slot)
-		if (is.null(slotData)) {
+	for (layer in c('counts', 'data')) {
+		layerData <- GetAssayData(assayData, layer = layer)
+		if (is.null(layerData)) {
 			next
 		}
 
 		# Add any new cells from this dataset, if needed:
-		missingMat <- matrix(rep(0, nrow(slotData) * length(cellsToAdd)), nrow = nrow(slotData), ncol = length(cellsToAdd))
+		missingMat <- matrix(rep(0, nrow(layerData) * length(cellsToAdd)), nrow = nrow(layerData), ncol = length(cellsToAdd))
 		colnames(missingMat) <- cellsToAdd
 		print(paste0('total cells added to assay: ', length(cellsToAdd)))
-		slotData <- Seurat::as.sparse(cbind(slotData, missingMat))
-		slotData <- slotData[, cellWhitelist]
+		layerData <- Seurat::as.sparse(cbind(layerData, missingMat))
+		layerData <- layerData[, cellWhitelist]
 
 		if (is.null(replacementAssay)) {
 			args <- list()
-			args[[slot]] <- slotData
+			args[[layer]] <- layerData
 			replacementAssay <- rlang::invoke(Seurat::CreateAssayObject, args)
 		} else {
-			replacementAssay <- SetAssayData(object = replacementAssay, slot = slot, new.data = slotData)
+			replacementAssay <- SetAssayData(object = replacementAssay, layer = layer, new.data = layerData)
 		}
 	}
 
@@ -226,13 +226,13 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	existingAssay <- .EnsureCellsPresentInOrder(existingAssay, allCells)
 
 	replacementAssay <- NULL
-	for (slot in c('counts', 'data')) {
-		data <- GetAssayData(newAssay, slot = slot)
+	for (layer in c('counts', 'data')) {
+		data <- GetAssayData(newAssay, layer = layer)
 		if (is.null(data)) {
 			next
 		}
 
-		existingData <- GetAssayData(existingAssay, slot = slot)
+		existingData <- GetAssayData(existingAssay, layer = layer)
 		if (is.null(existingData)) {
 			existingData <- matrix(rep(0, ncol(data)*nrow(data), nrow = nrow(data), ncol = ncol(data)))
 			rownames(existingData) <- rownames(data)
@@ -242,10 +242,10 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 		existingData[rownames(data), colnames(data)] <- data
 		if (is.null(replacementAssay)) {
 			args <- list()
-			args[[slot]] <- Seurat::as.sparse(existingData)
+			args[[layer]] <- Seurat::as.sparse(existingData)
 			replacementAssay <- rlang::invoke(Seurat::CreateAssayObject, args)
 		} else {
-			replacementAssay <- SetAssayData(object = replacementAssay, slot = slot, new.data = Seurat::as.sparse(existingData))
+			replacementAssay <- SetAssayData(object = replacementAssay, layer = layer, new.data = Seurat::as.sparse(existingData))
 		}
 	}
 
@@ -352,7 +352,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 				print(paste0('Updating layer: ', slotName))
 				slot(assayData, slotName)@Dimnames[[1]] <- newnames
 
-				if (any(rownames(Seurat::GetAssayData(assayData, slot = slotName)) != newnames)) {
+				if (any(rownames(Seurat::GetAssayData(assayData, layer = slotName)) != newnames)) {
 					stop('Features were not updated!')
 				}
 			}
@@ -398,10 +398,10 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 }
 
 .GetNonZeroFeatures <- function(seuratObj, assayName) {
-	assayData <- GetAssayData(seuratObj, slot = "counts", assay = assayName)
+	assayData <- GetAssayData(seuratObj, layer = "counts", assay = assayName)
 	featuresToPlot <- rownames(assayData)
 	toSkip <- character()
-	dat <- Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'counts')
+	dat <- Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts')
 	for (feature in featuresToPlot) {
 		if (all(is.na(dat[feature,])) || max(dat[feature,], na.rm = T) == 0) {
 			print(paste0('Skipping feature with zero counts: ', feature))
@@ -414,7 +414,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 }
 
 .PlotCiteSeqCountData <- function(seuratObj, assayName = 'ADT') {
-	assayData <- GetAssayData(seuratObj, slot = "counts", assay = assayName)
+	assayData <- GetAssayData(seuratObj, layer = "counts", assay = assayName)
 
 	featuresToPlot <- .GetNonZeroFeatures(seuratObj, assayName)
 
@@ -466,8 +466,8 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 #' @import patchwork
 .NormalizeDsbWithEmptyDrops <- function(seuratObj, unfilteredAdtAssay, rnaAssayName = 'RNA', fdrThreshold=0.01, emptyDropNIters=10000, emptyDropsLower=100) {
 	print('Running DSB to normalize data')
-	gexCountMatrix <- GetAssayData(object = seuratObj, slot = 'counts', assay = rnaAssayName)
-	unfilteredAdtCountMatrix <- GetAssayData(object = unfilteredAdtAssay, slot = 'counts')
+	gexCountMatrix <- GetAssayData(object = seuratObj, layer = 'counts', assay = rnaAssayName)
+	unfilteredAdtCountMatrix <- GetAssayData(object = unfilteredAdtAssay, layer = 'counts')
 
 	emptyDrops <- PerformEmptyDrops(unfilteredAdtCountMatrix, fdrThreshold = fdrThreshold, emptyDropNIters = emptyDropNIters, emptyDropsLower = emptyDropsLower)
 	passingCells <- rownames(emptyDrops)[emptyDrops$is.cell]
@@ -506,7 +506,7 @@ AppendCiteSeq <- function(seuratObj, unfilteredMatrixDir, normalizeMethod = 'dsb
 	)
 
 	a <- Seurat::CreateAssayObject(counts = Seurat::as.sparse(filteredAdtCountMatrix[ ,colnames(normCounts)]))
-	a <- SetAssayData(object = a, slot = 'data', new.data = Seurat::as.sparse(normCounts))
+	a <- SetAssayData(object = a, layer = 'data', new.data = Seurat::as.sparse(normCounts))
 
 	return(a)
 }
@@ -533,7 +533,7 @@ CiteSeqDimRedux.Dist <- function(seuratObj, assayName = 'ADT', dist.method = "eu
 
 	if (performClrNormalization) {
 		seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
-	} else if (is.null(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) || length(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) == 0){
+	} else if (is.null(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'data')) || length(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'data')) == 0){
 		stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
 	} else {
 		print('Using pre-existing normalization')
@@ -541,7 +541,7 @@ CiteSeqDimRedux.Dist <- function(seuratObj, assayName = 'ADT', dist.method = "eu
 
 	#SNN:
 	print("Calculating Distance Matrix")
-	adt.data <- GetAssayData(seuratObj, assay = assayName, slot = "data")
+	adt.data <- GetAssayData(seuratObj, assay = assayName, layer = "data")
 	adt.dist <- dist(Matrix::t(adt.data), method = dist.method)
 	seuratObj[["adt_snn.dist"]]  <- FindNeighbors(adt.dist, verbose = FALSE)$snn
 
@@ -643,7 +643,7 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
 
 		if (performClrNormalization) {
 			seuratObj <- NormalizeData(seuratObj, assay = assayName, normalization.method = 'CLR', margin = 2, verbose = FALSE)
-		} else if (is.null(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) || length(Seurat::GetAssayData(seuratObj, assay = assayName, slot = 'data')) == 0){
+		} else if (is.null(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'data')) || length(Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'data')) == 0){
 			stop('Cannot use performClrNormalization=FALSE without pre-existing ADT normalization')
 		} else {
 			print('Using pre-existing normalization')
@@ -764,7 +764,7 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), assayName = 'A
 }
 
 .PlotMarkerQc <- function(seuratObj, assayName = 'ADT') {
-	barcodeMatrix <- Seurat::GetAssayData(seuratObj, slot = 'counts', assay = assayName)
+	barcodeMatrix <- Seurat::GetAssayData(seuratObj, layer = 'counts', assay = assayName)
 	featuresToPlot <- .GetNonZeroFeatures(seuratObj, assayName)
 
 	setSize <- 2
@@ -818,19 +818,19 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), assayName = 'A
 #' @param seuratObj The seurat object where data will be added.
 #' @param groupFields The directory holding raw count data, generally the raw_feature_bc_matrix from the cellranger outs folder
 #' @param assayName The name of the assay holding data
-#' @param slot The assay slot to use for average expression data
+#' @param layer The assay layer to use for average expression data
 #' @param normalization.method The normalization method to apply after AverageExpression(). If null, this will be skipped.
 #' @param margin This is provided to Seurat::NormalizeData()
 #' @param outFile If provided, the heatmap will be written to this file
 #' @export
-PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', slot = 'counts', outFile = NA, normalization.method = 'CLR', margin = 1) {
+PlotAverageAdtCounts <- function(seuratObj, groupFields = c('ClusterNames_0.2', 'ClusterNames_0.4', 'ClusterNames_0.6'), assayName = 'ADT', layer = 'counts', outFile = NA, normalization.method = 'CLR', margin = 1) {
 	for (fn in groupFields) {
-		avgSeurat <- Seurat::AverageExpression(seuratObj, return.seurat = T, group.by = fn, assays = assayName, slot = slot)
+		avgSeurat <- Seurat::AverageExpression(seuratObj, return.seurat = T, group.by = fn, assays = assayName, layer = layer)
 		if (!is.null(normalization.method)) {
 			avgSeurat <- NormalizeData(avgSeurat, normalization.method = normalization.method, margin = margin, verbose = FALSE)
 		}
 
-		mat <- t(as.matrix(GetAssayData(avgSeurat, slot = 'data')))
+		mat <- t(as.matrix(GetAssayData(avgSeurat, layer = 'data')))
 		mat <- mat[,colSums(mat) > 0]
 
 		P1 <- ComplexHeatmap::Heatmap(mat %>% scale_mat(scale = 'column'),

@@ -6,19 +6,19 @@ test_that("Q3 normalization works", {
   testthat::expect_no_error(seuratObj[["RNA"]])
   seuratObj<- RUVg_Housekeeping_Normalization(seuratObj)
   testthat::expect_no_error(seuratObj[["RUVg"]])
-  expect_equal(max(Seurat::GetAssayData(seuratObj, assay = 'RUVg', slot = 'counts')), 2335)
+  expect_equal(max(Seurat::GetAssayData(seuratObj, assay = 'RUVg', layer = 'counts')), 2335)
   testthat::expect_error(object = NanoString_Housekeeping_Normalization(seuratObj),"Geometric mean of housekeeping counts for one or more samples is zero")
   testthat::expect_error(object = Q3_Normalization(seuratObj),"Error: 75th percentile is zero for some samples.")
 
-  seuratObj <- Seurat::SetAssayData(seuratObj, assay = 'RNA', slot = 'counts', new.data = SeuratObject::as.sparse(as.matrix(Seurat::GetAssayData(seuratObj, assay = 'RNA', slot = 'counts')) + 1))
+  seuratObj <- Seurat::SetAssayData(seuratObj, assay = 'RNA', layer = 'counts', new.data = SeuratObject::as.sparse(as.matrix(Seurat::GetAssayData(seuratObj, assay = 'RNA', layer = 'counts')) + 1))
   
   seuratObj<- Q3_Normalization(seuratObj)
   testthat::expect_no_error(seuratObj[["Q3"]])
-  testthat::expect_equal(max(Seurat::GetAssayData(seuratObj, assay = 'Q3', slot = 'counts')), 1663)
+  testthat::expect_equal(max(Seurat::GetAssayData(seuratObj, assay = 'Q3', layer = 'counts')), 1663)
 
   seuratObj<- NanoString_Housekeeping_Normalization(seuratObj)
   testthat::expect_no_error(seuratObj[["Housekeeping"]])
-  testthat::expect_equal(round(max(Seurat::GetAssayData(seuratObj, assay = 'Housekeeping', slot = 'counts'))), 76)
+  testthat::expect_equal(round(max(Seurat::GetAssayData(seuratObj, assay = 'Housekeeping', layer = 'counts'))), 76)
 
 })
 
