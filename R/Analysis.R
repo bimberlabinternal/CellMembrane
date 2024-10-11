@@ -567,12 +567,13 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
     as.matrix() |>
     Matrix::t()
   #Establish symmetric color scaling based on the extremes in the heatmap
-  col_RNA = circlize::colorRamp2(c(-max(abs(mat)), 0, max(abs(mat))),
-                                 c(grDevices::hcl.colors(palette = "Blue-Red 2", n = 20)[1],
-                                   "gray85",
-                                   grDevices::hcl.colors(palette = "Blue-Red 2", n = 20)[20]),
+  col_RNA = circlize::colorRamp2(quantile(c(-max(abs(mat)), 0, max(abs(mat)))),
+                                 c("#0000FFFF",
+                                   "#7F53FDFF",
+                                   "gray90",
+                                   "#FF6948FF",
+                                   "#FF0000FF"),
                                  space = "sRGB")
-  
   pct <- pct[,fullorder]
   
   #Set the heatmap name according to scaling
