@@ -88,6 +88,8 @@ Imports:
     circlize, 
     conover.test, 
     colorspace, 
+    forcats,
+    presto,
     forcats, 
     multimode, 
     ggtext
@@ -106,7 +108,7 @@ URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
     niaid/dsb,
-    bimberlabinternal/RIRA,
+    bimberlab/RIRA,
     marchinilab/SDAtools,
     marchinilab/dropsim,
     drisso/RUVSeq,
@@ -114,7 +116,8 @@ Remotes:
     davidcsterratt/geometry/pkg,
     ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
-    rcastelo/GSVA
+    rcastelo/GSVA,
+    immunogenomics/presto
 Config/reticulate:
   list(
     packages = list(

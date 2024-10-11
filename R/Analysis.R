@@ -478,7 +478,7 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
     stop("The features argument is empty. Please specify a non-empty vector of features.")
   }
   #check that features are both valid and force them to be unique. 
-  if (!all(features %in% rownames(Seurat::GetAssayData(seuratObj, slot = 'data')))) {
+  if (!all(features %in% rownames(Seurat::GetAssayData(seuratObj, layer = 'data')))) {
     warning(paste0('Features not found in Seurat object: ', paste0(features[!features %in% rownames(Seurat::GetAssayData(seuratObj, layer = layer))], collapse = ', ')))
   }
   if (any(duplicated(features))) {

@@ -60,7 +60,7 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 		print('No mito features found')
 		seuratObj[[outputColName]] <- 0
 	} else {
-		p.mito <- Matrix::colSums(x = GetAssayData(object = seuratObj, slot = 'counts')[mito.features, ]) / Matrix::colSums(x = GetAssayData(object = seuratObj, slot = 'counts'))
+		p.mito <- Matrix::colSums(x = GetAssayData(object = seuratObj, layer = 'counts')[mito.features, ]) / Matrix::colSums(x = GetAssayData(object = seuratObj, layer = 'counts'))
 		seuratObj[[outputColName]] <- p.mito
 	}
 
@@ -95,7 +95,7 @@ CalculatePercentMito <- function(seuratObj, mitoGenesPattern = "^MT-", annotateM
 	print(FeatureScatter(object = seuratObj, feature1 = nCountField, feature2 = nFeatureField))
 
 	#10x-like plot
-	nUMI <- Matrix::colSums(suppressWarnings(GetAssayData(object = seuratObj, slot = "counts")))
+	nUMI <- Matrix::colSums(suppressWarnings(GetAssayData(object = seuratObj, layer = "counts")))
 	nUMI <- sort(nUMI)
 
 	countAbove <-sapply(nUMI, function(x){
@@ -395,8 +395,8 @@ MergeSplitLayers <- function(seuratObj) {
 #' @param maxLibrarySizeRatio This normalization relies on the assumption that the library size of the assay being normalized in negligible relative to the assayForLibrarySize. To verify this holds true, the method will error if librarySize(assayToNormalize)/librarySize(assayForLibrarySize) exceeds this value
 #' @export
 LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayForLibrarySize = 'RNA', scale.factor = 1e4, maxLibrarySizeRatio = 0.01) {
-	toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, slot = 'counts')
-	assayForLibrarySizeData <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, slot = 'counts')
+	toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, layer = 'counts')
+	assayForLibrarySizeData <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, layer = 'counts')
 
 	if (any(colnames(toNormalize) != colnames(assayForLibrarySize))) {
 		stop(paste0('The assayToNormalize and assayForLibrarySize do not have the same cell names!'))
@@ -417,7 +417,7 @@ LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayFo
 		toNormalize[, i] <- xnorm
 	}
 
-	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, slot = 'data', new.data = toNormalize)
+	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, layer = 'data', new.data = toNormalize)
 
 	return(seuratObj)
 }

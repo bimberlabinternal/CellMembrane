@@ -8,7 +8,7 @@ PlotAverageAdtCounts(
   seuratObj,
   groupFields = c("ClusterNames_0.2", "ClusterNames_0.4", "ClusterNames_0.6"),
   assayName = "ADT",
-  slot = "counts",
+  layer = "counts",
   outFile = NA,
   normalization.method = "CLR",
   margin = 1
@@ -21,7 +21,7 @@ PlotAverageAdtCounts(
 
 \item{assayName}{The name of the assay holding data}
 
-\item{slot}{The assay slot to use for average expression data}
+\item{layer}{The assay layer to use for average expression data}
 
 \item{outFile}{If provided, the heatmap will be written to this file}
 

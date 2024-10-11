@@ -209,29 +209,29 @@ UpdateMacaqueMmul10NcbiGeneSymbols <- function(seuratObj, verbose = T){
     stop(paste0('Please provide a Seurat Object'))
   }
   for (assay in names(seuratObj@assays)){
-    for (slot in names(attributes(seuratObj@assays[[assay]]))){
+    for (layer in names(attributes(seuratObj@assays[[assay]]))){
       if (verbose){
-        print(paste("Updating Gene Names in Assay:", assay, "Slot:", slot))
+        print(paste("Updating Gene Names in Assay:", assay, "Slot:", layer))
       }
 
       #updating common gene expression slots
-      if (any(grepl(slot, c("counts", "data", "scale.data")))){
-        ad <- Seurat::GetAssayData(seuratObj, assay = assay, slot = slot)
+      if (any(grepl(layer, c("counts", "data", "scale.data")))){
+        ad <- Seurat::GetAssayData(seuratObj, assay = assay, layer = layer)
         rownames(ad) <- .UpdateGeneModel(rownames(ad))
       }
 
       #updating variable features (expected to be a vector)
-      if (slot == "var.features"){
-        attr(x = seuratObj@assays[[assay]], which = slot) <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot))
+      if (layer == "var.features"){
+        attr(x = seuratObj@assays[[assay]], which = layer) <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = layer))
       }
 
       #updating meta.features (expected to be a matrix)
-      if (slot == "meta.features"){
-        rownames(attr(x = seuratObj@assays[[assay]], which = slot)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = slot)))
+      if (layer == "meta.features"){
+        rownames(attr(x = seuratObj@assays[[assay]], which = layer)) <- .UpdateGeneModel(rownames(attr(x = seuratObj@assays[[assay]], which = layer)))
         #feature metadata is tracked by assay, so this matrix could be empty.
         #This is an update that seems to be CellMembrane specific
-        if(dim(attr(x = seuratObj@assays[[assay]], which = slot))[[2]] != 0 & any(grepl("GeneId", names(attr(x = seuratObj@assays[[assay]], which = slot)))))
-          attr(x = seuratObj@assays[[assay]], which = slot)$GeneId <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = slot)$GeneId)
+        if(dim(attr(x = seuratObj@assays[[assay]], which = layer))[[2]] != 0 & any(grepl("GeneId", names(attr(x = seuratObj@assays[[assay]], which = layer)))))
+          attr(x = seuratObj@assays[[assay]], which = layer)$GeneId <- .UpdateGeneModel(attr(x = seuratObj@assays[[assay]], which = layer)$GeneId)
       }
     }
   }
@@ -356,7 +356,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
 
   sourceAssay <- assayName
   if (!is.na(targetAssayName) && !is.null(targetAssayName)) {
-    seuratObj@assays[[targetAssayName]] <- Seurat::CreateAssayObject(Seurat::GetAssayData(seuratObj, assay = sourceAssay, slot = 'counts'))
+    seuratObj@assays[[targetAssayName]] <- Seurat::CreateAssayObject(Seurat::GetAssayData(seuratObj, assay = sourceAssay, layer = 'counts'))
     seuratObj@assays[[targetAssayName]]@key <- paste0(tolower(targetAssayName), '_')
     sourceAssay <- targetAssayName
   }
@@ -403,7 +403,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
     }
 
     if (doAsinhTransform) {
-      dat <- Seurat::GetAssayData(ad, slot = 'counts')
+      dat <- Seurat::GetAssayData(ad, layer = 'counts')
       # based on flowCore module: https://github.com/RGLab/flowCore/blob/1dee3931c7ac922052b74fcdf6ba037fe1313892/R/AllClasses.R#L5030
       # and ADTnorm: https://github.com/yezhengSTAT/ADTnorm/blob/d5d08d9cc075d1300d0ff1038ff2a3efae780b15/R/arcsinh_transform.R
       a <- 1
@@ -412,15 +412,15 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
       dat <- asinh(a+b*dat) + c
 
       dat <- Seurat::NormalizeData(Seurat::as.sparse(dat), normalization.method = 'CLR', margin = margin, verbose = FALSE)
-      ad <- Seurat::SetAssayData(ad, slot = 'data', new.data = dat)
+      ad <- Seurat::SetAssayData(ad, layer = 'data', new.data = dat)
     } else {
       ad <- Seurat::NormalizeData(ad, normalization.method = 'CLR', margin = margin, verbose = FALSE)
     }
 
     if (all(is.null(normalizedMat))) {
-      normalizedMat <- Seurat::GetAssayData(ad, slot = 'data')
+      normalizedMat <- Seurat::GetAssayData(ad, layer = 'data')
     } else {
-      normalizedMat <- cbind(normalizedMat, Seurat::GetAssayData(ad, slot = 'data'))
+      normalizedMat <- cbind(normalizedMat, Seurat::GetAssayData(ad, layer = 'data'))
     }
   }
 
@@ -428,12 +428,12 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
 
   assayObj <- Seurat::GetAssay(seuratObj, assay = sourceAssay)
   if (nrow(assayObj) != nrow(normalizedMat) || any(rownames(assayObj)  != rownames(normalizedMat))) {
-    rawCounts <- Seurat::GetAssayData(assayObj, slot = 'counts')
+    rawCounts <- Seurat::GetAssayData(assayObj, layer = 'counts')
     rawCounts <- rawCounts[rownames(normalizedMat),]
     assayObj <- Seurat::CreateAssayObject(counts = rawCounts)
   }
 
-  assayObj <- Seurat::SetAssayData(assayObj, slot = 'data', new.data = as.sparse(normalizedMat))
+  assayObj <- Seurat::SetAssayData(assayObj, layer = 'data', new.data = as.sparse(normalizedMat))
   seuratObj[[sourceAssay]] <- NULL  # Reset this first to avoid warning
   seuratObj[[sourceAssay]] <- assayObj
   seuratObj <- ScaleData(seuratObj, verbose = FALSE, assay = sourceAssay)

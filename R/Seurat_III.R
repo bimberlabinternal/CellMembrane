@@ -917,11 +917,11 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
           }
           allGenes <- rbind(allGenes, topGene)
 
-          avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), slot = 'counts', assays = assayName, return.seurat = T)
+          avgSeurat <- Seurat::AverageExpression(seuratObj, group.by = fieldName, features = unique(topGene$gene), layer = 'counts', assays = assayName, return.seurat = T)
           avgSeurat <- NormalizeData(avgSeurat, verbose = FALSE)
 
           # Genes as columns:
-          mat <- t(as.matrix(Seurat::GetAssayData(avgSeurat, slot = 'data')))
+          mat <- t(as.matrix(Seurat::GetAssayData(avgSeurat, layer = 'data')))
           plot(ComplexHeatmap::Heatmap(mat %>% scale_mat(scale = 'column'),
                                        column_title = fieldName,
                                        row_names_side = "left",

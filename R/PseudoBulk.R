@@ -1119,7 +1119,7 @@ FitRegularizedClassificationGlm <- function(seuratObj,
                                             assay = "RNA",
                                             layer = "scale.data",
                                             devianceCutoff = 0.8,
-                                            split = NULL, 
+                                            split = NULL,
                                             returnModelAndSplits = F) {
   #sanity check arguments
   if (is.null(metadataVariableForClassification)){
@@ -1128,17 +1128,20 @@ FitRegularizedClassificationGlm <- function(seuratObj,
   if (!(metadataVariableForClassification %in% colnames(seuratObj@meta.data))){
     stop("Supplied metadataVariableForClassification not found in the seurat object's metadata. Please ensure your metadata column is spelled correctly and exists in seuratObj@meta.data.")
   }
+
+  set.seed(GetSeed())
+
   # rescale the input data (in case of an upstream subset since it was last rescaled).
   if (rescale) {
     if (is.null(numberOfVariableFeatures)) {
-      seuratObj <- CellMembrane::NormalizeAndScale(seuratObj, 
+      seuratObj <- CellMembrane::NormalizeAndScale(seuratObj,
                                                    nVariableFeatures = length(rownames(seuratObj)),
                                                    variableGenesBlacklist = RIRA::GetGeneSet("VariableGenes_Exclusion.2"),
                                                    scoreCellCycle=F, 
                                                    featuresToRegress = NULL
       )
     } else {
-      seuratObj <- CellMembrane::NormalizeAndScale(seuratObj, 
+      seuratObj <- CellMembrane::NormalizeAndScale(seuratObj,
                                                    nVariableFeatures = numberOfVariableFeatures,
                                                    variableGenesBlacklist = RIRA::GetGeneSet("VariableGenes_Exclusion.2"),
                                                    scoreCellCycle=F, 
@@ -1159,10 +1162,10 @@ FitRegularizedClassificationGlm <- function(seuratObj,
         dplyr::select(dplyr::all_of(metadataVariableForClassification)),
       by = 0) |>
     #drop rownames column
-    dplyr::select(-dplyr::all_of("Row.names")) 
-  
+    dplyr::select(-dplyr::all_of("Row.names"))
+
   #fix gene names like MAMU-A or UGT2B9*2 with an easily replaceable and uniquely mapping "dash", "leadingNumber", or "star".
-  
+
   # Perform a test to ensure we wont get conflicts:
   for (token in c("dash", "leadingNumber", "star")) {
     if (any(grepl(colnames(target_labeled_data), pattern = token))) {
@@ -1175,7 +1178,7 @@ FitRegularizedClassificationGlm <- function(seuratObj,
   colnames(target_labeled_data) <-
     gsub("^[0-9]", "leadingNumber", colnames(target_labeled_data))
   colnames(target_labeled_data) <- gsub("\\*", "star", colnames(target_labeled_data))
-  
+
   ##set up task
   task_metadata_classification <- mlr3::as_task_classif(target_labeled_data,
                                                         target = metadataVariableForClassification,
@@ -1184,41 +1187,46 @@ FitRegularizedClassificationGlm <- function(seuratObj,
   if (is.null(split)){
     split <- mlr3::partition(task_metadata_classification)
   }
+
   #cv_glmnet to parameter scan regularization
   learner <- mlr3::lrn("classif.cv_glmnet")
   learner$train(task = task_metadata_classification, row_ids = split$train)
   #find %deviance over parameter scan
   deviance_vector <-
-    round(1 - (stats::deviance(learner$model$glmnet.fit) / learner$model$glmnet.fit$nulldev), 2) 
+    round(1 - (stats::deviance(learner$model$glmnet.fit) / learner$model$glmnet.fit$nulldev), 2)
   #select minimum lambda value above deviance cutoff
-  deviance_cutoff_index <- min(which(deviance_vector > devianceCutoff)) 
-  
+  deviance_cutoff_index <- min(which(deviance_vector > devianceCutoff))
+
   #iterate through the classes of beta coefficients in the case of multinomial regression and collect useful features (genes) from each class
   classification_features <- c()
-  for (class in names(learner$model$glmnet.fit$beta)) {
-    #apply deviance cutoff to select lambda value
-    class_weights_vector <-
-      learner$model$glmnet.fit$beta[[class]][, deviance_cutoff_index]
-    #harvest genes with non-zero beta coefficients
-    classification_features_for_class <-
-      names(class_weights_vector[abs(class_weights_vector) > 0])
-    #store selected genes
-    classification_features <- c(classification_features,
-                                 classification_features_for_class)
+  if(learner$model$call$family == "binomial"){
+    classification_features <- learner$selected_features()
+  } else {
+    for (class in names(learner$model$glmnet.fit$beta)) {
+      #apply deviance cutoff to select lambda value
+      class_weights_vector <-
+        learner$model$glmnet.fit$beta[[class]][, deviance_cutoff_index]
+      #harvest genes with non-zero beta coefficients
+      classification_features_for_class <-
+        names(class_weights_vector[abs(class_weights_vector) > 0])
+      #store selected genes
+      classification_features <- c(classification_features,
+                                   classification_features_for_class)
+    }
+
+    #put the dashes back in the feature names, delete the "leadingNumber" prefix, and replace "star" with asterisks.
+    classification_features <- gsub("dash", "-", classification_features)
+    classification_features <- gsub("^leadingNumber", "", classification_features)
+    classification_features <- gsub("star", "*", classification_features)
   }
-  
-  #put the dashes back in the feature names, delete the "leadingNumber" prefix, and replace "star" with asterisks.
-  classification_features <- gsub("dash", "-", classification_features)
-  classification_features <- gsub("^leadingNumber", "", classification_features)
-  classification_features <- gsub("star", "*", classification_features)
-  
+
   #return either a vector of genes or both a model and vector of genes.
   if (!returnModelAndSplits) {
     return(classification_features)
   } else {
     return(list(
       classification_features = classification_features,
-      model = learner$model, 
+      model = learner$model,
       split = split
     ))
   }
