@@ -9,12 +9,23 @@ ClusteredDotPlot(
   features,
   groupFields = "ClusterNames_0.2",
   assay = "RNA",
-  ggplotify = TRUE,
+  ggplotify = FALSE,
   scaling = "column",
   layer = "data",
   forceRescaling = FALSE,
-  km = NULL,
-  columnTitles = NULL
+  column_km = NULL,
+  row_km = NULL,
+  columnTitles = NULL,
+  rowTitles = NULL,
+  numberColumns = TRUE,
+  numberRows = TRUE,
+  height = NULL,
+  width = NULL,
+  clusterRows = F,
+  row_title_rot = 0,
+  column_title_rot = 0,
+  show_row_dend = TRUE,
+  show_column_dend = TRUE
 )
 }
 \arguments{
@@ -34,9 +45,31 @@ ClusteredDotPlot(
 
 \item{forceRescaling}{A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.}
 
-\item{km}{The number of k-means clusters to split the columns into. This is passed directly to ComplexHeatmap. Must be an integer or NULL.}
+\item{column_km}{The number of k-means clusters to split the columns into. This is passed directly to ComplexHeatmap. Must be an integer or NULL.}
 
-\item{columnTitles}{The column title(s) for the heatmap. Acceptable values are 1 (for a single title), NULL (for no title), or length(columnTitles) == km. If km is an integer, these will be used to label the k-means column-wise clusters. Please note that alignment of the column titles and the k means clustering will likely need manual adjustment after an initial assessment of the order of the kmeans clusters.}
+\item{row_km}{The number of k-means clusters to split the rows into. This is passed directly to ComplexHeatmap. Must be an integer or NULL.}
+
+\item{columnTitles}{The column title(s) for the heatmap. Acceptable values are 1 (for a single title), NULL (for no title), or length(columnTitles) == column_km. If column_km is an integer, these will be used to label the k-means column-wise clusters. Please note that alignment of the column titles and the k means clustering will likely need manual adjustment after an initial assessment of the order of the kmeans clusters.}
+
+\item{rowTitles}{The row title(s) for the heatmap. Acceptable values are 1 (for a single title), NULL (for no title), or length(rowTitles) == row_km. If row_km is an integer, these will be used to label the k-means row-wise clusters. Please note that alignment of the row titles and the k means clustering will likely need manual adjustment after an initial assessment of the order of the kmeans clusters.}
+
+\item{numberColumns}{A boolean that determines if the column titles should be numbered. If columnTitles is not NULL, this will be ignored.}
+
+\item{numberRows}{A boolean that determines if the row titles should be numbered. If rowTitles is not NULL, this will be ignored.}
+
+\item{height}{A passthrough variable to ComplexHeatmap for the height of the heatmap.}
+
+\item{width}{A passthrough variable to ComplexHeatmap for the width of the heatmap.}
+
+\item{clusterRows}{A boolean that determines if the rows should be clustered.}
+
+\item{row_title_rot}{The angle for rotation of the row titles.}
+
+\item{column_title_rot}{The angle for rotation of the column titles.}
+
+\item{show_row_dend}{A boolean that determines if the row dendrogram should be shown.}
+
+\item{show_column_dend}{A boolean that determines if the column dendrogram should be shown.}
 }
 \description{
 A function that generates a clustered dot plot with a heatmap of scaled expression.
