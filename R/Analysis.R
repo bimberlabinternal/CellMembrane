@@ -504,7 +504,7 @@ ClusteredDotPlot <- function(seuratObj,
                              clusterRows = F, 
                              row_title_rot = 0, 
                              column_title_rot = 0, 
-                             show_row_dend = TRUE, 
+                             show_row_dend = NULL, 
                              show_column_dend = TRUE) {
   ## BEGIN ARGUMENT CHECKING
   #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
@@ -638,6 +638,10 @@ ClusteredDotPlot <- function(seuratObj,
   }
   if (is.null(width)) {
     width <- length(features)*unit(7, "mm")
+  }
+  #set show_row_dend to TRUE if row_km is greater than 1 and show_row_dend is NULL
+  if (is.null(show_row_dend) && row_km > 1) {
+    show_row_dend <- TRUE
   }
   ## END SETTING DEFAULT ARGUMENTS
   ## BEGIN HEATMAP CONSTRUCTION

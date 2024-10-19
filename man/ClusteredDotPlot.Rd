@@ -24,7 +24,7 @@ ClusteredDotPlot(
   clusterRows = F,
   row_title_rot = 0,
   column_title_rot = 0,
-  show_row_dend = TRUE,
+  show_row_dend = NULL,
   show_column_dend = TRUE
 )
 }
