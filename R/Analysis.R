@@ -551,7 +551,7 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
     mat <- as.matrix(mat) %>%
       Matrix::t()
   }
-  
+  #establish the ordering of the expression heatmap
   fullorder <- colnames(mat)
   
   #harvest the percentage of cells expressing genes within the features vector from the Seurat::DotPlot output.
@@ -574,7 +574,24 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
                                    "#FF6948FF", #orangered/brick red
                                    "#FF0000FF"), #red
                                  space = "sRGB")
-  pct <- pct[,fullorder]
+  #check if "g" characters were added to numeric rows in Seurat. 
+  #This only happens if the original rownames are purely numeric. 
+  
+  if (all (rownames(pct) %in% rownames(mat))) {
+    next
+  } else if (all(paste0("g", rownames(pct)) %in% rownames(mat))) {
+    rownames(pct) <- paste0("g", rownames(pct))
+  } else if ( all(gsub("-", "_", rownames(mat)) %in% rownames(pct))) {
+    rownames(mat) <- gsub("-", "_", rownames(mat))
+  } else {
+    message("There's a parsing error between Seurat and ComplexHeatmap. Try to avoid special characters in the name of your groupField.")
+    message("Printing rownames to demonstrate the parsing issues:")
+    print(unique(c(rownames(pct)[!rownames(pct) %in% rownames(mat)], rownames(mat)[!rownames(mat) %in% rownames(pct)])))
+    stop("Parsing error, please see above.")
+    
+  }
+  #enforce the order of the dotplot to match the heatmap
+  pct <- pct[rownames(mat),fullorder]
   
   #Set the heatmap name according to scaling
   if (scaling == 'row') {
@@ -611,10 +628,9 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
                        column_names_rot = 45
                      ))
   if (ggplotify){
+    #TODO: this is harder than originally thought. the legend and heatmap are separate viewports, and the name isn't straigh
     ggplotify::as.ggplot(comp_heatmap)
   }
   print(comp_heatmap)
   return(comp_heatmap)
 }
-
-
