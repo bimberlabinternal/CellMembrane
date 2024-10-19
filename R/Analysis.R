@@ -542,7 +542,7 @@ ClusteredDotPlot <- function(seuratObj,
     stop("Less than two features would be present in the dot plot. Please set forceRescaling = TRUE to proceed with the scale.data layer, or use the 'data' or 'counts' and set the scaling argument to one of: 'column', 'row', or 'none'.")
   }
   #check km parameter 
-  if (!is.null(km) && !is.integer(km)) {
+  if (!is.null(km) && !(km %% 1 == 0)) {
     stop(paste0('K means column clustering parameter (km): ', km, ' is not an integer. Please specify an integer value for km.'))
   } else if (!is.null(km) && km < 1) {
     stop(paste0('K means column clustering parameter (km): ', km, ' is less than 1. Please specify an integer value greater than 1 for km.'))
@@ -603,9 +603,7 @@ ClusteredDotPlot <- function(seuratObj,
   #check if "g" characters were added to numeric rows in Seurat. 
   #This only happens if the original rownames are purely numeric. 
   
-  if (all (rownames(pct) %in% rownames(mat))) {
-    next
-  } else if (all(paste0("g", rownames(pct)) %in% rownames(mat))) {
+  if (all(paste0("g", rownames(pct)) %in% rownames(mat))) {
     rownames(pct) <- paste0("g", rownames(pct))
   } else if ( all(gsub("-", "_", rownames(mat)) %in% rownames(pct))) {
     rownames(mat) <- gsub("-", "_", rownames(mat))
