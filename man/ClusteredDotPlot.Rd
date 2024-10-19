@@ -12,7 +12,9 @@ ClusteredDotPlot(
   ggplotify = TRUE,
   scaling = "column",
   layer = "data",
-  forceRescaling = FALSE
+  forceRescaling = FALSE,
+  km = NULL,
+  columnTitles = NULL
 )
 }
 \arguments{
@@ -31,6 +33,10 @@ ClusteredDotPlot(
 \item{layer}{The layer of the Seurat object that holds the relevant expression data.}
 
 \item{forceRescaling}{A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.}
+
+\item{km}{The number of k-means clusters to split the columns into. This is passed directly to ComplexHeatmap. Must be an integer or NULL.}
+
+\item{columnTitles}{The column title(s) for the heatmap. Acceptable values are 1 (for a single title), NULL (for no title), or length(columnTitles) == km. If km is an integer, these will be used to label the k-means column-wise clusters. Please note that alignment of the column titles and the k means clustering will likely need manual adjustment after an initial assessment of the order of the kmeans clusters.}
 }
 \description{
 A function that generates a clustered dot plot with a heatmap of scaled expression.

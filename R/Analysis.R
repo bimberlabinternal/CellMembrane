@@ -454,6 +454,8 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param scaling The scaling method for the heatmap. Options are "row", "column", or none.
 #' @param layer The layer of the Seurat object that holds the relevant expression data. 
 #' @param forceRescaling A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.
+#' @param km The number of k-means clusters to split the columns into. This is passed directly to ComplexHeatmap. Must be an integer or NULL. 
+#' @param columnTitles The column title(s) for the heatmap. Acceptable values are 1 (for a single title), NULL (for no title), or length(columnTitles) == km. If km is an integer, these will be used to label the k-means column-wise clusters. Please note that alignment of the column titles and the k means clustering will likely need manual adjustment after an initial assessment of the order of the kmeans clusters. 
 #' @export
 #' 
 #' @examples
@@ -471,7 +473,16 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' 
 #' }
 
-ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.2", assay = "RNA", ggplotify = TRUE, scaling = 'column', layer = 'data', forceRescaling = FALSE) {
+ClusteredDotPlot <- function(seuratObj, 
+                             features, 
+                             groupFields = "ClusterNames_0.2", 
+                             assay = "RNA", 
+                             ggplotify = TRUE, 
+                             scaling = 'column', 
+                             layer = 'data', 
+                             forceRescaling = FALSE, 
+                             km = NULL, 
+                             columnTitles = NULL) {
   #Sanity checks
   #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
   if (length(features) == 0) {
@@ -530,6 +541,21 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
   if (layer == 'scale.data' && length(intersect(features, scaleDataFeatures)) <= 2){
     stop("Less than two features would be present in the dot plot. Please set forceRescaling = TRUE to proceed with the scale.data layer, or use the 'data' or 'counts' and set the scaling argument to one of: 'column', 'row', or 'none'.")
   }
+  #check km parameter 
+  if (!is.null(km) && !is.integer(km)) {
+    stop(paste0('K means column clustering parameter (km): ', km, ' is not an integer. Please specify an integer value for km.'))
+  } else if (!is.null(km) && km < 1) {
+    stop(paste0('K means column clustering parameter (km): ', km, ' is less than 1. Please specify an integer value greater than 1 for km.'))
+  } else if (is.null(km)) {
+    #if km is NULL, assume no clustering is desired. 
+    km <- 1
+  }
+  #check that the length of the columnTitles matches the number of k-means clusters if specified
+  if ( (length(columnTitles) != 1) && !is.null(km) && !is.null(columnTitles) && length(columnTitles) != km) {
+    stop(paste0('The length of columnTitles: ', length(columnTitles), ' does not match the number of k-means clusters (km): ', km, '. Please specify a single title, NULL, or a vector of column titles that has elements equal to the value of km.'))
+  } else if (length(columnTitles) == km) {
+    warning('Please manually ensure that the order of the columnTitles matches the order of intended the k-means clusters in the heatmap.')
+  } 
   
   #create averaged Seurat object for mean expression and subset features
   avgSeurat <- Seurat::AverageExpression(seuratObj, 
@@ -622,7 +648,8 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
                        show_row_names = T,
                        cluster_rows = F, 
                        cluster_columns = T,
-                       column_km = 1,
+                       column_km = km,
+                       column_title = columnTitles,
                        row_km = 1, 
                        row_names_side = "left", 
                        column_names_rot = 45
