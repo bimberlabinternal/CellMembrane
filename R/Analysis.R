@@ -454,6 +454,20 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param scaling The scaling method for the heatmap. Options are "row", "column", or none.
 #' @param layer The layer of the Seurat object that holds the relevant expression data. 
 #' @param forceRescaling A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.
+#' @param column_km The number of k-means clusters to split the columns into. This is passed directly to ComplexHeatmap. Must be an integer or NULL. 
+#' @param row_km The number of k-means clusters to split the rows into. This is passed directly to ComplexHeatmap. Must be an integer or NULL.
+#' @param columnTitles The column title(s) for the heatmap. Acceptable values are 1 (for a single title), NULL (for no title), or length(columnTitles) == column_km. If column_km is an integer, these will be used to label the k-means column-wise clusters. Please note that alignment of the column titles and the k means clustering will likely need manual adjustment after an initial assessment of the order of the kmeans clusters. 
+#' @param rowTitles The row title(s) for the heatmap. Acceptable values are 1 (for a single title), NULL (for no title), or length(rowTitles) == row_km. If row_km is an integer, these will be used to label the k-means row-wise clusters. Please note that alignment of the row titles and the k means clustering will likely need manual adjustment after an initial assessment of the order of the kmeans clusters.
+#' @param numberColumns A boolean that determines if the column titles should be numbered. If columnTitles is not NULL, this will be ignored.
+#' @param numberRows A boolean that determines if the row titles should be numbered. If rowTitles is not NULL, this will be ignored.
+#' @param height A passthrough variable to ComplexHeatmap for the height of the heatmap.
+#' @param width A passthrough variable to ComplexHeatmap for the width of the heatmap.
+#' @param clusterRows A boolean that determines if the rows should be clustered.
+#' @param row_title_rot The angle for rotation of the row titles.
+#' @param column_title_rot The angle for rotation of the column titles.
+#' @param show_row_dend A boolean that determines if the row dendrogram should be shown.
+#' @param show_column_dend A boolean that determines if the column dendrogram should be shown.
+#' 
 #' @export
 #' 
 #' @examples
@@ -471,8 +485,28 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' 
 #' }
 
-ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.2", assay = "RNA", ggplotify = TRUE, scaling = 'column', layer = 'data', forceRescaling = FALSE) {
-  #Sanity checks
+ClusteredDotPlot <- function(seuratObj, 
+                             features, 
+                             groupFields = "ClusterNames_0.2", 
+                             assay = "RNA", 
+                             ggplotify = FALSE, 
+                             scaling = 'column', 
+                             layer = 'data', 
+                             forceRescaling = FALSE, 
+                             column_km = NULL, 
+                             row_km = NULL,
+                             columnTitles = NULL, 
+                             rowTitles = NULL, 
+                             numberColumns = TRUE, 
+                             numberRows = TRUE,
+                             height = NULL, 
+                             width = NULL, 
+                             clusterRows = F, 
+                             row_title_rot = 0, 
+                             column_title_rot = 0, 
+                             show_row_dend = NULL, 
+                             show_column_dend = TRUE) {
+  ## BEGIN ARGUMENT CHECKING
   #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
   if (length(features) == 0) {
     stop("The features argument is empty. Please specify a non-empty vector of features.")
@@ -530,6 +564,91 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
   if (layer == 'scale.data' && length(intersect(features, scaleDataFeatures)) <= 2){
     stop("Less than two features would be present in the dot plot. Please set forceRescaling = TRUE to proceed with the scale.data layer, or use the 'data' or 'counts' and set the scaling argument to one of: 'column', 'row', or 'none'.")
   }
+  #check column_km parameter 
+  if (!is.null(column_km) && !(column_km %% 1 == 0)) {
+    stop(paste0('K means column clustering parameter (column_km): ', column_km, ' is not an integer. Please specify an integer value for column_km.'))
+  } else if (!is.null(column_km) && column_km < 1) {
+    stop(paste0('K means column clustering parameter (column_km): ', column_km, ' is less than 1. Please specify an integer value greater than 1 for column_km.'))
+  } else if (is.null(column_km)) {
+    #if column_km is NULL, assume no clustering is desired. 
+    column_km <- 1
+  }
+  #check row_km parameter
+  if (!is.null(row_km) && !(row_km %% 1 == 0)) {
+    stop(paste0('K means row clustering parameter (row_km): ', row_km, ' is not an integer. Please specify an integer value for row_km.'))
+  } else if (!is.null(row_km) && row_km < 1) {
+    stop(paste0('K means row clustering parameter (row_km): ', row_km, ' is less than 1. Please specify an integer value greater than 1 for row_km.'))
+  } else if (is.null(row_km)) {
+    #if row_km is NULL, assume no clustering is desired. 
+    row_km <- 1
+  }
+  #check that the length of the columnTitles matches the number of k-means clusters if specified
+  if ( (length(columnTitles) != 1) && !is.null(column_km) && !is.null(columnTitles) && length(columnTitles) != column_km) {
+    stop(paste0('The length of columnTitles: ', length(columnTitles), ' does not match the number of k-means clusters (column_km): ', column_km, '. Please specify a single title, NULL, or a vector of column titles that has elements equal to the value of column_km.'))
+  } else if (length(columnTitles) == column_km) {
+    warning('Please manually ensure that the order of the columnTitles matches the order of intended the k-means clusters in the heatmap.')
+  } 
+  #check that the length of the rowTitles matches the number of k-means clusters if specified
+  if ( (length(rowTitles) != 1) && !is.null(row_km) && !is.null(rowTitles) && length(rowTitles) != row_km) {
+    stop(paste0('The length of rowTitles: ', length(rowTitles), ' does not match the number of k-means clusters (row_km): ', row_km, '. Please specify a single title, NULL, or a vector of row titles that has elements equal to the value of row_km.'))
+  } else if (length(rowTitles) == row_km) {
+    warning('Please manually ensure that the order of the rowTitles matches the order of intended the k-means clusters in the heatmap.')
+  }
+  #check that the numbering defaults are boolean 
+  if (!is.logical(numberColumns)) {
+    stop(paste0('numberColumns: ', numberColumns, ' is not a boolean. Please specify numberColumns = TRUE or numberColumns = FALSE. If TRUE and the columnTitles vector is not supplied, the column titles will be numbered.'))
+  } 
+  if (!is.logical(numberRows)) {
+    stop(paste0('numberRows: ', numberRows, ' is not a boolean. Please specify numberRows = TRUE or numberRows = FALSE. If TRUE and the rowTitles vector is not supplied, the row titles will be numbered.'))
+  }
+  #check that height and width are valid unit variables 
+  if (all(class(height) %in% c("simpleUnit", "unit", "unit_v2"))) { 
+    stop(paste0('height: ', height, ' is not a valid unit. Please specify a valid unit for the height argument, such as unit(7, "mm"). The default is the number of features multiplied by the function unit(25, "mm").'))
+  }
+  if (all(class(width) %in% c("simpleUnit", "unit", "unit_v2"))) { 
+    stop(paste0('width: ', width, ' is not a valid unit. Please specify a valid unit for the width argument, such as unit(7, "mm"). The default is the number of groups (groupFields) multiplied by the function unit(7, "mm").'))
+  }
+  #check that title rotations are valid 
+  if (!is.null(rowTitles) && !is.numeric(row_title_rot)) {
+    stop(paste0('row_title_rot: ', row_title_rot, ' is not a numeric value. Please specify a numeric value for the angle to rotate the row titles.'))
+  }
+  if (!is.null(columnTitles) && !is.numeric(column_title_rot)) {
+    stop(paste0('column_title_rot: ', column_title_rot, ' is not a numeric value. Please specify a numeric value for the angle to rotate the column titles.'))
+  }
+  #check the booleans for showing the dendrograms
+  if (!is.logical(show_row_dend) & !is.null(show_row_dend)) {
+    stop(paste0('show_row_dend: ', show_row_dend, ' is not a boolean. Please specify show_row_dend = TRUE or show_row_dend = FALSE. If TRUE, the row dendrogram will be shown.'))
+  }
+  if (!is.logical(show_column_dend) & !is.null(show_column_dend)) {
+    stop(paste0('show_column_dend: ', show_column_dend, ' is not a boolean. Please specify show_column_dend = TRUE or show_column_dend = FALSE. If TRUE, the column dendrogram will be shown.'))
+  }
+  ## END ARGUMENT CHECKING
+  ## START SETTING DEFAULT ARGUMENTS
+  #number columns if column_km isn't null, but the user didn't specify columnTitles.
+  if (is.null(columnTitles) && !is.null(column_km) && numberColumns) {
+    columnTitles <- 1:column_km
+  }
+  #number rows if row_km isn't null, but the user didn't specify rowTitles.
+  if (is.null(rowTitles) && !is.null(row_km) && numberRows) {
+    rowTitles <- 1:row_km
+  }
+  #set defaults for height and width based on the number of features and groups if left unspecified.
+  if (is.null(height)) {
+    height <- length(groupFields)*unit(25, "mm")
+  }
+  if (is.null(width)) {
+    width <- length(features)*unit(7, "mm")
+  }
+  #set show_row_dend to TRUE if row_km is greater than 1 and show_row_dend is NULL
+  if (is.null(show_row_dend) && row_km > 1) {
+    show_row_dend <- TRUE
+  }
+  #set show_column_dend to TRUE if column_km is greater than 1 and show_column_dend is NULL
+  if (is.null(show_column_dend) && column_km > 1) {
+    show_column_dend <- TRUE
+  }
+  ## END SETTING DEFAULT ARGUMENTS
+  ## BEGIN HEATMAP CONSTRUCTION
   
   #create averaged Seurat object for mean expression and subset features
   avgSeurat <- Seurat::AverageExpression(seuratObj, 
@@ -551,8 +670,8 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
     mat <- as.matrix(mat) %>%
       Matrix::t()
   }
-  
-  fullorder <- colnames(mat)
+  #establish the ordering of the expression heatmap
+  featureorder <- colnames(mat)
   
   #harvest the percentage of cells expressing genes within the features vector from the Seurat::DotPlot output.
   #TODO: this works fine, but we have a version of this in the pseudobulking code. We could replace it if Seurat changes their dotplot. 
@@ -574,20 +693,34 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
                                    "#FF6948FF", #orangered/brick red
                                    "#FF0000FF"), #red
                                  space = "sRGB")
-  pct <- pct[,fullorder]
+  #check if "g" characters were added to numeric rows in Seurat. 
+  #This only happens if the original rownames are purely numeric. 
+  
+  if (all(paste0("g", rownames(pct)) %in% rownames(mat))) {
+    rownames(pct) <- paste0("g", rownames(pct))
+  } else if ( all(gsub("-", "_", rownames(mat)) %in% rownames(pct))) {
+    rownames(mat) <- gsub("-", "_", rownames(mat))
+  } else {
+    message("There's a parsing error between Seurat and ComplexHeatmap. Try to avoid special characters in the name of your groupField.")
+    message("Printing rownames to demonstrate the parsing issues:")
+    print(unique(c(rownames(pct)[!rownames(pct) %in% rownames(mat)], rownames(mat)[!rownames(mat) %in% rownames(pct)])))
+    stop("Parsing error, please see above.")
+    
+  }
+  #enforce the order of the dotplot to match the heatmap
+  pct <- pct[rownames(mat),featureorder]
   
   #Set the heatmap name according to scaling
   if (scaling == 'row') {
-    name <- 'Scaled\nExpr. (Row)'
+    legendName <- 'Scaled\nExpr. (Row)'
   } else if (scaling == 'column') {
-    name <- 'Scaled\nExpr. (Column)'
+    legendName <- 'Scaled\nExpr. (Column)'
   } else {
     #Average Seurat correctly averages the counts depending on the layer argument, but the transformation afterwards is also layer dependent and should be reported
-    name <- paste0(c('Unscaled\nExpr.\n(layer = ', layer,')'), collapse = '')
+    legendName <- paste0(c('Unscaled\nExpr.\n(layer = ', layer,')'), collapse = '')
   }
   
   #create the heatmap
-  #TODO: we could expose some of these parameters to the user if desired, but I think Greg's defaults are pretty good.
   suppressMessages(comp_heatmap <-
                      ComplexHeatmap::Heatmap(
                        mat,
@@ -597,24 +730,29 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
                        },
                        rect_gp = grid::gpar(type="none"),
                        border_gp = grid::gpar(col = "black", lty = 1),
-                       height = nrow(mat)*unit(7, "mm"),
-                       width = ncol(mat)*unit(7, "mm"),
-                       name = name,
+                       height = height,
+                       width = width,
+                       name = legendName,
                        show_column_names = TRUE,
-                       show_column_dend = T,
+                       show_column_dend = show_column_dend,
+                       show_row_dend = show_row_dend, 
                        show_row_names = T,
-                       cluster_rows = F, 
+                       cluster_rows = clusterRows, 
                        cluster_columns = T,
-                       column_km = 1,
-                       row_km = 1, 
+                       column_km = column_km,
+                       column_title = columnTitles,
+                       row_km = row_km, 
+                       row_title = rowTitles,
                        row_names_side = "left", 
-                       column_names_rot = 45
+                       column_names_rot = 45, 
+                       row_title_rot = row_title_rot, 
+                       column_title_rot = column_title_rot
                      ))
   if (ggplotify){
+    #TODO: this is harder than originally thought. the legend and heatmap are separate viewports, and perhaps setting the name variable messes with things. I'll fix this as soon as I understand it. 
+    #Relevant issue: https://github.com/jokergoo/ComplexHeatmap/issues/110
     ggplotify::as.ggplot(comp_heatmap)
   }
   print(comp_heatmap)
   return(comp_heatmap)
 }
-
-
