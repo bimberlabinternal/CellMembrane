@@ -616,10 +616,10 @@ ClusteredDotPlot <- function(seuratObj,
     stop(paste0('column_title_rot: ', column_title_rot, ' is not a numeric value. Please specify a numeric value for the angle to rotate the column titles.'))
   }
   #check the booleans for showing the dendrograms
-  if (!is.logical(show_row_dend)) {
+  if (!is.logical(show_row_dend) & !is.null(show_row_dend)) {
     stop(paste0('show_row_dend: ', show_row_dend, ' is not a boolean. Please specify show_row_dend = TRUE or show_row_dend = FALSE. If TRUE, the row dendrogram will be shown.'))
   }
-  if (!is.logical(show_column_dend)) {
+  if (!is.logical(show_column_dend) & !is.null(show_column_dend)) {
     stop(paste0('show_column_dend: ', show_column_dend, ' is not a boolean. Please specify show_column_dend = TRUE or show_column_dend = FALSE. If TRUE, the column dendrogram will be shown.'))
   }
   ## END ARGUMENT CHECKING
@@ -642,6 +642,10 @@ ClusteredDotPlot <- function(seuratObj,
   #set show_row_dend to TRUE if row_km is greater than 1 and show_row_dend is NULL
   if (is.null(show_row_dend) && row_km > 1) {
     show_row_dend <- TRUE
+  }
+  #set show_column_dend to TRUE if column_km is greater than 1 and show_column_dend is NULL
+  if (is.null(show_column_dend) && column_km > 1) {
+    show_column_dend <- TRUE
   }
   ## END SETTING DEFAULT ARGUMENTS
   ## BEGIN HEATMAP CONSTRUCTION
