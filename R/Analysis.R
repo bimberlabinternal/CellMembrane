@@ -467,6 +467,8 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param column_title_rot The angle for rotation of the column titles.
 #' @param show_row_dend A boolean that determines if the row dendrogram should be shown.
 #' @param show_column_dend A boolean that determines if the column dendrogram should be shown.
+#' @param row_split This argument accepts an integer, in which case it behaves exactly like row_km, or a vector of length equal to the features vector. This vector will be used to group features into subpanels regardless of their expression clustering.
+#' @param column_split This argument accepts an integer, in which case it behaves exactly like column_km, or a vector of length equal to the groupFields vector. This vector will be used to group groupFields into subpanels regardless of clustering.
 #' 
 #' @export
 #' 
@@ -505,7 +507,9 @@ ClusteredDotPlot <- function(seuratObj,
                              row_title_rot = 0, 
                              column_title_rot = 0, 
                              show_row_dend = NULL, 
-                             show_column_dend = TRUE) {
+                             show_column_dend = TRUE, 
+                             row_split = NULL, 
+                             column_split = NULL) {
   ## BEGIN ARGUMENT CHECKING
   #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
   if (length(features) == 0) {
@@ -622,6 +626,21 @@ ClusteredDotPlot <- function(seuratObj,
   if (!is.logical(show_column_dend) & !is.null(show_column_dend)) {
     stop(paste0('show_column_dend: ', show_column_dend, ' is not a boolean. Please specify show_column_dend = TRUE or show_column_dend = FALSE. If TRUE, the column dendrogram will be shown.'))
   }
+  #check row/column split
+  if (!is.null(row_split) && is.vector(row_split)) {
+    if (!is.null(row_split) && length(row_split) != length(features)) {
+      stop(paste0('row_split: ', row_split, ' is not the same length as the features vector. Please specify an integer value for row_split or a vector of length equal to the features vector.'))
+    }
+  } else if (!is.null(row_split) && !(row_split %% 1 == 0) && !(row_split > 0)) {
+    stop(paste0('row_split: ', row_split, ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
+  }
+  if (!is.null(column_split) && is.vector(column_split)) {
+    if (!is.null(column_split) && length(column_split) != length(groupFields)) {
+    stop(paste0('column_split: ', column_split, ' is not the same length as the groupFields vector. Please specify either a positive integer value or a vector of length equal to the groupFields vector for the column_split argument.'))
+    }
+  } else if (!is.null(column_split) && !(column_split %% 1 == 0) && !(column_split > 0)) {
+    stop(paste0('column_split: ', column_split, ' is not a positive integer or vector. Please specify an integer value for column_split.'))
+  }
   ## END ARGUMENT CHECKING
   ## START SETTING DEFAULT ARGUMENTS
   #number columns if column_km isn't null, but the user didn't specify columnTitles.
@@ -646,6 +665,15 @@ ClusteredDotPlot <- function(seuratObj,
   #set show_column_dend to TRUE if column_km is greater than 1 and show_column_dend is NULL
   if (is.null(show_column_dend) && column_km > 1) {
     show_column_dend <- TRUE
+  }
+  #if column/row split is defined and also column/row_km is defined, keep the split but warn the user. 
+  if (!is.null(row_split) && !is.null(row_km)) {
+    warning("Both row_split and row_km are defined. The row_km argument will be ignored, and the row_split argument will be used to group features into subpanels regardless of clustering.")
+    row_km <- NULL
+  }
+  if (!is.null(column_split) && !is.null(column_km)) {
+    warning("Both column_split and column_km are defined. The column_km argument will be ignored, and the column_split argument will be used to group groupFields into subpanels regardless of clustering.")
+    column_km <- NULL
   }
   ## END SETTING DEFAULT ARGUMENTS
   ## BEGIN HEATMAP CONSTRUCTION
@@ -746,7 +774,9 @@ ClusteredDotPlot <- function(seuratObj,
                        row_names_side = "left", 
                        column_names_rot = 45, 
                        row_title_rot = row_title_rot, 
-                       column_title_rot = column_title_rot
+                       column_title_rot = column_title_rot, 
+                       column_split = column_split, 
+                       row_split = row_split
                      ))
   if (ggplotify){
     #TODO: this is harder than originally thought. the legend and heatmap are separate viewports, and perhaps setting the name variable messes with things. I'll fix this as soon as I understand it. 

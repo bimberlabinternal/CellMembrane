@@ -25,7 +25,9 @@ ClusteredDotPlot(
   row_title_rot = 0,
   column_title_rot = 0,
   show_row_dend = NULL,
-  show_column_dend = TRUE
+  show_column_dend = TRUE,
+  row_split = NULL,
+  column_split = NULL
 )
 }
 \arguments{
@@ -70,6 +72,10 @@ ClusteredDotPlot(
 \item{show_row_dend}{A boolean that determines if the row dendrogram should be shown.}
 
 \item{show_column_dend}{A boolean that determines if the column dendrogram should be shown.}
+
+\item{row_split}{This argument accepts an integer, in which case it behaves exactly like row_km, or a vector of length equal to the features vector. This vector will be used to group features into subpanels regardless of their expression clustering.}
+
+\item{column_split}{This argument accepts an integer, in which case it behaves exactly like column_km, or a vector of length equal to the groupFields vector. This vector will be used to group groupFields into subpanels regardless of clustering.}
 }
 \description{
 A function that generates a clustered dot plot with a heatmap of scaled expression.
