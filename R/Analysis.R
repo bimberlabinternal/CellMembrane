@@ -481,7 +481,7 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' #filter markers to display the largest cluster identity markers according to average log fold change and differences in pct expression.
 #' strong_markers <- markers[abs(markers$avg_log2FC) > 3 & abs(markers$pct.1 - markers$pct.2) > 0.25, "gene"]
 #' 
-#' dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column', ggplotify = TRUE)
+#' dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column')
 #' print(dotPlot)
 #' 
 #' }
@@ -532,10 +532,6 @@ ClusteredDotPlot <- function(seuratObj,
   #check assay
   if (!assay %in% Seurat::Assays(seuratObj)) {
     stop(paste0('Assay not found in Seurat object: ', assay))
-  }
-  #check ggplotify boolean
-  if (!is.logical(ggplotify)) {
-    stop(paste0('ggplotify: ', ggplotify, ' is not a boolean. Please specify ggplotify = TRUE or ggplotify = FALSE. If TRUE, the ComplexHeatmap object will be converted to a ggplot object.'))
   }
   #check if forceRescaling is a boolean
   if (!is.logical(forceRescaling)) {
