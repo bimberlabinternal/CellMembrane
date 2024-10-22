@@ -9,7 +9,6 @@ ClusteredDotPlot(
   features,
   groupFields = "ClusterNames_0.2",
   assay = "RNA",
-  ggplotify = FALSE,
   scaling = "column",
   layer = "data",
   forceRescaling = FALSE,
@@ -38,8 +37,6 @@ ClusteredDotPlot(
 \item{groupFields}{The metadata column that is used for grouping.}
 
 \item{assay}{The assay to plot.}
-
-\item{ggplotify}{A boolean that determines if the ComplexHeatmap object should be converted to a ggplot object.}
 
 \item{scaling}{The scaling method for the heatmap. Options are "row", "column", or none.}
 

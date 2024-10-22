@@ -450,7 +450,6 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param features The features to plot.
 #' @param groupFields The metadata column that is used for grouping.
 #' @param assay The assay to plot.
-#' @param ggplotify A boolean that determines if the ComplexHeatmap object should be converted to a ggplot object.
 #' @param scaling The scaling method for the heatmap. Options are "row", "column", or none.
 #' @param layer The layer of the Seurat object that holds the relevant expression data. 
 #' @param forceRescaling A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.
@@ -491,7 +490,6 @@ ClusteredDotPlot <- function(seuratObj,
                              features, 
                              groupFields = "ClusterNames_0.2", 
                              assay = "RNA", 
-                             ggplotify = FALSE, 
                              scaling = 'column', 
                              layer = 'data', 
                              forceRescaling = FALSE, 
@@ -778,11 +776,6 @@ ClusteredDotPlot <- function(seuratObj,
                        column_split = column_split, 
                        row_split = row_split
                      ))
-  if (ggplotify){
-    #TODO: this is harder than originally thought. the legend and heatmap are separate viewports, and perhaps setting the name variable messes with things. I'll fix this as soon as I understand it. 
-    #Relevant issue: https://github.com/jokergoo/ComplexHeatmap/issues/110
-    ggplotify::as.ggplot(comp_heatmap)
-  }
   print(comp_heatmap)
   return(comp_heatmap)
 }
