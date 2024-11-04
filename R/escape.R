@@ -4,14 +4,13 @@
 #' @param seuratObj A Seurat object.
 #' @param outputAssayName The name of the assay to store results
 #' @param doPlot If true, a FeaturePlot will be printed for each pathway
-#' @param doPca boolean determining if the PCA plot should be computed and printed.
 #' @param performDimRedux If true, the standard seurat PCA/FindClusters/UMAP process will be run on the escape data. This may be most useful when using a customGeneSet or a smaller set of features/pathways
 #' @param msigdbGeneSets A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658). 
 #' @param customGeneSets A (preferably named) list containing gene sets to be scored by escape.
 #' @param assayName The name of the source assay
 #' @return The seurat object with results stored in an assay
 #' @export
-RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FALSE, doPca = TRUE, performDimRedux = FALSE, msigdbGeneSets = c("H"), customGeneSets = NULL, assayName = 'RNA') {
+RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H"), customGeneSets = NULL, assayName = 'RNA') {
   #gene set vector to be populated by msigdb or custom gene sets
   GS <- c()
   
@@ -60,22 +59,7 @@ RunEscape <- function(seuratObj, outputAssayName = "escape.ssGSEA", doPlot = FAL
   seuratObj <- SeuratObject::SetAssayData(seuratObj, assay = outputAssayName, layer = 'counts', new.data = SeuratObject::GetAssayData(seuratObj, assay = outputAssayName, layer = 'data'))
 
   seuratObj <- .NormalizeEscape(seuratObj, assayToNormalize = outputAssayName, assayForLibrarySize = assayName)
-  
-  #you may want to only score a couple of gene sets (e.g. msigdbGeneSets = NULL), in which case you need to determine the pca parameters to ensure it will run. 
-  if (doPca) {
-    seuratObj <- escape::performPCA(seuratObj,
-                                    assay = outputAssayName,
-                                    n.dim = 1:10)
-    print(escape::pcaEnrichment(seuratObj,
-                                dimRed = "escape.PCA",
-                                x.axis = "PC1",
-                                y.axis = "PC2",
-                                add.percent.contribution = TRUE,
-                                display.factors = TRUE,
-                                number.of.factors = 10
-    ))
-  }
-  
+
   if (doPlot) {
     pathways <- rownames(seuratObj@assays[[outputAssayName]])
     key <- seuratObj@assays[[outputAssayName]]@key

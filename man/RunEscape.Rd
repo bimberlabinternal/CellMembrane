@@ -8,7 +8,6 @@ RunEscape(
   seuratObj,
   outputAssayName = "escape.ssGSEA",
   doPlot = FALSE,
-  doPca = TRUE,
   performDimRedux = FALSE,
   msigdbGeneSets = c("H"),
   customGeneSets = NULL,
@@ -21,8 +20,6 @@ RunEscape(
 \item{outputAssayName}{The name of the assay to store results}
 
 \item{doPlot}{If true, a FeaturePlot will be printed for each pathway}
-
-\item{doPca}{boolean determining if the PCA plot should be computed and printed.}
 
 \item{performDimRedux}{If true, the standard seurat PCA/FindClusters/UMAP process will be run on the escape data. This may be most useful when using a customGeneSet or a smaller set of features/pathways}
 
