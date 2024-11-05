@@ -4,7 +4,7 @@ test_that("escape works as expected", {
     seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 
     # if no genes match any feature, escape will error on its own, and also the genes missing will warn the user.
-    testthat::expect_warning(testthat::expect_error(RunEscape(seuratObj, msigdbGeneSets = NULL, doPca = FALSE, customGeneSets = list("FakeGene" = c("FakeGene")))))
+    testthat::expect_warning(testthat::expect_error(RunEscape(seuratObj, msigdbGeneSets = NULL, customGeneSets = list("FakeGene" = c("FakeGene")))))
     
     #test full functionality
     seuratObj <- RunEscape(seuratObj, msigdbGeneSets = "H", customGeneSets = list("CD3E" = c("CD3E")), performDimRedux = TRUE)
