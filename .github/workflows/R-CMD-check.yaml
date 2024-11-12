@@ -50,7 +50,7 @@ jobs:
         # NOTE: added numpy<2 to side-step a numpy version issue. This should be removed eventually. See: https://github.com/numpy/numpy/issues/26710
         run: |
           # NOTE: libsodium-dev installed for VISION
-          sudo apt-get update && sudo apt-get install -yq libharfbuzz-dev libfribidi-dev python3 python3-pip libsodium-dev libcurl4-openssl-dev libglpk-dev libhdf5-dev
+          sudo apt-get update && sudo apt-get install -yq libharfbuzz-dev libfribidi-dev python3 python3-pip libsodium-dev libcurl4-openssl-dev libglpk-dev libhdf5-dev libmagick++-dev
           sudo apt-get update
           sudo apt-get install -yq libharfbuzz-dev libfribidi-dev libsodium-dev libcurl4-openssl-dev python3 python3-pip          
           python3 -m pip install --user wheel setuptools
