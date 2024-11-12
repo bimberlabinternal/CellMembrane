@@ -81,7 +81,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2024-11-06</h4>
+            <h4 data-toc-skip class="date">2024-11-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/master/vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd" class="external-link"><code>vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd</code></a></small>
       <div class="hidden name"><code>Pseudobulking-and-Filtered-Contrasts.Rmd</code></div>
@@ -608,48 +608,48 @@ genes in the <code>DE_results</code> list.</p>
 <p>The results of these fits are collected in an indexed list.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">`1`</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                       logFC   logCPM        F       PValue        FDR</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779 2.506728 7.947134 28.94198 1.478122e-06 0.01327945</span></span>
-<span><span class="co">#&gt; PPBP               5.924602 6.281533 18.50301 7.224732e-05 0.29304599</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466 4.961022 5.720617 17.71018 9.849024e-05 0.29304599</span></span>
-<span><span class="co">#&gt; CCL4               1.134007 8.081421 16.07607 1.799530e-04 0.29304599</span></span>
-<span><span class="co">#&gt; JUND               3.465299 5.807931 15.97362 1.840914e-04 0.29304599</span></span>
-<span><span class="co">#&gt; MYL9               5.043884 5.761552 15.99637 1.957119e-04 0.29304599</span></span>
-<span><span class="co">#&gt;                                  gene       pct.1       pct.2</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779 ENSMMUG00000013779 0.100000000 0.077519380</span></span>
-<span><span class="co">#&gt; PPBP                             PPBP 0.007692308 0.000000000</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466 ENSMMUG00000045466 0.053846154 0.000000000</span></span>
-<span><span class="co">#&gt; CCL4                             CCL4 0.246153846 0.162790698</span></span>
-<span><span class="co">#&gt; JUND                             JUND 0.107692308 0.007751938</span></span>
-<span><span class="co">#&gt; MYL9                             MYL9 0.030769231 0.000000000</span></span>
+<span><span class="co">#&gt;                         logFC    logCPM        F       PValue          FDR</span></span>
+<span><span class="co">#&gt; ENSMMUG00000013779  2.5050954  7.947134 41.42212 2.343566e-09 0.0000210546</span></span>
+<span><span class="co">#&gt; PPBP                5.9204304  6.281533 26.74732 9.143648e-07 0.0041073267</span></span>
+<span><span class="co">#&gt; ENSMMUG00000045466  4.9622553  5.720617 18.99011 2.745347e-05 0.0711728374</span></span>
+<span><span class="co">#&gt; MYL9                5.0419674  5.761552 18.67463 3.168871e-05 0.0711728374</span></span>
+<span><span class="co">#&gt; CCL4                1.1331389  8.081421 17.09495 6.449480e-05 0.1158842625</span></span>
+<span><span class="co">#&gt; FTH1               -0.5151792 11.954005 16.30541 9.309469e-05 0.1393937809</span></span>
+<span><span class="co">#&gt;                                  gene       pct.1      pct.2</span></span>
+<span><span class="co">#&gt; ENSMMUG00000013779 ENSMMUG00000013779 0.100000000 0.07751938</span></span>
+<span><span class="co">#&gt; PPBP                             PPBP 0.007692308 0.00000000</span></span>
+<span><span class="co">#&gt; ENSMMUG00000045466 ENSMMUG00000045466 0.053846154 0.00000000</span></span>
+<span><span class="co">#&gt; MYL9                             MYL9 0.030769231 0.00000000</span></span>
+<span><span class="co">#&gt; CCL4                             CCL4 0.246153846 0.16279070</span></span>
+<span><span class="co">#&gt; FTH1                             FTH1 0.892307692 0.95348837</span></span>
 <span><span class="co">#&gt;                                           contrast_name positive_contrast</span></span>
 <span><span class="co">#&gt; ENSMMUG00000013779 control_baseline-vaccineOne_baseline  control_baseline</span></span>
 <span><span class="co">#&gt; PPBP               control_baseline-vaccineOne_baseline  control_baseline</span></span>
 <span><span class="co">#&gt; ENSMMUG00000045466 control_baseline-vaccineOne_baseline  control_baseline</span></span>
-<span><span class="co">#&gt; CCL4               control_baseline-vaccineOne_baseline  control_baseline</span></span>
-<span><span class="co">#&gt; JUND               control_baseline-vaccineOne_baseline  control_baseline</span></span>
 <span><span class="co">#&gt; MYL9               control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; CCL4               control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; FTH1               control_baseline-vaccineOne_baseline  control_baseline</span></span>
 <span><span class="co">#&gt;                      negative_contrast positive_contrast_vaccine_cohort</span></span>
 <span><span class="co">#&gt; ENSMMUG00000013779 vaccineOne_baseline                          control</span></span>
 <span><span class="co">#&gt; PPBP               vaccineOne_baseline                          control</span></span>
 <span><span class="co">#&gt; ENSMMUG00000045466 vaccineOne_baseline                          control</span></span>
-<span><span class="co">#&gt; CCL4               vaccineOne_baseline                          control</span></span>
-<span><span class="co">#&gt; JUND               vaccineOne_baseline                          control</span></span>
 <span><span class="co">#&gt; MYL9               vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; CCL4               vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; FTH1               vaccineOne_baseline                          control</span></span>
 <span><span class="co">#&gt;                    positive_contrast_timepoint negative_contrast_vaccine_cohort</span></span>
 <span><span class="co">#&gt; ENSMMUG00000013779                    baseline                       vaccineOne</span></span>
 <span><span class="co">#&gt; PPBP                                  baseline                       vaccineOne</span></span>
 <span><span class="co">#&gt; ENSMMUG00000045466                    baseline                       vaccineOne</span></span>
-<span><span class="co">#&gt; CCL4                                  baseline                       vaccineOne</span></span>
-<span><span class="co">#&gt; JUND                                  baseline                       vaccineOne</span></span>
 <span><span class="co">#&gt; MYL9                                  baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; CCL4                                  baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; FTH1                                  baseline                       vaccineOne</span></span>
 <span><span class="co">#&gt;                    negative_contrast_timepoint</span></span>
 <span><span class="co">#&gt; ENSMMUG00000013779                    baseline</span></span>
 <span><span class="co">#&gt; PPBP                                  baseline</span></span>
 <span><span class="co">#&gt; ENSMMUG00000045466                    baseline</span></span>
+<span><span class="co">#&gt; MYL9                                  baseline</span></span>
 <span><span class="co">#&gt; CCL4                                  baseline</span></span>
-<span><span class="co">#&gt; JUND                                  baseline</span></span>
-<span><span class="co">#&gt; MYL9                                  baseline</span></span></code></pre></div>
+<span><span class="co">#&gt; FTH1                                  baseline</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
