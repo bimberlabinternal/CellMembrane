@@ -402,20 +402,33 @@ LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayFo
 		stop(paste0('The assayToNormalize and assayForLibrarySize do not have the same cell names!'))
 	}
 
+	if (is.null(maxLibrarySizeRatio) || is.na(maxLibrarySizeRatio)) {
+	    maxLibrarySizeRatio <- Inf
+	}
+
 	margin <- 2
 	ncells <- dim(x = toNormalize)[margin]
 
+    ratios <- c()
 	for (i in seq_len(length.out = ncells)) {
 		x <- toNormalize[, i]
 		librarySize <- sum(x) + sum(assayForLibrarySizeData[, i])
 
-		if ((sum(x) / librarySize) > maxLibrarySizeRatio) {
-			stop(paste0('The ratio of library sizes was above maxLibrarySizeRatio for cell: ', colnames(assayForLibrarySizeData)[i], '. was: ', (sum(x) / librarySize), ' (', sum(x), ' / ', librarySize, ')'))
+        lsr <- (sum(x) / librarySize)
+		if (lsr > maxLibrarySizeRatio) {
+			stop(paste0('The ratio of library sizes was above maxLibrarySizeRatio for cell: ', colnames(assayForLibrarySizeData)[i], ', on assay: ', assayToNormalize, '. Ratio was: ', (sum(x) / librarySize), ' (', sum(x), ' / ', librarySize, ')'))
 		}
 
+        ratios <- c(ratios, lsr)
 		xnorm <- log1p(x = x / librarySize * scale.factor)
 		toNormalize[, i] <- xnorm
 	}
+
+	print(ggplot(data.frame(lsr = ratios), aes(x = lsr)) +
+	    geom_histogram() +
+	    ggtitle(paste0("Library size ratios: ", assayToNormalize)) +
+        egg::theme_article()
+	)
 
 	seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, layer = 'data', new.data = toNormalize)
 
