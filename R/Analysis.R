@@ -453,22 +453,10 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param scaling The scaling method for the heatmap. Options are "row", "column", or none.
 #' @param layer The layer of the Seurat object that holds the relevant expression data. 
 #' @param forceRescaling A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.
-#' @param column_km The number of k-means clusters to split the columns into. This is passed directly to ComplexHeatmap. Must be an integer or NULL. 
-#' @param row_km The number of k-means clusters to split the rows into. This is passed directly to ComplexHeatmap. Must be an integer or NULL.
-#' @param columnTitles The column title(s) for the heatmap. Acceptable values are 1 (for a single title), NULL (for no title), or length(columnTitles) == column_km. If column_km is an integer, these will be used to label the k-means column-wise clusters. Please note that alignment of the column titles and the k means clustering will likely need manual adjustment after an initial assessment of the order of the kmeans clusters. 
-#' @param rowTitles The row title(s) for the heatmap. Acceptable values are 1 (for a single title), NULL (for no title), or length(rowTitles) == row_km. If row_km is an integer, these will be used to label the k-means row-wise clusters. Please note that alignment of the row titles and the k means clustering will likely need manual adjustment after an initial assessment of the order of the kmeans clusters.
-#' @param numberColumns A boolean that determines if the column titles should be numbered. If columnTitles is not NULL, this will be ignored.
-#' @param numberRows A boolean that determines if the row titles should be numbered. If rowTitles is not NULL, this will be ignored.
-#' @param height A passthrough variable to ComplexHeatmap for the height of the heatmap.
-#' @param width A passthrough variable to ComplexHeatmap for the width of the heatmap.
-#' @param clusterRows A boolean that determines if the rows should be clustered.
-#' @param row_title_rot The angle for rotation of the row titles.
-#' @param column_title_rot The angle for rotation of the column titles.
-#' @param show_row_dend A boolean that determines if the row dendrogram should be shown.
-#' @param show_column_dend A boolean that determines if the column dendrogram should be shown.
-#' @param row_split This argument accepts an integer, in which case it behaves exactly like row_km, or a vector of length equal to the features vector. This vector will be used to group features into subpanels regardless of their expression clustering.
-#' @param column_split This argument accepts an integer, in which case it behaves exactly like column_km, or a vector of length equal to the groupFields vector. This vector will be used to group groupFields into subpanels regardless of clustering.
-#' 
+#' @param inferDefaultArguments If TRUE, the function will infer the default arguments for the ComplexHeatmap::Heatmap function.
+#' @param printInferredArguments Boolean to control optional printing of the arguments inferred by inferDefaultArguments.
+#' @param ... Additional arguments to pass to ComplexHeatmap::Heatmap
+#'
 #' @export
 #' 
 #' @examples
@@ -493,21 +481,9 @@ ClusteredDotPlot <- function(seuratObj,
                              scaling = 'column', 
                              layer = 'data', 
                              forceRescaling = FALSE, 
-                             column_km = NULL, 
-                             row_km = NULL,
-                             columnTitles = NULL, 
-                             rowTitles = NULL, 
-                             numberColumns = TRUE, 
-                             numberRows = TRUE,
-                             height = NULL, 
-                             width = NULL, 
-                             clusterRows = F, 
-                             row_title_rot = 0, 
-                             column_title_rot = 0, 
-                             show_row_dend = NULL, 
-                             show_column_dend = TRUE, 
-                             row_split = NULL, 
-                             column_split = NULL) {
+                             inferDefaultArguments = TRUE, 
+                             printInferredArguments = FALSE,
+                             ...) {
   ## BEGIN ARGUMENT CHECKING
   #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
   if (length(features) == 0) {
@@ -562,114 +538,24 @@ ClusteredDotPlot <- function(seuratObj,
   if (layer == 'scale.data' && length(intersect(features, scaleDataFeatures)) <= 2){
     stop("Less than two features would be present in the dot plot. Please set forceRescaling = TRUE to proceed with the scale.data layer, or use the 'data' or 'counts' and set the scaling argument to one of: 'column', 'row', or 'none'.")
   }
-  #check column_km parameter 
-  if (!is.null(column_km) && !(column_km %% 1 == 0)) {
-    stop(paste0('K means column clustering parameter (column_km): ', column_km, ' is not an integer. Please specify an integer value for column_km.'))
-  } else if (!is.null(column_km) && column_km < 1) {
-    stop(paste0('K means column clustering parameter (column_km): ', column_km, ' is less than 1. Please specify an integer value greater than 1 for column_km.'))
-  } else if (is.null(column_km)) {
-    #if column_km is NULL, assume no clustering is desired. 
-    column_km <- 1
+  #check booleans around argument inference and printing
+  if (!is.logical(inferDefaultArguments)) {
+    stop(paste0('inferDefaultArguments: ', inferDefaultArguments, ' is not a boolean. Please specify inferDefaultArguments = TRUE or inferDefaultArguments = FALSE. If TRUE, the function will infer the default arguments for the ComplexHeatmap::Heatmap function.'))
   }
-  #check row_km parameter
-  if (!is.null(row_km) && !(row_km %% 1 == 0)) {
-    stop(paste0('K means row clustering parameter (row_km): ', row_km, ' is not an integer. Please specify an integer value for row_km.'))
-  } else if (!is.null(row_km) && row_km < 1) {
-    stop(paste0('K means row clustering parameter (row_km): ', row_km, ' is less than 1. Please specify an integer value greater than 1 for row_km.'))
-  } else if (is.null(row_km)) {
-    #if row_km is NULL, assume no clustering is desired. 
-    row_km <- 1
+  if (!is.logical(printInferredArguments)) {
+    stop(paste0('printInferredArguments: ', printInferredArguments, ' is not a boolean. Please specify printInferredArguments = TRUE or printInferredArguments = FALSE. If TRUE, the function will print the arguments inferred by inferDefaultArguments.', collapse = ' '))
   }
-  #check that the length of the columnTitles matches the number of k-means clusters if specified
-  if ( (length(columnTitles) != 1) && !is.null(column_km) && !is.null(columnTitles) && length(columnTitles) != column_km) {
-    stop(paste0('The length of columnTitles: ', length(columnTitles), ' does not match the number of k-means clusters (column_km): ', column_km, '. Please specify a single title, NULL, or a vector of column titles that has elements equal to the value of column_km.'))
-  } else if (length(columnTitles) == column_km) {
-    warning('Please manually ensure that the order of the columnTitles matches the order of intended the k-means clusters in the heatmap.')
-  } 
-  #check that the length of the rowTitles matches the number of k-means clusters if specified
-  if ( (length(rowTitles) != 1) && !is.null(row_km) && !is.null(rowTitles) && length(rowTitles) != row_km) {
-    stop(paste0('The length of rowTitles: ', length(rowTitles), ' does not match the number of k-means clusters (row_km): ', row_km, '. Please specify a single title, NULL, or a vector of row titles that has elements equal to the value of row_km.'))
-  } else if (length(rowTitles) == row_km) {
-    warning('Please manually ensure that the order of the rowTitles matches the order of intended the k-means clusters in the heatmap.')
-  }
-  #check that the numbering defaults are boolean 
-  if (!is.logical(numberColumns)) {
-    stop(paste0('numberColumns: ', numberColumns, ' is not a boolean. Please specify numberColumns = TRUE or numberColumns = FALSE. If TRUE and the columnTitles vector is not supplied, the column titles will be numbered.'))
-  } 
-  if (!is.logical(numberRows)) {
-    stop(paste0('numberRows: ', numberRows, ' is not a boolean. Please specify numberRows = TRUE or numberRows = FALSE. If TRUE and the rowTitles vector is not supplied, the row titles will be numbered.'))
-  }
-  #check that height and width are valid unit variables 
-  if (all(class(height) %in% c("simpleUnit", "unit", "unit_v2"))) { 
-    stop(paste0('height: ', height, ' is not a valid unit. Please specify a valid unit for the height argument, such as unit(7, "mm"). The default is the number of features multiplied by the function unit(25, "mm").'))
-  }
-  if (all(class(width) %in% c("simpleUnit", "unit", "unit_v2"))) { 
-    stop(paste0('width: ', width, ' is not a valid unit. Please specify a valid unit for the width argument, such as unit(7, "mm"). The default is the number of groups (groupFields) multiplied by the function unit(7, "mm").'))
-  }
-  #check that title rotations are valid 
-  if (!is.null(rowTitles) && !is.numeric(row_title_rot)) {
-    stop(paste0('row_title_rot: ', row_title_rot, ' is not a numeric value. Please specify a numeric value for the angle to rotate the row titles.'))
-  }
-  if (!is.null(columnTitles) && !is.numeric(column_title_rot)) {
-    stop(paste0('column_title_rot: ', column_title_rot, ' is not a numeric value. Please specify a numeric value for the angle to rotate the column titles.'))
-  }
-  #check the booleans for showing the dendrograms
-  if (!is.logical(show_row_dend) & !is.null(show_row_dend)) {
-    stop(paste0('show_row_dend: ', show_row_dend, ' is not a boolean. Please specify show_row_dend = TRUE or show_row_dend = FALSE. If TRUE, the row dendrogram will be shown.'))
-  }
-  if (!is.logical(show_column_dend) & !is.null(show_column_dend)) {
-    stop(paste0('show_column_dend: ', show_column_dend, ' is not a boolean. Please specify show_column_dend = TRUE or show_column_dend = FALSE. If TRUE, the column dendrogram will be shown.'))
-  }
-  #check row/column split
-  if (!is.null(row_split) && is.vector(row_split)) {
-    if (!is.null(row_split) && length(row_split) != length(features)) {
-      stop(paste0('row_split: ', row_split, ' is not the same length as the features vector. Please specify an integer value for row_split or a vector of length equal to the features vector.'))
-    }
-  } else if (!is.null(row_split) && !(row_split %% 1 == 0) && !(row_split > 0)) {
-    stop(paste0('row_split: ', row_split, ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
-  }
-  if (!is.null(column_split) && is.vector(column_split)) {
-    if (!is.null(column_split) && length(column_split) != length(groupFields)) {
-    stop(paste0('column_split: ', column_split, ' is not the same length as the groupFields vector. Please specify either a positive integer value or a vector of length equal to the groupFields vector for the column_split argument.'))
-    }
-  } else if (!is.null(column_split) && !(column_split %% 1 == 0) && !(column_split > 0)) {
-    stop(paste0('column_split: ', column_split, ' is not a positive integer or vector. Please specify an integer value for column_split.'))
-  }
+  #Run a bunch of external checks on the ComplexHeatmap::Heatmap function to ensure that the arguments are valid.
+  .CheckComplexHeatmapArguments(features = features, groupFields = groupFields, ...)
+  
   ## END ARGUMENT CHECKING
-  ## START SETTING DEFAULT ARGUMENTS
-  #number columns if column_km isn't null, but the user didn't specify columnTitles.
-  if (is.null(columnTitles) && !is.null(column_km) && numberColumns) {
-    columnTitles <- 1:column_km
+  ## INFER HEATMAP DEFAULTS
+  if (inferDefaultArguments) {
+    inferred_heatmap_args <- .setComplexHeatmapDefaults(features = features, groupFields = groupFields, numberColumns = T, numberRows = T, printInferredArguments = printInferredArguments, ...)
+  } else {
+    inferred_heatmap_args <- list(...)
   }
-  #number rows if row_km isn't null, but the user didn't specify rowTitles.
-  if (is.null(rowTitles) && !is.null(row_km) && numberRows) {
-    rowTitles <- 1:row_km
-  }
-  #set defaults for height and width based on the number of features and groups if left unspecified.
-  if (is.null(height)) {
-    height <- length(groupFields)*unit(25, "mm")
-  }
-  if (is.null(width)) {
-    width <- length(features)*unit(7, "mm")
-  }
-  #set show_row_dend to TRUE if row_km is greater than 1 and show_row_dend is NULL
-  if (is.null(show_row_dend) && row_km > 1) {
-    show_row_dend <- TRUE
-  }
-  #set show_column_dend to TRUE if column_km is greater than 1 and show_column_dend is NULL
-  if (is.null(show_column_dend) && column_km > 1) {
-    show_column_dend <- TRUE
-  }
-  #if column/row split is defined and also column/row_km is defined, keep the split but warn the user. 
-  if (!is.null(row_split) && !is.null(row_km)) {
-    warning("Both row_split and row_km are defined. The row_km argument will be ignored, and the row_split argument will be used to group features into subpanels regardless of clustering.")
-    row_km <- NULL
-  }
-  if (!is.null(column_split) && !is.null(column_km)) {
-    warning("Both column_split and column_km are defined. The column_km argument will be ignored, and the column_split argument will be used to group groupFields into subpanels regardless of clustering.")
-    column_km <- NULL
-  }
-  ## END SETTING DEFAULT ARGUMENTS
+  ## END DEFAULT ARGUMENT INFERENCE
   ## BEGIN HEATMAP CONSTRUCTION
   
   #create averaged Seurat object for mean expression and subset features
@@ -743,35 +629,146 @@ ClusteredDotPlot <- function(seuratObj,
   }
   
   #create the heatmap
-  suppressMessages(comp_heatmap <-
-                     ComplexHeatmap::Heatmap(
-                       mat,
-                       cell_fun = function(j, i, x, y, width, height, fill) {
-                         grid::grid.circle(x = x, y = y, r = sqrt(pct[i,j])/30, default.units = "cm",
-                                           gp = grid::gpar(fill = col_RNA(mat[i, j])))
-                       },
-                       rect_gp = grid::gpar(type="none"),
-                       border_gp = grid::gpar(col = "black", lty = 1),
-                       height = height,
-                       width = width,
-                       name = legendName,
-                       show_column_names = TRUE,
-                       show_column_dend = show_column_dend,
-                       show_row_dend = show_row_dend, 
-                       show_row_names = T,
-                       cluster_rows = clusterRows, 
-                       cluster_columns = T,
-                       column_km = column_km,
-                       column_title = columnTitles,
-                       row_km = row_km, 
-                       row_title = rowTitles,
-                       row_names_side = "left", 
-                       column_names_rot = 45, 
-                       row_title_rot = row_title_rot, 
-                       column_title_rot = column_title_rot, 
-                       column_split = column_split, 
-                       row_split = row_split
-                     ))
+  staticHeatmapArguments <- list(
+    matrix = mat,
+    cell_fun = function(j, i, x, y, width, height, fill) {
+      grid::grid.circle(x = x, y = y, r = sqrt(pct[i,j])/30, default.units = "cm",
+                        gp = grid::gpar(fill = col_RNA(mat[i, j])))
+    },
+    rect_gp = grid::gpar(type="none"),
+    border_gp = grid::gpar(col = "black", lty = 1),
+    name = legendName,
+    show_column_names = TRUE,
+    show_row_names = T,
+    cluster_columns = T,
+    row_names_side = "left", 
+    column_names_rot = 45
+  )
+  heatmapArgs <- c(inferred_heatmap_args, staticHeatmapArguments)
+  suppressMessages(comp_heatmap <- do.call(ComplexHeatmap::Heatmap, heatmapArgs))
   print(comp_heatmap)
   return(comp_heatmap)
+}
+
+.CheckComplexHeatmapArguments <- function(features, groupFields, ...) { 
+  passthrough_args <- list(...)
+  #check that the arguments exist in ComplexHeatmap::Heatmap
+  if (!all(names(passthrough_args) %in% names(formals(ComplexHeatmap::Heatmap)))) {
+    stop(paste0('The following arguments are not supported by ComplexHeatmap::Heatmap: ', paste0(names(passthrough_args)[!names(passthrough_args) %in% names(formals(ComplexHeatmap::Heatmap))], collapse = ', ')))
+  }
+  #check column_km parameter 
+  if (!is.null(passthrough_args[['column_km']]) && !(passthrough_args[['column_km']] %% 1 == 0)) {
+    stop(paste0('K means column clustering parameter (column_km): ', passthrough_args[['column_km']], ' is not an integer. Please specify an integer value for column_km.'))
+  } else if (!is.null(passthrough_args[['column_km']]) && passthrough_args[['column_km']] < 1) {
+    stop(paste0('K means column clustering parameter (column_km): ', passthrough_args[['column_km']], ' is less than 1. Please specify an integer value greater than 1 for column_km.'))
+  } 
+  #check row_km parameter
+  if (!is.null(passthrough_args[['row_km']]) && !(passthrough_args[['row_km']] %% 1 == 0) ) {
+    stop(paste0('K means row clustering parameter (row_km): ', passthrough_args[['row_km']], ' is not an integer. Please specify an integer value for row_km.'))
+  } else if (!is.null(passthrough_args[['row_km']]) && passthrough_args[['row_km']] < 1) {
+    stop(paste0('K means row clustering parameter (row_km): ', passthrough_args[['row_km']], ' is less than 1. Please specify an integer value greater than 1 for row_km.'))
+  } 
+  #check that the length of the column_title matches the number of k-means clusters if specified
+  if ((length(passthrough_args[['column_title']]) != 1) && !is.null(passthrough_args[['column_km']]) && !is.null(passthrough_args[['column_title']]) && length(passthrough_args[['column_title']]) != passthrough_args[['column_km']]) {
+    stop(paste0('The length of column_title: ', length(passthrough_args[['column_title']]), ' does not match the number of k-means clusters (column_km): ', passthrough_args[['column_km']], '. Please specify a single title, NULL, or a vector of column titles that has elements equal to the value of column_km.'))
+  } else if (length(passthrough_args[['column_title']]) == passthrough_args[['column_km']]) {
+    warning('Please manually ensure that the order of the column_title matches the order of intended the k-means clusters in the heatmap.')
+  }
+  #check that the length of the row_title matches the number of k-means clusters if specified
+  if ((length(passthrough_args[['row_title']]) != 1) && !is.null(passthrough_args[['row_km']]) && !is.null(passthrough_args[['row_title']]) && length(passthrough_args[['row_title']]) != passthrough_args[['row_km']]) {
+    stop(paste0('The length of row_title: ', length(passthrough_args[['row_title']]), ' does not match the number of k-means clusters (row_km): ', passthrough_args[['row_km']], '. Please specify a single title, NULL, or a vector of row titles that has elements equal to the value of row_km.'))
+  } else if (length(passthrough_args[['row_title']]) == passthrough_args[['row_km']]) {
+    warning('Please manually ensure that the order of the row_title matches the order of intended the k-means clusters in the heatmap.', immediate. = T)
+  }
+  #check that the numbering defaults are boolean
+  if (!is.null(passthrough_args[['numberColumns']]) && !is.logical(passthrough_args[['numberColumns']])) {
+    stop(paste0('numberColumns: ', passthrough_args[['numberColumns']], ' is not a boolean. Please specify numberColumns = TRUE or numberColumns = FALSE. If TRUE and the column_title vector is not supplied, the column titles will be numbered.'))
+  }
+  if (!is.null(passthrough_args[['numberRows']]) && !is.logical(passthrough_args[['numberRows']])) {
+    stop(paste0('numberRows: ', passthrough_args[['numberRows']], ' is not a boolean. Please specify numberRows = TRUE or numberRows = FALSE. If TRUE and the row_title vector is not supplied, the row titles will be numbered.'))
+  }
+  #check that height and width are valid unit variables
+  if (all(class(passthrough_args[['height']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
+    stop(paste0('height: ', passthrough_args[['height']], ' is not a valid unit. Please specify a valid unit for the height argument, such as unit(7, "mm"). The default is the number of features multiplied by the function unit(25, "mm").'))
+  }
+  if (all(class(passthrough_args[['width']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
+    stop(paste0('width: ', passthrough_args[['width']], ' is not a valid unit. Please specify a valid unit for the width argument, such as unit(7, "mm"). The default is the number of groups (groupFields) multiplied by the function unit(7, "mm").'))
+  }
+  #check that title rotations are valid
+  if (!is.null(passthrough_args[['row_title']]) && !is.numeric(passthrough_args[['row_title_rot']])) {
+    stop(paste0('row_title_rot: ', passthrough_args[['row_title_rot']], ' is not a numeric value. Please specify a numeric value for the angle to rotate the row titles.'))
+  }
+  if (!is.null(passthrough_args[['column_title']]) && !is.numeric(passthrough_args[['column_title_rot']])) {
+    stop(paste0('column_title_rot: ', passthrough_args[['column_title_rot']], ' is not a numeric value. Please specify a numeric value for the angle to rotate the column titles.'))
+  }
+  #check the booleans for showing the dendrograms
+  if (!is.logical(passthrough_args[['show_row_dend']]) & !is.null(passthrough_args[['show_row_dend']])) {
+    stop(paste0('show_row_dend: ', passthrough_args[['show_row_dend']], ' is not a boolean. Please specify show_row_dend = TRUE or show_row_dend = FALSE. If TRUE, the row dendrogram will be shown.'))
+  }
+  if (!is.logical(passthrough_args[['show_column_dend']]) & !is.null(passthrough_args[['show_column_dend']])) {
+    stop(paste0('show_column_dend: ', passthrough_args[['show_column_dend']], ' is not a boolean. Please specify show_column_dend = TRUE or show_column_dend = FALSE. If TRUE, the column dendrogram will be shown.'))
+  }
+  #check that row_split and column_split are valid
+  if (!is.null(passthrough_args[['row_split']]) && is.vector(passthrough_args[['row_split']])) {
+    if (!is.null(passthrough_args[['row_split']]) && length(passthrough_args[['row_split']]) != length(features)) {
+      stop(paste0('row_split: ', row_split, ' is not the same length as the features vector. Please specify an integer value for row_split or a vector of length equal to the features vector.'))
+    }
+  } else if (!is.null(passthrough_args[['row_split']]) && !(passthrough_args[['row_split']] %% 1 == 0) && !(passthrough_args[['row_split']] > 0)) {
+    stop(paste0('row_split: ', row_split, ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
+  }
+  if (!is.null(passthrough_args[['column_split']]) && is.vector(passthrough_args[['column_split']])) {
+    if (!is.null(passthrough_args[['column_split']]) && length(passthrough_args[['column_split']]) != length(groupFields)) {
+      stop(paste0('column_split: ', column_split, ' is not the same length as the groupFields vector. Please specify either a positive integer value or a vector of length equal to the groupFields vector for the column_split argument.'))
+    }
+  } else if (!is.null(passthrough_args[['column_split']]) && !(passthrough_args[['column_split']] %% 1 == 0) && !(passthrough_args[['column_split']] > 0)) {
+    stop(paste0('column_split: ', passthrough_args[['column_split']], ' is not a positive integer or vector. Please specify an integer value for column_split.'))
+  }
+} 
+
+.setComplexHeatmapDefaults <- function(features, groupFields, numberColumns = T, numberRows = T, printInferredArguments, ...) {
+  passthrough_args <- list(...)
+  
+  #if the user doesn't specify row_km or column_km, infer that no clustering is desired
+  if (is.null(passthrough_args[['row_km']])) {
+    passthrough_args[['row_km']] <- 1
+  }
+  if (is.null(passthrough_args[['column_km']])) {
+    passthrough_args[['column_km']] <- 1
+  }
+  #number columns if column_km isn't null, but the user didn't specify column_title.
+  if (is.null(passthrough_args[['column_title']]) && !is.null(passthrough_args[['column_km']]) && numberColumns) {
+    passthrough_args[['column_title']] <- 1:passthrough_args[['column_km']]
+  }
+  #number rows if row_km isn't null, but the user didn't specify row_title.
+  if (is.null(passthrough_args[['row_title']]) && !is.null(passthrough_args[['row_km']]) && numberRows) {
+    passthrough_args[['row_title']] <- 1:passthrough_args[['row_km']]
+  }
+  #set defaults for height and width based on the number of features and groups if left unspecified.
+  if (is.null(passthrough_args[['height']])) {
+    passthrough_args[['height']] <- length(groupFields)*unit(25, "mm")
+  }
+  if (is.null(passthrough_args[['width']])) {
+    passthrough_args[['width']] <- length(features)*unit(7, "mm")
+  }
+  #set show_row_dend to TRUE if row_km is greater than 1 and show_row_dend is NULL
+  if (is.null(passthrough_args[['show_row_dend']]) && passthrough_args[['row_km']] > 1) {
+    passthrough_args[['show_row_dend']] <- TRUE
+  }
+  #set show_column_dend to TRUE if column_km is greater than 1 and show_column_dend is NULL
+  if (is.null(passthrough_args[['show_column_dend']]) && passthrough_args[['column_km']] > 1) {
+    passthrough_args[['show_column_dend']] <- TRUE
+  }
+  #if column/row split is defined and also column/row_km is defined, keep the split but warn the user. 
+  if (!is.null(passthrough_args[['row_split']]) && !is.null(passthrough_args[['row_km']])) {
+    warning("Both row_split and row_km are defined. The row_km argument will be ignored, and the row_split argument will be used to group features into subpanels regardless of clustering.")
+    passthrough_args[['row_km']] <- NULL
+  }
+  if (!is.null(passthrough_args[['column_split']]) && !is.null(passthrough_args[['column_km']])) {
+    warning("Both column_split and column_km are defined. The column_km argument will be ignored, and the column_split argument will be used to group groupFields into subpanels regardless of clustering.")
+    passthrough_args[['column_km']] <- NULL
+  }
+  if (printInferredArguments) {
+    print(passthrough_args)
+  }
+  return(passthrough_args)
 }
