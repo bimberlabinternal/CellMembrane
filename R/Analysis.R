@@ -669,16 +669,20 @@ ClusteredDotPlot <- function(seuratObj,
     stop(paste0('K means row clustering parameter (row_km): ', passthrough_args[['row_km']], ' is less than 1. Please specify an integer value greater than 1 for row_km.'))
   } 
   #check that the length of the column_title matches the number of k-means clusters if specified
+  if (!is.null(passthrough_args[['column_title']])) {
   if ((length(passthrough_args[['column_title']]) != 1) && !is.null(passthrough_args[['column_km']]) && !is.null(passthrough_args[['column_title']]) && length(passthrough_args[['column_title']]) != passthrough_args[['column_km']]) {
     stop(paste0('The length of column_title: ', length(passthrough_args[['column_title']]), ' does not match the number of k-means clusters (column_km): ', passthrough_args[['column_km']], '. Please specify a single title, NULL, or a vector of column titles that has elements equal to the value of column_km.'))
   } else if (length(passthrough_args[['column_title']]) == passthrough_args[['column_km']]) {
     warning('Please manually ensure that the order of the column_title matches the order of intended the k-means clusters in the heatmap.')
   }
+  }
   #check that the length of the row_title matches the number of k-means clusters if specified
+  if (!is.null(passthrough_args[['row_title']])) {
   if ((length(passthrough_args[['row_title']]) != 1) && !is.null(passthrough_args[['row_km']]) && !is.null(passthrough_args[['row_title']]) && length(passthrough_args[['row_title']]) != passthrough_args[['row_km']]) {
     stop(paste0('The length of row_title: ', length(passthrough_args[['row_title']]), ' does not match the number of k-means clusters (row_km): ', passthrough_args[['row_km']], '. Please specify a single title, NULL, or a vector of row titles that has elements equal to the value of row_km.'))
   } else if (length(passthrough_args[['row_title']]) == passthrough_args[['row_km']]) {
     warning('Please manually ensure that the order of the row_title matches the order of intended the k-means clusters in the heatmap.', immediate. = T)
+  }
   }
   #check that the numbering defaults are boolean
   if (!is.null(passthrough_args[['numberColumns']]) && !is.logical(passthrough_args[['numberColumns']])) {
@@ -688,10 +692,11 @@ ClusteredDotPlot <- function(seuratObj,
     stop(paste0('numberRows: ', passthrough_args[['numberRows']], ' is not a boolean. Please specify numberRows = TRUE or numberRows = FALSE. If TRUE and the row_title vector is not supplied, the row titles will be numbered.'))
   }
   #check that height and width are valid unit variables
-  if (all(class(passthrough_args[['height']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
+  
+  if (!is.null(passthrough_args[['height']]) && all(class(passthrough_args[['height']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
     stop(paste0('height: ', passthrough_args[['height']], ' is not a valid unit. Please specify a valid unit for the height argument, such as unit(7, "mm"). The default is the number of features multiplied by the function unit(25, "mm").'))
   }
-  if (all(class(passthrough_args[['width']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
+  if (!is.null(passthrough_args[['width']]) && all(class(passthrough_args[['width']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
     stop(paste0('width: ', passthrough_args[['width']], ' is not a valid unit. Please specify a valid unit for the width argument, such as unit(7, "mm"). The default is the number of groups (groupFields) multiplied by the function unit(7, "mm").'))
   }
   #check that title rotations are valid
@@ -702,25 +707,25 @@ ClusteredDotPlot <- function(seuratObj,
     stop(paste0('column_title_rot: ', passthrough_args[['column_title_rot']], ' is not a numeric value. Please specify a numeric value for the angle to rotate the column titles.'))
   }
   #check the booleans for showing the dendrograms
-  if (!is.logical(passthrough_args[['show_row_dend']]) & !is.null(passthrough_args[['show_row_dend']])) {
+  if (!is.null(passthrough_args[['show_row_dend']]) && !is.logical(passthrough_args[['show_row_dend']])) {
     stop(paste0('show_row_dend: ', passthrough_args[['show_row_dend']], ' is not a boolean. Please specify show_row_dend = TRUE or show_row_dend = FALSE. If TRUE, the row dendrogram will be shown.'))
   }
-  if (!is.logical(passthrough_args[['show_column_dend']]) & !is.null(passthrough_args[['show_column_dend']])) {
+  if (!is.null(passthrough_args[['show_column_dend']]) && !is.logical(passthrough_args[['show_column_dend']])) {
     stop(paste0('show_column_dend: ', passthrough_args[['show_column_dend']], ' is not a boolean. Please specify show_column_dend = TRUE or show_column_dend = FALSE. If TRUE, the column dendrogram will be shown.'))
   }
   #check that row_split and column_split are valid
   if (!is.null(passthrough_args[['row_split']]) && is.vector(passthrough_args[['row_split']])) {
-    if (!is.null(passthrough_args[['row_split']]) && length(passthrough_args[['row_split']]) != length(features)) {
+    if (length(passthrough_args[['row_split']]) != length(features)) {
       stop(paste0('row_split: ', row_split, ' is not the same length as the features vector. Please specify an integer value for row_split or a vector of length equal to the features vector.'))
     }
-  } else if (!is.null(passthrough_args[['row_split']]) && !(passthrough_args[['row_split']] %% 1 == 0) && !(passthrough_args[['row_split']] > 0)) {
+  } else if (!(passthrough_args[['row_split']] %% 1 == 0) && !(passthrough_args[['row_split']] > 0)) {
     stop(paste0('row_split: ', row_split, ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
   }
   if (!is.null(passthrough_args[['column_split']]) && is.vector(passthrough_args[['column_split']])) {
-    if (!is.null(passthrough_args[['column_split']]) && length(passthrough_args[['column_split']]) != length(groupFields)) {
+    if (length(passthrough_args[['column_split']]) != length(groupFields)) {
       stop(paste0('column_split: ', column_split, ' is not the same length as the groupFields vector. Please specify either a positive integer value or a vector of length equal to the groupFields vector for the column_split argument.'))
     }
-  } else if (!is.null(passthrough_args[['column_split']]) && !(passthrough_args[['column_split']] %% 1 == 0) && !(passthrough_args[['column_split']] > 0)) {
+  } else if (!(passthrough_args[['column_split']] %% 1 == 0) && !(passthrough_args[['column_split']] > 0)) {
     stop(paste0('column_split: ', passthrough_args[['column_split']], ' is not a positive integer or vector. Please specify an integer value for column_split.'))
   }
 } 
