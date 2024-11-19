@@ -20,24 +20,24 @@ utils::globalVariables(
   if (!normalizationField %in% names(seuratObj@meta.data)) {
     stop(paste0('Field missing: ', normalizationField))
   }
- if (any(is.na(seuratObj@meta.data[,normalizationField]))){
-   stop(paste0("Detected NAs in ", normalizationField,". Please remove them."))
- }
+  if (any(is.na(seuratObj@meta.data[,normalizationField]))){
+    stop(paste0("Detected NAs in ", normalizationField,". Please remove them."))
+  }
   dat <- as.character(seuratObj@meta.data[,normalizationField])
-
+  
   #check max size factor for data
   dataMaxSizeFactor <- max(table(dat))/min(table(dat))
   if (!maxSizeFactor >= dataMaxSizeFactor){
     stop(paste0("Greater than max allowable size factor: ", round(dataMaxSizeFactor,2)))
   }
-
+  
   #Calculate the ratio between maximum size
   print("Calculating size factors")
   for (dataset in unique(dat)){
     datasetSizeFactor <- max(table(dat)) / length(dat[dat == dataset])
     seuratObj@meta.data[[sizeFactorField]][dat == dataset] <- round(datasetSizeFactor, 4)
   }
-
+  
   return(seuratObj)
 }
 
@@ -61,7 +61,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
                                                         xField = 'Timepoint',
                                                         extraGroupingFields = NULL,
                                                         colorField = 'Population',
-
+                                                        
                                                         normalizationField = 'cDNA_ID',
                                                         sizeFactorField = 'SizeFactor',
                                                         maxSizeFactor = 100,
@@ -71,24 +71,24 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   
   # Calculate Size Factor
   seuratObj <- .GenerateSizeFactor(seuratObj, normalizationField = normalizationField, sizeFactorField = sizeFactorField, maxSizeFactor = maxSizeFactor)
-
+  
   if (!colorField %in% names(seuratObj@meta.data)) {
     stop(paste0('colorField not found: ', colorField))
   }
-
+  
   colorData <- seuratObj@meta.data[[colorField]]
   if (!is.factor(colorData)) {
     stop('Expected colorField to be a factor')
   }
-
+  
   if (length(unique(colorData)) != 2) {
     stop('Expected colorField to be a factor with two levels only')
   }
-
+  
   baseValue <- levels(colorData)[2]
-
+  
   if (is.null(extraGroupingFields)) {
-  	extraGroupingFields <- c()
+    extraGroupingFields <- c()
   }
   
   # Construct DataFrame:
@@ -96,7 +96,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   names(rawData) <- c('colorField', 'yField', 'xField', normalizationField, sizeFactorField, extraGroupingFields)
   rawData$xField <- as.character(rawData$xField)
   rawData$yField <- as.character(rawData$yField)
-
+  
   # Make concatenated columns for grouping:
   rawData <- rawData %>% tidyr::unite("XY_Key", tidyr::all_of(c('xField', 'yField', extraGroupingFields)), remove = FALSE)
   rawData <- rawData %>% tidyr::unite("Y_Key", tidyr::all_of(c('yField', extraGroupingFields)), remove = FALSE)
@@ -106,28 +106,28 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   
   # Now calculate the weighted total, including the color field
   colorProportions <- rawData %>% dplyr::count(XY_Key, colorField, wt = SizeFactor, name = 'TotalPerGroup')
-
+  
   # Merge and calculate proportion of cells:
   colorProportions <- merge(colorProportions, xyTotals, all.x = T, by = 'XY_Key')
   colorProportions$Proportion <- colorProportions$TotalPerGroup / colorProportions$TotalPerXY
   colorProportions <- colorProportions[colorProportions$colorField == baseValue,] # Note: this could leave zeros for certain X/Y pairs where there is data for one colorValue but not another
   if (nrow(colorProportions) == 0) {
-  	stop(paste0('baseValue not found: ', baseValue))
+    stop(paste0('baseValue not found: ', baseValue))
   }
   
   colorProportions <- colorProportions[c('XY_Key', 'Proportion')]
-
+  
   #initial cluster enrichment tibble
   clusterProportions <- rawData %>% dplyr::count(XY_Key, Y_Key, wt = SizeFactor)
   clusterProportions <- clusterProportions %>% group_by(Y_Key) %>% mutate(ClusterProportion = prop.table(n))
-
+  
   # Merge cluster enrichment and category enrichment tibbles.
   finalData <- merge(colorProportions, clusterProportions, by = "XY_Key")
   metadata <- unique(rawData[c('XY_Key', 'xField', 'yField', extraGroupingFields)])
   finalData <- merge(finalData, metadata, by = "XY_Key")
   finalData$xField <- naturalsort::naturalfactor(finalData$xField)
   finalData$yField <- naturalsort::naturalfactor(finalData$yField)
-
+  
   #Do statistics
   
   #Initial Visualization
@@ -151,7 +151,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
     xlab(paste0("Fitted ", dependentVariableTestField))
   
   print(pCorr)
-
+  
   finalData <- finalData[c('xField', 'yField', extraGroupingFields, 'Proportion', 'ClusterProportion')]
   
   return(finalData)
@@ -183,7 +183,7 @@ MakeEnrichmentDotPlot <- function(seuratObj,
                                   maxSizeFactor = 100,
                                   independentVariableTestField = colorField,
                                   dependentVariableTestField = sizeFactorField
-
+                                  
 ){
   
   metacounts <- ConstructEnrichmentDataFrameAndDoStatistics(seuratObj = seuratObj,
@@ -197,7 +197,7 @@ MakeEnrichmentDotPlot <- function(seuratObj,
                                                             independentVariableTestField = independentVariableTestField ,
                                                             dependentVariableTestField = dependentVariableTestField
   )
-
+  
   if (is.null(colorLabels)) {
     colorLabels <- levels(seuratObj@meta.data[[colorField]])
     fillBreaks <- c(0,1)
@@ -205,10 +205,10 @@ MakeEnrichmentDotPlot <- function(seuratObj,
     if (length(colorLabels) > 3) {
       stop('Expected colorLabels to be either 2 or 3 values')
     }
-
+    
     fillBreaks <- seq(0,1, 1/(length(colorLabels) - 1))
   }
-
+  
   P1 <- ggplot(metacounts, aes(y = yField, x = xField)) +
     geom_point(aes(size = ClusterProportion, fill = Proportion), alpha = 1, shape = 21) +
     scale_size_continuous(
@@ -353,15 +353,15 @@ CalculateClusterEnrichment <- function(seuratObj,
         if (enrichmentDataFrame[enrichmentDataFrame$clusterField == cluster,]$Cluster_p_adj < pValueCutoff) {
           # do testing 
           pairwise_test <- conover.test::conover.test(unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, "SubjectClusterProportion"]),
-                                             unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, treatmentField]))
+                                                      unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, treatmentField]))
           pairwise_test_plotting_dataframe <- data.frame(comparisons = pairwise_test$comparisons, 
-                                                T_statistic = pairwise_test$`T`, 
-                                                P_val_adj = pairwise_test$`P.adjusted`) %>% 
+                                                         T_statistic = pairwise_test$`T`, 
+                                                         P_val_adj = pairwise_test$`P.adjusted`) %>% 
             tidyr::separate(comparisons, into = c("Group1", "Group2"), sep = " - ") %>% 
             dplyr::mutate(stars = dplyr::case_when(P_val_adj < 0.001 ~ "***", 
-                                     P_val_adj < 0.01 ~ "**", 
-                                     P_val_adj < 0.05 ~ "*", 
-                                     TRUE ~ ""))
+                                                   P_val_adj < 0.01 ~ "**", 
+                                                   P_val_adj < 0.05 ~ "*", 
+                                                   TRUE ~ ""))
           enrichmentPlot <- ggplot2::ggplot(pairwise_test_plotting_dataframe, ggplot2::aes(x = Group1, y = Group2, fill = T_statistic)) + 
             ggplot2::geom_tile() + 
             colorspace::scale_fill_continuous_diverging(palette = "Blue-Red 3", l1 = 30, l2 = 100, p1 = .9, p2 = 1.2) + 
@@ -438,7 +438,7 @@ CalculateClusterEnrichment <- function(seuratObj,
   #show a DimPlot of significant clusters
   if (showPlots) { 
     print(Seurat::DimPlot(seuratObj, cells.highlight = metadata$CellBarcode[metadata$Cluster_p_adj < pValueCutoff]) + ggplot2::ggtitle("Significant Clusters"))
-    }
+  }
   return(seuratObj)
 }
 
@@ -670,19 +670,19 @@ ClusteredDotPlot <- function(seuratObj,
   } 
   #check that the length of the column_title matches the number of k-means clusters if specified
   if (!is.null(passthrough_args[['column_title']])) {
-  if ((length(passthrough_args[['column_title']]) != 1) && !is.null(passthrough_args[['column_km']]) && !is.null(passthrough_args[['column_title']]) && length(passthrough_args[['column_title']]) != passthrough_args[['column_km']]) {
-    stop(paste0('The length of column_title: ', length(passthrough_args[['column_title']]), ' does not match the number of k-means clusters (column_km): ', passthrough_args[['column_km']], '. Please specify a single title, NULL, or a vector of column titles that has elements equal to the value of column_km.'))
-  } else if (length(passthrough_args[['column_title']]) == passthrough_args[['column_km']]) {
-    warning('Please manually ensure that the order of the column_title matches the order of intended the k-means clusters in the heatmap.')
-  }
+    if ((length(passthrough_args[['column_title']]) != 1) && !is.null(passthrough_args[['column_km']]) && !is.null(passthrough_args[['column_title']]) && length(passthrough_args[['column_title']]) != passthrough_args[['column_km']]) {
+      stop(paste0('The length of column_title: ', length(passthrough_args[['column_title']]), ' does not match the number of k-means clusters (column_km): ', passthrough_args[['column_km']], '. Please specify a single title, NULL, or a vector of column titles that has elements equal to the value of column_km.'))
+    } else if (length(passthrough_args[['column_title']]) == passthrough_args[['column_km']]) {
+      warning('Please manually ensure that the order of the column_title matches the order of intended the k-means clusters in the heatmap.')
+    }
   }
   #check that the length of the row_title matches the number of k-means clusters if specified
   if (!is.null(passthrough_args[['row_title']])) {
-  if ((length(passthrough_args[['row_title']]) != 1) && !is.null(passthrough_args[['row_km']]) && !is.null(passthrough_args[['row_title']]) && length(passthrough_args[['row_title']]) != passthrough_args[['row_km']]) {
-    stop(paste0('The length of row_title: ', length(passthrough_args[['row_title']]), ' does not match the number of k-means clusters (row_km): ', passthrough_args[['row_km']], '. Please specify a single title, NULL, or a vector of row titles that has elements equal to the value of row_km.'))
-  } else if (length(passthrough_args[['row_title']]) == passthrough_args[['row_km']]) {
-    warning('Please manually ensure that the order of the row_title matches the order of intended the k-means clusters in the heatmap.', immediate. = T)
-  }
+    if ((length(passthrough_args[['row_title']]) != 1) && !is.null(passthrough_args[['row_km']]) && !is.null(passthrough_args[['row_title']]) && length(passthrough_args[['row_title']]) != passthrough_args[['row_km']]) {
+      stop(paste0('The length of row_title: ', length(passthrough_args[['row_title']]), ' does not match the number of k-means clusters (row_km): ', passthrough_args[['row_km']], '. Please specify a single title, NULL, or a vector of row titles that has elements equal to the value of row_km.'))
+    } else if (length(passthrough_args[['row_title']]) == passthrough_args[['row_km']]) {
+      warning('Please manually ensure that the order of the row_title matches the order of intended the k-means clusters in the heatmap.', immediate. = T)
+    }
   }
   #check that the numbering defaults are boolean
   if (!is.null(passthrough_args[['numberColumns']]) && !is.logical(passthrough_args[['numberColumns']])) {
@@ -717,16 +717,17 @@ ClusteredDotPlot <- function(seuratObj,
   if (!is.null(passthrough_args[['row_split']]) && is.vector(passthrough_args[['row_split']])) {
     if (length(passthrough_args[['row_split']]) != length(features)) {
       stop(paste0('row_split: ', row_split, ' is not the same length as the features vector. Please specify an integer value for row_split or a vector of length equal to the features vector.'))
+    } else if (!(passthrough_args[['row_split']] %% 1 == 0) && !(passthrough_args[['row_split']] > 0)) {
+      stop(paste0('row_split: ', row_split, ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
     }
-  } else if (!(passthrough_args[['row_split']] %% 1 == 0) && !(passthrough_args[['row_split']] > 0)) {
-    stop(paste0('row_split: ', row_split, ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
-  }
+  } 
   if (!is.null(passthrough_args[['column_split']]) && is.vector(passthrough_args[['column_split']])) {
     if (length(passthrough_args[['column_split']]) != length(groupFields)) {
       stop(paste0('column_split: ', column_split, ' is not the same length as the groupFields vector. Please specify either a positive integer value or a vector of length equal to the groupFields vector for the column_split argument.'))
+      
+    } else if (!(passthrough_args[['column_split']] %% 1 == 0) && !(passthrough_args[['column_split']] > 0)) {
+      stop(paste0('column_split: ', passthrough_args[['column_split']], ' is not a positive integer or vector. Please specify an integer value for column_split.'))
     }
-  } else if (!(passthrough_args[['column_split']] %% 1 == 0) && !(passthrough_args[['column_split']] > 0)) {
-    stop(paste0('column_split: ', passthrough_args[['column_split']], ' is not a positive integer or vector. Please specify an integer value for column_split.'))
   }
 } 
 
