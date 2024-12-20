@@ -579,7 +579,11 @@ ClusteredDotPlot <- function(seuratObj,
       Matrix::t()
   }
   #establish the ordering of the expression heatmap
-  featureorder <- colnames(mat)
+  if (!is.null(inferred_heatmap_args[['column_split']])) {
+    featureorder <- features
+  } else {
+    featureorder <- colnames(mat)
+  }
   
   #harvest the percentage of cells expressing genes within the features vector from the Seurat::DotPlot output.
   #TODO: this works fine, but we have a version of this in the pseudobulking code. We could replace it if Seurat changes their dotplot. 
@@ -613,7 +617,6 @@ ClusteredDotPlot <- function(seuratObj,
     message("Printing rownames to demonstrate the parsing issues:")
     print(unique(c(rownames(pct)[!rownames(pct) %in% rownames(mat)], rownames(mat)[!rownames(mat) %in% rownames(pct)])))
     stop("Parsing error, please see above.")
-    
   }
   #enforce the order of the dotplot to match the heatmap
   pct <- pct[rownames(mat),featureorder]
@@ -640,11 +643,22 @@ ClusteredDotPlot <- function(seuratObj,
     name = legendName,
     show_column_names = TRUE,
     show_row_names = T,
-    cluster_columns = T,
+    
     row_names_side = "left", 
     column_names_rot = 45
   )
+  
   heatmapArgs <- c(inferred_heatmap_args, staticHeatmapArguments)
+  
+  if (!is.null(heatmapArgs[['column_split']])) {
+    heatmapArgs[["cluster_columns"]] <- T
+    #heatmapArgs[['column_order']] <- sort(order(colnames(heatmapArgs[['matrix']])))
+    heatmapArgs[['cluster_column_slices']] <- FALSE
+    heatmapArgs[['matrix']] <- mat[,features]
+  } else {
+    heatmapArgs[["cluster_columns"]] <- F
+  }
+  
   suppressMessages(comp_heatmap <- do.call(ComplexHeatmap::Heatmap, heatmapArgs))
   print(comp_heatmap)
   return(comp_heatmap)
@@ -672,7 +686,7 @@ ClusteredDotPlot <- function(seuratObj,
   if (!is.null(passthrough_args[['column_title']])) {
     if ((length(passthrough_args[['column_title']]) != 1) && !is.null(passthrough_args[['column_km']]) && !is.null(passthrough_args[['column_title']]) && length(passthrough_args[['column_title']]) != passthrough_args[['column_km']]) {
       stop(paste0('The length of column_title: ', length(passthrough_args[['column_title']]), ' does not match the number of k-means clusters (column_km): ', passthrough_args[['column_km']], '. Please specify a single title, NULL, or a vector of column titles that has elements equal to the value of column_km.'))
-    } else if (length(passthrough_args[['column_title']]) == passthrough_args[['column_km']]) {
+    } else if (length(passthrough_args[['column_title']]) == length(passthrough_args[['column_title']])) {
       warning('Please manually ensure that the order of the column_title matches the order of intended the k-means clusters in the heatmap.')
     }
   }
@@ -680,7 +694,7 @@ ClusteredDotPlot <- function(seuratObj,
   if (!is.null(passthrough_args[['row_title']])) {
     if ((length(passthrough_args[['row_title']]) != 1) && !is.null(passthrough_args[['row_km']]) && !is.null(passthrough_args[['row_title']]) && length(passthrough_args[['row_title']]) != passthrough_args[['row_km']]) {
       stop(paste0('The length of row_title: ', length(passthrough_args[['row_title']]), ' does not match the number of k-means clusters (row_km): ', passthrough_args[['row_km']], '. Please specify a single title, NULL, or a vector of row titles that has elements equal to the value of row_km.'))
-    } else if (length(passthrough_args[['row_title']]) == passthrough_args[['row_km']]) {
+    } else if (length(passthrough_args[['row_title']]) == length(passthrough_args[['row_title']])) {
       warning('Please manually ensure that the order of the row_title matches the order of intended the k-means clusters in the heatmap.', immediate. = T)
     }
   }
@@ -692,18 +706,17 @@ ClusteredDotPlot <- function(seuratObj,
     stop(paste0('numberRows: ', passthrough_args[['numberRows']], ' is not a boolean. Please specify numberRows = TRUE or numberRows = FALSE. If TRUE and the row_title vector is not supplied, the row titles will be numbered.'))
   }
   #check that height and width are valid unit variables
-  
-  if (!is.null(passthrough_args[['height']]) && all(class(passthrough_args[['height']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
+  if (!is.null(passthrough_args[['height']]) && !all(class(passthrough_args[['height']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
     stop(paste0('height: ', passthrough_args[['height']], ' is not a valid unit. Please specify a valid unit for the height argument, such as unit(7, "mm"). The default is the number of features multiplied by the function unit(25, "mm").'))
   }
-  if (!is.null(passthrough_args[['width']]) && all(class(passthrough_args[['width']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
+  if (!is.null(passthrough_args[['width']]) && !all(class(passthrough_args[['width']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
     stop(paste0('width: ', passthrough_args[['width']], ' is not a valid unit. Please specify a valid unit for the width argument, such as unit(7, "mm"). The default is the number of groups (groupFields) multiplied by the function unit(7, "mm").'))
   }
   #check that title rotations are valid
-  if (!is.null(passthrough_args[['row_title']]) && !is.numeric(passthrough_args[['row_title_rot']])) {
+  if (!is.null(passthrough_args[['row_title_rot']]) && !is.numeric(passthrough_args[['row_title_rot']])) {
     stop(paste0('row_title_rot: ', passthrough_args[['row_title_rot']], ' is not a numeric value. Please specify a numeric value for the angle to rotate the row titles.'))
   }
-  if (!is.null(passthrough_args[['column_title']]) && !is.numeric(passthrough_args[['column_title_rot']])) {
+  if (!is.null(passthrough_args[['column_title_rot']]) && !is.numeric(passthrough_args[['column_title_rot']])) {
     stop(paste0('column_title_rot: ', passthrough_args[['column_title_rot']], ' is not a numeric value. Please specify a numeric value for the angle to rotate the column titles.'))
   }
   #check the booleans for showing the dendrograms
@@ -715,17 +728,18 @@ ClusteredDotPlot <- function(seuratObj,
   }
   #check that row_split and column_split are valid
   if (!is.null(passthrough_args[['row_split']]) && is.vector(passthrough_args[['row_split']])) {
-    if (length(passthrough_args[['row_split']]) != length(features)) {
-      stop(paste0('row_split: ', row_split, ' is not the same length as the features vector. Please specify an integer value for row_split or a vector of length equal to the features vector.'))
-    } else if (!(passthrough_args[['row_split']] %% 1 == 0) && !(passthrough_args[['row_split']] > 0)) {
-      stop(paste0('row_split: ', row_split, ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
+    if (length(passthrough_args[['row_split']]) != length(groupFields)) {
+      stop(paste0('row_split: ', passthrough_args[['row_split']], ' is not the same length as the groupFields vector. Please specify an integer value for row_split or a vector of length equal to the groupFields vector.'))
+    } else if (!(length(passthrough_args[['row_split']]) %% 1 == 0) && !(passthrough_args[['row_split']] > 0)) {
+      stop(paste0('row_split: ', passthrough_args[['row_split']], ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
     }
   } 
+  print(passthrough_args[['column_split']])
   if (!is.null(passthrough_args[['column_split']]) && is.vector(passthrough_args[['column_split']])) {
-    if (length(passthrough_args[['column_split']]) != length(groupFields)) {
-      stop(paste0('column_split: ', column_split, ' is not the same length as the groupFields vector. Please specify either a positive integer value or a vector of length equal to the groupFields vector for the column_split argument.'))
+    if (length(passthrough_args[['column_split']]) != length(features)) {
+      stop(paste0('column_split: ', passthrough_args[['column_split']], ' is not the same length as the features vector. Please specify either a positive integer value or a vector of length equal to the features vector for the column_split argument.'))
       
-    } else if (!(passthrough_args[['column_split']] %% 1 == 0) && !(passthrough_args[['column_split']] > 0)) {
+    } else if (!(length(passthrough_args[['column_split']]) %% 1 == 0) && !(passthrough_args[['column_split']] > 0)) {
       stop(paste0('column_split: ', passthrough_args[['column_split']], ' is not a positive integer or vector. Please specify an integer value for column_split.'))
     }
   }
@@ -778,3 +792,4 @@ ClusteredDotPlot <- function(seuratObj,
   }
   return(passthrough_args)
 }
+
