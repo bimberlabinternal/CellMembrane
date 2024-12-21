@@ -187,6 +187,10 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
         print(paste0('Original cells: ', length(colnames(seuratObjs[[datasetId]]))))
         toKeep <- colnames(seuratObjs[[datasetId]])[!(colnames(seuratObjs[[datasetId]]) %in% duplicates)]
         print(paste0('Retaining: ', length(toKeep)))
+        if (length(toKeep) == 0) {
+          stop(paste0('There are no cells remaining after dropping duplicates for datasetId: ', datasetId))
+        }
+
         seuratObjs[[datasetId]] <- subset(seuratObjs[[datasetId]], cells = toKeep)
 
         if (length(toKeep) != length(colnames(seuratObjs[[datasetId]]))) {
