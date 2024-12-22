@@ -4,6 +4,7 @@
 #' @param seuratObj A Seurat object.
 #' @param sourceAssay The source assay
 #' @param targetAssay The target assay to store results
+#' @param organism Passed directly to decoupleR::get_collectri()
 #' @return The seurat object
 #' @export
 RunDecoupleR <- function(seuratObj, sourceAssay = 'RNA', targetAssay = 'tfsulm', organism = 'human') {
@@ -34,7 +35,15 @@ RunDecoupleR <- function(seuratObj, sourceAssay = 'RNA', targetAssay = 'tfsulm',
   return(seuratObj)
 }
 
-PlotTfData <- function(seuratObj, assayName = 'tfsulm') {
+#' @title Plot TF Data
+#'
+#' @description This will plot the results of decoupleR as a heatmap
+#' @param seuratObj A Seurat object.
+#' @param assayName The source assay
+#' @param groupField The field on which to group the results
+#' @return The pheatmap plot object
+#' @export
+PlotTfData <- function(seuratObj, assayName = 'tfsulm', groupField = Seurat::Idents(seuratObj)) {
   dat <- Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'scale.data')
   if (is.null(dat)) {
     stop(paste0('assay not found: ', assayName))
@@ -42,10 +51,14 @@ PlotTfData <- function(seuratObj, assayName = 'tfsulm') {
 
   n_tfs <- 25
 
+  if (length(groupField) == 1) {
+    groupField <- Seurat::FetchData(seuratObj, groupField)[[1]]
+  }
+  
   # Extract activities from object as a long dataframe
   df <- t(as.matrix(dat)) %>%
     as.data.frame() %>%
-    dplyr::mutate(cluster = Seurat::Idents(seuratObj)) %>%
+    dplyr::mutate(cluster = groupField) %>%
     tidyr::pivot_longer(cols = -cluster,
                         names_to = "source",
                         values_to = "score") %>%

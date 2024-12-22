@@ -17,6 +17,8 @@ RunDecoupleR(
 \item{sourceAssay}{The source assay}
 
 \item{targetAssay}{The target assay to store results}
+
+\item{organism}{Passed directly to decoupleR::get_collectri()}
 }
 \value{
 The seurat object

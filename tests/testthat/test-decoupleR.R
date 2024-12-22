@@ -7,4 +7,8 @@ test_that("RunDecoupleR works as expected", {
   expect_true('tfsulm' %in% names(seuratObj@assays))
   expect_equal(nrow(seuratObj@assays$tfsulm), 726)
   expect_equal(ncol(seuratObj@assays$tfsulm), ncol(seuratObj))
+  
+  CellMembrane::PlotTfData(seuratObj, groupField = 'Phase')
 })
+
+
