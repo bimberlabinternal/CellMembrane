@@ -686,7 +686,7 @@ ClusteredDotPlot <- function(seuratObj,
   if (!is.null(passthrough_args[['column_title']])) {
     if ((length(passthrough_args[['column_title']]) != 1) && !is.null(passthrough_args[['column_km']]) && !is.null(passthrough_args[['column_title']]) && length(passthrough_args[['column_title']]) != passthrough_args[['column_km']]) {
       stop(paste0('The length of column_title: ', length(passthrough_args[['column_title']]), ' does not match the number of k-means clusters (column_km): ', passthrough_args[['column_km']], '. Please specify a single title, NULL, or a vector of column titles that has elements equal to the value of column_km.'))
-    } else if (length(passthrough_args[['column_title']]) == length(passthrough_args[['column_title']])) {
+    } else if (length(passthrough_args[['column_title']]) == length(passthrough_args[['column_km']])) {
       warning('Please manually ensure that the order of the column_title matches the order of intended the k-means clusters in the heatmap.')
     }
   }
@@ -694,7 +694,7 @@ ClusteredDotPlot <- function(seuratObj,
   if (!is.null(passthrough_args[['row_title']])) {
     if ((length(passthrough_args[['row_title']]) != 1) && !is.null(passthrough_args[['row_km']]) && !is.null(passthrough_args[['row_title']]) && length(passthrough_args[['row_title']]) != passthrough_args[['row_km']]) {
       stop(paste0('The length of row_title: ', length(passthrough_args[['row_title']]), ' does not match the number of k-means clusters (row_km): ', passthrough_args[['row_km']], '. Please specify a single title, NULL, or a vector of row titles that has elements equal to the value of row_km.'))
-    } else if (length(passthrough_args[['row_title']]) == length(passthrough_args[['row_title']])) {
+    } else if (length(passthrough_args[['row_title']]) == length(passthrough_args[['km']])) {
       warning('Please manually ensure that the order of the row_title matches the order of intended the k-means clusters in the heatmap.', immediate. = T)
     }
   }
