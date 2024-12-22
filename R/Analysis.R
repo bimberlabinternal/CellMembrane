@@ -578,7 +578,7 @@ ClusteredDotPlot <- function(seuratObj,
     mat <- as.matrix(mat) %>%
       Matrix::t()
   }
-  #establish the ordering of the expression heatmap
+  #establish the ordering of the expression heatmap, since one may want manual control over the ordering of the features using column_split.
   if (!is.null(inferred_heatmap_args[['column_split']])) {
     featureorder <- features
   } else {
@@ -618,7 +618,7 @@ ClusteredDotPlot <- function(seuratObj,
     print(unique(c(rownames(pct)[!rownames(pct) %in% rownames(mat)], rownames(mat)[!rownames(mat) %in% rownames(pct)])))
     stop("Parsing error, please see above.")
   }
-  #enforce the order of the dotplot to match the heatmap
+  #enforce the order of the dotplot to match the heatmap (or the features vector argument if the heatmap uses column_split)
   pct <- pct[rownames(mat),featureorder]
   
   #Set the heatmap name according to scaling
@@ -650,13 +650,12 @@ ClusteredDotPlot <- function(seuratObj,
   
   heatmapArgs <- c(inferred_heatmap_args, staticHeatmapArguments)
   
+  #if column_split is specified, assume that we're intentionally ordering/grouping the features 
+  #meaning: DO cluster the genes within a group, but don't re-arrange the groups (via cluster_column_slices)
   if (!is.null(heatmapArgs[['column_split']])) {
     heatmapArgs[["cluster_columns"]] <- T
-    #heatmapArgs[['column_order']] <- sort(order(colnames(heatmapArgs[['matrix']])))
     heatmapArgs[['cluster_column_slices']] <- FALSE
     heatmapArgs[['matrix']] <- mat[,features]
-  } else {
-    heatmapArgs[["cluster_columns"]] <- F
   }
   
   suppressMessages(comp_heatmap <- do.call(ComplexHeatmap::Heatmap, heatmapArgs))
