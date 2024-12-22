@@ -1,3 +1,9 @@
+utils::globalVariables(
+  names = c('score', 'std', '.'),
+  package = 'CellMembrane',
+  add = TRUE
+)
+
 #' @title Run decoupleR
 #'
 #' @description This will run decoupleR to infer TF
