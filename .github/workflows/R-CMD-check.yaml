@@ -22,7 +22,7 @@ jobs:
         config:
           #- { os: 24.04, r: 'devel', bioc: '3.21' } # Bioc 3.21 (devel) requires R 4.5
           - { os: 24.04, r: '4.4', bioc: '3.20', pkgdown: "true" }
-          - { os: 22.04, r: '4.3', bioc: '3.18' }
+          - { os: 24.04, r: '4.3', bioc: '3.18' }
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
