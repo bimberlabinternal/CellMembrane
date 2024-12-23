@@ -89,7 +89,9 @@ Imports:
     conover.test, 
     colorspace, 
     forcats,
-    presto
+    presto,
+    decoupleR,
+    OmnipathR
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -139,6 +141,7 @@ Collate:
     'SingleR_Seurat.R'
     'Spatial.R'
     'data.R'
+    'decoupleR.R'
     'escape.R'
     'sctour.R'
 VignetteBuilder: knitr
