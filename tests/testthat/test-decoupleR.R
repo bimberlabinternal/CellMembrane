@@ -1,6 +1,7 @@
 context("scRNAseq")
 
 test_that("RunDecoupleR works as expected", {
+  # This failed on github runners with a non-informative 'job terminated' error.
   if (version$minor > 4.3) {
     seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
     seuratObj <- RunDecoupleR(seuratObj)
