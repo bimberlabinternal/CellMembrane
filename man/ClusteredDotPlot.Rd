@@ -9,10 +9,12 @@ ClusteredDotPlot(
   features,
   groupFields = "ClusterNames_0.2",
   assay = "RNA",
-  ggplotify = TRUE,
   scaling = "column",
   layer = "data",
-  forceRescaling = FALSE
+  forceRescaling = FALSE,
+  inferDefaultArguments = TRUE,
+  printInferredArguments = FALSE,
+  ...
 )
 }
 \arguments{
@@ -24,13 +26,17 @@ ClusteredDotPlot(
 
 \item{assay}{The assay to plot.}
 
-\item{ggplotify}{A boolean that determines if the ComplexHeatmap object should be converted to a ggplot object.}
-
 \item{scaling}{The scaling method for the heatmap. Options are "row", "column", or none.}
 
 \item{layer}{The layer of the Seurat object that holds the relevant expression data.}
 
 \item{forceRescaling}{A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.}
+
+\item{inferDefaultArguments}{If TRUE, the function will infer the default arguments for the ComplexHeatmap::Heatmap function.}
+
+\item{printInferredArguments}{Boolean to control optional printing of the arguments inferred by inferDefaultArguments.}
+
+\item{...}{Additional arguments to pass to ComplexHeatmap::Heatmap}
 }
 \description{
 A function that generates a clustered dot plot with a heatmap of scaled expression.
@@ -45,7 +51,7 @@ markers <- Seurat::FindAllMarkers(seuratObj)
 #filter markers to display the largest cluster identity markers according to average log fold change and differences in pct expression.
 strong_markers <- markers[abs(markers$avg_log2FC) > 3 & abs(markers$pct.1 - markers$pct.2) > 0.25, "gene"]
 
-dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column', ggplotify = TRUE)
+dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column')
 print(dotPlot)
 
 }
