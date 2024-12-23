@@ -58,6 +58,7 @@
 <url><loc>/reference/PlotAverageAdtCounts.html</loc></url>
 <url><loc>/reference/PlotSdaCellScores.html</loc></url>
 <url><loc>/reference/PlotSeuratVariables.html</loc></url>
+<url><loc>/reference/PlotTfData.html</loc></url>
 <url><loc>/reference/Plot_SDAScoresPerFeature.html</loc></url>
 <url><loc>/reference/PredictScTourPseudotime.html</loc></url>
 <url><loc>/reference/PseudobulkSeurat.html</loc></url>
@@ -73,6 +74,7 @@
 <url><loc>/reference/ResolveLocGenes.html</loc></url>
 <url><loc>/reference/RunCoNGA.html</loc></url>
 <url><loc>/reference/RunCsCore.html</loc></url>
+<url><loc>/reference/RunDecoupleR.html</loc></url>
 <url><loc>/reference/RunEscape.html</loc></url>
 <url><loc>/reference/RunFilteredContrasts.html</loc></url>
 <url><loc>/reference/RunPHATE.html</loc></url>
