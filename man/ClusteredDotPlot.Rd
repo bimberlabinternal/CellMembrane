@@ -56,9 +56,9 @@ print(dotPlot)
 
 #Additionally, you can establish logical groupings based on a mixture of metadata fields
  #create individual classifications based on lineage markers
- CD3E_positive <- WhichCells(seuratObj, expression = CD3E > 0)
- CD20_positive <- WhichCells(seuratObj, expression = MS4A1 > 0)
- CD14_positive <- WhichCells(seuratObj, expression = CD14 > 0)
+ CD3E_positive <- Seurat::WhichCells(seuratObj, expression = CD3E > 0)
+ CD20_positive <- Seurat::WhichCells(seuratObj, expression = MS4A1 > 0)
+ CD14_positive <- Seurat::WhichCells(seuratObj, expression = CD14 > 0)
  seuratObj$CD3E_positive <- ifelse(rownames(seuratObj@meta.data) \%in\% CD3E_positive, "CD3E_Pos", "CD3E_Neg")
  seuratObj$CD20_positive <- ifelse(rownames(seuratObj@meta.data) \%in\% CD20_positive, "CD20_Pos", "CD20_Neg")
  seuratObj$CD14_positive <- ifelse(rownames(seuratObj@meta.data) \%in\% CD14_positive, "CD14_Pos", "CD14_Neg")
@@ -69,8 +69,8 @@ print(dotPlot)
                                  groupFields = c("CellClassification"),
                                  layer = 'data',
                                  scaling = "none", 
-                                 height = unit(10, "cm"), 
-                                 width = unit(4.5, "cm"), 
+                                 height = grid::unit(10, "cm"), 
+                                 width = grid::unit(4.5, "cm"), 
                                  show_row_dend = FALSE, 
                                  inferDefaultArguments = F
                                ))
