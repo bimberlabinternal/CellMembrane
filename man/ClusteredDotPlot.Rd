@@ -54,5 +54,26 @@ strong_markers <- markers[abs(markers$avg_log2FC) > 3 & abs(markers$pct.1 - mark
 dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column')
 print(dotPlot)
 
+#Additionally, you can establish logical groupings based on a mixture of metadata fields
+ #create individual classifications based on lineage markers
+ CD3E_positive <- WhichCells(seuratObj, expression = CD3E > 0)
+ CD20_positive <- WhichCells(seuratObj, expression = MS4A1 > 0)
+ CD14_positive <- WhichCells(seuratObj, expression = CD14 > 0)
+ seuratObj$CD3E_positive <- ifelse(rownames(seuratObj@meta.data) \%in\% CD3E_positive, "CD3E_Pos", "CD3E_Neg")
+ seuratObj$CD20_positive <- ifelse(rownames(seuratObj@meta.data) \%in\% CD20_positive, "CD20_Pos", "CD20_Neg")
+ seuratObj$CD14_positive <- ifelse(rownames(seuratObj@meta.data) \%in\% CD14_positive, "CD14_Pos", "CD14_Neg")
+ #roll lineage markers up into a single classification
+ seuratObj$CellClassification <- paste0(seuratObj$CD3E_positive, "_", seuratObj$CD20_positive, "_" , seuratObj$CD14_positive)
+ suppressWarnings(ClusteredDotPlot(seuratObj, 
+                                 features = c("CD3E", "MS4A1", "CD14"),
+                                 groupFields = c("CellClassification"),
+                                 layer = 'data',
+                                 scaling = "none", 
+                                 height = unit(10, "cm"), 
+                                 width = unit(4.5, "cm"), 
+                                 show_row_dend = FALSE, 
+                                 inferDefaultArguments = F
+                               ))
+
 }
 }
