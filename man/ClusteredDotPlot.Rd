@@ -14,6 +14,8 @@ ClusteredDotPlot(
   forceRescaling = FALSE,
   inferDefaultArguments = TRUE,
   printInferredArguments = FALSE,
+  numberColumns = T,
+  numberRows = T,
   ...
 )
 }
@@ -35,6 +37,10 @@ ClusteredDotPlot(
 \item{inferDefaultArguments}{If TRUE, the function will infer the default arguments for the ComplexHeatmap::Heatmap function.}
 
 \item{printInferredArguments}{Boolean to control optional printing of the arguments inferred by inferDefaultArguments.}
+
+\item{numberColumns}{Boolean controlling the behavior of column titling by inferDefaultArguments. If TRUE, this will label each column's K means clusters with numeric titles.}
+
+\item{numberRows}{Boolean controlling the behavior of row titling by inferDefaultArguments. If TRUE, this will label each row's K means clusters with numeric titles.}
 
 \item{...}{Additional arguments to pass to ComplexHeatmap::Heatmap}
 }

@@ -455,6 +455,8 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param forceRescaling A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.
 #' @param inferDefaultArguments If TRUE, the function will infer the default arguments for the ComplexHeatmap::Heatmap function.
 #' @param printInferredArguments Boolean to control optional printing of the arguments inferred by inferDefaultArguments.
+#' @param numberColumns Boolean controlling the behavior of column titling by inferDefaultArguments. If TRUE, this will label each column's K means clusters with numeric titles.
+#' @param numberRows Boolean controlling the behavior of row titling by inferDefaultArguments. If TRUE, this will label each row's K means clusters with numeric titles. 
 #' @param ... Additional arguments to pass to ComplexHeatmap::Heatmap
 #'
 #' @export
@@ -504,6 +506,8 @@ ClusteredDotPlot <- function(seuratObj,
                              forceRescaling = FALSE, 
                              inferDefaultArguments = TRUE, 
                              printInferredArguments = FALSE,
+                             numberColumns = T,
+                             numberRows = T,
                              ...) {
   ## BEGIN ARGUMENT CHECKING
   #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
@@ -572,7 +576,7 @@ ClusteredDotPlot <- function(seuratObj,
   ## END ARGUMENT CHECKING
   ## INFER HEATMAP DEFAULTS
   if (inferDefaultArguments) {
-    inferred_heatmap_args <- .setComplexHeatmapDefaults(features = features, groupFields = groupFields, numberColumns = T, numberRows = T, printInferredArguments = printInferredArguments, ...)
+    inferred_heatmap_args <- .setComplexHeatmapDefaults(features = features, groupFields = groupFields, numberColumns = numberColumns, numberRows = numberRows, printInferredArguments = printInferredArguments, ...)
   } else {
     inferred_heatmap_args <- list(...)
   }
@@ -770,17 +774,23 @@ ClusteredDotPlot <- function(seuratObj,
   
   #if the user doesn't specify row_km or column_km, infer that no clustering is desired
   if (is.null(passthrough_args[['row_km']])) {
+    #set a flag for downstream warnings to indicate that we inferred this row_km
+    inferred_row_km <- TRUE
     passthrough_args[['row_km']] <- 1
   }
   if (is.null(passthrough_args[['column_km']])) {
+    #set a flag for downstream warnings to indicate that we inferred this column_km
+    inferred_column_km <- TRUE
     passthrough_args[['column_km']] <- 1
   }
   #number columns if column_km isn't null, but the user didn't specify column_title.
-  if (is.null(passthrough_args[['column_title']]) && !is.null(passthrough_args[['column_km']]) && numberColumns) {
+  #however, if the user specifies column_split, we assume that they want to manually define the feature grouping, and we shouldn't infer the column titles.
+  if (is.null(passthrough_args[['column_title']]) && !is.null(passthrough_args[['column_km']]) && numberColumns && is.null(passthrough_args[['column_split']])) {
     passthrough_args[['column_title']] <- 1:passthrough_args[['column_km']]
   }
   #number rows if row_km isn't null, but the user didn't specify row_title.
-  if (is.null(passthrough_args[['row_title']]) && !is.null(passthrough_args[['row_km']]) && numberRows) {
+  #however, if the user specifies row_split, we assume that they want to manually define the sample-level grouping, and we shouldn't infer the row titles.
+  if (is.null(passthrough_args[['row_title']]) && !is.null(passthrough_args[['row_km']]) && numberRows && is.null(passthrough_args[['row_split']])) {
     passthrough_args[['row_title']] <- 1:passthrough_args[['row_km']]
   }
   #set defaults for height and width based on the number of features and groups if left unspecified.
@@ -800,11 +810,17 @@ ClusteredDotPlot <- function(seuratObj,
   }
   #if column/row split is defined and also column/row_km is defined, keep the split but warn the user. 
   if (!is.null(passthrough_args[['row_split']]) && !is.null(passthrough_args[['row_km']])) {
-    warning("Both row_split and row_km are defined. The row_km argument will be ignored, and the row_split argument will be used to group features into subpanels regardless of clustering.")
+    #it's possible that this warning can trip because we inferred the row_km argument - if that's the case, suppress it.
+    if (!inferred_row_km) {
+      warning("Both row_split and row_km are defined. The row_km argument will be ignored, and the row_split argument will be used to group features into subpanels regardless of clustering.")
+    }
     passthrough_args[['row_km']] <- NULL
   }
   if (!is.null(passthrough_args[['column_split']]) && !is.null(passthrough_args[['column_km']])) {
-    warning("Both column_split and column_km are defined. The column_km argument will be ignored, and the column_split argument will be used to group groupFields into subpanels regardless of clustering.")
+    #it's possible that this warning can trip because we inferred the column_km argument - if that's the case, suppress it.
+    if (!inferred_column_km) {
+      warning("Both column_split and column_km are defined. The column_km argument will be ignored, and the column_split argument will be used to group groupFields into subpanels regardless of clustering.")
+    }
     passthrough_args[['column_km']] <- NULL
   }
   if (printInferredArguments) {
