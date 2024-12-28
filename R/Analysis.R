@@ -675,14 +675,6 @@ ClusteredDotPlot <- function(seuratObj,
   
   heatmapArgs <- c(inferred_heatmap_args, staticHeatmapArguments)
   
-  #if column_split is specified, assume that we're intentionally ordering/grouping the features 
-  #meaning: DO cluster the genes within a group, but don't re-arrange the groups (via cluster_column_slices)
-  if (!is.null(heatmapArgs[['column_split']])) {
-    heatmapArgs[["cluster_columns"]] <- T
-    heatmapArgs[['cluster_column_slices']] <- FALSE
-    heatmapArgs[['matrix']] <- mat[,features]
-  }
-  
   suppressMessages(comp_heatmap <- do.call(ComplexHeatmap::Heatmap, heatmapArgs))
   print(comp_heatmap)
   return(comp_heatmap)
@@ -753,18 +745,18 @@ ClusteredDotPlot <- function(seuratObj,
   #check that row_split and column_split are valid
   if (!is.null(passthrough_args[['row_split']]) && is.vector(passthrough_args[['row_split']])) {
     if (length(passthrough_args[['row_split']]) != length(groupFields)) {
-      stop(paste0('row_split: ', passthrough_args[['row_split']], ' is not the same length as the groupFields vector. Please specify an integer value for row_split or a vector of length equal to the groupFields vector.'))
+      stop(paste0('row_split: ', paste0(passthrough_args[['row_split']], collapse = ', '), ' is not the same length as the groupFields vector. Please specify an integer value for row_split or a vector of length equal to the groupFields vector.'))
     } else if (!(length(passthrough_args[['row_split']]) %% 1 == 0) && !(passthrough_args[['row_split']] > 0)) {
-      stop(paste0('row_split: ', passthrough_args[['row_split']], ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
+      stop(paste0('row_split: ', paste0(passthrough_args[['row_split']], collapse = ", "), ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
     }
   } 
   print(passthrough_args[['column_split']])
   if (!is.null(passthrough_args[['column_split']]) && is.vector(passthrough_args[['column_split']])) {
     if (length(passthrough_args[['column_split']]) != length(features)) {
-      stop(paste0('column_split: ', passthrough_args[['column_split']], ' is not the same length as the features vector. Please specify either a positive integer value or a vector of length equal to the features vector for the column_split argument.'))
+      stop(paste0('column_split: ', paste0(passthrough_args[['column_split']], collapse= ', '), ' is not the same length as the features vector. Please specify either a positive integer value or a vector of length equal to the features vector for the column_split argument.'))
       
     } else if (!(length(passthrough_args[['column_split']]) %% 1 == 0) && !(passthrough_args[['column_split']] > 0)) {
-      stop(paste0('column_split: ', passthrough_args[['column_split']], ' is not a positive integer or vector. Please specify an integer value for column_split.'))
+      stop(paste0('column_split: ', paste0(passthrough_args[['column_split']], collapse= ', '), ' is not a positive integer or vector. Please specify an integer value for column_split.'))
     }
   }
 } 
