@@ -668,7 +668,7 @@ ClusteredDotPlot <- function(seuratObj,
     name = legendName,
     show_column_names = TRUE,
     show_row_names = T,
-    
+    cluster_columns = TRUE,
     row_names_side = "left", 
     column_names_rot = 45
   )
@@ -750,7 +750,6 @@ ClusteredDotPlot <- function(seuratObj,
       stop(paste0('row_split: ', paste0(passthrough_args[['row_split']], collapse = ", "), ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
     }
   } 
-  print(passthrough_args[['column_split']])
   if (!is.null(passthrough_args[['column_split']]) && is.vector(passthrough_args[['column_split']])) {
     if (length(passthrough_args[['column_split']]) != length(features)) {
       stop(paste0('column_split: ', paste0(passthrough_args[['column_split']], collapse= ', '), ' is not the same length as the features vector. Please specify either a positive integer value or a vector of length equal to the features vector for the column_split argument.'))
