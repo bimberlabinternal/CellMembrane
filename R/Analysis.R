@@ -673,8 +673,8 @@ ClusteredDotPlot <- function(seuratObj,
     column_names_rot = 45
   )
   #merge the heatmap arguments - preferring the inferred arguments (which always includes args supplied in the ellipses)
-  heatmapArgs <- .mergeHeatmapArguments(inferred_args = inferred_heatmap_args, 
-                                        static_args = staticHeatmapArguments)
+  heatmapArgs <- .mergeComplexHeatmapArguments(inferred_args = inferred_heatmap_args, 
+                                               static_args = staticHeatmapArguments)
   
   suppressMessages(comp_heatmap <- do.call(ComplexHeatmap::Heatmap, heatmapArgs))
   print(comp_heatmap)
