@@ -451,12 +451,13 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param groupFields The metadata column that is used for grouping.
 #' @param assay The assay to plot.
 #' @param scaling The scaling method for the heatmap. Options are "row", "column", or none.
-#' @param layer The layer of the Seurat object that holds the relevant expression data. 
+#' @param layer The layer of the Seurat object that holds the relevant expression data.
+#' @param dotSizeScaleFactor An integer used to scale the dot size. Larger values result in smaler max dot size
 #' @param forceRescaling A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.
 #' @param inferDefaultArguments If TRUE, the function will infer the default arguments for the ComplexHeatmap::Heatmap function.
 #' @param printInferredArguments Boolean to control optional printing of the arguments inferred by inferDefaultArguments.
 #' @param numberColumns Boolean controlling the behavior of column titling by inferDefaultArguments. If TRUE, this will label each column's K means clusters with numeric titles.
-#' @param numberRows Boolean controlling the behavior of row titling by inferDefaultArguments. If TRUE, this will label each row's K means clusters with numeric titles. 
+#' @param numberRows Boolean controlling the behavior of row titling by inferDefaultArguments. If TRUE, this will label each row's K means clusters with numeric titles.
 #' @param ... Additional arguments to pass to ComplexHeatmap::Heatmap
 #'
 #' @export
@@ -502,7 +503,8 @@ ClusteredDotPlot <- function(seuratObj,
                              groupFields = "ClusterNames_0.2", 
                              assay = "RNA", 
                              scaling = 'column', 
-                             layer = 'data', 
+                             layer = 'data',
+                             dotSizeScaleFactor = 50,
                              forceRescaling = FALSE, 
                              inferDefaultArguments = TRUE, 
                              printInferredArguments = FALSE,
@@ -623,7 +625,7 @@ ClusteredDotPlot <- function(seuratObj,
     as.matrix() |>
     Matrix::t()
   #Establish symmetric color scaling based on the extremes in the heatmap
-  col_RNA = circlize::colorRamp2(quantile(c(-max(abs(mat)), 0, max(abs(mat)))),
+  col_RNA <- circlize::colorRamp2(quantile(c(-max(abs(mat)), 0, max(abs(mat)))),
                                  c("#0000FFFF", #blue
                                    "#7F53FDFF", #purple (pale)
                                    "gray90", #very light gray
@@ -660,20 +662,20 @@ ClusteredDotPlot <- function(seuratObj,
   staticHeatmapArguments <- list(
     matrix = mat,
     cell_fun = function(j, i, x, y, width, height, fill) {
-      grid::grid.circle(x = x, y = y, r = sqrt(pct[i,j])/30, default.units = "cm",
+      grid::grid.circle(x = x, y = y, r = sqrt(pct[i,j])/dotSizeScaleFactor, default.units = "cm",
                         gp = grid::gpar(fill = col_RNA(mat[i, j])))
     },
     rect_gp = grid::gpar(type="none"),
     border_gp = grid::gpar(col = "black", lty = 1),
     name = legendName,
     show_column_names = TRUE,
-    show_row_names = T,
+    show_row_names = TRUE,
     cluster_columns = TRUE,
     row_names_side = "left", 
     column_names_rot = 45
   )
   #merge the heatmap arguments - preferring the inferred arguments (which always includes args supplied in the ellipses)
-  heatmapArgs <- .mergeComplexHeatmapArguments(inferred_args = inferred_heatmap_args, 
+  heatmapArgs <- .mergeComplexHeatmapArguments(inferred_args = inferred_heatmap_args,
                                                static_args = staticHeatmapArguments)
   
   suppressMessages(comp_heatmap <- do.call(ComplexHeatmap::Heatmap, heatmapArgs))
