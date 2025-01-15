@@ -81,7 +81,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2025-01-08</h4>
+            <h4 data-toc-skip class="date">2025-01-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/master/vignettes/CellMembrane-Tutorial.Rmd" class="external-link"><code>vignettes/CellMembrane-Tutorial.Rmd</code></a></small>
       <div class="hidden name"><code>CellMembrane-Tutorial.Rmd</code></div>
@@ -245,8 +245,8 @@ high-level data summarizations.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pbmc_small</span> <span class="op">&lt;-</span> <span class="fu">CellMembrane</span><span class="fu">::</span><span class="fu"><a href="../reference/RunPcaSteps.html">RunPcaSteps</a></span><span class="op">(</span><span class="va">pbmc_small</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "Total variable genes: 230"</span></span></code></pre>
-<pre><code><span><span class="co">## Warning in irlba(A = t(x = object), nv = npcs, ...): You're computing too large</span></span>
-<span><span class="co">## a percentage of total singular values, use a standard svd instead.</span></span></code></pre>
+<pre><code><span><span class="co">## Warning in svd.function(A = t(x = object), nv = npcs, ...): You're computing</span></span>
+<span><span class="co">## too large a percentage of total singular values, use a standard svd instead.</span></span></code></pre>
 <pre><code><span><span class="co">## Warning: Number of dimensions changing from 19 to 50</span></span></code></pre>
 <pre><code><span><span class="co">## PC_ 1 </span></span>
 <span><span class="co">## Positive:  IFITM2, S100A11, LGALS1, TYROBP, TYMP, LST1, ANXA2, NFKBIA, CTSS, AIF1 </span></span>
