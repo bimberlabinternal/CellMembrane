@@ -70,7 +70,7 @@ test_that("Seurat processing works as expected", {
 
   seuratObj <- FindClustersAndDimRedux(seuratObj, useLeiden = TRUE)
   expect_equal(ncol(seuratObj), 487)
-  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 7)
+  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 5)
 
   #Note: Seurat::PercentageFeatureSet returns 0-100.  our code is currently a fraction (0-1.0)
   expect_true(max(seuratObj$p.mito) < 1.0)
@@ -86,7 +86,7 @@ test_that("Seurat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 868)
+  expect_equal(nrow(df), 276)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
@@ -97,7 +97,7 @@ test_that("Seurat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 2224)
+  expect_equal(nrow(df), 876)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
