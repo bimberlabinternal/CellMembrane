@@ -9,10 +9,15 @@ ClusteredDotPlot(
   features,
   groupFields = "ClusterNames_0.2",
   assay = "RNA",
-  ggplotify = TRUE,
   scaling = "column",
   layer = "data",
-  forceRescaling = FALSE
+  dotSizeScaleFactor = 50,
+  forceRescaling = FALSE,
+  inferDefaultArguments = TRUE,
+  printInferredArguments = FALSE,
+  numberColumns = T,
+  numberRows = T,
+  ...
 )
 }
 \arguments{
@@ -24,13 +29,23 @@ ClusteredDotPlot(
 
 \item{assay}{The assay to plot.}
 
-\item{ggplotify}{A boolean that determines if the ComplexHeatmap object should be converted to a ggplot object.}
-
 \item{scaling}{The scaling method for the heatmap. Options are "row", "column", or none.}
 
 \item{layer}{The layer of the Seurat object that holds the relevant expression data.}
 
+\item{dotSizeScaleFactor}{An integer used to scale the dot size. Larger values result in smaler max dot size}
+
 \item{forceRescaling}{A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.}
+
+\item{inferDefaultArguments}{If TRUE, the function will infer the default arguments for the ComplexHeatmap::Heatmap function.}
+
+\item{printInferredArguments}{Boolean to control optional printing of the arguments inferred by inferDefaultArguments.}
+
+\item{numberColumns}{Boolean controlling the behavior of column titling by inferDefaultArguments. If TRUE, this will label each column's K means clusters with numeric titles.}
+
+\item{numberRows}{Boolean controlling the behavior of row titling by inferDefaultArguments. If TRUE, this will label each row's K means clusters with numeric titles.}
+
+\item{...}{Additional arguments to pass to ComplexHeatmap::Heatmap}
 }
 \description{
 A function that generates a clustered dot plot with a heatmap of scaled expression.
@@ -45,8 +60,29 @@ markers <- Seurat::FindAllMarkers(seuratObj)
 #filter markers to display the largest cluster identity markers according to average log fold change and differences in pct expression.
 strong_markers <- markers[abs(markers$avg_log2FC) > 3 & abs(markers$pct.1 - markers$pct.2) > 0.25, "gene"]
 
-dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column', ggplotify = TRUE)
+dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column')
 print(dotPlot)
+
+#Additionally, you can establish logical groupings based on a mixture of metadata fields
+ #create individual classifications based on lineage markers
+ CD3E_positive <- Seurat::WhichCells(seuratObj, expression = CD3E > 0)
+ CD20_positive <- Seurat::WhichCells(seuratObj, expression = MS4A1 > 0)
+ CD14_positive <- Seurat::WhichCells(seuratObj, expression = CD14 > 0)
+ seuratObj$CD3E_positive <- ifelse(rownames(seuratObj@meta.data) \%in\% CD3E_positive, "CD3E_Pos", "CD3E_Neg")
+ seuratObj$CD20_positive <- ifelse(rownames(seuratObj@meta.data) \%in\% CD20_positive, "CD20_Pos", "CD20_Neg")
+ seuratObj$CD14_positive <- ifelse(rownames(seuratObj@meta.data) \%in\% CD14_positive, "CD14_Pos", "CD14_Neg")
+ #roll lineage markers up into a single classification
+ seuratObj$CellClassification <- paste0(seuratObj$CD3E_positive, "_", seuratObj$CD20_positive, "_" , seuratObj$CD14_positive)
+ suppressWarnings(ClusteredDotPlot(seuratObj, 
+                                 features = c("CD3E", "MS4A1", "CD14"),
+                                 groupFields = c("CellClassification"),
+                                 layer = 'data',
+                                 scaling = "none", 
+                                 height = grid::unit(10, "cm"), 
+                                 width = grid::unit(4.5, "cm"), 
+                                 show_row_dend = FALSE, 
+                                 inferDefaultArguments = F
+                               ))
 
 }
 }
