@@ -14,7 +14,8 @@ def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
         print('AnnData object is a csr matrix, converting to dense because scipy depreciated the .A shorthand')
         adataObj.X = adataObj.X.toarray()
 
-    checkpoint = torch.load(model_file, map_location=torch.device('cpu'), weights_only=False)
+    with torch.serialization.safe_globals([AnnData]):
+        checkpoint = torch.load(model_file, map_location=torch.device('cpu'))
     model_adata = checkpoint['adata']
 
     genes_in_model = model_adata.var.index.values.tolist()
