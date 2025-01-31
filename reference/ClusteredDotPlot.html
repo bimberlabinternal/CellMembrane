@@ -68,10 +68,15 @@
 <span>  <span class="va">features</span>,</span>
 <span>  groupFields <span class="op">=</span> <span class="st">"ClusterNames_0.2"</span>,</span>
 <span>  assay <span class="op">=</span> <span class="st">"RNA"</span>,</span>
-<span>  ggplotify <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  scaling <span class="op">=</span> <span class="st">"column"</span>,</span>
 <span>  layer <span class="op">=</span> <span class="st">"data"</span>,</span>
-<span>  forceRescaling <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  dotSizeScaleFactor <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  forceRescaling <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  inferDefaultArguments <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  printInferredArguments <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  numberColumns <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>  numberRows <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -95,10 +100,6 @@
 <dd><p>The assay to plot.</p></dd>
 
 
-<dt id="arg-ggplotify">ggplotify<a class="anchor" aria-label="anchor" href="#arg-ggplotify"></a></dt>
-<dd><p>A boolean that determines if the ComplexHeatmap object should be converted to a ggplot object.</p></dd>
-
-
 <dt id="arg-scaling">scaling<a class="anchor" aria-label="anchor" href="#arg-scaling"></a></dt>
 <dd><p>The scaling method for the heatmap. Options are "row", "column", or none.</p></dd>
 
@@ -107,8 +108,32 @@
 <dd><p>The layer of the Seurat object that holds the relevant expression data.</p></dd>
 
 
+<dt id="arg-dotsizescalefactor">dotSizeScaleFactor<a class="anchor" aria-label="anchor" href="#arg-dotsizescalefactor"></a></dt>
+<dd><p>An integer used to scale the dot size. Larger values result in smaler max dot size</p></dd>
+
+
 <dt id="arg-forcerescaling">forceRescaling<a class="anchor" aria-label="anchor" href="#arg-forcerescaling"></a></dt>
 <dd><p>A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.</p></dd>
+
+
+<dt id="arg-inferdefaultarguments">inferDefaultArguments<a class="anchor" aria-label="anchor" href="#arg-inferdefaultarguments"></a></dt>
+<dd><p>If TRUE, the function will infer the default arguments for the ComplexHeatmap::Heatmap function.</p></dd>
+
+
+<dt id="arg-printinferredarguments">printInferredArguments<a class="anchor" aria-label="anchor" href="#arg-printinferredarguments"></a></dt>
+<dd><p>Boolean to control optional printing of the arguments inferred by inferDefaultArguments.</p></dd>
+
+
+<dt id="arg-numbercolumns">numberColumns<a class="anchor" aria-label="anchor" href="#arg-numbercolumns"></a></dt>
+<dd><p>Boolean controlling the behavior of column titling by inferDefaultArguments. If TRUE, this will label each column's K means clusters with numeric titles.</p></dd>
+
+
+<dt id="arg-numberrows">numberRows<a class="anchor" aria-label="anchor" href="#arg-numberrows"></a></dt>
+<dd><p>Boolean controlling the behavior of row titling by inferDefaultArguments. If TRUE, this will label each row's K means clusters with numeric titles.</p></dd>
+
+
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
+<dd><p>Additional arguments to pass to ComplexHeatmap::Heatmap</p></dd>
 
 </dl></div>
 
@@ -123,8 +148,29 @@
 <span class="r-in"><span><span class="co">#filter markers to display the largest cluster identity markers according to average log fold change and differences in pct expression.</span></span></span>
 <span class="r-in"><span><span class="va">strong_markers</span> <span class="op">&lt;-</span> <span class="va">markers</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">markers</span><span class="op">$</span><span class="va">avg_log2FC</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">3</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">markers</span><span class="op">$</span><span class="va">pct.1</span> <span class="op">-</span> <span class="va">markers</span><span class="op">$</span><span class="va">pct.2</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0.25</span>, <span class="st">"gene"</span><span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">dotPlot</span> <span class="op">&lt;-</span> <span class="fu">ClusteredDotPlot</span><span class="op">(</span><span class="va">seuratObj</span>, features <span class="op">=</span> <span class="va">strong_markers</span>, groupFields <span class="op">=</span> <span class="st">"ClusterNames_0.2"</span>, scaling <span class="op">=</span> <span class="st">'column'</span>, ggplotify <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">dotPlot</span> <span class="op">&lt;-</span> <span class="fu">ClusteredDotPlot</span><span class="op">(</span><span class="va">seuratObj</span>, features <span class="op">=</span> <span class="va">strong_markers</span>, groupFields <span class="op">=</span> <span class="st">"ClusterNames_0.2"</span>, scaling <span class="op">=</span> <span class="st">'column'</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">dotPlot</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">#Additionally, you can establish logical groupings based on a mixture of metadata fields</span></span></span>
+<span class="r-in"><span> <span class="co">#create individual classifications based on lineage markers</span></span></span>
+<span class="r-in"><span> <span class="va">CD3E_positive</span> <span class="op">&lt;-</span> <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://mojaveazure.github.io/seurat-object/reference/WhichCells.html" class="external-link">WhichCells</a></span><span class="op">(</span><span class="va">seuratObj</span>, expression <span class="op">=</span> <span class="va">CD3E</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">CD20_positive</span> <span class="op">&lt;-</span> <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://mojaveazure.github.io/seurat-object/reference/WhichCells.html" class="external-link">WhichCells</a></span><span class="op">(</span><span class="va">seuratObj</span>, expression <span class="op">=</span> <span class="va">MS4A1</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">CD14_positive</span> <span class="op">&lt;-</span> <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://mojaveazure.github.io/seurat-object/reference/WhichCells.html" class="external-link">WhichCells</a></span><span class="op">(</span><span class="va">seuratObj</span>, expression <span class="op">=</span> <span class="va">CD14</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">seuratObj</span><span class="op">$</span><span class="va">CD3E_positive</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">seuratObj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">CD3E_positive</span>, <span class="st">"CD3E_Pos"</span>, <span class="st">"CD3E_Neg"</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">seuratObj</span><span class="op">$</span><span class="va">CD20_positive</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">seuratObj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">CD20_positive</span>, <span class="st">"CD20_Pos"</span>, <span class="st">"CD20_Neg"</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">seuratObj</span><span class="op">$</span><span class="va">CD14_positive</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">seuratObj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">CD14_positive</span>, <span class="st">"CD14_Pos"</span>, <span class="st">"CD14_Neg"</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="co">#roll lineage markers up into a single classification</span></span></span>
+<span class="r-in"><span> <span class="va">seuratObj</span><span class="op">$</span><span class="va">CellClassification</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">seuratObj</span><span class="op">$</span><span class="va">CD3E_positive</span>, <span class="st">"_"</span>, <span class="va">seuratObj</span><span class="op">$</span><span class="va">CD20_positive</span>, <span class="st">"_"</span> , <span class="va">seuratObj</span><span class="op">$</span><span class="va">CD14_positive</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu">ClusteredDotPlot</span><span class="op">(</span><span class="va">seuratObj</span>, </span></span>
+<span class="r-in"><span>                                 features <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CD3E"</span>, <span class="st">"MS4A1"</span>, <span class="st">"CD14"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                 groupFields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CellClassification"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                 layer <span class="op">=</span> <span class="st">'data'</span>,</span></span>
+<span class="r-in"><span>                                 scaling <span class="op">=</span> <span class="st">"none"</span>, </span></span>
+<span class="r-in"><span>                                 height <span class="op">=</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"cm"</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>                                 width <span class="op">=</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">4.5</span>, <span class="st">"cm"</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>                                 show_row_dend <span class="op">=</span> <span class="cn">FALSE</span>, </span></span>
+<span class="r-in"><span>                                 inferDefaultArguments <span class="op">=</span> <span class="cn">F</span></span></span>
+<span class="r-in"><span>                               <span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
