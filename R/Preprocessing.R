@@ -410,6 +410,7 @@ LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayFo
 	margin <- 2
 	ncells <- dim(x = toNormalize)[margin]
 
+	start_time <- Sys.time()
 	ratios <- unlist(sapply(1:seq_len(length.out = ncells), function(i){
 		x <- toNormalize[, i]
 		librarySize <- sum(x) + assayForLibrarySizeData[i]
@@ -424,6 +425,10 @@ LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayFo
 
 		return(lsr)
 	}))
+	end_time <- Sys.time()
+
+	print('Normalization time:')
+	print(end_time - start_time)
 
 	print(ggplot(data.frame(lsr = ratios), aes(x = lsr)) +
 	    geom_histogram() +
