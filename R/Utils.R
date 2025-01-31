@@ -326,7 +326,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
   if (!is.null(minCellsPerGroup) && !is.na(minCellsPerGroup)) {
     groupValues <- as.character(seuratObj[[groupingVar, drop = TRUE]])
     if (any(is.na(groupValues))) {
-      missing <- unique(seuratObj$BarcodePrefix[is.na(seuratObj[[groupingVar]])])
+      missing <- unique(seuratObj$BarcodePrefix[is.na(seuratObj[[groupingVar, drop = TRUE]])])
       stop(paste0('There were NAs for the column: ', groupingVar, '. BarcodePrefix values were: ', paste0(missing, collapse = ',')))
     }
 
