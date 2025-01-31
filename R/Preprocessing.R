@@ -397,7 +397,7 @@ MergeSplitLayers <- function(seuratObj) {
 LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayForLibrarySize = 'RNA', scale.factor = 1e4, maxLibrarySizeRatio = 0.01) {
 	toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, layer = 'counts')
 	assayForLibrarySizeObj <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, layer = 'counts')
-	assayForLibrarySizeData <- Maxtrix::colSums(assayForLibrarySizeObj)
+	assayForLibrarySizeData <- Matrix::colSums(assayForLibrarySizeObj)
 
 	if (any(colnames(toNormalize) != colnames(assayForLibrarySize))) {
 		stop(paste0('The assayToNormalize and assayForLibrarySize do not have the same cell names!'))
