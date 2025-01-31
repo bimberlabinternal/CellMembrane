@@ -1,17 +1,17 @@
 import sctour as sct
 import scanpy as sc
-import numpy
+import numpy as np
 import pandas as pd
 import torch
 import anndata
 from anndata import AnnData
 
-torch.serialization.add_safe_globals([AnnData, anndata._core.file_backing.AnnDataFileManager, numpy.core.multiarray._reconstruct, numpy.ndarray])
+torch.serialization.add_safe_globals([AnnData, anndata._core.file_backing.AnnDataFileManager, np.core.multiarray._reconstruct, np.ndarray])
 
 def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     #read count data and variable genes
     adataObj = sc.read_10x_h5(GEXfile)
-    adataObj.X = round(adataObj.X).astype(numpy.float32)
+    adataObj.X = round(adataObj.X).astype(np.float32)
     
     # Added to avoid: 'SparseCSRView' object has no attribute 'A' error. See: https://github.com/LiQian-XC/sctour/issues/10
     if adataObj.X.getformat() == 'csr':
@@ -37,7 +37,7 @@ def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     adataObj.obs['ptime'] = pred_t
     mix_zs, zs, pred_zs  = sct.predict.predict_latentsp(adata = adataObj, model = tnode)
     adataObj.obsm['X_TNODE'] = mix_zs
-    numpy.savetxt(embedding_out_file, adataObj.obsm['X_TNODE'] , delimiter=",")
+    np.savetxt(embedding_out_file, adataObj.obsm['X_TNODE'] , delimiter=",")
 
     df = pd.DataFrame(adataObj.obs['ptime'])
     df.to_csv(ptime_out_file)
