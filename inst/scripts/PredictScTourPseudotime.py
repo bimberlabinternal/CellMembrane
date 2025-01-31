@@ -6,7 +6,7 @@ import torch
 import anndata
 from anndata import AnnData
 
-torch.serialization.add_safe_globals([AnnData, anndata._core.file_backing.AnnDataFileManager]):
+torch.serialization.add_safe_globals([AnnData, anndata._core.file_backing.AnnDataFileManager])
 
 def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     #read count data and variable genes
