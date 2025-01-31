@@ -6,7 +6,7 @@ import torch
 import anndata
 from anndata import AnnData
 
-torch.serialization.add_safe_globals([AnnData, anndata._core.file_backing.AnnDataFileManager])
+torch.serialization.add_safe_globals([AnnData, anndata._core.file_backing.AnnDataFileManager, np.core.multiarray._reconstruct])
 
 def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     #read count data and variable genes
@@ -18,7 +18,7 @@ def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
         print('AnnData object is a csr matrix, converting to dense because scipy depreciated the .A shorthand')
         adataObj.X = adataObj.X.toarray()
 
-    checkpoint = torch.load(model_file, map_location=torch.device('cpu'), weights_only = True)
+    checkpoint = torch.load(model_file, map_location=torch.device('cpu'), weights_only = False)
     model_adata = checkpoint['adata']
 
     genes_in_model = model_adata.var.index.values.tolist()
