@@ -397,7 +397,6 @@ MergeSplitLayers <- function(seuratObj) {
 LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayForLibrarySize = 'RNA', scale.factor = 1e4, maxLibrarySizeRatio = 0.01) {
 	toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, layer = 'counts')
 	assayForLibrarySizeObj <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, layer = 'counts')
-	assayForLibrarySizeData <- Matrix::colSums(assayForLibrarySizeObj)
 
 	if (any(colnames(toNormalize) != colnames(assayForLibrarySize))) {
 		stop(paste0('The assayToNormalize and assayForLibrarySize do not have the same cell names!'))
@@ -411,17 +410,19 @@ LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayFo
 	ncells <- dim(x = toNormalize)[margin]
 
 	start_time <- Sys.time()
+	assayForLibrarySizeData <- Matrix::colSums(assayForLibrarySizeObj)
 	ratios <- unlist(sapply(seq_len(length.out = ncells), function(i){
 		x <- toNormalize[, i]
-		librarySize <- sum(x) + assayForLibrarySizeData[i]
+		sumX <- sum(x)
+		librarySize <- sumX + assayForLibrarySizeData[i]
 
-        lsr <- (sum(x) / librarySize)
+    lsr <- (sumX / librarySize)
 		if (lsr > maxLibrarySizeRatio) {
-			stop(paste0('The ratio of library sizes was above maxLibrarySizeRatio for cell: ', colnames(assayForLibrarySizeObj)[i], ', on assay: ', assayToNormalize, '. Ratio was: ', (sum(x) / librarySize), ' (', sum(x), ' / ', librarySize, ')'))
+			stop(paste0('The ratio of library sizes was above maxLibrarySizeRatio for cell: ', colnames(assayForLibrarySizeObj)[i], ', on assay: ', assayToNormalize, '. Ratio was: ', lsr, ' (', sumX, ' / ', librarySize, ')'))
 		}
 
 		xnorm <- log1p(x = x / librarySize * scale.factor)
-		toNormalize[, i] <- xnorm
+		toNormalize[, i] <<- xnorm
 
 		return(lsr)
 	}))
