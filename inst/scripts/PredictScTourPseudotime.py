@@ -8,8 +8,7 @@ import anndata
 from anndata import AnnData
 
 # See: https://dev-discuss.pytorch.org/t/bc-breaking-change-torch-load-is-being-flipped-to-use-weights-only-true-by-default-in-the-nightlies-after-137602/2573
-os.environ[]'TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD'] = 1
-torch.serialization.add_safe_globals([AnnData, anndata._core.file_backing.AnnDataFileManager, np.core.multiarray._reconstruct, np.ndarray, np.dtype, np])
+os.environ['TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD'] = 1
 
 def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     #read count data and variable genes
