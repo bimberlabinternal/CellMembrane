@@ -411,7 +411,7 @@ LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayFo
 	ncells <- dim(x = toNormalize)[margin]
 
 	start_time <- Sys.time()
-	ratios <- unlist(sapply(1:seq_len(length.out = ncells), function(i){
+	ratios <- unlist(sapply(seq_len(length.out = ncells), function(i){
 		x <- toNormalize[, i]
 		librarySize <- sum(x) + assayForLibrarySizeData[i]
 
