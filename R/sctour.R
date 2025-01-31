@@ -166,6 +166,9 @@ PredictScTourPseudotime <- function(seuratObj,
   ptimeOutFile <- R.utils::getAbsolutePath(paste0(outputBasePath, 'ptime.csv'), mustWork = FALSE)
   embeddingOutFile <- R.utils::getAbsolutePath(paste0(outputBasePath, 'embeddings.csv'), mustWork = FALSE)
 
+  # See: https://dev-discuss.pytorch.org/t/bc-breaking-change-torch-load-is-being-flipped-to-use-weights-only-true-by-default-in-the-nightlies-after-137602/2573
+  Sys.setenv('TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD', 1)
+
   newstr <- paste0("PredictPseudotime(GEXfile = '", GEXOutfile,
                    "', model_file = '", R.utils::getAbsolutePath(modelFile, mustWork = FALSE),
                    "', ptime_out_file = '", ptimeOutFile,

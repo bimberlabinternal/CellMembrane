@@ -7,8 +7,7 @@ import os
 import anndata
 from anndata import AnnData
 
-# See: https://dev-discuss.pytorch.org/t/bc-breaking-change-torch-load-is-being-flipped-to-use-weights-only-true-by-default-in-the-nightlies-after-137602/2573
-os.environ['TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD'] = 1
+print('TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD: ' + os.getenv('TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD'))
 
 def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
     #read count data and variable genes
