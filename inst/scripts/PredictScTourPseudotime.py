@@ -3,9 +3,6 @@ import scanpy as sc
 import numpy as np
 import pandas as pd
 import torch
-import os
-import anndata
-from anndata import AnnData
 
 print('TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD: ' + os.getenv('TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD'))
 
@@ -19,7 +16,7 @@ def PredictPseudotime(GEXfile, model_file, ptime_out_file, embedding_out_file):
         print('AnnData object is a csr matrix, converting to dense because scipy depreciated the .A shorthand')
         adataObj.X = adataObj.X.toarray()
 
-    checkpoint = torch.load(model_file, map_location=torch.device('cpu'), weights_only = False)
+    checkpoint = torch.load(model_file, map_location=torch.device('cpu'))
     model_adata = checkpoint['adata']
 
     genes_in_model = model_adata.var.index.values.tolist()
