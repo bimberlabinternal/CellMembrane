@@ -3,6 +3,7 @@ import scanpy as sc
 import numpy as np
 import pandas as pd
 import torch
+import os
 
 print('TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD: ' + os.getenv('TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD'))
 
