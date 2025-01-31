@@ -396,7 +396,7 @@ MergeSplitLayers <- function(seuratObj) {
 #' @export
 LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayForLibrarySize = 'RNA', scale.factor = 1e4, maxLibrarySizeRatio = 0.01) {
 	toNormalize <- Seurat::GetAssayData(seuratObj, assayToNormalize, layer = 'counts')
-	assayForLibrarySizeData <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, layer = 'counts')
+	assayForLibrarySizeObj <- Seurat::GetAssayData(seuratObj, assay = assayForLibrarySize, layer = 'counts')
 
 	if (any(colnames(toNormalize) != colnames(assayForLibrarySize))) {
 		stop(paste0('The assayToNormalize and assayForLibrarySize do not have the same cell names!'))
@@ -409,20 +409,27 @@ LogNormalizeUsingAlternateAssay <- function(seuratObj, assayToNormalize, assayFo
 	margin <- 2
 	ncells <- dim(x = toNormalize)[margin]
 
-    ratios <- c()
-	for (i in seq_len(length.out = ncells)) {
+	start_time <- Sys.time()
+	assayForLibrarySizeData <- Matrix::colSums(assayForLibrarySizeObj)
+	ratios <- unlist(sapply(seq_len(length.out = ncells), function(i){
 		x <- toNormalize[, i]
-		librarySize <- sum(x) + sum(assayForLibrarySizeData[, i])
+		sumX <- sum(x)
+		librarySize <- sumX + assayForLibrarySizeData[i]
 
-        lsr <- (sum(x) / librarySize)
+    lsr <- (sumX / librarySize)
 		if (lsr > maxLibrarySizeRatio) {
-			stop(paste0('The ratio of library sizes was above maxLibrarySizeRatio for cell: ', colnames(assayForLibrarySizeData)[i], ', on assay: ', assayToNormalize, '. Ratio was: ', (sum(x) / librarySize), ' (', sum(x), ' / ', librarySize, ')'))
+			stop(paste0('The ratio of library sizes was above maxLibrarySizeRatio for cell: ', colnames(assayForLibrarySizeObj)[i], ', on assay: ', assayToNormalize, '. Ratio was: ', lsr, ' (', sumX, ' / ', librarySize, ')'))
 		}
 
-        ratios <- c(ratios, lsr)
 		xnorm <- log1p(x = x / librarySize * scale.factor)
-		toNormalize[, i] <- xnorm
-	}
+		toNormalize[, i] <<- xnorm
+
+		return(lsr)
+	}))
+	end_time <- Sys.time()
+
+	print('Normalization time:')
+	print(end_time - start_time)
 
 	print(ggplot(data.frame(lsr = ratios), aes(x = lsr)) +
 	    geom_histogram() +
