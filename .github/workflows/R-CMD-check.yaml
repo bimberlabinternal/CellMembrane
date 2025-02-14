@@ -121,9 +121,9 @@ jobs:
         run: |
           getOption('repos');
           print(paste0("R_BIOC_VERSION: ", Sys.getenv("R_BIOC_VERSION")));
-          remotes::install_deps(dependencies = TRUE, upgrade = 'always')
           # NOTE: fgsea added to avoid BH issue: https://github.com/ctlab/fgsea/issues/165
           remotes::install_github("ctlab/fgsea")
+          remotes::install_deps(dependencies = TRUE, upgrade = 'always')
           install.packages("pkgdown")
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
