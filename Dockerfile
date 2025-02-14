@@ -14,9 +14,6 @@ RUN cd /CellMembrane \
     # TODO: added to avoid fgsea installation issues:
     && Rscript -e "remotes::install_version('BH', '1.84.0-0');" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'never');" \
-    # TODO: this is to fix the as_cholmod_sparse' not provided by package 'Matrix' errors. This should ultimately be removed
-    && Rscript -e "install.packages('Matrix', type = 'source', force = TRUE, repos = 'https://cran.wustl.edu/')" \
-    && Rscript -e "install.packages('irlba', type = 'source', force = TRUE, repos = 'https://cran.wustl.edu/')" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
