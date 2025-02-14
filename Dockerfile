@@ -11,8 +11,6 @@ RUN cd /CellMembrane \
     # Pre-install the cpu-only versions of pytorch to try to reduce image size:
     && python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
     && python3 -m pip install tcrdist3 \
-    # TODO: added to avoid fgsea installation issues:
-    && Rscript -e "remotes::install_version('BH', '1.84.0-0');" \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'never');" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
