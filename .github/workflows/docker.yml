@@ -14,7 +14,9 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v4.2.2
 
-      - name: Trigger Rdiscvr Docker
+      - name: Trigger RDiscvr Docker
+        # NOTE: rely on the source of this event to also trigger RDiscvr
+        if: github.event_name != 'repository_dispatch'
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.PAT }}
