@@ -6,7 +6,7 @@ on:
     branches: [ master, dev ]
   pull_request:
   schedule:
-    - cron: "0 6 * * 3"
+    - cron: "0 6 10 * *"
 
 name: R Build and Checks
 
