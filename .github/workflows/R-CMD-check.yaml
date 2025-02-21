@@ -77,8 +77,14 @@ jobs:
             any::remotes
             any::devtools
 
-      - name: Install python packages
-        run: pip install wheel setuptools "numpy<2.0.0" scanpy umap-learn phate sctour tcrdist3 scikit-misc leidenalg
+      - name: Prepare python packages
+        run: |
+          echo -e "wheel\nsetuptools\nnumpy<2.0.0\nscanpy\numap-learn\nphate\nsctour\ntcrdist3\nscikit-misc\nleidenalg" > requirements.txt
+          cat requirements.txt
+
+      - uses: actions/setup-python@v5
+        with:
+          cache-dependency-path: 'requirements.txt'
 
       - name: Setup CoNGA
         run: |
@@ -97,21 +103,6 @@ jobs:
           wget -q -O $SDA_PATH/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1
           chmod +x $SDA_PATH/sda_static_linux          
           echo /home/runner/work/sda >> $GITHUB_PATH
-      
-
-      #      # The install_github() on remotes is to ensure system_requirements() supports 22.04
-#      - name: Install r-lib/remotes
-#        run: |
-#          remotes::install_github("r-lib/remotes", force = TRUE)
-#          print(paste0("Remotes version: ", packageVersion("remotes")))
-#        shell: Rscript {0}
-
-#      - name: Install R system dependencies
-#        run: |
-#          while read -r cmd
-#          do
-#            eval sudo $cmd
-#          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "${{ matrix.config.os }}"))')
 
       - name: Session info
         run: |
