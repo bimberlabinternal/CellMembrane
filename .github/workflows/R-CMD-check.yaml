@@ -34,6 +34,8 @@ jobs:
           r_version: "${{ matrix.config.r }}",
           bioc_version: "${{ matrix.config.bioc }}",
           cache_version: "${{ secrets.CACHE_VERSION }}"
+        env:
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: r-lib/actions/check-r-package@v2
         with:
