@@ -113,7 +113,7 @@ Remotes:
     drisso/RUVSeq,
     carmonalab/UCell,
     davidcsterratt/geometry/pkg,
-    ChangSuBiostats/CS-CORE,
+    CSCORE=ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
     rcastelo/GSVA,
     immunogenomics/presto
