@@ -22,7 +22,6 @@ jobs:
         config:
           #- { os: 24.04, r: 'devel', bioc: '3.21' } # Bioc 3.21 (devel) requires R 4.5
           - { os: 24.04, r: '4.4', bioc: '3.20', pkgdown: "true" }
-          - { os: 22.04, r: '4.3', bioc: '3.18' }
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -99,8 +98,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-${{ matrix.config.bioc }}-${{ secrets.CACHE_VERSION || 1 }}-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-${{ matrix.config.bioc }}-${{ secrets.CACHE_VERSION || 1 }}-
+          key: ${{ format('{0}-{1}-{2}-{3}-{4}', runner.os, matrix.config.r, matrix.config.bioc, secrets.CACHE_VERSION || 1, hashFiles(format('{0}/.github/pkg.lock', inputs.working-directory ))) }}
+          restore-keys: ${{ format('{0}-{1}-{2}-{3}-', runner.os, matrix.config.r, matrix.config.bioc, secrets.CACHE_VERSION || 1 ) }}
 
       # The install_github() on remotes is to ensure system_requirements() supports 22.04
       - name: Install r-lib/remotes
