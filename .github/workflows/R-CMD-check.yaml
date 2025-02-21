@@ -77,11 +77,8 @@ jobs:
             any::remotes
             any::devtools
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '>=3.9'
-          cache: 'pip'
-      - run: pip install wheel setuptools "numpy<2.0.0" scanpy umap-learn phate sctour tcrdist3 scikit-misc leidenalg
+      - name: Install python packages
+        run: pip install wheel setuptools "numpy<2.0.0" scanpy umap-learn phate sctour tcrdist3 scikit-misc leidenalg
 
       - name: Setup CoNGA
         run: |
