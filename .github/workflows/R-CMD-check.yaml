@@ -38,18 +38,6 @@ jobs:
 
       - uses: r-lib/actions/setup-pandoc@v2
 
-      - name: Cache R packages
-        if: runner.os != 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ env.R_LIBS_USER }}
-            ~/.cache/pip
-
-          key: ${{ format('{0}-{1}-{2}-{3}-{4}', runner.os, matrix.config.r, matrix.config.bioc, secrets.CACHE_VERSION || 1, hashFiles(format('{0}/.github/pkg.lock', inputs.working-directory ))) }}
-          restore-keys: ${{ format('{0}-{1}-{2}-{3}-', runner.os, matrix.config.r, matrix.config.bioc, secrets.CACHE_VERSION || 1 ) }}
-
-
       # libharfbuzz-dev libfribidi-dev are added to fix textshaping install error
       # libhdf5-dev added for cellmembrane/SeuratDisk
       # libglpk-dev added due to igraph / bluster /scran error
@@ -62,6 +50,32 @@ jobs:
             libharfbuzz-dev libfribidi-dev python3 python3-pip libsodium-dev libcurl4-openssl-dev libglpk-dev libhdf5-dev libmagick++-dev libharfbuzz-dev libfribidi-dev libsodium-dev libcurl4-openssl-dev python3 python3-pip
             texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
           version: ${{ secrets.CACHE_VERSION || 1 }}
+
+      # Note: the environment variable R_BIOC_VERSION is set to force remotes::install_bioc to follow the proper version
+      - name: Setup Bioconductor
+        run: |
+          if (!requireNamespace("BiocManager", quietly=TRUE))  install.packages("BiocManager");
+          BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE);
+          cat(append = TRUE, file = "~/.Rprofile", "options(repos = BiocManager::repositories());")
+          cat(append = TRUE, file = "~/.Rprofile", "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));");
+        shell: Rscript {0}
+
+      - name: Perform custom installs
+        run: |
+          install.packages('remotes')
+          # NOTE: fgsea added to avoid BH issue: https://github.com/ctlab/fgsea/issues/165
+          remotes::install_github("ctlab/fgsea")
+        shell: Rscript {0}
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          cache-version: ${{ secrets.CACHE_VERSION || 1 }}
+          upgrade: 'TRUE'
+          extra-packages: |
+            any::pkgdown
+            any::rcmdcheck
+            any::remotes
+            any::devtools
 
       - uses: actions/setup-python@v5
         with:
@@ -86,35 +100,9 @@ jobs:
           wget -q -O $SDA_PATH/sda_static_linux https://www.dropbox.com/sh/chek4jkr28qnbrj/AADPy1qQlm3jsHPmPdNsjSx2a/bin/sda_static_linux?dl=1
           chmod +x $SDA_PATH/sda_static_linux          
           echo /home/runner/work/sda >> $GITHUB_PATH
+      
 
-      # Note: the environment variable R_BIOC_VERSION is set to force remotes::install_bioc to follow the proper version
-      - name: Setup Bioconductor
-        run: |
-          if (!requireNamespace("BiocManager", quietly=TRUE))  install.packages("BiocManager");
-          BiocManager::install(version = "${{ matrix.config.bioc }}", ask = FALSE);
-          cat(append = TRUE, file = "~/.Rprofile", "options(repos = BiocManager::repositories());")
-          cat(append = TRUE, file = "~/.Rprofile", "Sys.setenv(R_BIOC_VERSION=as.character(BiocManager::version()));");
-        shell: Rscript {0}
-
-
-      - name: Perform custom installs
-        run: |
-          install.packages('remotes')
-          # NOTE: fgsea added to avoid BH issue: https://github.com/ctlab/fgsea/issues/165
-          remotes::install_github("ctlab/fgsea")
-        shell: Rscript {0}
-
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          cache-version: ${{ secrets.CACHE_VERSION || 1 }}
-          upgrade: 'TRUE'
-          extra-packages: |
-            any::pkgdown
-            any::rcmdcheck
-            any::remotes
-            any::devtools
-
-#      # The install_github() on remotes is to ensure system_requirements() supports 22.04
+      #      # The install_github() on remotes is to ensure system_requirements() supports 22.04
 #      - name: Install r-lib/remotes
 #        run: |
 #          remotes::install_github("r-lib/remotes", force = TRUE)
@@ -127,13 +115,6 @@ jobs:
 #          do
 #            eval sudo $cmd
 #          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "${{ matrix.config.os }}"))')
-
-      - uses: actions/cache/save@v4
-        id: cache
-        with:
-          path: |
-            ${{ env.R_LIBS_USER }}
-          key: ${{ format('{0}-{1}-{2}-{3}-{4}', runner.os, matrix.config.r, matrix.config.bioc, secrets.CACHE_VERSION || 1, hashFiles(format('{0}/.github/pkg.lock', inputs.working-directory ))) }}
 
       - name: Session info
         run: |
