@@ -31,9 +31,9 @@ jobs:
 
       - uses: bimberlabinternal/DevOps/githubActions/r-gh-setup@master
         with:
-          r_version: ${{ matrix.config.r }},
-          bioc_version: ${{ matrix.config.bioc }},
-          cache_version: ${{ secrets.CACHE_VERSION }}
+          r_version: "${{ matrix.config.r }}",
+          bioc_version: "${{ matrix.config.bioc }}",
+          cache_version: "${{ secrets.CACHE_VERSION }}"
 
       - uses: r-lib/actions/check-r-package@v2
         with:
