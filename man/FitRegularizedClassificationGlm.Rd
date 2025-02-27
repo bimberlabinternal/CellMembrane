@@ -13,7 +13,8 @@ FitRegularizedClassificationGlm(
   layer = "scale.data",
   devianceCutoff = 0.8,
   split = NULL,
-  returnModelAndSplits = F
+  returnModelAndSplits = F,
+  excludeVariableGenes = T
 )
 }
 \arguments{

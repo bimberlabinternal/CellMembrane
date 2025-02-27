@@ -1120,7 +1120,8 @@ FitRegularizedClassificationGlm <- function(seuratObj,
                                             layer = "scale.data",
                                             devianceCutoff = 0.8,
                                             split = NULL,
-                                            returnModelAndSplits = F) {
+                                            returnModelAndSplits = F, 
+                                            excludeVariableGenes = T) {
   #sanity check arguments
   if (is.null(metadataVariableForClassification)){
     stop("Please supply a column of the seurat object's metadata to classify.")
@@ -1130,56 +1131,17 @@ FitRegularizedClassificationGlm <- function(seuratObj,
   }
 
   set.seed(GetSeed())
-
-  # rescale the input data (in case of an upstream subset since it was last rescaled).
-  if (rescale) {
-    if (is.null(numberOfVariableFeatures)) {
-      seuratObj <- CellMembrane::NormalizeAndScale(seuratObj,
-                                                   nVariableFeatures = length(rownames(seuratObj)),
-                                                   variableGenesBlacklist = RIRA::GetGeneSet("VariableGenes_Exclusion.2"),
-                                                   scoreCellCycle=F, 
-                                                   featuresToRegress = NULL
-      )
-    } else {
-      seuratObj <- CellMembrane::NormalizeAndScale(seuratObj,
-                                                   nVariableFeatures = numberOfVariableFeatures,
-                                                   variableGenesBlacklist = RIRA::GetGeneSet("VariableGenes_Exclusion.2"),
-                                                   scoreCellCycle=F, 
-                                                   featuresToRegress = NULL
-      )
-    }
-  }
+ 
   #convert the scale.data matrix to include a labeled classification column
-  target_labeled_data <-
-    #merge the seuratObj's requested layer (converted to dense just in case a non-scale.data layer was used)
-    merge(
-      Matrix::t(as.matrix(Seurat::GetAssayData(
-        seuratObj,
-        assay = assay,
-        layer = layer
-      ))),
-      seuratObj@meta.data |>
-        dplyr::select(dplyr::all_of(metadataVariableForClassification)),
-      by = 0) |>
-    #drop rownames column
-    dplyr::select(-dplyr::all_of("Row.names"))
+  target_labeled_data <- .PrepareDataForClassificationGlm(seuratObj, 
+                                                          assay = assay, 
+                                                          layer = layer, 
+                                                          rescale = rescale,
+                                                          numberOfVariableFeatures = numberOfVariableFeatures, 
+                                                          excludeVariableGenes = excludeVariableGenes, 
+                                                          metadataVariableForClassification = metadataVariableForClassification)
 
-  #fix gene names like MAMU-A or UGT2B9*2 with an easily replaceable and uniquely mapping "dash", "leadingNumber", or "star".
-
-  # Perform a test to ensure we wont get conflicts:
-  for (token in c("dash", "leadingNumber", "star")) {
-    if (any(grepl(colnames(target_labeled_data), pattern = token))) {
-      matches <- grep(colnames(target_labeled_data), pattern = token, value = TRUE)
-      stop(paste0('The input feature names contained the unexpected pattern: ', token, '. Feature(s) were: ', paste0(matches, collapse = ', ')))
-    }
-  }
-  colnames(target_labeled_data) <-
-    gsub("-", "dash", colnames(target_labeled_data))
-  colnames(target_labeled_data) <-
-    gsub("^[0-9]", "leadingNumber", colnames(target_labeled_data))
-  colnames(target_labeled_data) <- gsub("\\*", "star", colnames(target_labeled_data))
-
-  ##set up task
+  #set up task
   task_metadata_classification <- mlr3::as_task_classif(target_labeled_data,
                                                         target = metadataVariableForClassification,
                                                         id = "metadata_classification")
@@ -1230,4 +1192,81 @@ FitRegularizedClassificationGlm <- function(seuratObj,
       split = split
     ))
   }
+}
+
+#' @title .PrepareDataForClassificationGlm
+#' @description a helper function for FitClassificationGlm to remove special characters from the gene names.
+#' @param seuratObj Input seurat object used for training a glmnet model. 
+#' @param assay Seurat Object's assay
+#' @param layer layer within the Seurat object assay. Recommended to be "scale.data".
+#' @param rescale The feature selection will optimize for "heatmap-interpretable genes" so the features are intended to be scaled. If TRUE, this will rescale the variable features.
+#' @param numberOfVariableFeatures A parameter to select how many features should be selected as variable for scaling, by default, all genes will be used.
+#' @param excludeVariableGenes A boolean option to exclude variable genes from the analysis. Only the Variable Gene Exclusion list from RIRA is supported. 
+#' @param metadataVariableForClassification The metadata feature to be classified. If non-binary, then multinomial regression will automatically be performed.
+#' 
+#' @return a matrix with the special characters removed from the gene names.
+
+.PrepareDataForClassificationGlm <- function(seuratObj, 
+                                             assay = "RNA", 
+                                             layer = 'scale.data', 
+                                             rescale = TRUE, 
+                                             numberOfVariableFeatures = NULL,  
+                                             excludeVariableGenes = T, 
+                                             metadataVariableForClassification = NULL) {
+  # rescale the input data (in case of an upstream subset since it was last rescaled).
+  
+  if (excludeVariableGenes) {
+    exclusionList <- NULL
+  } else {
+    exclusionList <- RIRA::GetGeneSet("VariableGenes_Exclusion.2")
+  }
+  
+  if (rescale) {
+    if (is.null(numberOfVariableFeatures)) {
+      seuratObj <- CellMembrane::NormalizeAndScale(seuratObj,
+                                                   nVariableFeatures = length(rownames(seuratObj)),
+                                                   variableGenesBlacklist = exclusionList,
+                                                   scoreCellCycle = F, 
+                                                   featuresToRegress = NULL
+      )
+    } else {
+      seuratObj <- CellMembrane::NormalizeAndScale(seuratObj,
+                                                   nVariableFeatures = numberOfVariableFeatures,
+                                                   variableGenesBlacklist = exclusionList,
+                                                   scoreCellCycle = F, 
+                                                   featuresToRegress = NULL
+      )
+    }
+  }
+  
+  target_labeled_data <-
+    #merge the seuratObj's requested layer (converted to dense just in case a non-scale.data layer was used)
+    merge(
+      Matrix::t(as.matrix(Seurat::GetAssayData(
+        seuratObj,
+        assay = assay,
+        layer = layer
+      ))),
+      seuratObj@meta.data |>
+        dplyr::select(dplyr::all_of(metadataVariableForClassification)),
+      by = 0) |>
+    #drop rownames column
+    dplyr::select(-dplyr::all_of("Row.names"))
+  
+  #fix gene names like MAMU-A or UGT2B9*2 with an easily replaceable and uniquely mapping "dash", "leadingNumber", or "star".
+  
+  # Perform a test to ensure we wont get conflicts:
+  for (token in c("dash", "leadingNumber", "star")) {
+    if (any(grepl(colnames(target_labeled_data), pattern = token))) {
+      matches <- grep(colnames(target_labeled_data), pattern = token, value = TRUE)
+      stop(paste0('The input feature names contained the unexpected pattern: ', token, '. Feature(s) were: ', paste0(matches, collapse = ', ')))
+    }
+  }
+  colnames(target_labeled_data) <-
+    gsub("-", "dash", colnames(target_labeled_data))
+  colnames(target_labeled_data) <-
+    gsub("^[0-9]", "leadingNumber", colnames(target_labeled_data))
+  colnames(target_labeled_data) <- gsub("\\*", "star", colnames(target_labeled_data))
+  
+  return(target_labeled_data)
 }
