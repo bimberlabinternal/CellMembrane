@@ -180,6 +180,8 @@ test_that("Feature Selection by GLM works", {
                                                           returnModelAndSplits = T, 
                                                           rescale = F
                                                           ))
+  testthat::expect_no_error(predict(classification_results$model, as.matrix(.PrepareDataForClassificationGlm(pbulk, layer = 'scale.data', rescale = F))))
+  
   #ensure a glmnet specific parameter exists in the fitted model, showing that it trained successfully
   expect_true("lambda.min" %in% names(classification_results$model))
 })
