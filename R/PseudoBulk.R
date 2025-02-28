@@ -1107,6 +1107,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
 #' @param devianceCutoff Tolerance for model error when deciding how much regularization should be performed. 1 = no tolerance for error, 0 = intercept only, no genes used for prediction.
 #' @param split the option to provide a previous model's training/testing set. This is necessary if you're performing multiple iterations of model fitting. 
 #' @param returnModelAndSplits A boolean option to return a list containing the fitted model and training/testing splits in addition to the useful features. 
+#' @param excludeVariableGenes A boolean option to exclude variable genes from the analysis. Only the Variable Gene Exclusion (v2) list from RIRA is supported.
 #' @return A vector of genes useful for classification and, optionally, the model and training/testing sets.
 #' @import mlr3verse
 #' @importFrom mlr3 as_task_classif lrn partition
@@ -1201,7 +1202,7 @@ FitRegularizedClassificationGlm <- function(seuratObj,
 #' @param layer layer within the Seurat object assay. Recommended to be "scale.data".
 #' @param rescale The feature selection will optimize for "heatmap-interpretable genes" so the features are intended to be scaled. If TRUE, this will rescale the variable features.
 #' @param numberOfVariableFeatures A parameter to select how many features should be selected as variable for scaling, by default, all genes will be used.
-#' @param excludeVariableGenes A boolean option to exclude variable genes from the analysis. Only the Variable Gene Exclusion list from RIRA is supported. 
+#' @param excludeVariableGenes A boolean option to exclude variable genes from the analysis. Only the Variable Gene Exclusion list (v2) from RIRA is supported. 
 #' @param metadataVariableForClassification The metadata feature to be classified. If non-binary, then multinomial regression will automatically be performed.
 #' 
 #' @return a matrix with the special characters removed from the gene names.

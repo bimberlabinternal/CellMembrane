@@ -25,7 +25,7 @@
 
 \item{numberOfVariableFeatures}{A parameter to select how many features should be selected as variable for scaling, by default, all genes will be used.}
 
-\item{excludeVariableGenes}{A boolean option to exclude variable genes from the analysis. Only the Variable Gene Exclusion list from RIRA is supported.}
+\item{excludeVariableGenes}{A boolean option to exclude variable genes from the analysis. Only the Variable Gene Exclusion list (v2) from RIRA is supported.}
 
 \item{metadataVariableForClassification}{The metadata feature to be classified. If non-binary, then multinomial regression will automatically be performed.}
 }

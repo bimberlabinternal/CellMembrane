@@ -35,6 +35,8 @@ FitRegularizedClassificationGlm(
 \item{split}{the option to provide a previous model's training/testing set. This is necessary if you're performing multiple iterations of model fitting.}
 
 \item{returnModelAndSplits}{A boolean option to return a list containing the fitted model and training/testing splits in addition to the useful features.}
+
+\item{excludeVariableGenes}{A boolean option to exclude variable genes from the analysis. Only the Variable Gene Exclusion (v2) list from RIRA is supported.}
 }
 \value{
 A vector of genes useful for classification and, optionally, the model and training/testing sets.
