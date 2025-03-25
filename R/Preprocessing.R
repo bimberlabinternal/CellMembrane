@@ -1,5 +1,5 @@
 utils::globalVariables(
-	names = c('x', 'y'),
+	names = c('x', 'y', 'lsr'),
 	package = 'CellMembrane',
 	add = TRUE
 )
