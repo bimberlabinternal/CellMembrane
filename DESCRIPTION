@@ -81,7 +81,7 @@ Imports:
     geometry,
     CSCORE,
     WGCNA,
-    escape (>= 1.99.0),
+    escape (>= 2.2.3),
     GSVA (>= 1.51.5),
     dynamicTreeCut, 
     pacman,
@@ -114,7 +114,7 @@ Remotes:
     carmonalab/UCell,
     davidcsterratt/geometry/pkg,
     CSCORE=ChangSuBiostats/CS-CORE,
-    ncborcherding/escape,
+    ncborcherding/escape@v2.2.3,
     rcastelo/GSVA,
     immunogenomics/presto
 Config/reticulate:
