@@ -81,7 +81,7 @@ Imports:
     geometry,
     CSCORE,
     WGCNA,
-    escape (>= 1.99.0),
+    escape,
     GSVA (>= 1.51.5),
     dynamicTreeCut, 
     pacman,
@@ -100,6 +100,7 @@ Suggests:
     rmarkdown,
     shiny,
     pkgdown,
+    msigdbr,
     org.Hs.eg.db,
     org.Mmu.eg.db
 RoxygenNote: 7.3.2

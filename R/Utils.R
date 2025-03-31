@@ -515,6 +515,7 @@ GetMsigdbGeneSet <- function(msigdbGeneSets = "H") {
   results <- c()
   for (libraryName in msigdbGeneSets) {
     subcategory <- NULL
+    libraryNameOrig <- libraryName
     if (grepl(pattern = ':', x = libraryName)) {
       tokens <- unlist(strsplit(libraryName, split = ':'))
       libraryName <- tokens[1]
@@ -523,12 +524,14 @@ GetMsigdbGeneSet <- function(msigdbGeneSets = "H") {
 
     if (libraryName == 'GO') {
       libraryName <- 'C5'
+      subcategory <- libraryNameOrig
     }
 
     if (! libraryName %in% allowableValues) {
       stop(paste0('Unknown library: ', libraryName, '. Must be one of: ', paste0(allowableValues, collapse = ';')))
     }
 
+    print(paste0('Querying library: ', libraryName , ' / subcategory: ', subcategory))
     x <- escape::getGeneSets(library = libraryName, subcategory = subcategory)
     results <- c(results, x)
   }
