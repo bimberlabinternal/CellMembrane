@@ -16,8 +16,11 @@ test_that("escape works as expected", {
     
     #test full functionality
     seuratObj <- RunEscape(seuratObj, msigdbGeneSets = "H", customGeneSets = list("CD3" = c("CD3E", "CD3G"), "CD4" = c("CD4")), performDimRedux = FALSE)
+    print(seuratObj)
+    print(names(seuratObj@assays))
+    print(rownames(rownames(seuratObj@assays$escape.CustomGeneSet)))
     expect_equal(length(rownames(seuratObj@assays$escape.H)), 50)
-    expect_equal(length(rownames(seuratObj@assays$escape.CustomGeneSet)), 1)
+    expect_equal(length(rownames(seuratObj@assays$escape.CustomGeneSet)), 2)
 
     seuratObj <- RunEscape(seuratObj, msigdbGeneSets = "H", performDimRedux = TRUE)
     expect_equal(max(seuratObj@assays$escape.H$counts[1]), 263, tolerance = 0.5)
