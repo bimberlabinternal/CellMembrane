@@ -7,7 +7,7 @@ test_that("escape works as expected", {
     testthat::expect_warning(testthat::expect_error(RunEscape(seuratObj, msigdbGeneSets = NULL, customGeneSets = list("FakeGene" = c("FakeGene")))))
     
     #test full functionality
-    seuratObj <- RunEscape(seuratObj, msigdbGeneSets = "H", customGeneSets = list("CD3E" = c("CD3E")), performDimRedux = TRUE)
+    seuratObj <- RunEscape(seuratObj, msigdbGeneSets = "H", customGeneSets = list("CD3" = c("CD3E", "CD3G")), performDimRedux = TRUE)
     expect_equal(length(rownames(seuratObj@assays$escape.H)), 50)
     expect_equal(length(rownames(seuratObj@assays$escape.CustomGeneSet)), 1)
 
