@@ -15,13 +15,13 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   assayToGeneSets <- list()
   for (idx in seq_along(msigdbGeneSets)) {
     if (!is.null(names(msigdbGeneSets)[idx]) && names(msigdbGeneSets)[idx] != '') {
-      library <- names(msigdbGeneSets)[idx]
+      libraryName <- names(msigdbGeneSets)[idx]
       subcategory <- msigdbGeneSets[[idx]]
-      outputAssayName <- paste0(outputAssayBaseName, library, '.', subcategory)
+      outputAssayName <- paste0(outputAssayBaseName, libraryName, '.', subcategory)
     } else {
-      library <- msigdbGeneSets[[idx]]
+      libraryName <- msigdbGeneSets[[idx]]
       subcategory <- NULL
-      outputAssayName <- paste0(outputAssayBaseName, library)
+      outputAssayName <- paste0(outputAssayBaseName, libraryName)
     }
 
     print(paste0('Querying library: ', libraryName , ' / subcategory: ', subcategory))
