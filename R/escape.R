@@ -105,7 +105,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   assayNameForKeys <- gsub(assayName, pattern = '\\.', replacement = '')
   pca.reduction.key <- paste0(assayNameForKeys, 'pca_')
   pca.reduction.name <- paste0('pca.', assayName)
-  seuratObj <- Seurat::RunPCA(seuratObj, assay = assayName, npcs = length(Seurat::VariableFeatures(seuratObj, assay = assayName)), reduction.key = pca.reduction.key, reduction.name = pca.reduction.name)
+  seuratObj <- Seurat::RunPCA(seuratObj, assay = assayName, npcs = min(50, length(Seurat::VariableFeatures(seuratObj, assay = assayName))), reduction.key = pca.reduction.key, reduction.name = pca.reduction.name)
 
   print(Seurat::ProjectDim(seuratObj, reduction = pca.reduction.name, assay = assayName))
   print(Seurat::VizDimLoadings(object = seuratObj, dims = 1:4, nfeatures = nrow(seuratObj@assays[[assayName]]), reduction = pca.reduction.name))
