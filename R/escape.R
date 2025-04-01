@@ -25,9 +25,15 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
 
     # Check for feature existence. I think it's reasonable to expect someone might grab a new/non-msigdb human gene set and supply it to customGeneSets,
     # so a warning rather than stop for feature existence is sufficient.
-    if (!(all(unlist(customGeneSets) %in% rownames(seuratObj)))) {
+    allGenes <- unique(unlist(customGeneSets))
+    if (!(all(allGenes %in% rownames(seuratObj)))) {
+      missingGenes <- allGenes[!(allGenes %in% rownames(seuratObj))]
       warning(paste0("Some genes in customGeneSets are not features in the Seurat object. These features are missing and will not contribute to scoring: ",
-                     paste0(unlist(customGeneSets)[!(unlist(customGeneSets) %in% rownames(seuratObj))], ", ")))
+                     paste0(missingGenes, collapse = ', ')))
+      
+      if (length(allGenes) == length(missingGenes)) {
+        stop('There are no genes shared between those provided in customGeneSets and the seurat object')
+      }
     }
 
     # If the names are not provided in the custom gene sets, we should warn the user but we can label them here.
