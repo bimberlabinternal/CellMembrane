@@ -48,7 +48,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
       names(customGeneSets)[toFix] <- gsub(names(customGeneSets)[toFix], pattern = '_', replacement = '-')
     }
 
-    assayToGeneSets[[customGeneSetAssayName]] <- customGeneSets
+    assayToGeneSets[[paste0(outputAssayBaseName, customGeneSetAssayName)]] <- customGeneSets
   }
 
   for (idx in seq_along(msigdbGeneSets)) {
