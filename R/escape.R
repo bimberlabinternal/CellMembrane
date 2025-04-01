@@ -13,26 +13,14 @@
 #' @export
 RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C5" = "GO:CC"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', assayName = 'RNA') {
   assayToGeneSets <- list()
-  for (idx in seq_along(msigdbGeneSets)) {
-    if (!is.null(names(msigdbGeneSets)[idx]) && names(msigdbGeneSets)[idx] != '') {
-      libraryName <- names(msigdbGeneSets)[idx]
-      subcategory <- msigdbGeneSets[[idx]]
-      outputAssayName <- paste0(outputAssayBaseName, libraryName, '.', subcategory)
-    } else {
-      libraryName <- msigdbGeneSets[[idx]]
-      subcategory <- NULL
-      outputAssayName <- paste0(outputAssayBaseName, libraryName)
-    }
-
-    print(paste0('Querying library: ', libraryName , ' / subcategory: ', subcategory))
-    GS <- escape::getGeneSets(library = libraryName, subcategory = subcategory)
-
-    assayToGeneSets[[outputAssayName]] <- GS
-  }
 
   if (all(!is.null(customGeneSets), !(length(customGeneSets) == 0))) {
     if (!is.list(customGeneSets)){
       stop("customGeneSets is not a list. Please coerce it into a named list.")
+    }
+
+    if (length(customGeneSets) == 1) {
+      stop('Due to issues with seurat5 single-row assays, customGeneSets must contain as least 2 gene sets')
     }
 
     # Check for feature existence. I think it's reasonable to expect someone might grab a new/non-msigdb human gene set and supply it to customGeneSets,
@@ -55,6 +43,23 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
     }
 
     assayToGeneSets[[customGeneSetAssayName]] <- customGeneSets
+  }
+
+  for (idx in seq_along(msigdbGeneSets)) {
+    if (!is.null(names(msigdbGeneSets)[idx]) && names(msigdbGeneSets)[idx] != '') {
+      libraryName <- names(msigdbGeneSets)[idx]
+      subcategory <- msigdbGeneSets[[idx]]
+      outputAssayName <- paste0(outputAssayBaseName, libraryName, '.', subcategory)
+    } else {
+      libraryName <- msigdbGeneSets[[idx]]
+      subcategory <- NULL
+      outputAssayName <- paste0(outputAssayBaseName, libraryName)
+    }
+
+    print(paste0('Querying library: ', libraryName , ' / subcategory: ', subcategory))
+    GS <- escape::getGeneSets(library = libraryName, subcategory = subcategory)
+
+    assayToGeneSets[[outputAssayName]] <- GS
   }
 
   for (outputAssayName in names(assayToGeneSets)) {
