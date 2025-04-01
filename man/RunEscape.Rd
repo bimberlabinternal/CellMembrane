@@ -6,26 +6,29 @@
 \usage{
 RunEscape(
   seuratObj,
-  outputAssayName = "escape.ssGSEA",
+  outputAssayBaseName = "escape.",
   doPlot = FALSE,
   performDimRedux = FALSE,
-  msigdbGeneSets = c("H"),
+  msigdbGeneSets = c("H", C5 = "GO:BP", C5 = "GO:MF", C5 = "GO:CC"),
   customGeneSets = NULL,
+  customGeneSetAssayName = "CustomGeneSet",
   assayName = "RNA"
 )
 }
 \arguments{
 \item{seuratObj}{A Seurat object.}
 
-\item{outputAssayName}{The name of the assay to store results}
+\item{outputAssayBaseName}{The basename of the assay to store results. Escape will be run once for each gene set.}
 
 \item{doPlot}{If true, a FeaturePlot will be printed for each pathway}
 
 \item{performDimRedux}{If true, the standard seurat PCA/FindClusters/UMAP process will be run on the escape data. This may be most useful when using a customGeneSet or a smaller set of features/pathways}
 
-\item{msigdbGeneSets}{A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658).}
+\item{msigdbGeneSets}{A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658). Each item will be processed into a separate assay.}
 
 \item{customGeneSets}{A (preferably named) list containing gene sets to be scored by escape.}
+
+\item{customGeneSetAssayName}{The name for the output assay (prefixed with outputAssayBaseName) for any customGeneSets}
 
 \item{assayName}{The name of the source assay}
 }

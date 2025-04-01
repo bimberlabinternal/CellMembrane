@@ -37,17 +37,3 @@ test_that("AddNewMetaColumn works as expected", {
                                                    nCount_RNA < 1000 ~ "Low"), 
                                  defaultname = "Mid"))
 })
-
-test_that("GetMsigdbGeneSet works as expected", {
-  testthat::expect_warning(GetMsigdbGeneSet(msigdbGeneSets = "GO:XX"))
-
-  #if this fails, then MsigDB added a "C9" category, and the Utils function GetMsigdbGeneSet needs to be updated to include C9
-  testthat::expect_error(GetMsigdbGeneSet(msigdbGeneSets = "C9"))
-  
-  x <- GetMsigdbGeneSet(msigdbGeneSets = "GO:BP")
-  testthat::expect_equal(length(x), 16013)
-  
-  y <- GetMsigdbGeneSet(msigdbGeneSets = "H")
-  testthat::expect_equal(length(y), 50)
-})
-

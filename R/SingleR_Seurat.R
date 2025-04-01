@@ -87,7 +87,7 @@ RunSingleR <- function(seuratObj = NULL, datasets = c('hpca', 'blueprint', 'dice
 
     ref <- ref[genesPresent,]
 
-    seuratObjSubset <- Seurat::DietSeurat(seuratObj, assays = assay, counts = TRUE)
+    seuratObjSubset <- Seurat::DietSeurat(seuratObj, assays = assay, layers = 'counts')
     seuratObjSubset <- subset(seuratObjSubset, features = genesPresent)
     cellsToKeep <- colnames(seuratObjSubset)[Matrix::colSums(GetAssayData(object = seuratObjSubset, assay = assay, layer = "counts")) > 0]
     if (length(cellsToKeep) != ncol(seuratObjSubset)) {
