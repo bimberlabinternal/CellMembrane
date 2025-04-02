@@ -62,6 +62,8 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
       outputAssayName <- paste0(outputAssayBaseName, libraryName)
     }
 
+    outputAssayName <- gsub(outputAssayName, pattern = ':', replacement = '.')
+
     print(paste0('Querying library: ', libraryName , ' / subcategory: ', subcategory))
     GS <- escape::getGeneSets(library = libraryName, subcategory = subcategory)
 
