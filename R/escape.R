@@ -98,24 +98,24 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
         mat <- .RunEscapeOnSubset(seuratObj = so, assayName = assayName, outputAssayName = outputAssayName, GS = GS)
         rm(so)
 
-        assayCounts <- rbind(assayCounts, mat)
+        assayCounts <- cbind(assayCounts, mat)
       }
     }
 
-    if (nrow(assayCounts) != ncol(seuratObj)) {
+    if (ncol(assayCounts) != ncol(seuratObj)) {
       stop('The rows of the assay object are not equal to the number of cells')
     }
 
-    assayCounts <- assayCounts[colnames(seuratObj),]
-    if (nrow(assayCounts) != ncol(seuratObj)) {
+    assayCounts <- assayCounts[,colnames(seuratObj)]
+    if (ncol(assayCounts) != ncol(seuratObj)) {
       stop('The rows of the assay object are not equal to the number of cells, after re-ordering')
     }
 
-    if (any(rownames(assayCounts) != colnames(seuratObj))) {
+    if (any(colnames(assayCounts) != colnames(seuratObj))) {
       stop('The cell names did not match after batch processing')
     }
 
-    seuratObj[[outputAssayName]] <- assayCounts
+    seuratObj[[outputAssayName]] <- Seurat::CreateAssayObject(counts = assayCounts)
     seuratObj <- .NormalizeEscape(seuratObj, assayToNormalize = outputAssayName, assayForLibrarySize = assayName)
 
     if (doPlot) {
@@ -166,11 +166,11 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   graphName <- paste0(assayName, '.nn')
   seuratObj <- Seurat::FindNeighbors(seuratObj, dims = dimsToUse, reduction = pca.reduction.name, assay = assayName, graph.name = graphName)
 
-  origIdents <- Idents(seuratObj)
+  origIdents <- Seurat::Idents(seuratObj)
   for (resolutionToUse in resolutionsToUse) {
     seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
   }
-  Idents(seuratObj) <- origIdents
+  Seurat::Idents(seuratObj) <- origIdents
 
   umap.reduction.name <- paste0(assayName, '.umap')
   umap.reduction.key <- paste0(assayNameForKeys, 'umap_')
