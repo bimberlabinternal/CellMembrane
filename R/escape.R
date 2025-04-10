@@ -9,9 +9,10 @@
 #' @param customGeneSets A (preferably named) list containing gene sets to be scored by escape.
 #' @param customGeneSetAssayName The name for the output assay (prefixed with outputAssayBaseName) for any customGeneSets
 #' @param assayName The name of the source assay
+#' @param maxBatchSize If more than this many cells are in the object, it will be split into batches of this size and run in serial.
 #' @return The seurat object with results stored in an assay
 #' @export
-RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C5" = "GO:CC"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', assayName = 'RNA') {
+RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C5" = "GO:CC"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', assayName = 'RNA', maxBatchSize = 100000) {
   assayToGeneSets <- list()
 
   if (all(!is.null(customGeneSets), !(length(customGeneSets) == 0))) {
@@ -70,18 +71,51 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
     assayToGeneSets[[outputAssayName]] <- GS
   }
 
+  nBatches <- 1
+  if (ncol(seuratObj) > maxBatchSize) {
+    nBatches <- ceiling(ncol(seuratObj) / maxBatchSize)
+    print(paste0('The object will be split into ', nBatches, ', batches'))
+  }
+
   for (outputAssayName in names(assayToGeneSets)) {
     GS <- assayToGeneSets[[outputAssayName]]
     print(paste0('Processing ', outputAssayName, ' with ', length(GS), ' gene sets'))
-    seuratObj <- escape::runEscape(seuratObj,
-                                   method = "ssGSEA",
-                                   gene.sets = GS,
-                                   groups = 5000,
-                                   min.size = 0,
-                                   assay = assayName,
-                                   new.assay.name = outputAssayName)
 
-    seuratObj <- SeuratObject::SetAssayData(seuratObj, assay = outputAssayName, layer = 'counts', new.data = SeuratObject::GetAssayData(seuratObj, assay = outputAssayName, layer = 'data'))
+    assayCounts <- NULL
+    if (nBatches == 1) {
+      assayCounts <- .RunEscapeOnSubset(seuratObj = seuratObj, assayName = assayName, outputAssayName = outputAssayName, GS = GS)
+    }
+    else {
+      cellsPerBatch <- .SplitCellsIntoBatches(seuratObj, nBatches = nBatches)
+      for (i in 1:nBatches) {
+        toRun <- cellsPerBatch[[i]]
+        print(paste0('Running escape batch ', i, ' of ', nBatches, ' with ', length(toRun), ' cells'))
+        so <- subset(seuratObj, cells = toRun)
+        if (ncol(so) != length(toRun)) {
+          stop(paste0('Error subsetting seurat object, batch size does not match cells after subset: ', length(toRun), ' / ', ncol(seuratObj)))
+        }
+
+        mat <- .RunEscapeOnSubset(seuratObj = so, assayName = assayName, outputAssayName = outputAssayName, GS = GS)
+        rm(so)
+
+        assayCounts <- cbind(assayCounts, mat)
+      }
+    }
+
+    if (ncol(assayCounts) != ncol(seuratObj)) {
+      stop('The rows of the assay object are not equal to the number of cells')
+    }
+
+    assayCounts <- assayCounts[,colnames(seuratObj)]
+    if (ncol(assayCounts) != ncol(seuratObj)) {
+      stop('The rows of the assay object are not equal to the number of cells, after re-ordering')
+    }
+
+    if (any(colnames(assayCounts) != colnames(seuratObj))) {
+      stop('The cell names did not match after batch processing')
+    }
+
+    seuratObj[[outputAssayName]] <- Seurat::CreateAssayObject(counts = assayCounts)
     seuratObj <- .NormalizeEscape(seuratObj, assayToNormalize = outputAssayName, assayForLibrarySize = assayName)
 
     if (doPlot) {
@@ -98,6 +132,18 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   }
 
   return(seuratObj)
+}
+
+.RunEscapeOnSubset <- function(seuratObj, assayName, outputAssayName, GS){
+  seuratObj <- escape::runEscape(seuratObj,
+                                 method = "ssGSEA",
+                                 gene.sets = GS,
+                                 groups = 5000,
+                                 min.size = 0,
+                                 assay = assayName,
+                                 new.assay.name = outputAssayName)
+
+  return(SeuratObject::GetAssayData(seuratObj, assay = outputAssayName, layer = 'data'))
 }
 
 .RunEscapePca <- function(seuratObj, assayName, dimsToUse = NULL, resolutionsToUse = 0.2) {
@@ -120,15 +166,15 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   graphName <- paste0(assayName, '.nn')
   seuratObj <- Seurat::FindNeighbors(seuratObj, dims = dimsToUse, reduction = pca.reduction.name, assay = assayName, graph.name = graphName)
 
-  origIdents <- Idents(seuratObj)
+  origIdents <- Seurat::Idents(seuratObj)
   for (resolutionToUse in resolutionsToUse) {
-    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
+    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, seed.use = GetSeed(), cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
   }
-  Idents(seuratObj) <- origIdents
+  Seurat::Idents(seuratObj) <- origIdents
 
   umap.reduction.name <- paste0(assayName, '.umap')
   umap.reduction.key <- paste0(assayNameForKeys, 'umap_')
-  seuratObj <- Seurat::RunUMAP(seuratObj, dims = dimsToUse, assay = assayName, reduction = pca.reduction.name, reduction.name = umap.reduction.name, reduction.key = umap.reduction.key, verbose = FALSE)
+  seuratObj <- Seurat::RunUMAP(seuratObj, dims = dimsToUse, assay = assayName, reduction = pca.reduction.name, seed.use = GetSeed(), reduction.name = umap.reduction.name, reduction.key = umap.reduction.key, verbose = FALSE)
 
   print(DimPlot(seuratObj, reduction = umap.reduction.name))
 
@@ -165,4 +211,25 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   seuratObj <- Seurat::ScaleData(seuratObj, assay = assayToNormalize)
 
   return(seuratObj)
+}
+
+.SplitCellsIntoBatches <- function(seuratObj, nBatches, seed = GetSeed()) {
+  if (nBatches == 1) {
+    stop('It does not make sense to call this function with a single batch')
+  }
+
+  cellsPerBatch <- floor(ncol(seuratObj) / nBatches)
+  remainder <- ncol(seuratObj) - (cellsPerBatch * nBatches)
+
+  ret <- list()
+  set.seed(seed)
+  allCells <- colnames(seuratObj)
+  ret[[1]] <- sample(allCells, (cellsPerBatch + remainder), replace=FALSE)
+  allCells <- setdiff(allCells, ret[[1]])
+  for (i in 2:nBatches) {
+    ret[[i]] <- sample(allCells, cellsPerBatch, replace=FALSE)
+    allCells <- setdiff(allCells, ret[[i]])
+  }
+
+  return(ret)
 }
