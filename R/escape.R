@@ -15,8 +15,6 @@
 RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C5" = "GO:CC"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', assayName = 'RNA', maxBatchSize = 100000) {
   assayToGeneSets <- list()
 
-  # TODO: batchSize
-
   if (all(!is.null(customGeneSets), !(length(customGeneSets) == 0))) {
     if (!is.list(customGeneSets)){
       stop("customGeneSets is not a list. Please coerce it into a named list.")
@@ -105,7 +103,12 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
     }
 
     if (nrow(assayCounts) != ncol(seuratObj)) {
-      stop('There was an error processing escape batches')
+      stop('The rows of the assay object are not equal to the number of cells')
+    }
+
+    assayCounts <- assayCounts[colnames(seuratObj),]
+    if (nrow(assayCounts) != ncol(seuratObj)) {
+      stop('The rows of the assay object are not equal to the number of cells, after re-ordering')
     }
 
     if (any(rownames(assayCounts) != colnames(seuratObj))) {
@@ -208,4 +211,25 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   seuratObj <- Seurat::ScaleData(seuratObj, assay = assayToNormalize)
 
   return(seuratObj)
+}
+
+.SplitCellsIntoBatches <- function(seuratObj, nBatches, seed = GetSeed()) {
+  if (nBatches == 1) {
+    stop('It does not make sense to call this function with a single batch')
+  }
+
+  cellsPerBatch <- floor(ncol(seuratObj) / nBatches)
+  remainder <- ncol(seuratObj) - (cellsPerBatch * nBatches)
+
+  ret <- list()
+  set.seed(seed)
+  allCells <- colnames(seuratObj)
+  ret[[1]] <- sample(allCells, (cellsPerBatch + remainder), replace=FALSE)
+  allCells <- setdiff(allCells, ret[[1]])
+  for (i in 2:nBatches) {
+    ret[[i]] <- sample(allCells, cellsPerBatch, replace=FALSE)
+    allCells <- setdiff(allCells, ret[[i]])
+  }
+
+  return(ret)
 }
