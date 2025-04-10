@@ -168,13 +168,13 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
 
   origIdents <- Seurat::Idents(seuratObj)
   for (resolutionToUse in resolutionsToUse) {
-    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
+    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, seed.use = GetSeed(), cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
   }
   Seurat::Idents(seuratObj) <- origIdents
 
   umap.reduction.name <- paste0(assayName, '.umap')
   umap.reduction.key <- paste0(assayNameForKeys, 'umap_')
-  seuratObj <- Seurat::RunUMAP(seuratObj, dims = dimsToUse, assay = assayName, reduction = pca.reduction.name, reduction.name = umap.reduction.name, reduction.key = umap.reduction.key, verbose = FALSE)
+  seuratObj <- Seurat::RunUMAP(seuratObj, dims = dimsToUse, assay = assayName, reduction = pca.reduction.name, seed.use = GetSeed(), reduction.name = umap.reduction.name, reduction.key = umap.reduction.key, verbose = FALSE)
 
   print(DimPlot(seuratObj, reduction = umap.reduction.name))
 
