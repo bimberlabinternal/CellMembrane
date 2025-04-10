@@ -12,7 +12,8 @@ RunEscape(
   msigdbGeneSets = c("H", C5 = "GO:BP", C5 = "GO:MF", C5 = "GO:CC"),
   customGeneSets = NULL,
   customGeneSetAssayName = "CustomGeneSet",
-  assayName = "RNA"
+  assayName = "RNA",
+  maxBatchSize = 1e+05
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ RunEscape(
 \item{customGeneSetAssayName}{The name for the output assay (prefixed with outputAssayBaseName) for any customGeneSets}
 
 \item{assayName}{The name of the source assay}
+
+\item{maxBatchSize}{If more than this many cells are in the object, it will be split into batches of this size and run in serial.}
 }
 \value{
 The seurat object with results stored in an assay

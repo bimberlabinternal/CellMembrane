@@ -39,3 +39,12 @@ test_that("escape works as expected", {
     expect_true('escape.H' %in% names(seuratObj@assays))
     expect_true('escape.C5.GO.BP' %in% names(seuratObj@assays))
 })
+
+test_that("escape works with batches", {
+    seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+
+    seuratObj <- RunEscape(seuratObj, msigdbGeneSets = "H", performDimRedux = TRUE, maxBatchSize = 500)
+    expect_equal(max(seuratObj@assays$escape.H$counts[1]), 263, tolerance = 0.5)
+    expect_equal(max(seuratObj@assays$escape.H$data[1]), 0.112, tolerance = 0.01)
+    expect_equal(max(seuratObj@assays$escape.H$scale.data[1]), -0.624, tolerance = 0.01)
+})
