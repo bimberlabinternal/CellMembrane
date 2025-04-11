@@ -138,7 +138,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   seuratObj <- escape::runEscape(seuratObj,
                                  method = "ssGSEA",
                                  gene.sets = GS,
-                                 min.size = 1,
+                                 min.size = 0,
                                  assay = assayName,
                                  new.assay.name = outputAssayName)
 
