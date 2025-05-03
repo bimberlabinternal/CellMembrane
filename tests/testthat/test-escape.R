@@ -11,6 +11,7 @@ test_that("escape works as expected", {
     
     testthat::expect_warning(RunEscape(seuratObj, msigdbGeneSets = NULL, customGeneSets = list(
       "CD3G" = c("CD3G", "CD3E"),
+      "CD4" = c("CD4"),
       "FakeGene2" = c("FakeGene2")
     )))
     
