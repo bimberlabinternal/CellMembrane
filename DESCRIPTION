@@ -92,7 +92,9 @@ Imports:
     presto,
     decoupleR,
     OmnipathR,
-    glmGamPoi
+    glmGamPoi,
+    tricycle,
+    scater
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -142,6 +144,7 @@ Collate:
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'Spatial.R'
+    'Tricycle.R'
     'data.R'
     'decoupleR.R'
     'escape.R'
