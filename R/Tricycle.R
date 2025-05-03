@@ -6,7 +6,7 @@
 #' @param gname.type Passed directly to tricycle functions
 #' @return The seurat object with results stored in metadata variables
 #' @export
-RunTricycle <- function(seuratObj, assay = NULL, species = , gname.type = 'SYMBOL') {
+RunTricycle <- function(seuratObj, assay = NULL, species = 'human', gname.type = 'SYMBOL') {
   if (is.null(assay)) {
     assay <- Seurat::DefaultAssay(seuratObj)
   }

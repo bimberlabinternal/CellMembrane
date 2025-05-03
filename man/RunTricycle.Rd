@@ -4,7 +4,7 @@
 \alias{RunTricycle}
 \title{Run tricycle}
 \usage{
-RunTricycle(seuratObj, assay = NULL, species = species, gname.type = "SYMBOL")
+RunTricycle(seuratObj, assay = NULL, species = "human", gname.type = "SYMBOL")
 }
 \arguments{
 \item{seuratObj}{A Seurat object.}
