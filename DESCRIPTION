@@ -93,7 +93,8 @@ Imports:
     decoupleR,
     OmnipathR,
     glmGamPoi,
-    tricycle
+    tricycle,
+    scater
 Suggests:
     devtools,
     testthat (>= 2.1.0),

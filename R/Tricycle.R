@@ -2,6 +2,7 @@
 #'
 #' @description This will run tricycle to calculate cell cycle phase
 #' @param seuratObj A Seurat object.
+#' @param assay The name of the assay to use. Defaults to Seurat::DefaultAssay()
 #' @param species The species
 #' @param gname.type Passed directly to tricycle functions
 #' @return The seurat object with results stored in metadata variables

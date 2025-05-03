@@ -9,6 +9,8 @@ RunTricycle(seuratObj, assay = NULL, species = "human", gname.type = "SYMBOL")
 \arguments{
 \item{seuratObj}{A Seurat object.}
 
+\item{assay}{The name of the assay to use. Defaults to Seurat::DefaultAssay()}
+
 \item{species}{The species}
 
 \item{gname.type}{Passed directly to tricycle functions}
