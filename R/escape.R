@@ -84,7 +84,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
 
     assayCounts <- NULL
     if (nBatches == 1) {
-      assayCounts <- .RunEscapeOnSubset(seuratObj = seuratObj, assayName = assayName, outputAssayName = outputAssayName, GS = GS)
+      assayCounts <- .RunEscapeOnSubset(seuratObj = seuratObj, assayName = assayName, outputAssayName = outputAssayName, GS = GS, nCores = nCores)
     }
     else {
       cellsPerBatch <- .SplitCellsIntoBatches(seuratObj, nBatches = nBatches)
