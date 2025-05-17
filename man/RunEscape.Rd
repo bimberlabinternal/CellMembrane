@@ -13,7 +13,8 @@ RunEscape(
   customGeneSets = NULL,
   customGeneSetAssayName = "CustomGeneSet",
   assayName = "RNA",
-  maxBatchSize = 1e+05
+  maxBatchSize = 1e+05,
+  nCores = 1
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ RunEscape(
 \item{assayName}{The name of the source assay}
 
 \item{maxBatchSize}{If more than this many cells are in the object, it will be split into batches of this size and run in serial.}
+
+\item{nCores}{Passed to runEscape()}
 }
 \value{
 The seurat object with results stored in an assay

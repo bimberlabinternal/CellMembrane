@@ -10,9 +10,10 @@
 #' @param customGeneSetAssayName The name for the output assay (prefixed with outputAssayBaseName) for any customGeneSets
 #' @param assayName The name of the source assay
 #' @param maxBatchSize If more than this many cells are in the object, it will be split into batches of this size and run in serial.
+#' @param nCores Passed to runEscape()
 #' @return The seurat object with results stored in an assay
 #' @export
-RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C5" = "GO:CC"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', assayName = 'RNA', maxBatchSize = 100000) {
+RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C5" = "GO:CC"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', assayName = 'RNA', maxBatchSize = 100000, nCores = 1) {
   assayToGeneSets <- list()
 
   if (all(!is.null(customGeneSets), !(length(customGeneSets) == 0))) {
@@ -95,7 +96,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
           stop(paste0('Error subsetting seurat object, batch size does not match cells after subset: ', length(toRun), ' / ', ncol(seuratObj)))
         }
 
-        mat <- .RunEscapeOnSubset(seuratObj = so, assayName = assayName, outputAssayName = outputAssayName, GS = GS)
+        mat <- .RunEscapeOnSubset(seuratObj = so, assayName = assayName, outputAssayName = outputAssayName, GS = GS, nCores = nCores)
         rm(so)
 
         assayCounts <- cbind(assayCounts, mat)
@@ -134,12 +135,14 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   return(seuratObj)
 }
 
-.RunEscapeOnSubset <- function(seuratObj, assayName, outputAssayName, GS){
+.RunEscapeOnSubset <- function(seuratObj, assayName, outputAssayName, GS, nCores){
+  BPPARAM <- .InferBpParam(nCores, defaultValue = NULL)
   seuratObj <- escape::runEscape(seuratObj,
                                  method = "ssGSEA",
                                  gene.sets = GS,
                                  min.size = 0,
                                  assay = assayName,
+                                 BPPARAM = BPPARAM,
                                  new.assay.name = outputAssayName)
 
   return(SeuratObject::GetAssayData(seuratObj, assay = outputAssayName, layer = 'data'))
