@@ -137,11 +137,10 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
 
 .RunEscapeOnSubset <- function(seuratObj, assayName, outputAssayName, GS, nCores){
   BPPARAM <- .InferBpParam(nCores, defaultValue = NULL)
-  seuratObj <- escape::runEscape(seuratObj,
+  seuratObj <- escape::runEscape(SeuratObject::GetAssayData(seuratObj, assay = assayName, slot = 'counts'),
                                  method = "ssGSEA",
                                  gene.sets = GS,
                                  min.size = 0,
-                                 assay = assayName,
                                  BPPARAM = BPPARAM,
                                  new.assay.name = outputAssayName)
 
