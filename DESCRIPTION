@@ -104,6 +104,7 @@ Suggests:
     shiny,
     pkgdown,
     msigdbr,
+    msigdb,
     org.Hs.eg.db,
     org.Mmu.eg.db
 RoxygenNote: 7.3.2
