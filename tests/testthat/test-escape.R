@@ -1,11 +1,17 @@
 context("scRNAseq")
 
-test_that("escape works as expected", {
+ensureEscapeCacheDir <- function() {
     # Debug saveRDS() issue:
     x <- tools::R_user_dir("escape", "cache")
     print(paste0('escape cache: ', x))
-    print(paste0('exists: ', dir.exists(x)))
-    print(list.dirs(x))
+    if (! dir.exists(x)) {
+        print('creating folder')
+        dir.create(x, recursive = TRUE)
+    }
+}
+
+test_that("escape works as expected", {
+    ensureEscapeCacheDir()
 
     seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 
@@ -48,6 +54,8 @@ test_that("escape works as expected", {
 })
 
 test_that("escape works with batches", {
+    ensureEscapeCacheDir()
+
     seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 
     seuratObjNoBatch <- RunEscape(seuratObj, msigdbGeneSets = "H", performDimRedux = TRUE)
