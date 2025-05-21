@@ -1,6 +1,12 @@
 context("scRNAseq")
 
 test_that("escape works as expected", {
+    # Debug saveRDS() issue:
+    x <- tools::R_user_dir("escape", "cache")
+    print(paste0('escape cache: ', x))
+    print(paste0('exists: ', dir.exists(x)))
+    print(list.dirs(x))
+
     seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
 
     # if no genes match any feature, escape will error on its own, and also the genes missing will warn the user.
