@@ -8,13 +8,15 @@
 #' @param msigdbGeneSets A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658). Each item will be processed into a separate assay.
 #' @param customGeneSets A (preferably named) list containing gene sets to be scored by escape.
 #' @param customGeneSetAssayName The name for the output assay (prefixed with outputAssayBaseName) for any customGeneSets
-#' @param assayName The name of the source assay
 #' @param maxBatchSize If more than this many cells are in the object, it will be split into batches of this size and run in serial.
 #' @param nCores Passed to runEscape()
 #' @return The seurat object with results stored in an assay
 #' @export
-RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C5" = "GO:CC"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', assayName = 'RNA', maxBatchSize = 100000, nCores = 1) {
+RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C5" = "GO:CC"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', maxBatchSize = 100000, nCores = 1) {
   assayToGeneSets <- list()
+
+  # NOTE: currently escape only supports RNA:
+  assayName <- 'RNA'
 
   if (all(!is.null(customGeneSets), !(length(customGeneSets) == 0))) {
     if (!is.list(customGeneSets)){
@@ -84,7 +86,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
 
     assayCounts <- NULL
     if (nBatches == 1) {
-      assayCounts <- .RunEscapeOnSubset(seuratObj = seuratObj, assayName = assayName, outputAssayName = outputAssayName, GS = GS, nCores = nCores)
+      assayCounts <- .RunEscapeOnSubset(seuratObj = seuratObj, outputAssayName = outputAssayName, GS = GS, nCores = nCores)
     }
     else {
       cellsPerBatch <- .SplitCellsIntoBatches(seuratObj, nBatches = nBatches)
@@ -96,7 +98,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
           stop(paste0('Error subsetting seurat object, batch size does not match cells after subset: ', length(toRun), ' / ', ncol(seuratObj)))
         }
 
-        mat <- .RunEscapeOnSubset(seuratObj = so, assayName = assayName, outputAssayName = outputAssayName, GS = GS, nCores = nCores)
+        mat <- .RunEscapeOnSubset(seuratObj = so, outputAssayName = outputAssayName, GS = GS, nCores = nCores)
         rm(so)
 
         assayCounts <- cbind(assayCounts, mat)
@@ -135,13 +137,12 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   return(seuratObj)
 }
 
-.RunEscapeOnSubset <- function(seuratObj, assayName, outputAssayName, GS, nCores){
+.RunEscapeOnSubset <- function(seuratObj, outputAssayName, GS, nCores){
   BPPARAM <- .InferBpParam(nCores, defaultValue = NULL)
   seuratObj <- escape::runEscape(seuratObj,
                                  method = "ssGSEA",
                                  gene.sets = GS,
                                  min.size = 0,
-                                 assay = assayName,
                                  BPPARAM = BPPARAM,
                                  new.assay.name = outputAssayName)
 
