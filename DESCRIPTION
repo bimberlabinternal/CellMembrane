@@ -81,7 +81,7 @@ Imports:
     geometry,
     CSCORE,
     WGCNA,
-    escape (>= 1.99.0),
+    escape,
     GSVA (>= 1.51.5),
     dynamicTreeCut, 
     pacman,
@@ -89,10 +89,16 @@ Imports:
     conover.test, 
     colorspace, 
     forcats, 
+    presto,
+    decoupleR,
+    OmnipathR,
+    glmGamPoi,
+    tricycle,
+    scater, 
     progressr, 
     future, 
-    twosamples, 
-    presto
+    twosamples
+
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -101,6 +107,8 @@ Suggests:
     rmarkdown,
     shiny,
     pkgdown,
+    msigdbr,
+    msigdb,
     org.Hs.eg.db,
     org.Mmu.eg.db
 RoxygenNote: 7.3.2
@@ -114,7 +122,7 @@ Remotes:
     drisso/RUVSeq,
     carmonalab/UCell,
     davidcsterratt/geometry/pkg,
-    ChangSuBiostats/CS-CORE,
+    CSCORE=ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
     rcastelo/GSVA,
     immunogenomics/presto
@@ -141,7 +149,9 @@ Collate:
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'Spatial.R'
+    'Tricycle.R'
     'data.R'
+    'decoupleR.R'
     'escape.R'
     'sctour.R'
     'ssGSEA_Alternatives.R'

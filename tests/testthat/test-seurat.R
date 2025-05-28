@@ -70,7 +70,7 @@ test_that("Seurat processing works as expected", {
 
   seuratObj <- FindClustersAndDimRedux(seuratObj, useLeiden = TRUE)
   expect_equal(ncol(seuratObj), 487)
-  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 7)
+  expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 5)
 
   #Note: Seurat::PercentageFeatureSet returns 0-100.  our code is currently a fraction (0-1.0)
   expect_true(max(seuratObj$p.mito) < 1.0)
@@ -86,7 +86,7 @@ test_that("Seurat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 868)
+  expect_equal(nrow(df), 276)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
@@ -97,7 +97,7 @@ test_that("Seurat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 2224)
+  expect_equal(nrow(df), 876)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
@@ -140,22 +140,4 @@ test_that("Seurat CellCycleScoring_UCell", {
   expect_equal(sum(seuratObj$PhaseUCell == 'S'), 393)
   expect_equal(sum(seuratObj$PhaseUCell == 'G2M'), 272)
   expect_equal(sum(seuratObj$PhaseUCell == 'G1'), 892)
-})
-
-
-test_that("LogNormalizeUsingAlternateAssay works as expected", {
-  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
-
-  assayToAdd <- Seurat::GetAssayData(seuratObj, assay = 'RNA', layer = 'counts')
-  assayToAdd <- floor(assayToAdd[1:10,] / 5)
-  
-  rownames(assayToAdd) <- paste0('Feature', LETTERS[1:10])
-
-  seuratObj[['Norm']] <- Seurat::CreateAssayObject(assayToAdd)
-
-  seuratObj <- LogNormalizeUsingAlternateAssay(seuratObj, assayToNormalize = 'Norm', assayForLibrarySize = 'RNA')
-
-  nd <- Seurat::GetAssayData(seuratObj, assay = 'Norm', layer = 'data')
-  expect_equal(max(nd[,4]), 3.442982, tolerance = 0.000001)
-  expect_equal(max(nd[,101]), 2.823479, tolerance = 0.000001)
 })

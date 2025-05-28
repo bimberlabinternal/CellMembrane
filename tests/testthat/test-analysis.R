@@ -48,32 +48,38 @@ test_that("Cluster enrichment works", {
                                           treatmentField = "timepoint",
                                           subjectField = "subject",
                                           paired = "infer"))
-  # Test ClusteredDotPlot
+})
+
+test_that("ClusteredDotPlot works", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  
+  #general testing of ClusteredDotPlot
+  seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne"), length.out = length(colnames(seuratObj)))
+  
   dotplot <- ClusteredDotPlot(seuratObj, 
-                   features = c("CD3E", "CD8A"),
-                   groupFields = c("vaccine_cohort"),
-                   layer = 'data',
-                   scaling = "column")
+                              features = c("CD3E", "CD8A"),
+                              groupFields = c("vaccine_cohort"),
+                              layer = 'data',
+                              scaling = "column")
   #test that the plot was created and the name is correct
   testthat::expect_true(dotplot@name == "Scaled\nExpr. (Column)")
   #mixed scaling should fail
-  expect_error(ClusteredDotPlot(seuratObj, 
-                   features = c("CD3E", "CD8A"),
-                   groupFields = c("vaccine_cohort"),
-                   layer = 'scale.data',
-                   scaling = "row"))
+  testthat::expect_error(ClusteredDotPlot(seuratObj, 
+                                features = c("CD3E", "CD8A"),
+                                groupFields = c("vaccine_cohort"),
+                                layer = 'scale.data',
+                                scaling = "row"))
   #this should fail due to CD8A being the only variable present in the scale.data layer by default.
-  expect_error(suppressWarnings(ClusteredDotPlot(seuratObj, 
-                   features = c("CD3E", "CD8A", "MKI67"),
-                   groupFields = c("vaccine_cohort"),
-                   layer = 'scale.data',
-                   scaling = "none")))
+  testthat::expect_error(suppressWarnings(ClusteredDotPlot(seuratObj, 
+                                                 features = c("CD3E", "CD8A", "MKI67"),
+                                                 groupFields = c("vaccine_cohort"),
+                                                 layer = 'scale.data',
+                                                 scaling = "none")))
   #however, rescaling the matrix should fix the issues
-  expect_no_error(suppressWarnings(ClusteredDotPlot(seuratObj, 
-                   features = c("CD3E", "CD8A", "MKI67"),
-                   groupFields = c("vaccine_cohort"),
-                   layer = 'scale.data',
-                   scaling = "none", 
-                   forceRescaling = T)))
-  
+  testthat::expect_no_error(suppressWarnings(ClusteredDotPlot(seuratObj, 
+                                                    features = c("CD3E", "CD8A", "MKI67"),
+                                                    groupFields = c("vaccine_cohort"),
+                                                    layer = 'scale.data',
+                                                    scaling = "none", 
+                                                    forceRescaling = T)))
 })

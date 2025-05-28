@@ -20,24 +20,24 @@ utils::globalVariables(
   if (!normalizationField %in% names(seuratObj@meta.data)) {
     stop(paste0('Field missing: ', normalizationField))
   }
- if (any(is.na(seuratObj@meta.data[,normalizationField]))){
-   stop(paste0("Detected NAs in ", normalizationField,". Please remove them."))
- }
+  if (any(is.na(seuratObj@meta.data[,normalizationField]))){
+    stop(paste0("Detected NAs in ", normalizationField,". Please remove them."))
+  }
   dat <- as.character(seuratObj@meta.data[,normalizationField])
-
+  
   #check max size factor for data
   dataMaxSizeFactor <- max(table(dat))/min(table(dat))
   if (!maxSizeFactor >= dataMaxSizeFactor){
     stop(paste0("Greater than max allowable size factor: ", round(dataMaxSizeFactor,2)))
   }
-
+  
   #Calculate the ratio between maximum size
   print("Calculating size factors")
   for (dataset in unique(dat)){
     datasetSizeFactor <- max(table(dat)) / length(dat[dat == dataset])
     seuratObj@meta.data[[sizeFactorField]][dat == dataset] <- round(datasetSizeFactor, 4)
   }
-
+  
   return(seuratObj)
 }
 
@@ -61,7 +61,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
                                                         xField = 'Timepoint',
                                                         extraGroupingFields = NULL,
                                                         colorField = 'Population',
-
+                                                        
                                                         normalizationField = 'cDNA_ID',
                                                         sizeFactorField = 'SizeFactor',
                                                         maxSizeFactor = 100,
@@ -71,24 +71,24 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   
   # Calculate Size Factor
   seuratObj <- .GenerateSizeFactor(seuratObj, normalizationField = normalizationField, sizeFactorField = sizeFactorField, maxSizeFactor = maxSizeFactor)
-
+  
   if (!colorField %in% names(seuratObj@meta.data)) {
     stop(paste0('colorField not found: ', colorField))
   }
-
+  
   colorData <- seuratObj@meta.data[[colorField]]
   if (!is.factor(colorData)) {
     stop('Expected colorField to be a factor')
   }
-
+  
   if (length(unique(colorData)) != 2) {
     stop('Expected colorField to be a factor with two levels only')
   }
-
+  
   baseValue <- levels(colorData)[2]
-
+  
   if (is.null(extraGroupingFields)) {
-  	extraGroupingFields <- c()
+    extraGroupingFields <- c()
   }
   
   # Construct DataFrame:
@@ -96,7 +96,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   names(rawData) <- c('colorField', 'yField', 'xField', normalizationField, sizeFactorField, extraGroupingFields)
   rawData$xField <- as.character(rawData$xField)
   rawData$yField <- as.character(rawData$yField)
-
+  
   # Make concatenated columns for grouping:
   rawData <- rawData %>% tidyr::unite("XY_Key", tidyr::all_of(c('xField', 'yField', extraGroupingFields)), remove = FALSE)
   rawData <- rawData %>% tidyr::unite("Y_Key", tidyr::all_of(c('yField', extraGroupingFields)), remove = FALSE)
@@ -106,28 +106,28 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
   
   # Now calculate the weighted total, including the color field
   colorProportions <- rawData %>% dplyr::count(XY_Key, colorField, wt = SizeFactor, name = 'TotalPerGroup')
-
+  
   # Merge and calculate proportion of cells:
   colorProportions <- merge(colorProportions, xyTotals, all.x = T, by = 'XY_Key')
   colorProportions$Proportion <- colorProportions$TotalPerGroup / colorProportions$TotalPerXY
   colorProportions <- colorProportions[colorProportions$colorField == baseValue,] # Note: this could leave zeros for certain X/Y pairs where there is data for one colorValue but not another
   if (nrow(colorProportions) == 0) {
-  	stop(paste0('baseValue not found: ', baseValue))
+    stop(paste0('baseValue not found: ', baseValue))
   }
   
   colorProportions <- colorProportions[c('XY_Key', 'Proportion')]
-
+  
   #initial cluster enrichment tibble
   clusterProportions <- rawData %>% dplyr::count(XY_Key, Y_Key, wt = SizeFactor)
   clusterProportions <- clusterProportions %>% group_by(Y_Key) %>% mutate(ClusterProportion = prop.table(n))
-
+  
   # Merge cluster enrichment and category enrichment tibbles.
   finalData <- merge(colorProportions, clusterProportions, by = "XY_Key")
   metadata <- unique(rawData[c('XY_Key', 'xField', 'yField', extraGroupingFields)])
   finalData <- merge(finalData, metadata, by = "XY_Key")
   finalData$xField <- naturalsort::naturalfactor(finalData$xField)
   finalData$yField <- naturalsort::naturalfactor(finalData$yField)
-
+  
   #Do statistics
   
   #Initial Visualization
@@ -151,7 +151,7 @@ ConstructEnrichmentDataFrameAndDoStatistics <- function(seuratObj,
     xlab(paste0("Fitted ", dependentVariableTestField))
   
   print(pCorr)
-
+  
   finalData <- finalData[c('xField', 'yField', extraGroupingFields, 'Proportion', 'ClusterProportion')]
   
   return(finalData)
@@ -183,7 +183,7 @@ MakeEnrichmentDotPlot <- function(seuratObj,
                                   maxSizeFactor = 100,
                                   independentVariableTestField = colorField,
                                   dependentVariableTestField = sizeFactorField
-
+                                  
 ){
   
   metacounts <- ConstructEnrichmentDataFrameAndDoStatistics(seuratObj = seuratObj,
@@ -197,7 +197,7 @@ MakeEnrichmentDotPlot <- function(seuratObj,
                                                             independentVariableTestField = independentVariableTestField ,
                                                             dependentVariableTestField = dependentVariableTestField
   )
-
+  
   if (is.null(colorLabels)) {
     colorLabels <- levels(seuratObj@meta.data[[colorField]])
     fillBreaks <- c(0,1)
@@ -205,10 +205,10 @@ MakeEnrichmentDotPlot <- function(seuratObj,
     if (length(colorLabels) > 3) {
       stop('Expected colorLabels to be either 2 or 3 values')
     }
-
+    
     fillBreaks <- seq(0,1, 1/(length(colorLabels) - 1))
   }
-
+  
   P1 <- ggplot(metacounts, aes(y = yField, x = xField)) +
     geom_point(aes(size = ClusterProportion, fill = Proportion), alpha = 1, shape = 21) +
     scale_size_continuous(
@@ -353,15 +353,15 @@ CalculateClusterEnrichment <- function(seuratObj,
         if (enrichmentDataFrame[enrichmentDataFrame$clusterField == cluster,]$Cluster_p_adj < pValueCutoff) {
           # do testing 
           pairwise_test <- conover.test::conover.test(unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, "SubjectClusterProportion"]),
-                                             unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, treatmentField]))
+                                                      unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, treatmentField]))
           pairwise_test_plotting_dataframe <- data.frame(comparisons = pairwise_test$comparisons, 
-                                                T_statistic = pairwise_test$`T`, 
-                                                P_val_adj = pairwise_test$`P.adjusted`) %>% 
+                                                         T_statistic = pairwise_test$`T`, 
+                                                         P_val_adj = pairwise_test$`P.adjusted`) %>% 
             tidyr::separate(comparisons, into = c("Group1", "Group2"), sep = " - ") %>% 
             dplyr::mutate(stars = dplyr::case_when(P_val_adj < 0.001 ~ "***", 
-                                     P_val_adj < 0.01 ~ "**", 
-                                     P_val_adj < 0.05 ~ "*", 
-                                     TRUE ~ ""))
+                                                   P_val_adj < 0.01 ~ "**", 
+                                                   P_val_adj < 0.05 ~ "*", 
+                                                   TRUE ~ ""))
           enrichmentPlot <- ggplot2::ggplot(pairwise_test_plotting_dataframe, ggplot2::aes(x = Group1, y = Group2, fill = T_statistic)) + 
             ggplot2::geom_tile() + 
             colorspace::scale_fill_continuous_diverging(palette = "Blue-Red 3", l1 = 30, l2 = 100, p1 = .9, p2 = 1.2) + 
@@ -438,7 +438,7 @@ CalculateClusterEnrichment <- function(seuratObj,
   #show a DimPlot of significant clusters
   if (showPlots) { 
     print(Seurat::DimPlot(seuratObj, cells.highlight = metadata$CellBarcode[metadata$Cluster_p_adj < pValueCutoff]) + ggplot2::ggtitle("Significant Clusters"))
-    }
+  }
   return(seuratObj)
 }
 
@@ -450,10 +450,16 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param features The features to plot.
 #' @param groupFields The metadata column that is used for grouping.
 #' @param assay The assay to plot.
-#' @param ggplotify A boolean that determines if the ComplexHeatmap object should be converted to a ggplot object.
 #' @param scaling The scaling method for the heatmap. Options are "row", "column", or none.
-#' @param layer The layer of the Seurat object that holds the relevant expression data. 
+#' @param layer The layer of the Seurat object that holds the relevant expression data.
+#' @param dotSizeScaleFactor An integer used to scale the dot size. Larger values result in smaler max dot size
 #' @param forceRescaling A boolean that determines if the Seurat object should be rescaled to include entries in the features vector if any are missing from the scale.data layer. This might be costly to perform locally.
+#' @param inferDefaultArguments If TRUE, the function will infer the default arguments for the ComplexHeatmap::Heatmap function.
+#' @param printInferredArguments Boolean to control optional printing of the arguments inferred by inferDefaultArguments.
+#' @param numberColumns Boolean controlling the behavior of column titling by inferDefaultArguments. If TRUE, this will label each column's K means clusters with numeric titles.
+#' @param numberRows Boolean controlling the behavior of row titling by inferDefaultArguments. If TRUE, this will label each row's K means clusters with numeric titles.
+#' @param ... Additional arguments to pass to ComplexHeatmap::Heatmap
+#'
 #' @export
 #' 
 #' @examples
@@ -466,13 +472,46 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' #filter markers to display the largest cluster identity markers according to average log fold change and differences in pct expression.
 #' strong_markers <- markers[abs(markers$avg_log2FC) > 3 & abs(markers$pct.1 - markers$pct.2) > 0.25, "gene"]
 #' 
-#' dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column', ggplotify = TRUE)
+#' dotPlot <- ClusteredDotPlot(seuratObj, features = strong_markers, groupFields = "ClusterNames_0.2", scaling = 'column')
 #' print(dotPlot)
+#' 
+#' #Additionally, you can establish logical groupings based on a mixture of metadata fields
+#'  #create individual classifications based on lineage markers
+#'  CD3E_positive <- Seurat::WhichCells(seuratObj, expression = CD3E > 0)
+#'  CD20_positive <- Seurat::WhichCells(seuratObj, expression = MS4A1 > 0)
+#'  CD14_positive <- Seurat::WhichCells(seuratObj, expression = CD14 > 0)
+#'  seuratObj$CD3E_positive <- ifelse(rownames(seuratObj@meta.data) %in% CD3E_positive, "CD3E_Pos", "CD3E_Neg")
+#'  seuratObj$CD20_positive <- ifelse(rownames(seuratObj@meta.data) %in% CD20_positive, "CD20_Pos", "CD20_Neg")
+#'  seuratObj$CD14_positive <- ifelse(rownames(seuratObj@meta.data) %in% CD14_positive, "CD14_Pos", "CD14_Neg")
+#'  #roll lineage markers up into a single classification
+#'  seuratObj$CellClassification <- paste0(seuratObj$CD3E_positive, "_", seuratObj$CD20_positive, "_" , seuratObj$CD14_positive)
+#'  suppressWarnings(ClusteredDotPlot(seuratObj, 
+#'                                  features = c("CD3E", "MS4A1", "CD14"),
+#'                                  groupFields = c("CellClassification"),
+#'                                  layer = 'data',
+#'                                  scaling = "none", 
+#'                                  height = grid::unit(10, "cm"), 
+#'                                  width = grid::unit(4.5, "cm"), 
+#'                                  show_row_dend = FALSE, 
+#'                                  inferDefaultArguments = F
+#'                                ))
 #' 
 #' }
 
-ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.2", assay = "RNA", ggplotify = TRUE, scaling = 'column', layer = 'data', forceRescaling = FALSE) {
-  #Sanity checks
+ClusteredDotPlot <- function(seuratObj, 
+                             features, 
+                             groupFields = "ClusterNames_0.2", 
+                             assay = "RNA", 
+                             scaling = 'column', 
+                             layer = 'data',
+                             dotSizeScaleFactor = 50,
+                             forceRescaling = FALSE, 
+                             inferDefaultArguments = TRUE, 
+                             printInferredArguments = FALSE,
+                             numberColumns = T,
+                             numberRows = T,
+                             ...) {
+  ## BEGIN ARGUMENT CHECKING
   #If you do some filtering upstream that removes all of the genes in your features vector, this doesn't error in an obvious way, so throw a specific error if you feed an empty vector into the features argument.
   if (length(features) == 0) {
     stop("The features argument is empty. Please specify a non-empty vector of features.")
@@ -496,10 +535,6 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
   #check assay
   if (!assay %in% Seurat::Assays(seuratObj)) {
     stop(paste0('Assay not found in Seurat object: ', assay))
-  }
-  #check ggplotify boolean
-  if (!is.logical(ggplotify)) {
-    stop(paste0('ggplotify: ', ggplotify, ' is not a boolean. Please specify ggplotify = TRUE or ggplotify = FALSE. If TRUE, the ComplexHeatmap object will be converted to a ggplot object.'))
   }
   #check if forceRescaling is a boolean
   if (!is.logical(forceRescaling)) {
@@ -530,6 +565,25 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
   if (layer == 'scale.data' && length(intersect(features, scaleDataFeatures)) <= 2){
     stop("Less than two features would be present in the dot plot. Please set forceRescaling = TRUE to proceed with the scale.data layer, or use the 'data' or 'counts' and set the scaling argument to one of: 'column', 'row', or 'none'.")
   }
+  #check booleans around argument inference and printing
+  if (!is.logical(inferDefaultArguments)) {
+    stop(paste0('inferDefaultArguments: ', inferDefaultArguments, ' is not a boolean. Please specify inferDefaultArguments = TRUE or inferDefaultArguments = FALSE. If TRUE, the function will infer the default arguments for the ComplexHeatmap::Heatmap function.'))
+  }
+  if (!is.logical(printInferredArguments)) {
+    stop(paste0('printInferredArguments: ', printInferredArguments, ' is not a boolean. Please specify printInferredArguments = TRUE or printInferredArguments = FALSE. If TRUE, the function will print the arguments inferred by inferDefaultArguments.', collapse = ' '))
+  }
+  #Run a bunch of external checks on the ComplexHeatmap::Heatmap function to ensure that the arguments are valid.
+  .CheckComplexHeatmapArguments(features = features, groupFields = groupFields, ...)
+  
+  ## END ARGUMENT CHECKING
+  ## INFER HEATMAP DEFAULTS
+  if (inferDefaultArguments) {
+    inferred_heatmap_args <- .setComplexHeatmapDefaults(features = features, groupFields = groupFields, numberColumns = numberColumns, numberRows = numberRows, printInferredArguments = printInferredArguments, ...)
+  } else {
+    inferred_heatmap_args <- list(...)
+  }
+  ## END DEFAULT ARGUMENT INFERENCE
+  ## BEGIN HEATMAP CONSTRUCTION
   
   #create averaged Seurat object for mean expression and subset features
   avgSeurat <- Seurat::AverageExpression(seuratObj, 
@@ -551,8 +605,12 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
     mat <- as.matrix(mat) %>%
       Matrix::t()
   }
-  
-  fullorder <- colnames(mat)
+  #establish the ordering of the expression heatmap, since one may want manual control over the ordering of the features using column_split.
+  if (!is.null(inferred_heatmap_args[['column_split']])) {
+    featureorder <- features
+  } else {
+    featureorder <- colnames(mat)
+  }
   
   #harvest the percentage of cells expressing genes within the features vector from the Seurat::DotPlot output.
   #TODO: this works fine, but we have a version of this in the pseudobulking code. We could replace it if Seurat changes their dotplot. 
@@ -567,54 +625,211 @@ ClusteredDotPlot <- function(seuratObj, features, groupFields = "ClusterNames_0.
     as.matrix() |>
     Matrix::t()
   #Establish symmetric color scaling based on the extremes in the heatmap
-  col_RNA = circlize::colorRamp2(quantile(c(-max(abs(mat)), 0, max(abs(mat)))),
+  col_RNA <- circlize::colorRamp2(quantile(c(-max(abs(mat)), 0, max(abs(mat)))),
                                  c("#0000FFFF", #blue
                                    "#7F53FDFF", #purple (pale)
                                    "gray90", #very light gray
                                    "#FF6948FF", #orangered/brick red
                                    "#FF0000FF"), #red
                                  space = "sRGB")
-  pct <- pct[,fullorder]
+  #check if "g" characters were added to numeric rows in Seurat. 
+  #This only happens if the original rownames are purely numeric. 
+  
+  if (all(paste0("g", rownames(pct)) %in% rownames(mat))) {
+    rownames(pct) <- paste0("g", rownames(pct))
+  } else if ( all(gsub("-", "_", rownames(mat)) %in% rownames(pct))) {
+    rownames(mat) <- gsub("-", "_", rownames(mat))
+  } else {
+    message("There's a parsing error between Seurat and ComplexHeatmap. Try to avoid special characters in the name of your groupField.")
+    message("Printing rownames to demonstrate the parsing issues:")
+    print(unique(c(rownames(pct)[!rownames(pct) %in% rownames(mat)], rownames(mat)[!rownames(mat) %in% rownames(pct)])))
+    stop("Parsing error, please see above.")
+  }
+  #enforce the order of the dotplot to match the heatmap (or the features vector argument if the heatmap uses column_split)
+  pct <- pct[rownames(mat),featureorder]
   
   #Set the heatmap name according to scaling
   if (scaling == 'row') {
-    name <- 'Scaled\nExpr. (Row)'
+    legendName <- 'Scaled\nExpr. (Row)'
   } else if (scaling == 'column') {
-    name <- 'Scaled\nExpr. (Column)'
+    legendName <- 'Scaled\nExpr. (Column)'
   } else {
     #Average Seurat correctly averages the counts depending on the layer argument, but the transformation afterwards is also layer dependent and should be reported
-    name <- paste0(c('Unscaled\nExpr.\n(layer = ', layer,')'), collapse = '')
+    legendName <- paste0(c('Unscaled\nExpr.\n(layer = ', layer,')'), collapse = '')
   }
   
   #create the heatmap
-  #TODO: we could expose some of these parameters to the user if desired, but I think Greg's defaults are pretty good.
-  suppressMessages(comp_heatmap <-
-                     ComplexHeatmap::Heatmap(
-                       mat,
-                       cell_fun = function(j, i, x, y, width, height, fill) {
-                         grid::grid.circle(x = x, y = y, r = sqrt(pct[i,j])/30, default.units = "cm",
-                                           gp = grid::gpar(fill = col_RNA(mat[i, j])))
-                       },
-                       rect_gp = grid::gpar(type="none"),
-                       border_gp = grid::gpar(col = "black", lty = 1),
-                       height = nrow(mat)*unit(7, "mm"),
-                       width = ncol(mat)*unit(7, "mm"),
-                       name = name,
-                       show_column_names = TRUE,
-                       show_column_dend = T,
-                       show_row_names = T,
-                       cluster_rows = F, 
-                       cluster_columns = T,
-                       column_km = 1,
-                       row_km = 1, 
-                       row_names_side = "left", 
-                       column_names_rot = 45
-                     ))
-  if (ggplotify){
-    ggplotify::as.ggplot(comp_heatmap)
-  }
+  staticHeatmapArguments <- list(
+    matrix = mat,
+    cell_fun = function(j, i, x, y, width, height, fill) {
+      grid::grid.circle(x = x, y = y, r = sqrt(pct[i,j])/dotSizeScaleFactor, default.units = "cm",
+                        gp = grid::gpar(fill = col_RNA(mat[i, j])))
+    },
+    rect_gp = grid::gpar(type="none"),
+    border_gp = grid::gpar(col = "black", lty = 1),
+    name = legendName,
+    show_column_names = TRUE,
+    show_row_names = TRUE,
+    cluster_columns = TRUE,
+    row_names_side = "left", 
+    column_names_rot = 45
+  )
+  #merge the heatmap arguments - preferring the inferred arguments (which always includes args supplied in the ellipses)
+  heatmapArgs <- .mergeComplexHeatmapArguments(inferred_args = inferred_heatmap_args,
+                                               static_args = staticHeatmapArguments)
+  
+  suppressMessages(comp_heatmap <- do.call(ComplexHeatmap::Heatmap, heatmapArgs))
   print(comp_heatmap)
   return(comp_heatmap)
 }
 
+.CheckComplexHeatmapArguments <- function(features, groupFields, ...) { 
+  passthrough_args <- list(...)
+  #check that the arguments exist in ComplexHeatmap::Heatmap
+  if (!all(names(passthrough_args) %in% names(formals(ComplexHeatmap::Heatmap)))) {
+    stop(paste0('The following arguments are not supported by ComplexHeatmap::Heatmap: ', paste0(names(passthrough_args)[!names(passthrough_args) %in% names(formals(ComplexHeatmap::Heatmap))], collapse = ', ')))
+  }
+  #check column_km parameter 
+  if (!is.null(passthrough_args[['column_km']]) && !(passthrough_args[['column_km']] %% 1 == 0)) {
+    stop(paste0('K means column clustering parameter (column_km): ', passthrough_args[['column_km']], ' is not an integer. Please specify an integer value for column_km.'))
+  } else if (!is.null(passthrough_args[['column_km']]) && passthrough_args[['column_km']] < 1) {
+    stop(paste0('K means column clustering parameter (column_km): ', passthrough_args[['column_km']], ' is less than 1. Please specify an integer value greater than 1 for column_km.'))
+  } 
+  #check row_km parameter
+  if (!is.null(passthrough_args[['row_km']]) && !(passthrough_args[['row_km']] %% 1 == 0) ) {
+    stop(paste0('K means row clustering parameter (row_km): ', passthrough_args[['row_km']], ' is not an integer. Please specify an integer value for row_km.'))
+  } else if (!is.null(passthrough_args[['row_km']]) && passthrough_args[['row_km']] < 1) {
+    stop(paste0('K means row clustering parameter (row_km): ', passthrough_args[['row_km']], ' is less than 1. Please specify an integer value greater than 1 for row_km.'))
+  } 
+  #check that the length of the column_title matches the number of k-means clusters if specified
+  if (!is.null(passthrough_args[['column_title']])) {
+    if ((length(passthrough_args[['column_title']]) != 1) && !is.null(passthrough_args[['column_km']]) && !is.null(passthrough_args[['column_title']]) && length(passthrough_args[['column_title']]) != passthrough_args[['column_km']]) {
+      stop(paste0('The length of column_title: ', length(passthrough_args[['column_title']]), ' does not match the number of k-means clusters (column_km): ', passthrough_args[['column_km']], '. Please specify a single title, NULL, or a vector of column titles that has elements equal to the value of column_km.'))
+    } else if (length(passthrough_args[['column_title']]) == length(passthrough_args[['column_km']])) {
+      warning('Please manually ensure that the order of the column_title matches the order of intended the k-means clusters in the heatmap.')
+    }
+  }
+  #check that the length of the row_title matches the number of k-means clusters if specified
+  if (!is.null(passthrough_args[['row_title']])) {
+    if ((length(passthrough_args[['row_title']]) != 1) && !is.null(passthrough_args[['row_km']]) && !is.null(passthrough_args[['row_title']]) && length(passthrough_args[['row_title']]) != passthrough_args[['row_km']]) {
+      stop(paste0('The length of row_title: ', length(passthrough_args[['row_title']]), ' does not match the number of k-means clusters (row_km): ', passthrough_args[['row_km']], '. Please specify a single title, NULL, or a vector of row titles that has elements equal to the value of row_km.'))
+    } else if (length(passthrough_args[['row_title']]) == length(passthrough_args[['km']])) {
+      warning('Please manually ensure that the order of the row_title matches the order of intended the k-means clusters in the heatmap.', immediate. = T)
+    }
+  }
+  #check that the numbering defaults are boolean
+  if (!is.null(passthrough_args[['numberColumns']]) && !is.logical(passthrough_args[['numberColumns']])) {
+    stop(paste0('numberColumns: ', passthrough_args[['numberColumns']], ' is not a boolean. Please specify numberColumns = TRUE or numberColumns = FALSE. If TRUE and the column_title vector is not supplied, the column titles will be numbered.'))
+  }
+  if (!is.null(passthrough_args[['numberRows']]) && !is.logical(passthrough_args[['numberRows']])) {
+    stop(paste0('numberRows: ', passthrough_args[['numberRows']], ' is not a boolean. Please specify numberRows = TRUE or numberRows = FALSE. If TRUE and the row_title vector is not supplied, the row titles will be numbered.'))
+  }
+  #check that height and width are valid unit variables
+  if (!is.null(passthrough_args[['height']]) && !all(class(passthrough_args[['height']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
+    stop(paste0('height: ', passthrough_args[['height']], ' is not a valid unit. Please specify a valid unit for the height argument, such as unit(7, "mm"). The default is the number of features multiplied by the function unit(25, "mm").'))
+  }
+  if (!is.null(passthrough_args[['width']]) && !all(class(passthrough_args[['width']]) %in% c("simpleUnit", "unit", "unit_v2"))) { 
+    stop(paste0('width: ', passthrough_args[['width']], ' is not a valid unit. Please specify a valid unit for the width argument, such as unit(7, "mm"). The default is the number of groups (groupFields) multiplied by the function unit(7, "mm").'))
+  }
+  #check that title rotations are valid
+  if (!is.null(passthrough_args[['row_title_rot']]) && !is.numeric(passthrough_args[['row_title_rot']])) {
+    stop(paste0('row_title_rot: ', passthrough_args[['row_title_rot']], ' is not a numeric value. Please specify a numeric value for the angle to rotate the row titles.'))
+  }
+  if (!is.null(passthrough_args[['column_title_rot']]) && !is.numeric(passthrough_args[['column_title_rot']])) {
+    stop(paste0('column_title_rot: ', passthrough_args[['column_title_rot']], ' is not a numeric value. Please specify a numeric value for the angle to rotate the column titles.'))
+  }
+  #check the booleans for showing the dendrograms
+  if (!is.null(passthrough_args[['show_row_dend']]) && !is.logical(passthrough_args[['show_row_dend']])) {
+    stop(paste0('show_row_dend: ', passthrough_args[['show_row_dend']], ' is not a boolean. Please specify show_row_dend = TRUE or show_row_dend = FALSE. If TRUE, the row dendrogram will be shown.'))
+  }
+  if (!is.null(passthrough_args[['show_column_dend']]) && !is.logical(passthrough_args[['show_column_dend']])) {
+    stop(paste0('show_column_dend: ', passthrough_args[['show_column_dend']], ' is not a boolean. Please specify show_column_dend = TRUE or show_column_dend = FALSE. If TRUE, the column dendrogram will be shown.'))
+  }
+  #check that row_split and column_split are valid
+  if (!is.null(passthrough_args[['row_split']]) && is.vector(passthrough_args[['row_split']])) {
+    if (length(passthrough_args[['row_split']]) != length(groupFields)) {
+      stop(paste0('row_split: ', paste0(passthrough_args[['row_split']], collapse = ', '), ' is not the same length as the groupFields vector. Please specify an integer value for row_split or a vector of length equal to the groupFields vector.'))
+    } else if (!(length(passthrough_args[['row_split']]) %% 1 == 0) && !(passthrough_args[['row_split']] > 0)) {
+      stop(paste0('row_split: ', paste0(passthrough_args[['row_split']], collapse = ", "), ' is not a positive integer or vector. Please specify either a positive integer, or a vector of length equal to the features vector for the row_split argument'))
+    }
+  } 
+  if (!is.null(passthrough_args[['column_split']]) && is.vector(passthrough_args[['column_split']])) {
+    if (length(passthrough_args[['column_split']]) != length(features)) {
+      stop(paste0('column_split: ', paste0(passthrough_args[['column_split']], collapse= ', '), ' is not the same length as the features vector. Please specify either a positive integer value or a vector of length equal to the features vector for the column_split argument.'))
+      
+    } else if (!(length(passthrough_args[['column_split']]) %% 1 == 0) && !(passthrough_args[['column_split']] > 0)) {
+      stop(paste0('column_split: ', paste0(passthrough_args[['column_split']], collapse= ', '), ' is not a positive integer or vector. Please specify an integer value for column_split.'))
+    }
+  }
+} 
 
+.setComplexHeatmapDefaults <- function(features, groupFields, numberColumns = T, numberRows = T, printInferredArguments, ...) {
+  passthrough_args <- list(...)
+  
+  #if the user doesn't specify row_km or column_km, infer that no clustering is desired
+  if (is.null(passthrough_args[['row_km']])) {
+    #set a flag for downstream warnings to indicate that we inferred this row_km
+    inferred_row_km <- TRUE
+    passthrough_args[['row_km']] <- 1
+  }
+  if (is.null(passthrough_args[['column_km']])) {
+    #set a flag for downstream warnings to indicate that we inferred this column_km
+    inferred_column_km <- TRUE
+    passthrough_args[['column_km']] <- 1
+  }
+  #number columns if column_km isn't null, but the user didn't specify column_title.
+  #however, if the user specifies column_split, we assume that they want to manually define the feature grouping, and we shouldn't infer the column titles.
+  if (is.null(passthrough_args[['column_title']]) && !is.null(passthrough_args[['column_km']]) && numberColumns && is.null(passthrough_args[['column_split']])) {
+    passthrough_args[['column_title']] <- 1:passthrough_args[['column_km']]
+  }
+  #number rows if row_km isn't null, but the user didn't specify row_title.
+  #however, if the user specifies row_split, we assume that they want to manually define the sample-level grouping, and we shouldn't infer the row titles.
+  if (is.null(passthrough_args[['row_title']]) && !is.null(passthrough_args[['row_km']]) && numberRows && is.null(passthrough_args[['row_split']])) {
+    passthrough_args[['row_title']] <- 1:passthrough_args[['row_km']]
+  }
+  #set defaults for height and width based on the number of features and groups if left unspecified.
+  if (is.null(passthrough_args[['height']])) {
+    passthrough_args[['height']] <- length(groupFields)*unit(25, "mm")
+  }
+  if (is.null(passthrough_args[['width']])) {
+    passthrough_args[['width']] <- length(features)*unit(7, "mm")
+  }
+  #set show_row_dend to TRUE if row_km is greater than 1 and show_row_dend is NULL
+  if (is.null(passthrough_args[['show_row_dend']]) && passthrough_args[['row_km']] > 1) {
+    passthrough_args[['show_row_dend']] <- TRUE
+  }
+  #set show_column_dend to TRUE if column_km is greater than 1 and show_column_dend is NULL
+  if (is.null(passthrough_args[['show_column_dend']]) && passthrough_args[['column_km']] > 1) {
+    passthrough_args[['show_column_dend']] <- TRUE
+  }
+  #if column/row split is defined and also column/row_km is defined, keep the split but warn the user. 
+  if (!is.null(passthrough_args[['row_split']]) && !is.null(passthrough_args[['row_km']])) {
+    #it's possible that this warning can trip because we inferred the row_km argument - if that's the case, suppress it.
+    if (!inferred_row_km) {
+      warning("Both row_split and row_km are defined. The row_km argument will be ignored, and the row_split argument will be used to group features into subpanels regardless of clustering.")
+    }
+    passthrough_args[['row_km']] <- NULL
+  }
+  if (!is.null(passthrough_args[['column_split']]) && !is.null(passthrough_args[['column_km']])) {
+    #it's possible that this warning can trip because we inferred the column_km argument - if that's the case, suppress it.
+    if (!inferred_column_km) {
+      warning("Both column_split and column_km are defined. The column_km argument will be ignored, and the column_split argument will be used to group groupFields into subpanels regardless of clustering.")
+    }
+    passthrough_args[['column_km']] <- NULL
+  }
+  if (printInferredArguments) {
+    print(passthrough_args)
+  }
+  return(passthrough_args)
+}
+
+.mergeComplexHeatmapArguments <- function(inferred_args, static_args) {
+  intersecting_args <- intersect(names(inferred_args), names(static_args))
+  #if there are intersecting arguments, prefer the inferred arguments
+  if (length(intersecting_args) > 0) {
+    heatmapArgs <- c(inferred_args, static_args[!names(static_args) %in% intersecting_args])
+  } else {
+    heatmapArgs <- c(inferred_args, static_args)
+  }
+  return(heatmapArgs)
+}

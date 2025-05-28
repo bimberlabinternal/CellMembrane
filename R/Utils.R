@@ -326,7 +326,7 @@ ClrNormalizeByGroup <- function(seuratObj, groupingVar, assayName = 'ADT', targe
   if (!is.null(minCellsPerGroup) && !is.na(minCellsPerGroup)) {
     groupValues <- as.character(seuratObj[[groupingVar, drop = TRUE]])
     if (any(is.na(groupValues))) {
-      missing <- unique(seuratObj$BarcodePrefix[[is.na(seuratObj[[groupingVar]])]])
+      missing <- unique(seuratObj$BarcodePrefix[is.na(seuratObj[[groupingVar, drop = TRUE]])])
       stop(paste0('There were NAs for the column: ', groupingVar, '. BarcodePrefix values were: ', paste0(missing, collapse = ',')))
     }
 
@@ -502,36 +502,4 @@ GetAssayMetadataSlotName <- function(assayObj) {
   }
 
   return(mat)
-}
-
-#' @title GetMsigdbGeneSet
-#'
-#' @description a slightly extended escape::getGeneSet wrapper to deal with one-step gene set parsing, which can't parse hierarchical gene sets (C5 + GO:BP) and non-hierarchical gene sets (hallmark, C2 itself, etc) at the same time. 
-#' @param msigdbGeneSets a character vector of gene sets that is either a top level msigdb gene set name (e.g. "H" for hallmark or "C2" for curated gene sets), or a common hierarchical gene set in a large top level (e.g. C5;BP for GO:BP annotations.)
-#' @return a named list of gene sets fetched by msigdbr. 
-GetMsigdbGeneSet <- function(msigdbGeneSets = "H") {
-  allowableValues <- c("H", "GO", paste0("C", 1:8))
-
-  results <- c()
-  for (libraryName in msigdbGeneSets) {
-    subcategory <- NULL
-    if (grepl(pattern = ':', x = libraryName)) {
-      tokens <- unlist(strsplit(libraryName, split = ':'))
-      libraryName <- tokens[1]
-      subcategory <- tokens[2]
-    }
-
-    if (libraryName == 'GO') {
-      libraryName <- 'C5'
-    }
-
-    if (! libraryName %in% allowableValues) {
-      stop(paste0('Unknown library: ', libraryName, '. Must be one of: ', paste0(allowableValues, collapse = ';')))
-    }
-
-    x <- escape::getGeneSets(library = libraryName, subcategory = subcategory)
-    results <- c(results, x)
-  }
-
-  return(results)
 }
