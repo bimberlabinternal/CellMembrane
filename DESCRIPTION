@@ -98,7 +98,6 @@ Imports:
     progressr, 
     future, 
     twosamples
-
 Suggests:
     devtools,
     testthat (>= 2.1.0),
