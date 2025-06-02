@@ -446,24 +446,50 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' 
 #' @description A function that calculates the enrichment of a cluster under a given treatment variable using a Generalized Linear Mixed Model (GLMM). This allows for more complex treatment of enrichment where you want to account for subject-driven random effects and variable cellular recovery. 
 #' @param seuratObj The Seurat object containing a subjectField, clusterField, and treatmentField. Please see the individual arguments for more information.
+#' @param subjectField The column of the Seurat object's metadata that contains the subject field. This field should denote individual samples that are independently collected and represent biological replicates.
+#' @param clusterField The column of the Seurat object's metadata that contains the clustering field. This field should denote cluster membership, generally given by louvain/leiden clustering, but any subject-independent clustering method is valid.
+#' @param biologicalReplicateGroupingVariables A vector of metadata fields that should be used to group biological replicates. This can identical to subjectField, but in the case of repeated sample collections, the variables specified here will uniquely identify samples/collections.
+#' @param treatmentField The column of the Seurat object's metadata that contains the treatment field. This field should denote the treatment of the subject, and should be the primary variable of interest within your study.
+#' @param referenceValue The reference value for the treatment field. This is the value that will be used as the baseline for comparison. Since this method requires a baseline, a reference value must be provided. Consider using CalculateClusterEnrichment for an omnibus test style of enrichment if a change from an individual reference value is not particularly insightful. 
+#' @param pValueCutoff The p-value cutoff for significance. This is used to determine which clusters are significantly enriched or depleted.
+#' @param showPlots A boolean that determines if the function should print Volcano and DimPlots. 
+#' @param returnSeuratObjectOrPlots A string that determines if the function should return a Seurat object with the enrichment results or a list of plots. If "SeuratObject", the function will return a Seurat object with the enrichment results in the metadata. If "Plots", the function will return a list of volcano plots and the dataframe used to plot them. 
+#' @param includeDepletions A boolean that determines if the function should include depletions in the enrichment results. If TRUE, the function will include depletions in the enrichment results. If FALSE, the function will only include enrichments. Since we typically recover variable numbers of cells, depletions can be difficult to interpret/easily explained by low sampling volume compared to transcriptional complexity, so this is set to FALSE by default.
+#' @param pvalueAdjustmentMethod The method to use for p-value adjustment. This is passed to the p.adjust function. Default is "holm", but can be set to "BH" or "bonferroni" if desired.
 #' 
 #' @examples
 #'  \dontrun{
 #'  seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) # This is a dummy variable for the sake of example.
 #'  seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) # This is a dummy variable for the sake of example.
 #'  seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) # This is a dummy variable for the sake of example.
+#'  
 #'  seuratObj <- CalculateClusterEnrichmentGLMM(seuratObj,
-#' 
-#' 
+#'                                           subjectField = 'SubjectId',
+#'                                            clusterField = 'ClusterNames_0.2',
+#'                                            biologicalReplicateGroupingVariables = c("cDNA_ID"),
+#'                                            treatmentField = "Vaccine",
+#'                                            referenceValue = "Vaccine1",
+#'                                            pValueCutoff = 0.05,
+#'                                            showPlots = TRUE, 
+#'                                            returnSeuratObjectOrPlots = "SeuratObject", 
+#'                                            includeDepletions = FALSE)
+#'   DimPlot(seuratObj, group.by = "GLMM_Enrichment", label = TRUE) + NoLegend()
+#'   }
+#'  
+#' @export
+#' @return A SeuratObject or a list of plots + dataframe, depending on the value of returnSeuratObjectOrPlots.
 #' 
 CalculateClusterEnrichmentGLMM <- function(seuratObj,
                                        subjectField = 'SubjectId',
                                        clusterField = 'ClusterNames_0.2',
+                                       biologicalReplicateGroupingVariables = c("cDNA_ID"),
                                        treatmentField = NULL,
                                        referenceValue = NULL,
                                        pValueCutoff = 0.05,
                                        showPlots = TRUE, 
-                                       biologicalReplicateGroupingVariables = c("cDNA_ID")) {
+                                       returnSeuratObjectOrPlots = "SeuratObject", 
+                                       includeDepletions = FALSE, 
+                                       pvalueAdjustmentMethod = "holm") {
   #basic checks for valid inputs
   if (!inherits(seuratObj, "Seurat")) {
     stop("seuratObj must be a Seurat object.")
@@ -479,35 +505,42 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     stop("referenceValue must be a character string representing the reference value for the treatment field.")
   } else if (!is.numeric(pValueCutoff) || pValueCutoff <= 0 || pValueCutoff >= 1) {
     stop("pValueCutoff must be a numeric value between 0 and 1.")
+  } else if (!is.logical(showPlots)) {
+    stop("showPlots must be a boolean value (TRUE or FALSE).")
+  } else if (!returnSeuratObjectOrPlots %in% c("SeuratObject", "Plots")) {
+    stop("returnSeuratObjectOrPlots must be either 'SeuratObject' or 'Plots'.")
+  } else if (!is.logical(includeDepletions)) {
+    stop("includeDepletions must be a boolean value (TRUE or FALSE).")
   }
   
   #more specific checks to make sure modeling is possible
   #subjectField exists & is coerce-able to a non-degenerate factor
   if (!(subjectField %in% colnames(seuratObj@meta.data))) {
     stop(paste0("subjectField: ", subjectField, " not found in the Seurat object metadata. Please check the spelling and case sensitivity."))
-  } else if (levels(factor(unique(seuratObj@meta.data[,subjectField]))) > 1) {
+  } else if (length(levels(factor(unique(seuratObj@meta.data[,subjectField])))) <= 1) {
     stop(paste0(subjectField, " must be a field with more than one unique value. Please check the values in the " , subjectField, " column."))
   }
   #treatment field exists and is coerce-able to a non-degenerate factor
   if (!(treatmentField %in% colnames(seuratObj@meta.data))) {
     stop(paste0("treatmentField: ", treatmentField, " not found in the Seurat object metadata. Please check the spelling and case sensitivity."))
-  } else if (levels(factor(unique(seuratObj@meta.data[,treatmentField]))) > 1) {
+  } else if (length(levels(factor(unique(seuratObj@meta.data[,treatmentField])))) <= 1) {
     stop(paste0(treatmentField, " must be a field with more than one unique value. Please check the values in the " , treatmentField, " column."))
   }
   
   #initialize metadata
   grouping_variables <- c(defaultGroupingVariables, subjectField, treatmentField, clusterField)
+  
   #coerce metadata
   metadata <- seuratObj@meta.data %>% 
-    group_by(across(all_of(biologicalReplicateGroupingVariables))) %>% 
-    mutate(lane_yield = n()) %>% 
-    group_by(across(all_of(grouping_variables))) %>% 
-    mutate(total = n(), lane_yield = lane_yield) %>% 
-    dplyr::select(any_of(c(grouping_variables, "total", "lane_yield"))) %>% 
-    distinct() %>% 
-    ungroup() %>% 
-    complete(
-      nesting(!!sym(subjectField),!!!syms(biologicalReplicateGroupingVariables), !!sym(treatmentField), lane_yield),
+    dplyr::group_by(dplyr::across(dplyr::all_of(biologicalReplicateGroupingVariables))) %>% 
+    dplyr::mutate(lane_yield = n()) %>% 
+    dplyr::group_by(dplyr::across(dplyr::all_of(grouping_variables))) %>% 
+    dplyr::mutate(total = dplyr::n(), lane_yield = lane_yield) %>% 
+    dplyr::select(dplyr::any_of(c(grouping_variables, "total", "lane_yield"))) %>% 
+    dplyr::distinct() %>% 
+    dplyr::ungroup() %>% 
+    tidyr::complete(
+      tidyr::nesting(!!sym(subjectField),!!!syms(biologicalReplicateGroupingVariables), !!sym(treatmentField), lane_yield),
       ClusterNames_0.2,
       fill = list(
         total = 0
@@ -546,18 +579,18 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     #handle missing levels 
     if (!all(unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients$fixed)))) {
       #the reference level will always be missing, as it's the intercept, so just take the non-first elements
-      missing_coefs <- levels(metadata[])[!levels(metadata$Vaccine) %in% gsub("Vaccine", "", names(model$coefficients$fixed))]
+      missing_coefs <- unique(unlist(metadata[,treatmentField]))[!unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients$fixed))]
       coefs <- model$coefficients$fixed
       errors <- sqrt(diag(vcov(model)))
       pvalues <- summary(model)$tTable[,5]
       for (missing_coef in missing_coefs) { 
         
-        if (missing_coef == levels(metadata$Vaccine)[1]) {
+        if (missing_coef == referenceValue) {
           next #skip the reference level
         }
-        coefs[paste0("Vaccine", missing_coef)] <- NA
-        errors[paste0("Vaccine", missing_coef)] <- NA
-        pvalues[paste0("Vaccine", missing_coef)] <- 1
+        coefs[paste0(treatmentField, missing_coef)] <- NA
+        errors[paste0(treatmentField, missing_coef)] <- NA
+        pvalues[paste0(treatmentField, missing_coef)] <- 1
       }
       
     } else {
@@ -566,29 +599,96 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
       pvalues <- summary(model)$tTable[,5]
     }
     
-    
+    #store results into dataframe
     results <- rbind(results, 
-                     data.frame(cluster = cluster, 
-                                Vaccine = levels(metadata$Vaccine), 
-                                Estimate = coefs[grepl("Vaccine|Intercept", names(coefs))], 
-                                StdError = errors[grepl("Vaccine|Intercept", names(errors))],
-                                pValue = pvalues[grepl("Vaccine|Intercept", names(pvalues))], 
+                     data.frame(Cluster = cluster, 
+                                Treatment = unique(unlist(metadata[,treatmentField])),
+                                Estimate = coefs[grepl(paste0(treatmentField, "|Intercept"), names(coefs))], 
+                                StdError = errors[grepl(paste0(treatmentField, "|Intercept"), names(errors))],
+                                pValue = pvalues[grepl(paste0(treatmentField, "|Intercept"), names(pvalues))], 
                                 model_type = model_type
                                 )
                      )
+    
+  }
+
+  #adjust p values
+  results$p.adj <- p.adjust(results$pValue, method = pvalueAdjustmentMethod)
+  
+  #construct volcano plot
+  volcano_plot <- results %>% 
+    filter(Treatment != referenceValue) %>% 
+    ggplot2::ggplot(ggplot2::aes(x = Estimate, y = -log10(p.adj), 
+                                 color = Treatment, 
+                                 shape = model_type)) + 
+    ggplot2::geom_point() + 
+    ggrepel::geom_label_repel(aes(label = Cluster), show.legend = F) + 
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+    ggplot2::geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "black") + 
+    egg::theme_article() + 
+    ggplot2::labs(x = "Log Fold Change", y = "-log10 Adjusted P-value", 
+                  title = paste0("Differential Abundance of Clusters by ", treatmentField), 
+                  subtitle = paste0("Estimation of ", treatmentField, " enrichment in ", clusterField, " clustering")) 
+  #optionally edit volcano plot to only show positive values
+  if (!includeDepletions) {
+    volcano_plot <- volcano_plot + ggplot2::xlim(c(0, max(results$Estimate, na.rm = TRUE)))
+  }
+  if (showPlots) {
+    print(volcano_plot)
   }
   
-  results$p.adj <- p.adjust(results$pValue, method = "holm")
+  if (returnSeuratObjectOrPlots == "SeuratObject") { 
+    #add the results to the Seurat object metadata
+    metadata_to_add <- seuratObj@meta.data
+    
+    filtered_results <- results %>% 
+      dplyr::filter(p.adj < pValueCutoff) %>%
+      dplyr::filter(Treatment != referenceValue) %>%
+      dplyr::mutate(EnrichedPairs = paste0(Treatment, ":", Cluster))
+    
+    metadata_to_add <- metadata_to_add %>% 
+      dplyr::mutate(GLMM_VariablePair = paste0(!!sym(treatmentField), ":", !!sym(clusterField))) %>%
+      dplyr::left_join(filtered_results %>% 
+                         dplyr::select(EnrichedPairs, Estimate), 
+                       by = c("GLMM_VariablePair" = "EnrichedPairs")) %>%
+      dplyr::mutate(Estimate = ifelse(is.na(Estimate.x), NA, Estimate.x)) %>%
+      dplyr::select(-Estimate.x, -Estimate.y) %>%
+      dplyr::mutate(GLMM_Enrichment = case_when(
+        !is.na(Estimate) & Estimate > 0 ~ paste0("Enriched: ", GLMM_VariablePair),
+        !is.na(Estimate) & Estimate < 0 ~ paste0("Depleted: ", GLMM_VariablePair),
+        TRUE ~ "Not Enriched"
+      ))
+    
+    if (!includeDepletions) {
+      seuratObj$GLMM_Enrichment <- ifelse(grepl("Depleted", seuratObj$GLMM_Enrichment), 
+                                          "Not Enriched", 
+                                          metadata_to_add$GLMM_Enrichment)
+    }
+    #append metadata
+    seuratObj <- Seurat::AddMetaData(seuratObj, metadata = metadata_to_add)
+    
+    if (showPlots) {
+      print(Seurat::DimPlot(seuratObj, group.by = "GLMM_Enrichment") + 
+              ggplot2::ggtitle("Cluster Enrichment"))
+    
+    }
+    print("Returning Seurat object with GLMM enrichment results added to metadata.")
+    return(seuratObj)
+  } else if (returnSeuratObjectOrPlots == "Plots") {
+    
+    #guard for interactive use to prevent overwriting a Seurat object if following the example.
+    if (Sys.info()[['sysname']] != "Linux") {
+      message("Running the function using returnSeuratObjectOrPlots == 'Plots' will return a list of plots and a data frame, and NOT a Seurat Object.")
+      if (menu(c("Yes", "No"), title="Do you want this?") == 2) {
+        stop("Please set returnSeuratObjectOrPlots to 'SeuratObject' to return a Seurat object with the GLMM enrichment results added to metadata.")
+      }
+    }
+    
+    #return a list of volcano plots and the model coefficients dataframe 
+    return(list(volcano_plot = volcano_plot, 
+                model_coefficients = results))
+  }
   
-  results %>% 
-    filter(!!sym(treatmentField) != referenceValue) %>% 
-    ggplot(aes(x = Estimate, y = -log10(p.adj), color = !!sym(treatmentField))) + 
-    geom_point() + 
-    ggrepel::geom_label_repel(aes(label = cluster), show.legend = F) + 
-    geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
-    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "black") + 
-    egg::theme_article() + 
-    labs(x = "Log Fold Change", y = "-log10 Adjusted P-value", title = paste0("Differential Abundance of Clusters by ", treatmentField), subtitle = paste0("Estimation of ", treatmentField, " enrichment in ", clusterField, " clustering")) 
   
 }
                                        

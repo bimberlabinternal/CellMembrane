@@ -121,7 +121,8 @@ Remotes:
     CSCORE=ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
     rcastelo/GSVA,
-    immunogenomics/presto
+    immunogenomics/presto, 
+    nyiuab/NBZIMM
 Config/reticulate:
   list(
     packages = list(
