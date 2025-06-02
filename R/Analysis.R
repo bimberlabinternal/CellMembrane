@@ -480,16 +480,16 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @return A SeuratObject or a list of plots + dataframe, depending on the value of returnSeuratObjectOrPlots.
 #' 
 CalculateClusterEnrichmentGLMM <- function(seuratObj,
-                                       subjectField = 'SubjectId',
-                                       clusterField = 'ClusterNames_0.2',
-                                       biologicalReplicateGroupingVariables = c("cDNA_ID"),
-                                       treatmentField = NULL,
-                                       referenceValue = NULL,
-                                       pValueCutoff = 0.05,
-                                       showPlots = TRUE, 
-                                       returnSeuratObjectOrPlots = "SeuratObject", 
-                                       includeDepletions = FALSE, 
-                                       pvalueAdjustmentMethod = "holm") {
+                                           subjectField = 'SubjectId',
+                                           clusterField = 'ClusterNames_0.2',
+                                           biologicalReplicateGroupingVariables = c("cDNA_ID"),
+                                           treatmentField = NULL,
+                                           referenceValue = NULL,
+                                           pValueCutoff = 0.05,
+                                           showPlots = TRUE, 
+                                           returnSeuratObjectOrPlots = "SeuratObject", 
+                                           includeDepletions = FALSE, 
+                                           pvalueAdjustmentMethod = "holm") {
   #basic checks for valid inputs
   if (!inherits(seuratObj, "Seurat")) {
     stop("seuratObj must be a Seurat object.")
@@ -541,7 +541,7 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     dplyr::ungroup() %>% 
     tidyr::complete(
       tidyr::nesting(!!sym(subjectField),!!!syms(biologicalReplicateGroupingVariables), !!sym(treatmentField), lane_yield),
-      ClusterNames_0.2,
+      !!sym(clusterField),
       fill = list(
         total = 0
       )
@@ -563,10 +563,10 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     model <- tryCatch({
       model_type <- "Zero-Inflated Negative Binomial"
       model <- NBZIMM::glmm.zinb(as.formula(paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")), 
-                         data = metadata_subset, 
-                         random = as.formula(paste0("~ 1|", subjectField)), 
-                         zi_fixed = ~1, 
-                         zi_random =NULL)
+                                 data = metadata_subset, 
+                                 random = as.formula(paste0("~ 1|", subjectField)), 
+                                 zi_fixed = ~1, 
+                                 zi_random =NULL)
       
     }, error = function(e) {
       model_type <- "Negative Binomial"
@@ -602,16 +602,16 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     #store results into dataframe
     results <- rbind(results, 
                      data.frame(Cluster = cluster, 
-                                Treatment = unique(unlist(metadata[,treatmentField])),
+                                Treatment =  gsub("\\(Intercept\\)", referenceValue, gsub(paste0("^", treatmentField),"", names(coefs))),
                                 Estimate = coefs[grepl(paste0(treatmentField, "|Intercept"), names(coefs))], 
                                 StdError = errors[grepl(paste0(treatmentField, "|Intercept"), names(errors))],
                                 pValue = pvalues[grepl(paste0(treatmentField, "|Intercept"), names(pvalues))], 
                                 model_type = model_type
-                                )
                      )
+    )
     
   }
-
+  
   #adjust p values
   results$p.adj <- p.adjust(results$pValue, method = pvalueAdjustmentMethod)
   
@@ -631,12 +631,20 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
                   subtitle = paste0("Estimation of ", treatmentField, " enrichment in ", clusterField, " clustering")) 
   #optionally edit volcano plot to only show positive values
   if (!includeDepletions) {
-    volcano_plot <- volcano_plot + ggplot2::xlim(c(0, max(results$Estimate, na.rm = TRUE)))
+    
+    only_enrichments <- results %>% 
+      dplyr::filter(Estimate > 0) %>% 
+      dplyr::filter(Treatment != referenceValue)
+    
+    
+    volcano_plot <- volcano_plot + 
+      ggplot2::xlim(c(0, max(only_enrichments %>% pull(Estimate), na.rm = TRUE)+1)) + 
+      ggplot2::ylim(c(0, max(-log10(only_enrichments %>% dplyr::pull(p.adj)), na.rm = TRUE)+1))
   }
   if (showPlots) {
     print(volcano_plot)
   }
-  
+  #returns
   if (returnSeuratObjectOrPlots == "SeuratObject") { 
     #add the results to the Seurat object metadata
     metadata_to_add <- seuratObj@meta.data
@@ -659,8 +667,8 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     
     if (!includeDepletions) {
       metadata_to_add$GLMM_Enrichment <- ifelse(grepl("Depleted", metadata_to_add$GLMM_Enrichment), 
-                                          "Not Enriched", 
-                                          metadata_to_add$GLMM_Enrichment)
+                                                "Not Enriched", 
+                                                metadata_to_add$GLMM_Enrichment)
     }
     #append metadata
     seuratObj <- Seurat::AddMetaData(seuratObj, metadata = metadata_to_add)
@@ -668,7 +676,7 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     if (showPlots) {
       print(Seurat::DimPlot(seuratObj, group.by = "GLMM_Enrichment") + 
               ggplot2::ggtitle("Cluster Enrichment"))
-    
+      
     }
     print("Returning Seurat object with GLMM enrichment results added to metadata.")
     return(seuratObj)
@@ -686,8 +694,6 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     return(list(volcano_plot = volcano_plot, 
                 model_coefficients = results))
   }
-  
-  
 }
                                        
 
