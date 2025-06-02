@@ -684,8 +684,7 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     
     #guard for interactive use to prevent overwriting a Seurat object if following the example.
     if (Sys.info()[['sysname']] != "Linux") {
-      message("Running the function using returnSeuratObjectOrPlots == 'Plots' will return a list of plots and a data frame, and NOT a Seurat Object.")
-      if (menu(c("Yes", "No"), title="Do you want this?") == 2) {
+      if (menu(c("Yes", "No"), title="Running this function using returnSeuratObjectOrPlots = 'Plots' will return a list of plots and a data frame, and NOT a Seurat Object.\nThis may overwrite your Seurat Object if you followed the example verbatim.\nDo you want this?") == 2) {
         stop("Please set returnSeuratObjectOrPlots to 'SeuratObject' to return a Seurat object with the GLMM enrichment results added to metadata.")
       }
     }
