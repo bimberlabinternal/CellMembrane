@@ -48,6 +48,42 @@ test_that("Cluster enrichment works", {
                                           treatmentField = "timepoint",
                                           subjectField = "subject",
                                           paired = "infer"))
+  
+  #test GLMM cluster enrichment
+  seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) # This is a dummy variable for the sake of example.
+  seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) # This is a dummy variable for the sake of example.
+  seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) # This is a dummy variable for the sake of example.
+  
+  
+  testthat::expect_no_error(seuratObj <- CalculateClusterEnrichmentGLMM(seuratObj,
+                                              subjectField = 'SubjectId',
+                                              clusterField = 'ClusterNames_0.2',
+                                              biologicalReplicateGroupingVariables = c("cDNA_ID"),
+                                              treatmentField = "Vaccine",
+                                              referenceValue = "Vaccine1",
+                                              pValueCutoff = 0.05,
+                                              showPlots = FALSE, 
+                                              returnSeuratObjectOrPlots = "SeuratObject", 
+                                              includeDepletions = FALSE))
+  #test that the GLMM enrichment ran
+  testthat::expect_true("Depleted: Vaccine2:0" %in% seuratObj$GLMM_Enrichment)
+  testthat::expect_false("Depleted: Vaccine2:1" %in% seuratObj$GLMM_Enrichment)
+  testthat::expect_true(sum(is.na(seuratObj$Estimate)) == 1303)
+  testthat::expect_equal(mean(seuratObj$Estimate, na.rm = TRUE), expected = -3, tolerance = 1)
+  
+  
+  testthat::expect_no_error(plots <- CalculateClusterEnrichmentGLMM(seuratObj,
+                                              subjectField = 'SubjectId',
+                                              clusterField = 'ClusterNames_0.2',
+                                              biologicalReplicateGroupingVariables = c("cDNA_ID"),
+                                              treatmentField = "Vaccine",
+                                              referenceValue = "Vaccine1",
+                                              pValueCutoff = 0.05,
+                                              showPlots = FALSE, 
+                                              returnSeuratObjectOrPlots = "Plots", 
+                                              includeDepletions = FALSE))
+  testthat::expect_true(length(plots) == 2)
+  testthat::expect_true(typeof(plots$model_coefficients) == "list")
 })
 
 test_that("ClusteredDotPlot works", {

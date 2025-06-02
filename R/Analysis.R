@@ -528,7 +528,7 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
   }
   
   #initialize metadata
-  grouping_variables <- c(defaultGroupingVariables, subjectField, treatmentField, clusterField)
+  grouping_variables <- c(biologicalReplicateGroupingVariables, subjectField, treatmentField, clusterField)
   
   #coerce metadata
   metadata <- seuratObj@meta.data %>% 
@@ -651,8 +651,6 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
       dplyr::left_join(filtered_results %>% 
                          dplyr::select(EnrichedPairs, Estimate), 
                        by = c("GLMM_VariablePair" = "EnrichedPairs")) %>%
-      dplyr::mutate(Estimate = ifelse(is.na(Estimate.x), NA, Estimate.x)) %>%
-      dplyr::select(-Estimate.x, -Estimate.y) %>%
       dplyr::mutate(GLMM_Enrichment = case_when(
         !is.na(Estimate) & Estimate > 0 ~ paste0("Enriched: ", GLMM_VariablePair),
         !is.na(Estimate) & Estimate < 0 ~ paste0("Depleted: ", GLMM_VariablePair),
@@ -660,7 +658,7 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
       ))
     
     if (!includeDepletions) {
-      seuratObj$GLMM_Enrichment <- ifelse(grepl("Depleted", seuratObj$GLMM_Enrichment), 
+      metadata_to_add$GLMM_Enrichment <- ifelse(grepl("Depleted", metadata_to_add$GLMM_Enrichment), 
                                           "Not Enriched", 
                                           metadata_to_add$GLMM_Enrichment)
     }
