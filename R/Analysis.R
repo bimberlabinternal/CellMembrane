@@ -442,6 +442,157 @@ CalculateClusterEnrichment <- function(seuratObj,
   return(seuratObj)
 }
 
+#' @title CalculateClusterEnrichmentGLMM
+#' 
+#' @description A function that calculates the enrichment of a cluster under a given treatment variable using a Generalized Linear Mixed Model (GLMM). This allows for more complex treatment of enrichment where you want to account for subject-driven random effects and variable cellular recovery. 
+#' @param seuratObj The Seurat object containing a subjectField, clusterField, and treatmentField. Please see the individual arguments for more information.
+#' 
+#' @examples
+#'  \dontrun{
+#'  seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) # This is a dummy variable for the sake of example.
+#'  seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) # This is a dummy variable for the sake of example.
+#'  seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) # This is a dummy variable for the sake of example.
+#'  seuratObj <- CalculateClusterEnrichmentGLMM(seuratObj,
+#' 
+#' 
+#' 
+CalculateClusterEnrichmentGLMM <- function(seuratObj,
+                                       subjectField = 'SubjectId',
+                                       clusterField = 'ClusterNames_0.2',
+                                       treatmentField = NULL,
+                                       referenceValue = NULL,
+                                       pValueCutoff = 0.05,
+                                       showPlots = TRUE, 
+                                       biologicalReplicateGroupingVariables = c("cDNA_ID")) {
+  #basic checks for valid inputs
+  if (!inherits(seuratObj, "Seurat")) {
+    stop("seuratObj must be a Seurat object.")
+  } else if (typeof(subjectField) != "character") {
+    stop("subjectField must be a character string representing the column name in the Seurat object's metadata that contains the subject IDs.")
+  } else if (typeof(clusterField) != "character") {
+    stop("clusterField must be a character string representing the column name in the Seurat object's metadata that contains the cluster names.")
+  } else if (is.null(treatmentField)) {
+    stop("treatmentField must be specified as a character string representing the column name in the Seurat object's metadata that contains the treatment information.")
+  } else if (typeof(treatmentField) != "character") {
+    stop("treatmentField must be a character string representing the column name in the Seurat object's metadata that contains the treatment information.")
+  } else if (!is.null(referenceValue) && typeof(referenceValue) != "character") {
+    stop("referenceValue must be a character string representing the reference value for the treatment field.")
+  } else if (!is.numeric(pValueCutoff) || pValueCutoff <= 0 || pValueCutoff >= 1) {
+    stop("pValueCutoff must be a numeric value between 0 and 1.")
+  }
+  
+  #more specific checks to make sure modeling is possible
+  #subjectField exists & is coerce-able to a non-degenerate factor
+  if (!(subjectField %in% colnames(seuratObj@meta.data))) {
+    stop(paste0("subjectField: ", subjectField, " not found in the Seurat object metadata. Please check the spelling and case sensitivity."))
+  } else if (levels(factor(unique(seuratObj@meta.data[,subjectField]))) > 1) {
+    stop(paste0(subjectField, " must be a field with more than one unique value. Please check the values in the " , subjectField, " column."))
+  }
+  #treatment field exists and is coerce-able to a non-degenerate factor
+  if (!(treatmentField %in% colnames(seuratObj@meta.data))) {
+    stop(paste0("treatmentField: ", treatmentField, " not found in the Seurat object metadata. Please check the spelling and case sensitivity."))
+  } else if (levels(factor(unique(seuratObj@meta.data[,treatmentField]))) > 1) {
+    stop(paste0(treatmentField, " must be a field with more than one unique value. Please check the values in the " , treatmentField, " column."))
+  }
+  
+  #initialize metadata
+  grouping_variables <- c(defaultGroupingVariables, subjectField, treatmentField, clusterField)
+  #coerce metadata
+  metadata <- seuratObj@meta.data %>% 
+    group_by(across(all_of(biologicalReplicateGroupingVariables))) %>% 
+    mutate(lane_yield = n()) %>% 
+    group_by(across(all_of(grouping_variables))) %>% 
+    mutate(total = n(), lane_yield = lane_yield) %>% 
+    dplyr::select(any_of(c(grouping_variables, "total", "lane_yield"))) %>% 
+    distinct() %>% 
+    ungroup() %>% 
+    complete(
+      nesting(!!sym(subjectField),!!!syms(biologicalReplicateGroupingVariables), !!sym(treatmentField), lane_yield),
+      ClusterNames_0.2,
+      fill = list(
+        total = 0
+      )
+    )
+  
+  #force the reference level
+  if (!is.null(referenceValue)) {
+    metadata[[treatmentField]] <- factor(metadata[[treatmentField]], levels = c(referenceValue, setdiff(levels(factor(metadata[[treatmentField]])), referenceValue)))
+  } else {
+    stop("referenceValue must be specified as a character string representing the reference value for the treatment field. This is used to set the 'background' or 'control' level for the treatment field factor. Intercept-less modeling is not supported in this wrapper.")
+  }
+  
+  
+  #fit models
+  results <- data.frame()
+  for (cluster in unique(unlist(metadata[, clusterField]))) {
+    metadata_subset <- metadata %>% filter(!!sym(clusterField) == cluster)
+    
+    model <- tryCatch({
+      model_type <- "Zero-Inflated Negative Binomial"
+      model <- NBZIMM::glmm.zinb(as.formula(paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")), 
+                         data = metadata_subset, 
+                         random = as.formula(paste0("~ 1|", subjectField)), 
+                         zi_fixed = ~1, 
+                         zi_random =NULL)
+      
+    }, error = function(e) {
+      model_type <- "Negative Binomial"
+      model <- NBZIMM::glmm.nb(as.formula(paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")), 
+                               data = metadata_subset, 
+                               random = as.formula(paste0("~ 1|", subjectField)))
+      return(model)
+    })
+    
+    #handle missing levels 
+    if (!all(unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients$fixed)))) {
+      #the reference level will always be missing, as it's the intercept, so just take the non-first elements
+      missing_coefs <- levels(metadata[])[!levels(metadata$Vaccine) %in% gsub("Vaccine", "", names(model$coefficients$fixed))]
+      coefs <- model$coefficients$fixed
+      errors <- sqrt(diag(vcov(model)))
+      pvalues <- summary(model)$tTable[,5]
+      for (missing_coef in missing_coefs) { 
+        
+        if (missing_coef == levels(metadata$Vaccine)[1]) {
+          next #skip the reference level
+        }
+        coefs[paste0("Vaccine", missing_coef)] <- NA
+        errors[paste0("Vaccine", missing_coef)] <- NA
+        pvalues[paste0("Vaccine", missing_coef)] <- 1
+      }
+      
+    } else {
+      coefs <- model$coefficients$fixed
+      errors <- sqrt(diag(vcov(model)))
+      pvalues <- summary(model)$tTable[,5]
+    }
+    
+    
+    results <- rbind(results, 
+                     data.frame(cluster = cluster, 
+                                Vaccine = levels(metadata$Vaccine), 
+                                Estimate = coefs[grepl("Vaccine|Intercept", names(coefs))], 
+                                StdError = errors[grepl("Vaccine|Intercept", names(errors))],
+                                pValue = pvalues[grepl("Vaccine|Intercept", names(pvalues))], 
+                                model_type = model_type
+                                )
+                     )
+  }
+  
+  results$p.adj <- p.adjust(results$pValue, method = "holm")
+  
+  results %>% 
+    filter(!!sym(treatmentField) != referenceValue) %>% 
+    ggplot(aes(x = Estimate, y = -log10(p.adj), color = !!sym(treatmentField))) + 
+    geom_point() + 
+    ggrepel::geom_label_repel(aes(label = cluster), show.legend = F) + 
+    geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "black") + 
+    egg::theme_article() + 
+    labs(x = "Log Fold Change", y = "-log10 Adjusted P-value", title = paste0("Differential Abundance of Clusters by ", treatmentField), subtitle = paste0("Estimation of ", treatmentField, " enrichment in ", clusterField, " clustering")) 
+  
+}
+                                       
+
 
 #' @title ClusteredDotPlot
 #' 
