@@ -50,9 +50,18 @@ test_that("Cluster enrichment works", {
                                           paired = "infer"))
   
   #test GLMM cluster enrichment
-  seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) # This is a dummy variable for the sake of example.
-  seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) # This is a dummy variable for the sake of example.
-  seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) # This is a dummy variable for the sake of example.
+  CellMembrane::SetSeed(CellMembrane::GetSeed())
+  seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) 
+  seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) 
+  seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) 
+  
+  #induce a bias in cluster 1
+  seuratObj$Vaccine <- ifelse(seuratObj$ClusterNames_0.2 == 1, 
+                              sample(c("Vaccine1", "Vaccine2"), 
+                                     size = sum(seuratObj$ClusterNames_0.2 == 1),
+                                     replace = TRUE, 
+                                     prob = c(0.9, 0.1)), 
+                              seuratObj$Vaccine)
   
   
   testthat::expect_no_error(seuratObj <- CalculateClusterEnrichmentGLMM(seuratObj,
@@ -64,12 +73,13 @@ test_that("Cluster enrichment works", {
                                               pValueCutoff = 0.05,
                                               showPlots = FALSE, 
                                               returnSeuratObjectOrPlots = "SeuratObject", 
-                                              includeDepletions = FALSE))
+                                              includeDepletions = TRUE))
   #test that the GLMM enrichment ran
-  testthat::expect_true("Depleted: Vaccine2:0" %in% seuratObj$GLMM_Enrichment)
-  testthat::expect_false("Depleted: Vaccine2:1" %in% seuratObj$GLMM_Enrichment)
-  testthat::expect_true(sum(is.na(seuratObj$Estimate)) == 1303)
-  testthat::expect_equal(mean(seuratObj$Estimate, na.rm = TRUE), expected = -3, tolerance = 1)
+  testthat::expect_true("Depleted: Vaccine2:4" %in% seuratObj$GLMM_Enrichment)
+  testthat::expect_true("Depleted: Vaccine2:1" %in% seuratObj$GLMM_Enrichment)
+  testthat::expect_false("Enriched: Vaccine2:3" %in% seuratObj$GLMM_Enrichment)
+  testthat::expect_true(sum(is.na(seuratObj$Estimate)) == 1471)
+  testthat::expect_equal(mean(seuratObj$Estimate, na.rm = TRUE), expected = -1, tolerance = 1)
   
   
   testthat::expect_no_error(plots <- CalculateClusterEnrichmentGLMM(seuratObj,
