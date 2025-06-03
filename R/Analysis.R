@@ -1,9 +1,11 @@
 #' @import ggplot2 Seurat dplyr
 #' @importFrom stats cor 
+#' @importFrom NBZIMM glmm.nb glmm.zinb
 
 utils::globalVariables(
   names = c('ClusterProportion', 'Proportion', 'SizeFactor', 'XY_Key', 'Y_Key', 'ClusterCount',  
-            'comparisons', 'T_statistic', 'P_val_adj', 'Group1', 'Group2', 'stars', 'pct.exp', 'features.plot'),
+            'comparisons', 'T_statistic', 'P_val_adj', 'Group1', 'Group2', 'stars', 'pct.exp', 'features.plot', 
+            'lane_yield', 'Treatment', 'Estimate', 'p.adj', 'Cluster', 'EnrichedPairs'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -478,7 +480,7 @@ CalculateClusterEnrichment <- function(seuratObj,
 #'  
 #' @export
 #' @return A SeuratObject or a list of plots + dataframe, depending on the value of returnSeuratObjectOrPlots.
-#' 
+
 CalculateClusterEnrichmentGLMM <- function(seuratObj,
                                            subjectField = 'SubjectId',
                                            clusterField = 'ClusterNames_0.2',
@@ -562,17 +564,17 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     
     model <- tryCatch({
       model_type <- "Zero-Inflated Negative Binomial"
-      model <- NBZIMM::glmm.zinb(as.formula(paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")), 
+      model <- NBZIMM::glmm.zinb(stats::as.formula(paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")), 
                                  data = metadata_subset, 
-                                 random = as.formula(paste0("~ 1|", subjectField)), 
+                                 random = stats::as.formula(paste0("~ 1|", subjectField)), 
                                  zi_fixed = ~1, 
                                  zi_random =NULL)
       
     }, error = function(e) {
       model_type <- "Negative Binomial"
-      model <- NBZIMM::glmm.nb(as.formula(paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")), 
+      model <- NBZIMM::glmm.nb(stats::as.formula(paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")), 
                                data = metadata_subset, 
-                               random = as.formula(paste0("~ 1|", subjectField)))
+                               random = stats::as.formula(paste0("~ 1|", subjectField)))
       return(model)
     })
     
@@ -684,7 +686,7 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     
     #guard for interactive use to prevent overwriting a Seurat object if following the example.
     if (Sys.info()[['sysname']] != "Linux") {
-      if (menu(c("Yes", "No"), title="Running this function using returnSeuratObjectOrPlots = 'Plots' will return a list of plots and a data frame, and NOT a Seurat Object.\nThis may overwrite your Seurat Object if you followed the example verbatim.\nDo you want this?") == 2) {
+      if (utils::menu(c("Yes", "No"), title="Running this function using returnSeuratObjectOrPlots = 'Plots' will return a list of plots and a data frame, and NOT a Seurat Object.\nThis may overwrite your Seurat Object if you followed the example verbatim.\nDo you want this?") == 2) {
         stop("Please set returnSeuratObjectOrPlots to 'SeuratObject' to return a Seurat object with the GLMM enrichment results added to metadata.")
       }
     }
