@@ -11,6 +11,7 @@
 <url><loc>/reference/AppendPerCellSaturationInBulk.html</loc></url>
 <url><loc>/reference/AvgExpression.html</loc></url>
 <url><loc>/reference/CalculateClusterEnrichment.html</loc></url>
+<url><loc>/reference/CalculateClusterEnrichmentGLMM.html</loc></url>
 <url><loc>/reference/CalculatePercentMito.html</loc></url>
 <url><loc>/reference/CalculateTcrDiversity.html</loc></url>
 <url><loc>/reference/CalculateTcrDiversityFromSeurat.html</loc></url>
