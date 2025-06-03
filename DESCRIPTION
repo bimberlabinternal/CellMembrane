@@ -94,7 +94,8 @@ Imports:
     OmnipathR,
     glmGamPoi,
     tricycle,
-    scater
+    scater, 
+    NBZIMM
 Suggests:
     devtools,
     testthat (>= 2.1.0),
