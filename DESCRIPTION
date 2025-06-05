@@ -94,7 +94,8 @@ Imports:
     OmnipathR,
     glmGamPoi,
     tricycle,
-    scater
+    scater, 
+    NBZIMM
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -123,6 +124,7 @@ Remotes:
     ncborcherding/escape,
     rcastelo/GSVA,
     immunogenomics/presto,
+    nyiuab/NBZIMM,
     BPCells=bnprks/BPCells/r
 Config/reticulate:
   list(
