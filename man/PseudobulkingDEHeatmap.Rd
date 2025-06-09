@@ -14,7 +14,7 @@ PseudobulkingDEHeatmap(
   showRowNames = FALSE,
   assayName = "RNA",
   sampleIdCol = "cDNA_ID",
-  filterGenes = TRUE,
+  filterGenes = FALSE,
   subsetExpression = NULL
 )
 }
