@@ -11,7 +11,7 @@ RunFilteredContrasts(
   design,
   test.use,
   logFC_threshold = 1,
-  minCountsPerGene = 1,
+  filterGenes = TRUE,
   FDR_threshold = 0.05,
   assayName = "RNA",
   showPlots = FALSE
@@ -30,7 +30,7 @@ RunFilteredContrasts(
 
 \item{logFC_threshold}{A passthrough argument specifying the log fold change threshold to be used by PerformDifferentialExpression (for plotting only).}
 
-\item{minCountsPerGene}{A passthrough argument specifying the minimum counts a gene must have before it is filtered and excluded from GLM fitting by PerformGlmFit().}
+\item{filterGenes}{A passthrough argument specifying whether or not PerformGlmFit should filter genes using edgeR::filterByExpr.}
 
 \item{FDR_threshold}{A passthrough argument specifying the FDR threshold to be used by PerformDifferentialExpression (for plotting only).}
 

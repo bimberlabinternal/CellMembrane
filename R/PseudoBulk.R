@@ -230,22 +230,22 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
 #' @param design The model.matrix object
 #' @param test.use Can be either QLF or LRT. QLF runs edgeR::glmQLFTest, while LRT runs edgeR::glmLRT
 #' @param assayName The name of the assay to use
-#' @param minCountsPerGene Any genes with fewer than this many counts (across samples) will be dropped.
+#' @param filterGenes A boolean controlling whether or not to filter genes using edgeR::filterByExpr. If TRUE, genes with low counts will be filtered out.
 #' @param legacy A passthrough variable for edgeR's glmQLF function. They recently (R 4.0) changed the default behavior, so this will break on earlier versions of R. 
 #' @param plotBCV A boolean determining if the BCV plot should be shown.
 #' @return An edgeR glm object
 #' @export
-PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', minCountsPerGene = 1, legacy = FALSE, plotBCV = TRUE){
+PerformGlmFit <- function(seuratObj, design, test.use = "QLF", assayName = 'RNA', filterGenes = TRUE, legacy = FALSE, plotBCV = TRUE){
   #convert seurat object to SingleCellExperiment for edgeR
   sce <- SingleCellExperiment::SingleCellExperiment(assays = list(counts = Seurat::GetAssayData(seuratObj, assay = assayName, layer = 'counts')), colData = seuratObj@meta.data)
   
-  #filter out lowly expressed genes
-  if (!is.null(minCountsPerGene)) {
-    sce <- sce[rowSums(as.matrix(SingleCellExperiment::counts(sce))) > minCountsPerGene, ]
-  }
-  
   #preprocess the DGEList and fit the model
   y <- edgeR::DGEList(SingleCellExperiment::counts(sce), remove.zeros = TRUE)
+  if (filterGenes) {
+    geneFilter <- edgeR::filterByExpr(y, design = design)
+    message(paste0("Number of genes passing filterByExpr filter: ", sum(geneFilter), ". Number of genes with any counts: ", nrow(y), " (", round((sum(geneFilter)/nrow(y)),2) * 100 , "% of detectable genes kept)"))
+    y <- y[geneFilter,]
+  }
   y <- edgeR::calcNormFactors(y)
   y <- edgeR::estimateDisp(y, design)
   if (plotBCV){
@@ -532,13 +532,13 @@ xnor <- function(x,y){(x == y)}
 #' @param test.use A passthrough argument specifying the statistical test to be run by PerformGlmFit and PerformDifferentialExpression. 
 #' @param logFC_threshold A passthrough argument specifying the log fold change threshold to be used by PerformDifferentialExpression (for plotting only). 
 #' @param FDR_threshold A passthrough argument specifying the FDR threshold to be used by PerformDifferentialExpression (for plotting only).
-#' @param minCountsPerGene A passthrough argument specifying the minimum counts a gene must have before it is filtered and excluded from GLM fitting by PerformGlmFit().
+#' @param filterGenes A passthrough argument specifying whether or not PerformGlmFit should filter genes using edgeR::filterByExpr.
 #' @param assayName A passthrough argument specifying in which assay the counts are held. 
 #' @param showPlots A passthrough argument specifying whether or not PerformDifferentialExpression should show the volcano plots.
 #' @return A list of dataframes containing the differentially expressed genes in each contrast supplied by one of the filteredGenes arguments. 
 #' @export
 
-RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filteredContrastsDataframe = NULL, design, test.use, logFC_threshold = 1, minCountsPerGene = 1, FDR_threshold = 0.05, assayName = "RNA", showPlots = FALSE){
+RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filteredContrastsDataframe = NULL, design, test.use, logFC_threshold = 1, filterGenes = TRUE, FDR_threshold = 0.05, assayName = "RNA", showPlots = FALSE){
   if (is.null(filteredContrastsFile) & is.null(filteredContrastsDataframe)){
     stop("Please define either filteredContrastsDataframe or filteredContrastsFile. Both of these are output by FilterPseudobulkContrasts() and are equivalent. filteredContrastsDataframe is returned by FilterPseudobulkContrasts(), and filteredContrastsFile is written to disk (by default: ./filtered_contrasts.tsv)")
   } else if (!is.null(filteredContrastsFile) & !is.null(filteredContrastsDataframe)){
@@ -627,7 +627,7 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
                                                     contrast_columns = attr(design, "contrast_columns"),
                                                     sampleIdCol = attr(design, "sampleIdCol"))
         
-        fit <- PerformGlmFit(seuratObj.contrast, design = filtered_design_matrix, test.use = test.use, assayName = assayName, minCountsPerGene = minCountsPerGene)
+        fit <- PerformGlmFit(seuratObj.contrast, design = filtered_design_matrix, test.use = test.use, assayName = assayName, filterGenes = filterGenes)
         #format contrast using limma
         contrast <- limma::makeContrasts(contrasts = contrast_name, levels = colnames(filtered_design_matrix))
         result <- PerformDifferentialExpression(fit, contrast, contrast_name, logFC_threshold = logFC_threshold, FDR_threshold = FDR_threshold, test.use = test.use, showPlots = showPlots)
@@ -888,12 +888,12 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @param assayName the name of the assay in the seurat object storing the count matrix. 
 #' @param showRowNames a passthrough variable for ComplexHeatmap controlling if the gene names should be shown or not in the heatmap. 
 #' @param sampleIdCol The metadata column denoting the variable containing the sample identifier (for grouping). 
-#' @param minCountsPerGene Passthrough variable for PerformGlmFit, used for filtering out lowly expressed genes. 
+#' @param filterGenes A passthrough variable for PerformGlmFit, used to determine if genes should be filtered using edgeR::filterByExpr.
 #' @param subsetExpression An optional string containing an expression to subset the Seurat object. This is useful for selecting an exact subpopulation to in which to show DEGs. Please note that for string-based metadata fields, you will need to mix single and double quotes to ensure your expression is properly parsed. For instance, note the double quotes around the word unvax in this expression: subsetExpression = 'vaccine_cohort == "unvax"'. 
 #' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
 #' @export
 
-PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID', minCountsPerGene = 1, subsetExpression = NULL) {
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID', filterGenes = TRUE, subsetExpression = NULL) {
   #sanity check arguments
   if (is.null(contrastField)) {
     stop("Please define a contrastField. This is a metadata variable (supplied to groupFields during PseudobulkSeurat()) that will be displayed on the top of the heatmap.")
@@ -979,7 +979,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
                                                test.use = "QLF", 
                                                logFC_threshold = 0,
                                                FDR_threshold = 1.1,
-                                               minCountsPerGene = minCountsPerGene, 
+                                               filterGenes = filterGenes, 
                                                assayName = assayName)
   #bind RunFilteredContrasts into a dataframe
   lfc_results <- dplyr::bind_rows(lfc_results)

@@ -91,7 +91,7 @@ test_that("Logic gate study design works", {
                        test.use = "QLF", 
                        logFC_threshold = 0,
                        FDR_threshold = 0.5,
-                       minCountsPerGene = 1, 
+                       filterGenes = TRUE, 
                        assayName = "RNA")
   #15 total contrasts
   testthat::expect_equal(length(DE_results), expected = 15)

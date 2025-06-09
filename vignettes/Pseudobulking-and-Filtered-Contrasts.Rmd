@@ -235,7 +235,7 @@ DE_results <- RunFilteredContrasts(seuratObj = pbulk,
                        test.use = "QLF", 
                        logFC_threshold = 1,
                        FDR_threshold = 0.05,
-                       minCountsPerGene = 1, 
+                       filterGenes = TRUE, 
                        assayName = "RNA")
 ```
 
@@ -252,7 +252,7 @@ permissive_contrast <- RunFilteredContrasts(seuratObj = pbulk,
                        test.use = "QLF", 
                        logFC_threshold = 0,
                        FDR_threshold = 0.5,
-                       minCountsPerGene = 1, 
+                       filterGenes = TRUE, 
                        assayName = "RNA", 
                        showPlots = TRUE)
 ```
@@ -266,7 +266,7 @@ strict_contrast <- RunFilteredContrasts(seuratObj = pbulk,
                        test.use = "QLF", 
                        logFC_threshold = 1,
                        FDR_threshold = 1e-30,
-                       minCountsPerGene = 1, 
+                       filterGenes = TRUE, 
                        assayName = "RNA", 
                        showPlots = TRUE)
 ```
@@ -289,11 +289,11 @@ barplot_results <- PseudobulkingBarPlot(DE_results,
                                         FDR_threshold = .5)
 ```
 
-```{r Create Strict Bar Plot}
+```{r Create Stricter Bar Plot}
 barplot_results <- PseudobulkingBarPlot(DE_results, 
                                         title = "Vaccine One vs Unvaxxed/Control", 
                                         logFC_threshold = 0.1, 
-                                        FDR_threshold = 0.1)
+                                        FDR_threshold = 0.5)
 ```
 
 Further annotation of the bar plot requires some custom code, but can be formatted like so using the data frame returned from `PseudobulkingBarPlot`: 
@@ -350,8 +350,8 @@ First, let's reuse the results of `FilterPseudobulkingContrasts` and apply some 
 ```{r filter DEGs for heatmap}
 #bind the list into a dataframe using thresholds to determine the differentially expressed genes
 DEGs <- dplyr::bind_rows(DE_results) %>% 
-  dplyr::filter(abs(logFC) > 1) %>% 
-  dplyr::filter(FDR < 0.05)
+  dplyr::filter(abs(logFC) > 0.5) %>% 
+  dplyr::filter(FDR < 0.4) #0.4 used only for this vignette. One should generally use 0.05 to be consistent with field standards
 
 #select all of the genes that are differentially expressed in any contrast across the transcriptome
 genes <- unique(DEGs$gene)
