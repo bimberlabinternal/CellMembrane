@@ -43,6 +43,7 @@ test_that("Pseudobulk-based differential expression works", {
 })
 
 test_that("Logic gate study design works", {
+  CellMembrane::SetSeed(CellMembrane::GetSeed())
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   testthat::expect_equal(ncol(seuratObj), expected = 1557) #check that test seuratObj doesn't change
   #add fabricated study metadata
@@ -91,17 +92,19 @@ test_that("Logic gate study design works", {
                        test.use = "QLF", 
                        logFC_threshold = 0,
                        FDR_threshold = 0.5,
-                       minCountsPerGene = 1, 
+                       filterGenes = TRUE, 
                        assayName = "RNA")
   #15 total contrasts
   testthat::expect_equal(length(DE_results), expected = 15)
   #9008 "DEGs" in the first contrast (note overly permissive DEG thresholds)
-  testthat::expect_equal(nrow(DE_results$`1`), expected = 9008)
+  testthat::expect_equal(nrow(DE_results$`1`), expected = 900)
   #test that pct.1 and pct.2 are present in the DE results
   testthat::expect_true(all(c("pct.1", "pct.2") %in%  colnames(DE_results$`1`)))
   
   barPlot <- PseudobulkingBarPlot(filteredContrasts = DE_results, 
-                       metadataFilterList = NULL
+                       metadataFilterList = NULL, 
+                       logFC_threshold = 0,
+                       FDR_threshold = 0.5
                        )
   #test that PseudobulkingBarPlot yields a list with a barPlot element
   testthat::expect_true("barPlot" %in% names(barPlot))
@@ -114,7 +117,8 @@ test_that("Logic gate study design works", {
                                          geneSpace = genes, 
                                          contrastField = "vaccine_cohort", 
                                          negativeContrastValue = "control", 
-                                         sampleIdCol = 'subject'
+                                         sampleIdCol = 'subject', 
+                                         filterGenes = FALSE
   )
   
   #test that PseudobulkingDEHeatmap yields a list with a heatmap and matrix element

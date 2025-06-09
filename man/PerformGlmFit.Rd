@@ -9,7 +9,7 @@ PerformGlmFit(
   design,
   test.use = "QLF",
   assayName = "RNA",
-  minCountsPerGene = 1,
+  filterGenes = TRUE,
   legacy = FALSE,
   plotBCV = TRUE
 )
@@ -23,7 +23,7 @@ PerformGlmFit(
 
 \item{assayName}{The name of the assay to use}
 
-\item{minCountsPerGene}{Any genes with fewer than this many counts (across samples) will be dropped.}
+\item{filterGenes}{A boolean controlling whether or not to filter genes using edgeR::filterByExpr. If TRUE, genes with low counts will be filtered out.}
 
 \item{legacy}{A passthrough variable for edgeR's glmQLF function. They recently (R 4.0) changed the default behavior, so this will break on earlier versions of R.}
 
