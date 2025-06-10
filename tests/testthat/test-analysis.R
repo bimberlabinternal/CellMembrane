@@ -7,7 +7,7 @@ test_that("Cluster enrichment works", {
   seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
   seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
   
-  seuratObj <- CalculateClusterEnrichment(seuratObj, 
+  seuratObj <- CalculateClusterEnrichmentOmnibus(seuratObj, 
                             clusterField = "ClusterNames_0.4", 
                             treatmentField = "vaccine_cohort",
                             subjectField = "subject",
@@ -20,7 +20,7 @@ test_that("Cluster enrichment works", {
   seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne"), length.out = length(colnames(seuratObj)))
   seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
   
-  seuratObj <- CalculateClusterEnrichment(seuratObj, 
+  seuratObj <- CalculateClusterEnrichmentOmnibus(seuratObj, 
                                           clusterField = "ClusterNames_0.4", 
                                           treatmentField = "vaccine_cohort",
                                           subjectField = "subject",
@@ -32,7 +32,7 @@ test_that("Cluster enrichment works", {
   seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy"), length.out = length(colnames(seuratObj)))
   seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
   
-  seuratObj <- CalculateClusterEnrichment(seuratObj, 
+  seuratObj <- CalculateClusterEnrichmentOmnibus(seuratObj, 
                                           clusterField = "ClusterNames_0.4", 
                                           treatmentField = "timepoint",
                                           subjectField = "subject",
@@ -43,13 +43,13 @@ test_that("Cluster enrichment works", {
   seuratObj@meta.data[,"timepoint"] <- base::rep(c("base - line", "necropsy"), length.out = length(colnames(seuratObj)))
   seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
   
-  testthat::expect_error(CalculateClusterEnrichment(seuratObj, 
+  testthat::expect_error(CalculateClusterEnrichmentOmnibus(seuratObj, 
                                           clusterField = "ClusterNames_0.4", 
                                           treatmentField = "timepoint",
                                           subjectField = "subject",
                                           paired = "infer"))
   
-  #test GLMM cluster enrichment
+  #test GLMM-based cluster enrichment
   CellMembrane::SetSeed(CellMembrane::GetSeed())
   seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) 
   seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) 
@@ -64,7 +64,7 @@ test_that("Cluster enrichment works", {
                               seuratObj$Vaccine)
   
   
-  testthat::expect_no_error(seuratObj <- CalculateClusterEnrichmentGLMM(seuratObj,
+  testthat::expect_no_error(seuratObj <- CalculateClusterEnrichmentPairwise(seuratObj,
                                               subjectField = 'SubjectId',
                                               clusterField = 'ClusterNames_0.2',
                                               biologicalReplicateGroupingVariables = c("cDNA_ID"),
@@ -75,14 +75,14 @@ test_that("Cluster enrichment works", {
                                               returnSeuratObjectOrPlots = "SeuratObject", 
                                               includeDepletions = TRUE))
   #test that the GLMM enrichment ran
-  testthat::expect_true("Depleted: Vaccine2:4" %in% seuratObj$GLMM_Enrichment)
-  testthat::expect_true("Depleted: Vaccine2:1" %in% seuratObj$GLMM_Enrichment)
-  testthat::expect_false("Enriched: Vaccine2:3" %in% seuratObj$GLMM_Enrichment)
+  testthat::expect_true("Depleted: Vaccine2:4" %in% seuratObj$Cluster_Enrichment)
+  testthat::expect_true("Depleted: Vaccine2:1" %in% seuratObj$Cluster_Enrichment)
+  testthat::expect_false("Enriched: Vaccine2:3" %in% seuratObj$Cluster_Enrichment)
   testthat::expect_true(sum(is.na(seuratObj$Estimate)) == 1471)
   testthat::expect_equal(mean(seuratObj$Estimate, na.rm = TRUE), expected = -1, tolerance = 1)
   
   
-  testthat::expect_no_error(plots <- CalculateClusterEnrichmentGLMM(seuratObj,
+  testthat::expect_no_error(plots <- CalculateClusterEnrichmentPairwise(seuratObj,
                                               subjectField = 'SubjectId',
                                               clusterField = 'ClusterNames_0.2',
                                               biologicalReplicateGroupingVariables = c("cDNA_ID"),
@@ -94,6 +94,31 @@ test_that("Cluster enrichment works", {
                                               includeDepletions = FALSE))
   testthat::expect_true(length(plots) == 2)
   testthat::expect_true(typeof(plots$model_coefficients) == "list")
+  
+  #test quasipoisson-based cluster enrichment
+  CellMembrane::SetSeed(CellMembrane::GetSeed())
+  seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) 
+  seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) 
+  seuratObj$SubjectId <- rep(1:2, each = ncol(seuratObj)/2) 
+  
+  seuratObj$Vaccine <- ifelse(seuratObj$ClusterNames_0.2 == 1, 
+                              sample(c("Vaccine1", "Vaccine2"), 
+                                     size = sum(seuratObj$ClusterNames_0.2 == 1),
+                                     replace = TRUE, 
+                                     prob = c(0.9, 0.1)), 
+                              seuratObj$Vaccine)
+  
+  
+  testthat::expect_no_error(seuratObj <- CalculateClusterEnrichmentPairwise(seuratObj,
+                                              subjectField = 'SubjectId',
+                                              clusterField = 'ClusterNames_0.2',
+                                              biologicalReplicateGroupingVariables = c("cDNA_ID"),
+                                              treatmentField = "Vaccine",
+                                              referenceValue = "Vaccine1",
+                                              pValueCutoff = 0.05,
+                                              showPlots = FALSE, 
+                                              returnSeuratObjectOrPlots = "SeuratObject", 
+                                              includeDepletions = TRUE))
 })
 
 test_that("ClusteredDotPlot works", {

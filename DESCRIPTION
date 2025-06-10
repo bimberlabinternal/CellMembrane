@@ -95,7 +95,8 @@ Imports:
     glmGamPoi,
     tricycle,
     scater, 
-    NBZIMM
+    NBZIMM, 
+    sandwich
 Suggests:
     devtools,
     testthat (>= 2.1.0),
