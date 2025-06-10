@@ -81,7 +81,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2025-06-05</h4>
+            <h4 data-toc-skip class="date">2025-06-10</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/master/vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd" class="external-link"><code>vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd</code></a></small>
       <div class="hidden name"><code>Pseudobulking-and-Filtered-Contrasts.Rmd</code></div>
@@ -290,7 +290,9 @@ vaccine one and vaccine two:</p>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/design%20matrix%20for%20contrasts-1.png" width="960"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#fit a GLM using edgeR</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PerformGlmFit.html">PerformGlmFit</a></span><span class="op">(</span><span class="va">pbulk</span>, design <span class="op">=</span> <span class="va">design</span>, test.use <span class="op">=</span> <span class="st">"QLF"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PerformGlmFit.html">PerformGlmFit</a></span><span class="op">(</span><span class="va">pbulk</span>, design <span class="op">=</span> <span class="va">design</span>, test.use <span class="op">=</span> <span class="st">"QLF"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Removing 19831 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 1152. Number of genes with any counts: 12555 (9% of detectable genes kept)</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/example%20contrast-1.png" width="700"></p>
 <pre><code><span><span class="co">#&gt; NULL</span></span>
 <span></span>
@@ -400,7 +402,7 @@ fitting is suitable.</p>
 <span>                       test.use <span class="op">=</span> <span class="st">"QLF"</span>, </span>
 <span>                       logFC_threshold <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                       FDR_threshold <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>                       minCountsPerGene <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>                       filterGenes <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                       assayName <span class="op">=</span> <span class="st">"RNA"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/run%20filtered%20contrasts-1.png" width="288"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/run%20filtered%20contrasts-2.png" width="288"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/run%20filtered%20contrasts-3.png" width="288"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/run%20filtered%20contrasts-4.png" width="288"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/run%20filtered%20contrasts-5.png" width="288"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/run%20filtered%20contrasts-6.png" width="288"></p>
 <pre><code><span><span class="co">#&gt; [1] "Contrast columns: vaccine_cohort" "Contrast columns: timepoint"     </span></span>
@@ -528,7 +530,19 @@ fitting is suitable.</p>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_necropsy-vaccineOne_necropsy"</span></span>
-<span><span class="co">#&gt; NULL</span></span></code></pre>
+<span><span class="co">#&gt; NULL</span></span>
+<span><span class="co">#&gt; Removing 22143 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 910. Number of genes with any counts: 10243 (9% of detectable genes kept)</span></span>
+<span><span class="co">#&gt; Removing 22099 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 888. Number of genes with any counts: 10287 (9% of detectable genes kept)</span></span>
+<span><span class="co">#&gt; Removing 22026 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 991. Number of genes with any counts: 10360 (10% of detectable genes kept)</span></span>
+<span><span class="co">#&gt; Removing 22137 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 907. Number of genes with any counts: 10249 (9% of detectable genes kept)</span></span>
+<span><span class="co">#&gt; Removing 22058 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 904. Number of genes with any counts: 10328 (9% of detectable genes kept)</span></span>
+<span><span class="co">#&gt; Removing 22078 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 991. Number of genes with any counts: 10308 (10% of detectable genes kept)</span></span></code></pre>
 <div class="section level3">
 <h3 id="thresholds-are-for-optional-plotting-in-runfilteredcontrasts-but-are-used-for-filtering-in-pseudobulkingbarplot">Thresholds are for optional plotting in
 <code>RunFilteredContrasts</code>, but are used for filtering in
@@ -545,7 +559,7 @@ genes in the <code>DE_results</code> list.</p>
 <span>                       test.use <span class="op">=</span> <span class="st">"QLF"</span>, </span>
 <span>                       logFC_threshold <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>                       FDR_threshold <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>                       minCountsPerGene <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>                       filterGenes <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                       assayName <span class="op">=</span> <span class="st">"RNA"</span>, </span>
 <span>                       showPlots <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-1.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-2.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Permissive%20Thresholds-3.png" width="700"></p>
@@ -570,6 +584,8 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_baseline-vaccineOne_baseline"</span></span>
 <span><span class="co">#&gt; NULL</span></span>
+<span><span class="co">#&gt; Removing 22137 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 907. Number of genes with any counts: 10249 (9% of detectable genes kept)</span></span>
 <span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
 <p>Stricter thresholds (on one contrast):</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
@@ -579,7 +595,7 @@ genes in the <code>DE_results</code> list.</p>
 <span>                       test.use <span class="op">=</span> <span class="st">"QLF"</span>, </span>
 <span>                       logFC_threshold <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                       FDR_threshold <span class="op">=</span> <span class="fl">1e-30</span>,</span>
-<span>                       minCountsPerGene <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>                       filterGenes <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                       assayName <span class="op">=</span> <span class="st">"RNA"</span>, </span>
 <span>                       showPlots <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Strict%20Thresholds-1.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Strict%20Thresholds-2.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Strict%20Thresholds-3.png" width="700"></p>
@@ -604,52 +620,54 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  unvax_baseline-vaccineOne_baseline"</span></span>
 <span><span class="co">#&gt; NULL</span></span>
+<span><span class="co">#&gt; Removing 22137 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 907. Number of genes with any counts: 10249 (9% of detectable genes kept)</span></span>
 <span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
 <p>The results of these fits are collected in an indexed list.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">`1`</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                         logFC    logCPM        F       PValue          FDR</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779  2.5050954  7.947134 41.42212 2.343566e-09 0.0000210546</span></span>
-<span><span class="co">#&gt; PPBP                5.9204304  6.281533 26.74732 9.143648e-07 0.0041073267</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466  4.9622553  5.720617 18.99011 2.745347e-05 0.0711728374</span></span>
-<span><span class="co">#&gt; MYL9                5.0419674  5.761552 18.67463 3.168871e-05 0.0711728374</span></span>
-<span><span class="co">#&gt; CCL4                1.1331389  8.081421 17.09495 6.449480e-05 0.1158842625</span></span>
-<span><span class="co">#&gt; FTH1               -0.5151792 11.954005 16.30541 9.309469e-05 0.1393937809</span></span>
-<span><span class="co">#&gt;                                  gene       pct.1      pct.2</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779 ENSMMUG00000013779 0.100000000 0.07751938</span></span>
-<span><span class="co">#&gt; PPBP                             PPBP 0.007692308 0.00000000</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466 ENSMMUG00000045466 0.053846154 0.00000000</span></span>
-<span><span class="co">#&gt; MYL9                             MYL9 0.030769231 0.00000000</span></span>
-<span><span class="co">#&gt; CCL4                             CCL4 0.246153846 0.16279070</span></span>
-<span><span class="co">#&gt; FTH1                             FTH1 0.892307692 0.95348837</span></span>
-<span><span class="co">#&gt;                                           contrast_name positive_contrast</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779 control_baseline-vaccineOne_baseline  control_baseline</span></span>
-<span><span class="co">#&gt; PPBP               control_baseline-vaccineOne_baseline  control_baseline</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466 control_baseline-vaccineOne_baseline  control_baseline</span></span>
-<span><span class="co">#&gt; MYL9               control_baseline-vaccineOne_baseline  control_baseline</span></span>
-<span><span class="co">#&gt; CCL4               control_baseline-vaccineOne_baseline  control_baseline</span></span>
-<span><span class="co">#&gt; FTH1               control_baseline-vaccineOne_baseline  control_baseline</span></span>
-<span><span class="co">#&gt;                      negative_contrast positive_contrast_vaccine_cohort</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779 vaccineOne_baseline                          control</span></span>
-<span><span class="co">#&gt; PPBP               vaccineOne_baseline                          control</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466 vaccineOne_baseline                          control</span></span>
-<span><span class="co">#&gt; MYL9               vaccineOne_baseline                          control</span></span>
-<span><span class="co">#&gt; CCL4               vaccineOne_baseline                          control</span></span>
-<span><span class="co">#&gt; FTH1               vaccineOne_baseline                          control</span></span>
-<span><span class="co">#&gt;                    positive_contrast_timepoint negative_contrast_vaccine_cohort</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779                    baseline                       vaccineOne</span></span>
-<span><span class="co">#&gt; PPBP                                  baseline                       vaccineOne</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466                    baseline                       vaccineOne</span></span>
-<span><span class="co">#&gt; MYL9                                  baseline                       vaccineOne</span></span>
-<span><span class="co">#&gt; CCL4                                  baseline                       vaccineOne</span></span>
-<span><span class="co">#&gt; FTH1                                  baseline                       vaccineOne</span></span>
-<span><span class="co">#&gt;                    negative_contrast_timepoint</span></span>
-<span><span class="co">#&gt; ENSMMUG00000013779                    baseline</span></span>
-<span><span class="co">#&gt; PPBP                                  baseline</span></span>
-<span><span class="co">#&gt; ENSMMUG00000045466                    baseline</span></span>
-<span><span class="co">#&gt; MYL9                                  baseline</span></span>
-<span><span class="co">#&gt; CCL4                                  baseline</span></span>
-<span><span class="co">#&gt; FTH1                                  baseline</span></span></code></pre></div>
+<span><span class="co">#&gt;                     logFC   logCPM        F       PValue       FDR</span></span>
+<span><span class="co">#&gt; RPL17-C18orf32 -1.0156620 7.911881 16.75808 0.0006719154 0.4426229</span></span>
+<span><span class="co">#&gt; SLC3A2         -1.1208041 7.285585 15.45157 0.0009727977 0.4426229</span></span>
+<span><span class="co">#&gt; CCL4            1.1059819 8.078917 11.76966 0.0029537259 0.5926972</span></span>
+<span><span class="co">#&gt; SURF4          -0.8642090 7.796347 11.69306 0.0030289115 0.5926972</span></span>
+<span><span class="co">#&gt; ZFP36L1         0.7162951 8.518978 11.46783 0.0032565782 0.5926972</span></span>
+<span><span class="co">#&gt; PTPRCAP         0.4450699 9.549798 10.64533 0.0042828875 0.6233792</span></span>
+<span><span class="co">#&gt;                          gene     pct.1     pct.2</span></span>
+<span><span class="co">#&gt; RPL17-C18orf32 RPL17-C18orf32 0.2692308 0.4573643</span></span>
+<span><span class="co">#&gt; SLC3A2                 SLC3A2 0.1692308 0.3178295</span></span>
+<span><span class="co">#&gt; CCL4                     CCL4 0.2461538 0.1627907</span></span>
+<span><span class="co">#&gt; SURF4                   SURF4 0.2846154 0.4263566</span></span>
+<span><span class="co">#&gt; ZFP36L1               ZFP36L1 0.5538462 0.3720930</span></span>
+<span><span class="co">#&gt; PTPRCAP               PTPRCAP 0.6923077 0.6124031</span></span>
+<span><span class="co">#&gt;                                       contrast_name positive_contrast</span></span>
+<span><span class="co">#&gt; RPL17-C18orf32 control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; SLC3A2         control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; CCL4           control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; SURF4          control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; ZFP36L1        control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt; PTPRCAP        control_baseline-vaccineOne_baseline  control_baseline</span></span>
+<span><span class="co">#&gt;                  negative_contrast positive_contrast_vaccine_cohort</span></span>
+<span><span class="co">#&gt; RPL17-C18orf32 vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; SLC3A2         vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; CCL4           vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; SURF4          vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; ZFP36L1        vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt; PTPRCAP        vaccineOne_baseline                          control</span></span>
+<span><span class="co">#&gt;                positive_contrast_timepoint negative_contrast_vaccine_cohort</span></span>
+<span><span class="co">#&gt; RPL17-C18orf32                    baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; SLC3A2                            baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; CCL4                              baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; SURF4                             baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; ZFP36L1                           baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt; PTPRCAP                           baseline                       vaccineOne</span></span>
+<span><span class="co">#&gt;                negative_contrast_timepoint</span></span>
+<span><span class="co">#&gt; RPL17-C18orf32                    baseline</span></span>
+<span><span class="co">#&gt; SLC3A2                            baseline</span></span>
+<span><span class="co">#&gt; CCL4                              baseline</span></span>
+<span><span class="co">#&gt; SURF4                             baseline</span></span>
+<span><span class="co">#&gt; ZFP36L1                           baseline</span></span>
+<span><span class="co">#&gt; PTPRCAP                           baseline</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -672,8 +690,8 @@ expressed or not within each contrast.</p>
 <code class="sourceCode R"><span><span class="va">barplot_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PseudobulkingBarPlot.html">PseudobulkingBarPlot</a></span><span class="op">(</span><span class="va">DE_results</span>, </span>
 <span>                                        title <span class="op">=</span> <span class="st">"Vaccine One vs Unvaxxed/Control"</span>, </span>
 <span>                                        logFC_threshold <span class="op">=</span> <span class="fl">0.1</span>, </span>
-<span>                                        FDR_threshold <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Create%20Strict%20Bar%20Plot-1.png" width="700"></p>
+<span>                                        FDR_threshold <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/Create%20Stricter%20Bar%20Plot-1.png" width="700"></p>
 <p>Further annotation of the bar plot requires some custom code, but can
 be formatted like so using the data frame returned from
 <code>PseudobulkingBarPlot</code>:</p>
@@ -751,8 +769,8 @@ approaches to determine appropriate gene sets.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#bind the list into a dataframe using thresholds to determine the differentially expressed genes</span></span>
 <span><span class="va">DEGs</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">logFC</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">FDR</span> <span class="op">&lt;</span> <span class="fl">0.05</span><span class="op">)</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">logFC</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">FDR</span> <span class="op">&lt;</span> <span class="fl">0.4</span><span class="op">)</span> <span class="co">#0.4 used only for this vignette. One should generally use 0.05 to be consistent with field standards</span></span>
 <span></span>
 <span><span class="co">#select all of the genes that are differentially expressed in any contrast across the transcriptome</span></span>
 <span><span class="va">genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">DEGs</span><span class="op">$</span><span class="va">gene</span><span class="op">)</span></span></code></pre></div>
@@ -825,7 +843,10 @@ groups.</p>
 <span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
 <span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control-vaccineTwo"</span></span>
-<span><span class="co">#&gt; NULL</span></span></code></pre>
+<span><span class="co">#&gt; NULL</span></span>
+<span><span class="co">#&gt; Removing 20679 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 20722 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 20653 rows with all zero counts</span></span></code></pre>
 <p>We can compare the gene log fold changes over the vaccine cohorts and
 find gene modules that are consistently upregulated.</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
@@ -1036,7 +1057,16 @@ information as a <code>subgroupingVariable</code> to
 <span><span class="co">#&gt; [1] "Remaining Cells:" "8"               </span></span>
 <span><span class="co">#&gt; [1] "colsums: 8"</span></span>
 <span><span class="co">#&gt; [1] "Performing DE for:  control_necropsy-vaccineTwo_necropsy"</span></span>
-<span><span class="co">#&gt; NULL</span></span></code></pre>
+<span><span class="co">#&gt; NULL</span></span>
+<span><span class="co">#&gt; Removing 22098 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 22143 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 22160 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 22084 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 22099 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 22001 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 22034 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 22026 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 21999 rows with all zero counts</span></span></code></pre>
 <p>Now, we can interpret the changes within vaccine cohorts and over
 time!</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
