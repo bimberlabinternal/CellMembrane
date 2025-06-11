@@ -561,7 +561,7 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
   
   #force the reference level
   if (!is.null(referenceValue)) {
-    metadata[[treatmentField]] <- factor(metadata[[treatmentField]], levels = c(referenceValue, setdiff(levels(factor(metadata[[treatmentField]])), referenceValue)))
+    metadata[[treatmentField]] <- forcats::fct_relevel(metadata[[treatmentField]], referenceValue, after = 0) 
   } else {
     stop("referenceValue must be specified as a character string representing the reference value for the treatment field. This is used to set the 'background' or 'control' level for the treatment field factor. Intercept-less modeling is not supported in this wrapper.")
   }
