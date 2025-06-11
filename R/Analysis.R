@@ -5,7 +5,7 @@
 utils::globalVariables(
   names = c('ClusterProportion', 'Proportion', 'SizeFactor', 'XY_Key', 'Y_Key', 'ClusterCount',  
             'comparisons', 'T_statistic', 'P_val_adj', 'Group1', 'Group2', 'stars', 'pct.exp', 'features.plot', 
-            'lane_yield', 'Treatment', 'Estimate', 'p.adj', 'Cluster', 'EnrichedPairs'),
+            'lane_yield', 'Treatment', 'ClusterEnrichment_LFC', 'p.adj', 'Cluster', 'EnrichedPairs'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -668,7 +668,7 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
     results <- rbind(results, 
                      data.frame(Cluster = cluster, 
                                 Treatment =  gsub("\\(Intercept\\)", referenceValue, gsub(paste0("^", treatmentField),"", names(coefs))),
-                                Estimate = coefs[grepl(paste0(treatmentField, "|Intercept"), names(coefs))], 
+                                ClusterEnrichment_LFC = coefs[grepl(paste0(treatmentField, "|Intercept"), names(coefs))], 
                                 StdError = errors[grepl(paste0(treatmentField, "|Intercept"), names(errors))],
                                 pValue = pvalues[grepl(paste0(treatmentField, "|Intercept"), names(pvalues))], 
                                 model_type = model_type
@@ -683,7 +683,7 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
   #construct volcano plot
   volcano_plot <- results %>% 
     filter(Treatment != referenceValue) %>% 
-    ggplot2::ggplot(ggplot2::aes(x = Estimate, y = -log10(p.adj), 
+    ggplot2::ggplot(ggplot2::aes(x = ClusterEnrichment_LFC, y = -log10(p.adj), 
                                  color = Treatment, 
                                  shape = model_type)) + 
     ggplot2::geom_point() + 
@@ -698,12 +698,12 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
   if (!includeDepletions) {
     
     only_enrichments <- results %>% 
-      dplyr::filter(Estimate > 0) %>% 
+      dplyr::filter(ClusterEnrichment_LFC > 0) %>% 
       dplyr::filter(Treatment != referenceValue)
     
     
     volcano_plot <- volcano_plot + 
-      ggplot2::xlim(c(0, max(only_enrichments %>% pull(Estimate), na.rm = TRUE)+1)) + 
+      ggplot2::xlim(c(0, max(only_enrichments %>% pull(ClusterEnrichment_LFC), na.rm = TRUE)+1)) + 
       ggplot2::ylim(c(0, max(-log10(only_enrichments %>% dplyr::pull(p.adj)), na.rm = TRUE)+1))
   }
   if (showPlots) {
@@ -719,19 +719,19 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
       dplyr::filter(Treatment != referenceValue) %>%
       dplyr::mutate(EnrichedPairs = paste0(Treatment, ":", Cluster))
     
-    #check if Estimate already exists in the seurat object's metadata, and if so, remove it before the join. 
-    if ("Estimate" %in% colnames(metadata_to_add)) {
-      metadata_to_add <- metadata_to_add %>% dplyr::select(-Estimate)
+    #check if ClusterEnrichment_LFC already exists in the seurat object's metadata, and if so, remove it before the join. 
+    if ("ClusterEnrichment_LFC" %in% colnames(metadata_to_add)) {
+      metadata_to_add <- metadata_to_add %>% dplyr::select(-ClusterEnrichment_LFC)
     }
     
     metadata_to_add <- metadata_to_add %>% 
       dplyr::mutate(Enrichment_VariablePair = paste0(!!sym(treatmentField), ":", !!sym(clusterField))) %>%
       dplyr::left_join(filtered_results %>% 
-                         dplyr::select(EnrichedPairs, Estimate), 
+                         dplyr::select(EnrichedPairs, ClusterEnrichment_LFC), 
                        by = c("Enrichment_VariablePair" = "EnrichedPairs")) %>%
       dplyr::mutate(Cluster_Enrichment = case_when(
-        !is.na(Estimate) & Estimate > 0 ~ paste0("Enriched: ", Enrichment_VariablePair),
-        !is.na(Estimate) & Estimate < 0 ~ paste0("Depleted: ", Enrichment_VariablePair),
+        !is.na(ClusterEnrichment_LFC) & ClusterEnrichment_LFC > 0 ~ paste0("Enriched: ", Enrichment_VariablePair),
+        !is.na(ClusterEnrichment_LFC) & ClusterEnrichment_LFC < 0 ~ paste0("Depleted: ", Enrichment_VariablePair),
         TRUE ~ "Not Enriched"
       ))
     

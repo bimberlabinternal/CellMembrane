@@ -79,8 +79,8 @@ test_that("Cluster enrichment works", {
   testthat::expect_true("Depleted: Vaccine2:4" %in% seuratObj$Cluster_Enrichment)
   testthat::expect_true("Depleted: Vaccine2:1" %in% seuratObj$Cluster_Enrichment)
   testthat::expect_false("Enriched: Vaccine2:3" %in% seuratObj$Cluster_Enrichment)
-  testthat::expect_true(sum(is.na(seuratObj$Estimate)) == 1471)
-  testthat::expect_equal(mean(seuratObj$Estimate, na.rm = TRUE), expected = -1, tolerance = 1)
+  testthat::expect_true(sum(is.na(seuratObj$ClusterEnrichment_LFC)) == 1471)
+  testthat::expect_equal(mean(seuratObj$ClusterEnrichment_LFC, na.rm = TRUE), expected = -1, tolerance = 1)
   
   
   testthat::expect_no_error(plots <- CalculateClusterEnrichmentPairwise(seuratObj,
@@ -121,6 +121,9 @@ test_that("Cluster enrichment works", {
                                               returnSeuratObjectOrPlots = "SeuratObject", 
                                               includeDepletions = TRUE, 
                                               lowSampleSizeDetection = TRUE))
+  #test that the quasipoisson enrichment ran
+  testthat::expect_true("Depleted: Vaccine2:1" %in% seuratObj$Cluster_Enrichment)
+  testthat::expect_equal(mean(seuratObj$ClusterEnrichment_LFC, na.rm = TRUE), expected = -2, tolerance = 1)
 })
 
 test_that("ClusteredDotPlot works", {
