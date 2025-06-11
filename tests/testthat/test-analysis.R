@@ -1,6 +1,7 @@
 context("scRNAseq")
 
 test_that("Cluster enrichment works", {
+  CellMembrane::SetSeed(CellMembrane::GetSeed())
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   
   #test that the Kruskal-Wallis rank sum test runs
@@ -118,7 +119,8 @@ test_that("Cluster enrichment works", {
                                               pValueCutoff = 0.05,
                                               showPlots = FALSE, 
                                               returnSeuratObjectOrPlots = "SeuratObject", 
-                                              includeDepletions = TRUE))
+                                              includeDepletions = TRUE, 
+                                              lowSampleSizeDetection = TRUE))
 })
 
 test_that("ClusteredDotPlot works", {

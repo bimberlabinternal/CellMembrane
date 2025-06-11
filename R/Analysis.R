@@ -458,6 +458,8 @@ CalculateClusterEnrichmentOmnibus <- function(seuratObj,
 #' @param returnSeuratObjectOrPlots A string that determines if the function should return a Seurat object with the enrichment results or a list of plots. If "SeuratObject", the function will return a Seurat object with the enrichment results in the metadata. If "Plots", the function will return a list of volcano plots and the dataframe used to plot them. 
 #' @param includeDepletions A boolean that determines if the function should include depletions in the enrichment results. If TRUE, the function will include depletions in the enrichment results. If FALSE, the function will only include enrichments. Since we typically recover variable numbers of cells, depletions can be difficult to interpret/easily explained by low sampling volume compared to transcriptional complexity, so this is set to FALSE by default.
 #' @param pvalueAdjustmentMethod The method to use for p-value adjustment. This is passed to the p.adjust function. Default is "holm", but can be set to "BH" or "bonferroni" if desired.
+#' @param lowSampleSizeDetection A boolean that determines if the function should detect low sample sizes and warn the user. If TRUE, the function will warn the user if the sample size is below a the threshold specified by lowSampleSizeThreshold. This is useful for detecting low sample sizes that may prevent random effects from being estimated in a mixed model. 
+#' @param lowSampleSizeThreshold The threshold for low sample size detection. If the number of samples in a group is below this threshold, the function will warn the user and use a typical GLM rather than a hierarchical model. Default is 3, but can be set to a different value if desired.
 #' 
 #' @examples
 #'  \dontrun{
@@ -492,7 +494,8 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
                                                returnSeuratObjectOrPlots = "SeuratObject", 
                                                includeDepletions = FALSE, 
                                                pvalueAdjustmentMethod = "holm", 
-                                               lowSampleSizeDetection = TRUE) {
+                                               lowSampleSizeDetection = TRUE, 
+                                               lowSampleSizeThreshold = 3) {
   #basic checks for valid inputs
   if (!inherits(seuratObj, "Seurat")) {
     stop("seuratObj must be a Seurat object.")
@@ -518,6 +521,8 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
     stop("pvalueAdjustmentMethod must be one of 'holm', 'BH', or 'bonferroni'.")
   } else if (!is.logical(lowSampleSizeDetection)) {
     stop("lowSampleSizeDetection must be a boolean value (TRUE or FALSE).")
+  } else if (!is.numeric(lowSampleSizeThreshold) || lowSampleSizeThreshold <= 0) {
+    stop("lowSampleSizeThreshold must be a positive numeric value.")
   }
   
   #more specific checks to make sure modeling is possible
@@ -564,9 +569,9 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
   lowSampleSize <- FALSE
   if (lowSampleSizeDetection) {
     #check for low sample sizes
-    if (length(unique(metadata[, subjectField])) < 3) {
+    if (length(unlist(unique(metadata[, subjectField]))) < lowSampleSizeThreshold) {
       lowSampleSize <- TRUE
-      warning("There are fewer than 3 subjects in this dataset. This may lead to unreliable results, especially if the number of cells per subject is low. To adjust for this, subject-specific cluster bias will not be estimated, in favor of a simpler model. If you would like to use a more complex model, please ensure that you have at enough replication within the experiment to support subject-specific effects. Alternatively, you can set lowSampleSizeDetection = FALSE, but singularities may occur that prevent model fitting.")
+      warning(paste0("There are fewer than ", lowSampleSizeThreshold, " subjects in this dataset. This may lead to unreliable results, especially if the number of cells per subject is low. To adjust for this, subject-specific cluster bias will not be estimated, in favor of a simpler model. If you would like to use a more complex model, please ensure that you have at enough replication within the experiment to support subject-specific effects. Alternatively, you can set lowSampleSizeDetection = FALSE or raise the lowSampleSizeThreshold argument, but singularities may occur that prevent model fitting."))
     }
   }
   
@@ -640,7 +645,7 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
         #the reference level will always be missing, as it's the intercept, so just take the non-first elements
         missing_coefs <- unique(unlist(metadata[,treatmentField]))[!unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients$fixed))]
         coefs <- model$coefficients$fixed
-        errors <- sqrt(diag(sandwich::vcovHC(model, type="HC3")))
+        errors <- sqrt(diag(clubSandwich::vcovCR(model, type="CR3")))
         pvalues <- summary(model)$tTable[,5]
         for (missing_coef in missing_coefs) { 
           

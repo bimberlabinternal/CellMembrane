@@ -96,7 +96,8 @@ Imports:
     tricycle,
     scater, 
     NBZIMM, 
-    sandwich
+    sandwich, 
+    clubSandwich
 Suggests:
     devtools,
     testthat (>= 2.1.0),
