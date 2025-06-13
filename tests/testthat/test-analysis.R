@@ -1,6 +1,6 @@
 context("scRNAseq")
 
-test_that("Cluster enrichment works", {
+test_that("Cluster enrichment (Omnibus) works", {
   CellMembrane::SetSeed(CellMembrane::GetSeed())
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   
@@ -49,9 +49,12 @@ test_that("Cluster enrichment works", {
                                           treatmentField = "timepoint",
                                           subjectField = "subject",
                                           paired = "infer"))
-  
-  #test GLMM-based cluster enrichment
+})
+
+test_that("Cluster Enrichment (Pairwise) works", {
+  #test GLMM-based cluster enrichment in situations with >3 subjects.
   CellMembrane::SetSeed(CellMembrane::GetSeed())
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) 
   seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) 
   seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) 
@@ -74,7 +77,8 @@ test_that("Cluster enrichment works", {
                                               pValueCutoff = 0.05,
                                               showPlots = FALSE, 
                                               returnSeuratObjectOrPlots = "SeuratObject", 
-                                              includeDepletions = TRUE))
+                                              includeDepletions = TRUE)
+                           )
   #test that the GLMM enrichment ran
   testthat::expect_true("Depleted: Vaccine2:4" %in% seuratObj$Cluster_Enrichment)
   testthat::expect_true("Depleted: Vaccine2:1" %in% seuratObj$Cluster_Enrichment)
@@ -92,12 +96,12 @@ test_that("Cluster enrichment works", {
                                               pValueCutoff = 0.05,
                                               showPlots = FALSE, 
                                               returnSeuratObjectOrPlots = "Plots", 
-                                              includeDepletions = FALSE))
+                                              includeDepletions = FALSE)
+                           )
   testthat::expect_true(length(plots) == 2)
   testthat::expect_true(typeof(plots$model_coefficients) == "list")
   
-  #test quasipoisson-based cluster enrichment
-  CellMembrane::SetSeed(CellMembrane::GetSeed())
+  #test quasipoisson-based cluster enrichment for low sample sizes
   seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) 
   seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) 
   seuratObj$SubjectId <- rep(1:2, each = ncol(seuratObj)/2) 
