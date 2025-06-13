@@ -5,7 +5,7 @@
 utils::globalVariables(
   names = c('ClusterProportion', 'Proportion', 'SizeFactor', 'XY_Key', 'Y_Key', 'ClusterCount',  
             'comparisons', 'T_statistic', 'P_val_adj', 'Group1', 'Group2', 'stars', 'pct.exp', 'features.plot', 
-            'lane_yield', 'Treatment', 'Estimate', 'p.adj', 'Cluster', 'EnrichedPairs'),
+            'lane_yield', 'Treatment', 'ClusterEnrichment_LFC', 'p.adj', 'Cluster', 'EnrichedPairs'),
   package = 'CellMembrane',
   add = TRUE
 )
@@ -235,7 +235,7 @@ MakeEnrichmentDotPlot <- function(seuratObj,
   return(P1)
 }
 
-#' @title CalculateClusterEnrichment
+#' @title CalculateClusterEnrichmentOmnibus
 #'
 #' @description A function that calculates the enrichment of a cluster under a given treatment variable. 
 #' @param seuratObj The Seurat object containing a subjectField, clusterField, and treatmentField. Please see the individual arguments for more information.
@@ -251,7 +251,7 @@ MakeEnrichmentDotPlot <- function(seuratObj,
 #' @return A Seurat object with the p-values of the clusters in the metadata columns Cluster_pValue and Cluster_p_adj. If showPlots = TRUE, a DimPlot will be shown with significant clusters highlighted.
 #' @examples 
 #'  \dontrun{
-#'  seuratObj <- CalculateClusterEnrichment(seuratObj,
+#'  seuratObj <- CalculateClusterEnrichmentOmnibus(seuratObj,
 #'                                        clusterField = "ClusterNames_0.4",
 #'                                        treatmentField = "vaccine_cohort",
 #'                                        subjectField = "SubjectId",
@@ -260,7 +260,7 @@ MakeEnrichmentDotPlot <- function(seuratObj,
 #'                                        }
 #' @export
 
-CalculateClusterEnrichment <- function(seuratObj,
+CalculateClusterEnrichmentOmnibus <- function(seuratObj,
                                        subjectField = 'SubjectId',
                                        clusterField = 'ClusterNames_0.2',
                                        treatmentField = NULL,
@@ -444,9 +444,9 @@ CalculateClusterEnrichment <- function(seuratObj,
   return(seuratObj)
 }
 
-#' @title CalculateClusterEnrichmentGLMM
+#' @title CalculateClusterEnrichmentPairwise
 #' 
-#' @description A function that calculates the enrichment of a cluster under a given treatment variable using a Generalized Linear Mixed Model (GLMM). This allows for more complex treatment of enrichment where you want to account for subject-driven random effects and variable cellular recovery. 
+#' @description A function that calculates the enrichment of a cluster under a given treatment variable using a Generalized Linear Mixed Model (GLMM) or General Linear Model with quasi-likelihood. This allows for more complex treatment of enrichment where you want to account for subject-driven random effects and variable cellular recovery. 
 #' @param seuratObj The Seurat object containing a subjectField, clusterField, and treatmentField. Please see the individual arguments for more information.
 #' @param subjectField The column of the Seurat object's metadata that contains the subject field. This field should denote individual samples that are independently collected and represent biological replicates.
 #' @param clusterField The column of the Seurat object's metadata that contains the clustering field. This field should denote cluster membership, generally given by louvain/leiden clustering, but any subject-independent clustering method is valid.
@@ -458,6 +458,8 @@ CalculateClusterEnrichment <- function(seuratObj,
 #' @param returnSeuratObjectOrPlots A string that determines if the function should return a Seurat object with the enrichment results or a list of plots. If "SeuratObject", the function will return a Seurat object with the enrichment results in the metadata. If "Plots", the function will return a list of volcano plots and the dataframe used to plot them. 
 #' @param includeDepletions A boolean that determines if the function should include depletions in the enrichment results. If TRUE, the function will include depletions in the enrichment results. If FALSE, the function will only include enrichments. Since we typically recover variable numbers of cells, depletions can be difficult to interpret/easily explained by low sampling volume compared to transcriptional complexity, so this is set to FALSE by default.
 #' @param pvalueAdjustmentMethod The method to use for p-value adjustment. This is passed to the p.adjust function. Default is "holm", but can be set to "BH" or "bonferroni" if desired.
+#' @param lowSampleSizeDetection A boolean that determines if the function should detect low sample sizes and warn the user. If TRUE, the function will warn the user if the sample size is below a the threshold specified by lowSampleSizeThreshold. This is useful for detecting low sample sizes that may prevent random effects from being estimated in a mixed model. 
+#' @param lowSampleSizeThreshold The threshold for low sample size detection. If the number of samples in a group is below this threshold, the function will warn the user and use a typical GLM rather than a hierarchical model. Default is 3, but can be set to a different value if desired.
 #' 
 #' @examples
 #'  \dontrun{
@@ -465,33 +467,35 @@ CalculateClusterEnrichment <- function(seuratObj,
 #'  seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) # This is a dummy variable for the sake of example.
 #'  seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) # This is a dummy variable for the sake of example.
 #'  
-#'  seuratObj <- CalculateClusterEnrichmentGLMM(seuratObj,
-#'                                           subjectField = 'SubjectId',
-#'                                            clusterField = 'ClusterNames_0.2',
-#'                                            biologicalReplicateGroupingVariables = c("cDNA_ID"),
-#'                                            treatmentField = "Vaccine",
-#'                                            referenceValue = "Vaccine1",
-#'                                            pValueCutoff = 0.05,
-#'                                            showPlots = TRUE, 
-#'                                            returnSeuratObjectOrPlots = "SeuratObject", 
-#'                                            includeDepletions = FALSE)
-#'   DimPlot(seuratObj, group.by = "GLMM_Enrichment", label = TRUE) + NoLegend()
+#'  seuratObj <- CalculateClusterEnrichmentPairwise(seuratObj,
+#'                                                  subjectField = 'SubjectId',
+#'                                                  clusterField = 'ClusterNames_0.2',
+#'                                                  biologicalReplicateGroupingVariables = c("cDNA_ID"),
+#'                                                  treatmentField = "Vaccine",
+#'                                                  referenceValue = "Vaccine1",
+#'                                                  pValueCutoff = 0.05,
+#'                                                  showPlots = TRUE, 
+#'                                                  returnSeuratObjectOrPlots = "SeuratObject", 
+#'                                                  includeDepletions = FALSE)
+#'   DimPlot(seuratObj, group.by = "Cluster_Enrichment", label = TRUE) + NoLegend()
 #'   }
 #'  
 #' @export
 #' @return A SeuratObject or a list of plots + dataframe, depending on the value of returnSeuratObjectOrPlots.
 
-CalculateClusterEnrichmentGLMM <- function(seuratObj,
-                                           subjectField = 'SubjectId',
-                                           clusterField = 'ClusterNames_0.2',
-                                           biologicalReplicateGroupingVariables = c("cDNA_ID"),
-                                           treatmentField = NULL,
-                                           referenceValue = NULL,
-                                           pValueCutoff = 0.05,
-                                           showPlots = TRUE, 
-                                           returnSeuratObjectOrPlots = "SeuratObject", 
-                                           includeDepletions = FALSE, 
-                                           pvalueAdjustmentMethod = "holm") {
+CalculateClusterEnrichmentPairwise <- function(seuratObj,
+                                               subjectField = 'SubjectId',
+                                               clusterField = 'ClusterNames_0.2',
+                                               biologicalReplicateGroupingVariables = c("cDNA_ID"),
+                                               treatmentField = NULL,
+                                               referenceValue = NULL,
+                                               pValueCutoff = 0.05,
+                                               showPlots = TRUE, 
+                                               returnSeuratObjectOrPlots = "SeuratObject", 
+                                               includeDepletions = FALSE, 
+                                               pvalueAdjustmentMethod = "holm", 
+                                               lowSampleSizeDetection = TRUE, 
+                                               lowSampleSizeThreshold = 3) {
   #basic checks for valid inputs
   if (!inherits(seuratObj, "Seurat")) {
     stop("seuratObj must be a Seurat object.")
@@ -513,6 +517,12 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
     stop("returnSeuratObjectOrPlots must be either 'SeuratObject' or 'Plots'.")
   } else if (!is.logical(includeDepletions)) {
     stop("includeDepletions must be a boolean value (TRUE or FALSE).")
+  } else if (!is.character(pvalueAdjustmentMethod) || !pvalueAdjustmentMethod %in% stats:::p.adjust.methods) {
+    stop("pvalueAdjustmentMethod must be one of 'holm', 'BH', or 'bonferroni'.")
+  } else if (!is.logical(lowSampleSizeDetection)) {
+    stop("lowSampleSizeDetection must be a boolean value (TRUE or FALSE).")
+  } else if (!is.numeric(lowSampleSizeThreshold) || lowSampleSizeThreshold <= 0) {
+    stop("lowSampleSizeThreshold must be a positive numeric value.")
   }
   
   #more specific checks to make sure modeling is possible
@@ -551,9 +561,18 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
   
   #force the reference level
   if (!is.null(referenceValue)) {
-    metadata[[treatmentField]] <- factor(metadata[[treatmentField]], levels = c(referenceValue, setdiff(levels(factor(metadata[[treatmentField]])), referenceValue)))
+    metadata[[treatmentField]] <- forcats::fct_relevel(metadata[[treatmentField]], referenceValue, after = 0) 
   } else {
     stop("referenceValue must be specified as a character string representing the reference value for the treatment field. This is used to set the 'background' or 'control' level for the treatment field factor. Intercept-less modeling is not supported in this wrapper.")
+  }
+  
+  lowSampleSize <- FALSE
+  if (lowSampleSizeDetection) {
+    #check for low sample sizes
+    if (length(unlist(unique(metadata[, subjectField]))) < lowSampleSizeThreshold) {
+      lowSampleSize <- TRUE
+      warning(paste0("There are fewer than ", lowSampleSizeThreshold, " subjects in this dataset. This may lead to unreliable results, especially if the number of cells per subject is low. To adjust for this, subject-specific cluster bias will not be estimated, in favor of a simpler model. If you would like to use a more complex model, please ensure that you have at enough replication within the experiment to support subject-specific effects. Alternatively, you can set lowSampleSizeDetection = FALSE or raise the lowSampleSizeThreshold argument, but singularities may occur that prevent model fitting."))
+    }
   }
   
   
@@ -562,50 +581,94 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
   for (cluster in unique(unlist(metadata[, clusterField]))) {
     metadata_subset <- metadata %>% filter(!!sym(clusterField) == cluster)
     
-    model <- tryCatch({
-      model_type <- "Zero-Inflated Negative Binomial"
-      model <- NBZIMM::glmm.zinb(stats::as.formula(paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")), 
-                                 data = metadata_subset, 
-                                 random = stats::as.formula(paste0("~ 1|", subjectField)), 
-                                 zi_fixed = ~1, 
-                                 zi_random =NULL)
+    if (lowSampleSize) {
+      #if low sample size, use a simple quasipoisson model
+      model_type <- "Low Sample Size QuasiPoisson"
+      model <- stats::glm(
+        stats::as.formula(
+          paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")
+        ),
+        data = metadata_subset,
+        family = stats::quasipoisson()
+      )
       
-    }, error = function(e) {
-      model_type <- "Negative Binomial"
-      model <- NBZIMM::glmm.nb(stats::as.formula(paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")), 
-                               data = metadata_subset, 
-                               random = stats::as.formula(paste0("~ 1|", subjectField)))
-      return(model)
-    })
-    
-    #handle missing levels 
-    if (!all(unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients$fixed)))) {
-      #the reference level will always be missing, as it's the intercept, so just take the non-first elements
-      missing_coefs <- unique(unlist(metadata[,treatmentField]))[!unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients$fixed))]
-      coefs <- model$coefficients$fixed
-      errors <- sqrt(diag(vcov(model)))
-      pvalues <- summary(model)$tTable[,5]
-      for (missing_coef in missing_coefs) { 
-        
-        if (missing_coef == referenceValue) {
-          next #skip the reference level
+      #store results for GLMs & handle missing levels.
+      if (!all(unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients)))) {
+        #the reference level will always be missing, as it's the intercept, so just take the non-first elements
+        missing_coefs <- unique(unlist(metadata[,treatmentField]))[!unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients))]
+        coefs <- model$coefficients
+        errors <- sqrt(diag(sandwich::vcovHC(model, type="HC3")))
+        pvalues <- stats::coef(summary(model))[,4]
+        for (missing_coef in missing_coefs) { 
+          
+          if (missing_coef == referenceValue) {
+            next #skip the reference level
+          }
+          coefs[paste0(treatmentField, missing_coef)] <- NA
+          errors[paste0(treatmentField, missing_coef)] <- NA
+          pvalues[paste0(treatmentField, missing_coef)] <- 1
         }
-        coefs[paste0(treatmentField, missing_coef)] <- NA
-        errors[paste0(treatmentField, missing_coef)] <- NA
-        pvalues[paste0(treatmentField, missing_coef)] <- 1
+        
+      } else {
+        coefs <- model$coefficients
+        errors <- sqrt(diag(sandwich::vcovHC(model, type="HC3")))
+        pvalues <- stats::coef(summary(model))[,4]
       }
       
     } else {
-      coefs <- model$coefficients$fixed
-      errors <- sqrt(diag(vcov(model)))
-      pvalues <- summary(model)$tTable[,5]
+      model <- tryCatch({
+        model_type <- "Zero-Inflated Negative Binomial"
+        model <- NBZIMM::glmm.zinb(
+          stats::as.formula(
+            paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")
+          ),
+          data = metadata_subset,
+          random = stats::as.formula(paste0("~ 1|", subjectField)),
+          zi_fixed = ~ 1,
+          zi_random = NULL
+        )
+        
+      }, error = function(e) {
+        model_type <- "Negative Binomial"
+        model <- NBZIMM::glmm.nb(
+          stats::as.formula(
+            paste0("total ~ ", treatmentField, " + offset(log(lane_yield))")
+          ),
+          data = metadata_subset,
+          random = stats::as.formula(paste0("~ 1|", subjectField))
+        )
+        return(model)
+      })
+      
+      #store results for GLMMs & handle missing levels. 
+      if (!all(unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients$fixed)))) {
+        #the reference level will always be missing, as it's the intercept, so just take the non-first elements
+        missing_coefs <- unique(unlist(metadata[,treatmentField]))[!unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients$fixed))]
+        coefs <- model$coefficients$fixed
+        errors <- sqrt(diag(clubSandwich::vcovCR(model, type="CR3")))
+        pvalues <- summary(model)$tTable[,5]
+        for (missing_coef in missing_coefs) { 
+          
+          if (missing_coef == referenceValue) {
+            next #skip the reference level
+          }
+          coefs[paste0(treatmentField, missing_coef)] <- NA
+          errors[paste0(treatmentField, missing_coef)] <- NA
+          pvalues[paste0(treatmentField, missing_coef)] <- 1
+        }
+        
+      } else {
+        coefs <- model$coefficients$fixed
+        errors <-  sqrt(diag(sandwich::vcovHC(model, type="HC3")))
+        pvalues <- summary(model)$tTable[,5]
+      }
     }
     
     #store results into dataframe
     results <- rbind(results, 
                      data.frame(Cluster = cluster, 
                                 Treatment =  gsub("\\(Intercept\\)", referenceValue, gsub(paste0("^", treatmentField),"", names(coefs))),
-                                Estimate = coefs[grepl(paste0(treatmentField, "|Intercept"), names(coefs))], 
+                                ClusterEnrichment_LFC = coefs[grepl(paste0(treatmentField, "|Intercept"), names(coefs))], 
                                 StdError = errors[grepl(paste0(treatmentField, "|Intercept"), names(errors))],
                                 pValue = pvalues[grepl(paste0(treatmentField, "|Intercept"), names(pvalues))], 
                                 model_type = model_type
@@ -620,7 +683,7 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
   #construct volcano plot
   volcano_plot <- results %>% 
     filter(Treatment != referenceValue) %>% 
-    ggplot2::ggplot(ggplot2::aes(x = Estimate, y = -log10(p.adj), 
+    ggplot2::ggplot(ggplot2::aes(x = ClusterEnrichment_LFC, y = -log10(p.adj), 
                                  color = Treatment, 
                                  shape = model_type)) + 
     ggplot2::geom_point() + 
@@ -635,12 +698,12 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
   if (!includeDepletions) {
     
     only_enrichments <- results %>% 
-      dplyr::filter(Estimate > 0) %>% 
+      dplyr::filter(ClusterEnrichment_LFC > 0) %>% 
       dplyr::filter(Treatment != referenceValue)
     
     
     volcano_plot <- volcano_plot + 
-      ggplot2::xlim(c(0, max(only_enrichments %>% pull(Estimate), na.rm = TRUE)+1)) + 
+      ggplot2::xlim(c(0, max(only_enrichments %>% pull(ClusterEnrichment_LFC), na.rm = TRUE)+1)) + 
       ggplot2::ylim(c(0, max(-log10(only_enrichments %>% dplyr::pull(p.adj)), na.rm = TRUE)+1))
   }
   if (showPlots) {
@@ -656,31 +719,36 @@ CalculateClusterEnrichmentGLMM <- function(seuratObj,
       dplyr::filter(Treatment != referenceValue) %>%
       dplyr::mutate(EnrichedPairs = paste0(Treatment, ":", Cluster))
     
+    #check if ClusterEnrichment_LFC already exists in the seurat object's metadata, and if so, remove it before the join. 
+    if ("ClusterEnrichment_LFC" %in% colnames(metadata_to_add)) {
+      metadata_to_add <- metadata_to_add %>% dplyr::select(-ClusterEnrichment_LFC)
+    }
+    
     metadata_to_add <- metadata_to_add %>% 
-      dplyr::mutate(GLMM_VariablePair = paste0(!!sym(treatmentField), ":", !!sym(clusterField))) %>%
+      dplyr::mutate(Enrichment_VariablePair = paste0(!!sym(treatmentField), ":", !!sym(clusterField))) %>%
       dplyr::left_join(filtered_results %>% 
-                         dplyr::select(EnrichedPairs, Estimate), 
-                       by = c("GLMM_VariablePair" = "EnrichedPairs")) %>%
-      dplyr::mutate(GLMM_Enrichment = case_when(
-        !is.na(Estimate) & Estimate > 0 ~ paste0("Enriched: ", GLMM_VariablePair),
-        !is.na(Estimate) & Estimate < 0 ~ paste0("Depleted: ", GLMM_VariablePair),
+                         dplyr::select(EnrichedPairs, ClusterEnrichment_LFC), 
+                       by = c("Enrichment_VariablePair" = "EnrichedPairs")) %>%
+      dplyr::mutate(Cluster_Enrichment = case_when(
+        !is.na(ClusterEnrichment_LFC) & ClusterEnrichment_LFC > 0 ~ paste0("Enriched: ", Enrichment_VariablePair),
+        !is.na(ClusterEnrichment_LFC) & ClusterEnrichment_LFC < 0 ~ paste0("Depleted: ", Enrichment_VariablePair),
         TRUE ~ "Not Enriched"
       ))
     
     if (!includeDepletions) {
-      metadata_to_add$GLMM_Enrichment <- ifelse(grepl("Depleted", metadata_to_add$GLMM_Enrichment), 
+      metadata_to_add$Cluster_Enrichment <- ifelse(grepl("Depleted", metadata_to_add$Cluster_Enrichment), 
                                                 "Not Enriched", 
-                                                metadata_to_add$GLMM_Enrichment)
+                                                metadata_to_add$Cluster_Enrichment)
     }
     #append metadata
     seuratObj <- Seurat::AddMetaData(seuratObj, metadata = metadata_to_add)
     
     if (showPlots) {
-      print(Seurat::DimPlot(seuratObj, group.by = "GLMM_Enrichment") + 
+      print(Seurat::DimPlot(seuratObj, group.by = "Cluster_Enrichment") + 
               ggplot2::ggtitle("Cluster Enrichment"))
       
     }
-    print("Returning Seurat object with GLMM enrichment results added to metadata.")
+    print("Returning Seurat object with enrichment results added to metadata.")
     return(seuratObj)
   } else if (returnSeuratObjectOrPlots == "Plots") {
     
