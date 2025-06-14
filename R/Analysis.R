@@ -261,15 +261,15 @@ MakeEnrichmentDotPlot <- function(seuratObj,
 #' @export
 
 CalculateClusterEnrichmentOmnibus <- function(seuratObj,
-                                       subjectField = 'SubjectId',
-                                       clusterField = 'ClusterNames_0.2',
-                                       treatmentField = NULL,
-                                       alternative = 'two.sided',
-                                       pValueCutoff = 0.05,
-                                       showPlots = TRUE, 
-                                       paired = "infer", 
-                                       removePriorPvalues = TRUE, 
-                                       postHocTest = TRUE
+                                              subjectField = 'SubjectId',
+                                              clusterField = 'ClusterNames_0.2',
+                                              treatmentField = NULL,
+                                              alternative = 'two.sided',
+                                              pValueCutoff = 0.05,
+                                              showPlots = TRUE, 
+                                              paired = "infer", 
+                                              removePriorPvalues = TRUE, 
+                                              postHocTest = TRUE
 ){
   # test for validity of metadata fields within the seurat object
   # treatmentField
@@ -463,9 +463,10 @@ CalculateClusterEnrichmentOmnibus <- function(seuratObj,
 #' 
 #' @examples
 #'  \dontrun{
-#'  seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) # This is a dummy variable for the sake of example.
-#'  seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) # This is a dummy variable for the sake of example.
-#'  seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) # This is a dummy variable for the sake of example.
+#'  # Define dummy variables
+#'  seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) 
+#'  seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) 
+#'  seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) 
 #'  
 #'  seuratObj <- CalculateClusterEnrichmentPairwise(seuratObj,
 #'                                                  subjectField = 'SubjectId',
@@ -476,7 +477,9 @@ CalculateClusterEnrichmentOmnibus <- function(seuratObj,
 #'                                                  pValueCutoff = 0.05,
 #'                                                  showPlots = TRUE, 
 #'                                                  returnSeuratObjectOrPlots = "SeuratObject", 
-#'                                                  includeDepletions = FALSE)
+#'                                                  includeDepletions = FALSE, 
+#'                                                  lowSampleSizeDetection = TRUE, 
+#'                                                  lowSampleSizeThreshold = 3)
 #'   DimPlot(seuratObj, group.by = "Cluster_Enrichment", label = TRUE) + NoLegend()
 #'   }
 #'  
@@ -645,7 +648,16 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
         #the reference level will always be missing, as it's the intercept, so just take the non-first elements
         missing_coefs <- unique(unlist(metadata[,treatmentField]))[!unique(unlist(metadata[,treatmentField])) %in% gsub(paste0("^",treatmentField), "", names(model$coefficients$fixed))]
         coefs <- model$coefficients$fixed
-        errors <- sqrt(diag(clubSandwich::vcovCR(model, type="CR3")))
+        #try to compute robust standard errors, but fall back to standard errors if unable
+        errors <- tryCatch(
+          {
+            sqrt(diag(clubSandwich::vcovCR(model, type = "CR3")))
+          },
+          error = function(e) {
+            message("\nProblem in estimating robust standard errors in Cluster: ", cluster,  " using clubSandwich::vcovCR. \n Returning standard errors.")
+            sqrt(diag(vcov(model)))
+          }
+        )
         pvalues <- summary(model)$tTable[,5]
         for (missing_coef in missing_coefs) { 
           
@@ -659,7 +671,16 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
         
       } else {
         coefs <- model$coefficients$fixed
-        errors <-  sqrt(diag(sandwich::vcovHC(model, type="HC3")))
+        #try to compute robust standard errors, but fall back to standard errors if unable
+        errors <- tryCatch(
+          {
+            sqrt(diag(clubSandwich::vcovCR(model, type = "CR3")))
+          },
+          error = function(e) {
+            message("\nProblem in estimating robust standard errors in Cluster: ", cluster,  " using clubSandwich::vcovCR. \n Returning standard errors.")
+            sqrt(diag(vcov(model)))
+          }
+        )
         pvalues <- summary(model)$tTable[,5]
       }
     }
@@ -737,8 +758,8 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
     
     if (!includeDepletions) {
       metadata_to_add$Cluster_Enrichment <- ifelse(grepl("Depleted", metadata_to_add$Cluster_Enrichment), 
-                                                "Not Enriched", 
-                                                metadata_to_add$Cluster_Enrichment)
+                                                   "Not Enriched", 
+                                                   metadata_to_add$Cluster_Enrichment)
     }
     #append metadata
     seuratObj <- Seurat::AddMetaData(seuratObj, metadata = metadata_to_add)
@@ -764,7 +785,7 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
                 model_coefficients = results))
   }
 }
-                                       
+
 
 
 #' @title ClusteredDotPlot
@@ -950,12 +971,12 @@ ClusteredDotPlot <- function(seuratObj,
     Matrix::t()
   #Establish symmetric color scaling based on the extremes in the heatmap
   col_RNA <- circlize::colorRamp2(quantile(c(-max(abs(mat)), 0, max(abs(mat)))),
-                                 c("#0000FFFF", #blue
-                                   "#7F53FDFF", #purple (pale)
-                                   "gray90", #very light gray
-                                   "#FF6948FF", #orangered/brick red
-                                   "#FF0000FF"), #red
-                                 space = "sRGB")
+                                  c("#0000FFFF", #blue
+                                    "#7F53FDFF", #purple (pale)
+                                    "gray90", #very light gray
+                                    "#FF6948FF", #orangered/brick red
+                                    "#FF0000FF"), #red
+                                  space = "sRGB")
   #check if "g" characters were added to numeric rows in Seurat. 
   #This only happens if the original rownames are purely numeric. 
   
