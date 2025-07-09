@@ -224,7 +224,7 @@ CalculateTcrDiversity <- function(inputData,
     stop('The tcrdist3 python package has not been installed! If you believe it has been installed, run reticulate::import("tcrdist") to get more information and debug')
   }
   
-  conga_clones_file <- tempfile()
+  conga_clones_file <- gsub(tempfile(), pattern = '\\\\', replacement = '/')
   write.table(inputData, file = conga_clones_file, sep = '\t', row.names = FALSE, quote = FALSE)
 
   #copy calculate_Diversity.py in inst/scripts and supply custom arguments
@@ -232,7 +232,7 @@ CalculateTcrDiversity <- function(inputData,
   scriptFile <- tempfile()
   readr::write_file(str, scriptFile)
 
-  outputFile <- tempfile()
+  outputFile <- gsub(tempfile(), pattern = '\\\\', replacement = '/')
 
   newstr <- paste0("calculate_Diversity(conga_clones_file = '", conga_clones_file,
                    "', outputFile = '", outputFile,
