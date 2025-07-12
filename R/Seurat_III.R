@@ -757,6 +757,10 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
       }
     }
 
+    if (!(fieldName %in% names(seuratObj@meta.data))) {
+      stop(paste0('Unknown field: ', fieldName))
+    }
+
     fieldsToUse <- c(fieldsToUse, fieldName)
     print(paste0('Grouping by field: ', fieldName))
     Idents(seuratObj) <- fieldName
@@ -772,6 +776,11 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
             }
 
             dat <- Seurat::FindMarkers(seuratObj, assay = assayName, ident.1 = val1, ident.2 = val2, group.by = fieldName, test.use = test, min.diff.pct = minDiffPct, min.pct = minPct, random.seed = GetSeed(), verbose = verbose)
+            if (nrow(dat) == 0) {
+              print(paste0('No passing genes, skipping: ', fieldName, ', ', val1, ' vs. ', val2))
+              next
+            }
+
             dat$test <- test
             dat$groupField <- fieldName
             dat$gene <- rownames(dat)
