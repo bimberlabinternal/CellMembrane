@@ -262,6 +262,124 @@ CalculateTcrDiversity <- function(inputData,
   return(df)
 }
 
+#' @title Calculate TCR Repertoire Stats
+#'
+#' @description Calculate diversity metrics for a Seuratobject metadata dataframe
+#' @param df A dataframe containing metadata for a Seurat object
+#' @param groupField The sample identifier--this is often cDNA_ID
+#' @param minCellsRequiredPerChain The minimum number of cells for a sample for diversity to be analyzed
+#' @param minClonesRequiredPerChain The minimum number of clones in a sample for diversity to be analyzed
+#' @return A data frame with the results
+#' @export
+CalculateTcrRepertioreStats <- function(df, groupField, minCellsRequiredPerChain = 100, minClonesRequiredPerChain = 100) {
+  # Filter/rename as needed for CalculateTcrDiversity():
+  diversityData <- df %>%
+    filter(!is.na(TRA) & !is.na(TRB)) %>%
+    rename(
+      'sampleId' = groupField,
+      'v_a_gene' = 'TRA_V',
+      'v_b_gene' = 'TRB_V',
+      'cdr3_a_aa' = 'TRA',
+      'cdr3_b_aa' = 'TRB'
+    ) %>%
+    group_by(sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa) %>%
+    filter(!grepl(v_a_gene, pattern = ',')) %>%
+    filter(!grepl(v_b_gene, pattern = ',')) %>%
+    filter(!grepl(cdr3_a_aa, pattern = ',')) %>%
+    filter(!grepl(cdr3_b_aa, pattern = ',')) %>%
+    summarize(clone_size = n())
+  diversityData_in <- diversityData
+  diversityData <- CellMembrane::CalculateTcrDiversity(diversityData)
+  
+  y <- colnames(diversityData)[grepl("^Z", colnames(diversityData)) & !grepl("_LCL_|_UCL_", colnames(diversityData))]
+  if (is.null(y) || length(y) == 0) {
+    stop('Parsing error in tcrdist3 output. No columns containing diversity metrics were found.')
+  }
+  diversityData <- diversityData |> 
+    select(dplyr::all_of(c("order", y))) |>
+    tidyr::pivot_longer(cols = y, names_to = "sampleId", values_to = "Value")
+  
+  if (length(intersect(diversityData$sampleId, df[[groupField]])) == 0) {
+    diversityData$sampleId <- gsub(diversityData$sampleId, pattern = '^Z_', replacement = '')
+  }
+  
+  diversityData$MetricName <- paste0("TCR_Top", diversityData$order)
+  diversityData[[groupField]] <- diversityData$sampleId
+  diversityData <- diversityData %>%
+    filter(order %in% c(2, 10, 20)) %>%
+    select(all_of(c(groupField, 'MetricName', 'Value')))
+  output_df <- NULL
+  for (sample in unique(diversityData_in$sampleId)) {
+    iNEXToutput <- iNEXT::iNEXT((diversityData_in |> filter(sampleId == sample))$clone_size, q = c(0,1,2), datatype = "abundance")
+    df_temp <- iNEXToutput$AsyEst
+    rownames(df_temp) <- make.names(rownames(df_temp))
+    toAdd <- data.frame(sampleId = sample, MetricName = paste0('TCR_', rownames(df_temp)), Value = df_temp$Observed)
+    names(toAdd)[names(toAdd) == 'sampleId'] <- groupField
+    output_df <- rbind(output_df, toAdd)
+  }
+  toAdd <- output_df
+  diversityData <- rbind(diversityData, toAdd)
+  
+  # The primary purpose of this is to be more permissive on missing data for a single chain:
+  chainDataTopN <- NULL
+  for (chain in c('TRA', 'TRB', 'TRD', 'TRG')) {
+    chainData <- df %>%
+      select(dplyr::all_of(c(groupField, chain))) %>%
+      rename(
+        CDR3 = chain
+      ) %>%
+      filter(!is.na(CDR3)) %>%
+      group_by(across(all_of(c(groupField)))) %>%
+      mutate(sampleSize = n()) %>%
+      group_by(across(all_of(c(groupField, 'sampleSize', 'CDR3')))) %>%
+      summarize(cloneSize = n()) %>%
+      as.data.frame() %>%
+      mutate(fraction = cloneSize / sampleSize)
+    
+    if (nrow(chainData) == 0) {
+      next
+    }
+    for (sampleId in unique(chainData[[groupField]])) {
+      d <- chainData[chainData[[groupField]] == sampleId,] %>% arrange(-fraction)
+      if (nrow(d) < minClonesRequiredPerChain) {
+        print(paste0('Too few clones, skipping ', chain, ' for ', sampleId))
+        next
+      }
+      
+      if (sum(d$cloneSize) < minCellsRequiredPerChain) {
+        print(paste0('Too few cells, skipping ', chain, ' for ', sampleId))
+        next
+      }
+      toAdd <- data.frame(sampleId = sampleId, MetricName = paste0(chain, '_TopFrac'), Value = d$fraction[1])
+      names(toAdd)[names(toAdd) == 'sampleId'] <- groupField
+      chainDataTopN <- rbind(chainDataTopN, toAdd)
+      
+      iNEXToutput <- iNEXT::iNEXT(d$cloneSize, q = c(0,1,2), datatype = "abundance")
+      df_temp <- iNEXToutput$AsyEst
+      rownames(df_temp) <- make.names(rownames(df_temp))
+      toAdd <- data.frame(sampleId = sampleId, MetricName = paste0(chain, '_', rownames(df_temp)), Value = df_temp$Observed)
+      names(toAdd)[names(toAdd) == 'sampleId'] <- groupField
+      chainDataTopN <- rbind(chainDataTopN, toAdd)
+      
+      for (threshold in c(0.05, 0.1, 0.2, 0.5)) {
+        cs <- 0
+        for (nClone in seq_along(d$fraction)) {
+          cs <- cs + d$fraction[nClone]
+          if (cs > threshold) {
+            toAdd <- data.frame(sampleId = sampleId, MetricName = paste0(chain, '_', threshold), Value = nClone)
+            names(toAdd)[names(toAdd) == 'sampleId'] <- groupField
+            chainDataTopN <- rbind(chainDataTopN, toAdd)
+            break
+          }
+        }
+      }    
+    }
+  }
+  
+  return(rbind(diversityData, chainDataTopN) %>% as.data.frame())
+}
+
+
 #' @title Append Clone Properties
 #' @param seuratObj The Seurat object to append clone properties to
 #' @param tcrClonesFile The 10x clonotypes file for this Seurat object. Single lanes can use the CellRanger/Vloupe contigs CSV file. Merged lanes need to merge these files and modify them to create unique cellbarcodes and clonotype names, such as the code from Rdiscvr::CreateMergedTcrClonotypeFile().
