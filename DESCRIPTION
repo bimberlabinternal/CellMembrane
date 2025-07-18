@@ -97,7 +97,8 @@ Imports:
     scater, 
     NBZIMM, 
     sandwich, 
-    clubSandwich
+    clubSandwich, 
+    iNEXT
 Suggests:
     devtools,
     testthat (>= 2.1.0),
