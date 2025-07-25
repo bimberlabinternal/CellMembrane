@@ -97,5 +97,13 @@ test_that("QuantifyTcrClones  works", {
   expect_equal(length(unique(seuratObj$cloneSize)), 7)
   expect_equal(max(seuratObj$cloneProportion, na.rm = TRUE), 0.151, tolerance = 0.001)
 })
+
+test_that("CalculateTcrRepertioreStats  works", {
+  df <- read.csv("../testdata/RepertoireData.csv")
+  dfout <- CalculateTcrRepertioreStats(df, "cDNA_ID")
   
+  expect_equal(nrow(dfout), 38)
+  expect_equal(dfout[dfout$MetricName == "TRA_0.2",]$Value, 14)
+  expect_equal(dfout[dfout$MetricName == "TRA_TopFrac",]$Value, 0.0423, tolerance = 0.001)
+})
 
