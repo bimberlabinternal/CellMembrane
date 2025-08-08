@@ -265,6 +265,39 @@ CalculateTcrDiversity <- function(inputData,
   return(df)
 }
 
+#' @title Calculate TCR Repertoire Stats for all T cells in a sample and for specified subsets
+#'
+#' @description Calculate diversity metrics for a populations in a Seuratobject metadata dataframe
+#' @param df A dataframe containing metadata for a Seurat object
+#' @param groupField The sample identifier--this is often cDNA_ID
+#' @param metacolumn The metadata column specifying population subsets. RIRA_TNK_v2.cellclass by default
+#' @param populationvec A vector that defines the T cell populations to be analyzed. A vector with "CD4+ T Cells", "CD8+ T Cells" by default
+#' @param minCellsRequiredPerChain The minimum number of cells for a sample for diversity to be analyzed
+#' @param minClonesRequiredPerChain The minimum number of clones in a sample for diversity to be analyzed
+#' @return A data frame with the results
+#' @export
+CalculateTcrRepertioreStatsByPopulation <- function(df, groupfield = "cDNA_ID", metacolumn = "RIRA_TNK_v2.cellclass",
+                                                    populationvec = c("CD4+ T Cells", "CD8+ T Cells"),
+                                                    minCellsRequiredPerChain = 100, minClonesRequiredPerChain = 100) {
+  fulloutput_df <- CalculateTcrRepertioreStats(df, groupField,
+                                               minCellsRequiredPerChain = minCellsRequiredPerChain,
+                                               minClonesRequiredPerChain = minClonesRequiredPerChain)
+  fulloutput_df$population <- "All T Cells"
+  if (!is.null(metacolumn) & !is.null(populationvec)) {
+    for (celltype in populationvec){
+      df_celltype <- df[df[[metacolumn]] == celltype,]
+      celltype_output_df <- CalculateTcrRepertioreStats(df_celltype, groupField,
+                                                        minCellsRequiredPerChain = minCellsRequiredPerChain,
+                                                        minClonesRequiredPerChain = minClonesRequiredPerChain)
+      celltype_output_df$population <- celltype
+      fulloutput_df <- rbind(fulloutput_df, celltype_output_df)
+    }
+  }
+  fulloutput_df <- fulloutput_df |> filter(!is.na(Value))
+  
+  return(fulloutput_df)
+}
+
 #' @title Calculate TCR Repertoire Stats
 #'
 #' @description Calculate diversity metrics for a Seuratobject metadata dataframe
@@ -274,7 +307,7 @@ CalculateTcrDiversity <- function(inputData,
 #' @param minClonesRequiredPerChain The minimum number of clones in a sample for diversity to be analyzed
 #' @return A data frame with the results
 #' @export
-CalculateTcrRepertioreStats <- function(df, groupField, minCellsRequiredPerChain = 100, minClonesRequiredPerChain = 100) {
+CalculateTcrRepertioreStats <- function(df, groupField = "cDNA_ID", minCellsRequiredPerChain = 100, minClonesRequiredPerChain = 100) {
   # Filter/rename as needed for CalculateTcrDiversity():
   diversityData <- df %>%
     filter(!is.na(TRA) & !is.na(TRB)) %>%
@@ -309,7 +342,6 @@ CalculateTcrRepertioreStats <- function(df, groupField, minCellsRequiredPerChain
   diversityData$MetricName <- paste0("TCR_Top", diversityData$order)
   diversityData[[groupField]] <- diversityData$sampleId
   diversityData <- diversityData %>%
-    filter(order %in% c(2, 10, 20)) %>%
     select(all_of(c(groupField, 'MetricName', 'Value')))
   output_df <- NULL
   for (sample in unique(diversityData_in$sampleId)) {
@@ -322,6 +354,7 @@ CalculateTcrRepertioreStats <- function(df, groupField, minCellsRequiredPerChain
   }
   toAdd <- output_df
   diversityData <- rbind(diversityData, toAdd)
+  diversityData$sampleSize <- sum(diversityData_in$clone_size)
   
   # The primary purpose of this is to be more permissive on missing data for a single chain:
   chainDataTopN <- NULL
@@ -353,14 +386,16 @@ CalculateTcrRepertioreStats <- function(df, groupField, minCellsRequiredPerChain
         print(paste0('Too few cells, skipping ', chain, ' for ', sampleId))
         next
       }
-      toAdd <- data.frame(sampleId = sampleId, MetricName = paste0(chain, '_TopFrac'), Value = d$fraction[1])
+      toAdd <- data.frame(sampleId = sampleId, MetricName = paste0(chain, '_FractionLargestClone'),
+                          Value = d$fraction[1], sampleSize = sum(d$cloneSize))
       names(toAdd)[names(toAdd) == 'sampleId'] <- groupField
       chainDataTopN <- rbind(chainDataTopN, toAdd)
       
       iNEXToutput <- iNEXT::iNEXT(d$cloneSize, q = c(0,1,2), datatype = "abundance")
       df_temp <- iNEXToutput$AsyEst
       rownames(df_temp) <- make.names(rownames(df_temp))
-      toAdd <- data.frame(sampleId = sampleId, MetricName = paste0(chain, '_', rownames(df_temp)), Value = df_temp$Observed)
+      toAdd <- data.frame(sampleId = sampleId, MetricName = paste0(chain, '_', rownames(df_temp)),
+                          Value = df_temp$Observed, sampleSize = sum(d$cloneSize))
       names(toAdd)[names(toAdd) == 'sampleId'] <- groupField
       chainDataTopN <- rbind(chainDataTopN, toAdd)
       
@@ -369,7 +404,8 @@ CalculateTcrRepertioreStats <- function(df, groupField, minCellsRequiredPerChain
         for (nClone in seq_along(d$fraction)) {
           cs <- cs + d$fraction[nClone]
           if (cs > threshold) {
-            toAdd <- data.frame(sampleId = sampleId, MetricName = paste0(chain, '_', threshold), Value = nClone)
+            toAdd <- data.frame(sampleId = sampleId, MetricName = paste0(chain, '_SpeciesUntil_', 100*threshold, '_PercentOfRepertoire'),
+                                Value = nClone, sampleSize = sum(d$cloneSize))
             names(toAdd)[names(toAdd) == 'sampleId'] <- groupField
             chainDataTopN <- rbind(chainDataTopN, toAdd)
             break
@@ -378,8 +414,10 @@ CalculateTcrRepertioreStats <- function(df, groupField, minCellsRequiredPerChain
       }    
     }
   }
+  diversityData <- rbind(diversityData, chainDataTopN) %>% as.data.frame()
+  diversityData <- diversityData |> filter(!is.na(Value))
   
-  return(rbind(diversityData, chainDataTopN) %>% as.data.frame())
+  return(diversityData)
 }
 
 

@@ -6,7 +6,7 @@
 \usage{
 CalculateTcrRepertioreStats(
   df,
-  groupField,
+  groupField = "cDNA_ID",
   minCellsRequiredPerChain = 100,
   minClonesRequiredPerChain = 100
 )
