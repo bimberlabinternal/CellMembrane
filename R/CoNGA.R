@@ -3,7 +3,7 @@ utils::globalVariables(
   names = c('barcode', 'clusters_gex', 'clusters_tcr', 'nndists_gex', 'nndists_tcr', 
             'is_invariant', 'conga_scores', 'conga_fdr_values', 'raw_clonotype_id', 
             'sample_div', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa', 'sampleId', 
-            'TRA', 'TRB', 'CDR3', 'cloneSize', 'sampleSize', 'fraction'),
+            'TRA', 'TRB', 'CDR3', 'cloneSize', 'sampleSize', 'fraction', 'Value'),
   package = 'CellMembrane',
   add = TRUE
 )

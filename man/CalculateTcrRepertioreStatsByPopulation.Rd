@@ -6,7 +6,7 @@
 \usage{
 CalculateTcrRepertioreStatsByPopulation(
   df,
-  groupfield = "cDNA_ID",
+  groupField = "cDNA_ID",
   metacolumn = "RIRA_TNK_v2.cellclass",
   populationvec = c("CD4+ T Cells", "CD8+ T Cells"),
   minCellsRequiredPerChain = 100,
@@ -16,6 +16,8 @@ CalculateTcrRepertioreStatsByPopulation(
 \arguments{
 \item{df}{A dataframe containing metadata for a Seurat object}
 
+\item{groupField}{The sample identifier--this is often cDNA_ID}
+
 \item{metacolumn}{The metadata column specifying population subsets. RIRA_TNK_v2.cellclass by default}
 
 \item{populationvec}{A vector that defines the T cell populations to be analyzed. A vector with "CD4+ T Cells", "CD8+ T Cells" by default}
@@ -23,8 +25,6 @@ CalculateTcrRepertioreStatsByPopulation(
 \item{minCellsRequiredPerChain}{The minimum number of cells for a sample for diversity to be analyzed}
 
 \item{minClonesRequiredPerChain}{The minimum number of clones in a sample for diversity to be analyzed}
-
-\item{groupField}{The sample identifier--this is often cDNA_ID}
 }
 \value{
 A data frame with the results
