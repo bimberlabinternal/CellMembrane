@@ -276,7 +276,7 @@ CalculateTcrDiversity <- function(inputData,
 #' @param minClonesRequiredPerChain The minimum number of clones in a sample for diversity to be analyzed
 #' @return A data frame with the results
 #' @export
-CalculateTcrRepertioreStatsByPopulation <- function(df, groupfield = "cDNA_ID", metacolumn = "RIRA_TNK_v2.cellclass",
+CalculateTcrRepertioreStatsByPopulation <- function(df, groupField = "cDNA_ID", metacolumn = "RIRA_TNK_v2.cellclass",
                                                     populationvec = c("CD4+ T Cells", "CD8+ T Cells"),
                                                     minCellsRequiredPerChain = 100, minClonesRequiredPerChain = 100) {
   fulloutput_df <- CalculateTcrRepertioreStats(df, groupField,

@@ -100,7 +100,7 @@ test_that("QuantifyTcrClones  works", {
 
 test_that("CalculateTcrRepertioreStats  works", {
   df <- read.csv("../testdata/RepertoireData.csv")
-  dfout <- CalculateTcrRepertioreStats(df, "cDNA_ID", minCellsRequiredPerChain = 20, minClonesRequiredPerChain = 20)
+  dfout <- CalculateTcrRepertioreStats(df, groupField = "cDNA_ID", minCellsRequiredPerChain = 20, minClonesRequiredPerChain = 20)
   
   expect_equal(nrow(dfout), 69)
   expect_equal(dfout[dfout$MetricName == "TRA_SpeciesUntil_20_PercentOfRepertoire",]$Value, 3)
@@ -109,7 +109,7 @@ test_that("CalculateTcrRepertioreStats  works", {
 
 test_that("CalculateTcrRepertioreStatsByPopulation  works", {
   df <- read.csv("../testdata/RepertoireData.csv")
-  dfout <- CalculateTcrRepertioreStatsByPopulation(df, "cDNA_ID", minCellsRequiredPerChain = 10, minClonesRequiredPerChain = 10)
+  dfout <- CalculateTcrRepertioreStatsByPopulation(df, groupField = "cDNA_ID", minCellsRequiredPerChain = 10, minClonesRequiredPerChain = 10)
   
   expect_equal(nrow(dfout), 141)
   expect_equal(dfout[dfout$MetricName == "TRA_SpeciesUntil_20_PercentOfRepertoire" & dfout$population == "CD8+ T Cells",]$Value, 1)
