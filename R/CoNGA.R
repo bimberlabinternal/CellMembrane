@@ -276,17 +276,17 @@ CalculateTcrDiversity <- function(inputData,
 #' @param minClonesRequiredPerChain The minimum number of clones in a sample for diversity to be analyzed
 #' @return A data frame with the results
 #' @export
-CalculateTcrRepertioreStatsByPopulation <- function(df, groupField = "cDNA_ID", metacolumn = "RIRA_TNK_v2.cellclass",
+CalculateTcrRepertoireStatsByPopulation <- function(df, groupField = "cDNA_ID", metacolumn = "RIRA_TNK_v2.cellclass",
                                                     populationvec = c("CD4+ T Cells", "CD8+ T Cells"),
                                                     minCellsRequiredPerChain = 100, minClonesRequiredPerChain = 100) {
-  fulloutput_df <- CalculateTcrRepertioreStats(df, groupField,
+  fulloutput_df <- CalculateTcrRepertoireStats(df, groupField,
                                                minCellsRequiredPerChain = minCellsRequiredPerChain,
                                                minClonesRequiredPerChain = minClonesRequiredPerChain)
   fulloutput_df$population <- "All T Cells"
   if (!is.null(metacolumn) & !is.null(populationvec)) {
     for (celltype in populationvec){
       df_celltype <- df[df[[metacolumn]] == celltype,]
-      celltype_output_df <- CalculateTcrRepertioreStats(df_celltype, groupField,
+      celltype_output_df <- CalculateTcrRepertoireStats(df_celltype, groupField,
                                                         minCellsRequiredPerChain = minCellsRequiredPerChain,
                                                         minClonesRequiredPerChain = minClonesRequiredPerChain)
       celltype_output_df$population <- celltype
@@ -307,7 +307,7 @@ CalculateTcrRepertioreStatsByPopulation <- function(df, groupField = "cDNA_ID", 
 #' @param minClonesRequiredPerChain The minimum number of clones in a sample for diversity to be analyzed
 #' @return A data frame with the results
 #' @export
-CalculateTcrRepertioreStats <- function(df, groupField = "cDNA_ID", minCellsRequiredPerChain = 100, minClonesRequiredPerChain = 100) {
+CalculateTcrRepertoireStats <- function(df, groupField = "cDNA_ID", minCellsRequiredPerChain = 100, minClonesRequiredPerChain = 100) {
   # Filter/rename as needed for CalculateTcrDiversity():
   diversityData <- df %>%
     filter(!is.na(TRA) & !is.na(TRB)) %>%
