@@ -218,6 +218,7 @@ CalculateTcrDiversity <- function(inputData,
     stop(paste0('The following columns were missing: ', paste0(missing, collapse = ',')))
   }
 
+  inputData <- inputData %>% filter(!is.na(sampleId))
   if (nrow(inputData) == 0) {
     stop('No rows provided in inputData')
   }
@@ -332,6 +333,7 @@ CalculateTcrRepertoireStats <- function(df, groupField = "cDNA_ID", minCellsRequ
       'cdr3_a_aa' = 'TRA',
       'cdr3_b_aa' = 'TRB'
     ) %>%
+    filter(!is.na(sampleId)) %>%
     group_by(sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa) %>%
     filter(!grepl(v_a_gene, pattern = ',')) %>%
     filter(!grepl(v_b_gene, pattern = ',')) %>%
