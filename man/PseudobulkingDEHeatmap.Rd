@@ -14,7 +14,7 @@ PseudobulkingDEHeatmap(
   showRowNames = FALSE,
   assayName = "RNA",
   sampleIdCol = "cDNA_ID",
-  minCountsPerGene = 1,
+  filterGenes = FALSE,
   subsetExpression = NULL
 )
 }
@@ -37,7 +37,7 @@ PseudobulkingDEHeatmap(
 
 \item{sampleIdCol}{The metadata column denoting the variable containing the sample identifier (for grouping).}
 
-\item{minCountsPerGene}{Passthrough variable for PerformGlmFit, used for filtering out lowly expressed genes.}
+\item{filterGenes}{A passthrough variable for PerformGlmFit, used to determine if genes should be filtered using edgeR::filterByExpr.}
 
 \item{subsetExpression}{An optional string containing an expression to subset the Seurat object. This is useful for selecting an exact subpopulation to in which to show DEGs. Please note that for string-based metadata fields, you will need to mix single and double quotes to ensure your expression is properly parsed. For instance, note the double quotes around the word unvax in this expression: subsetExpression = 'vaccine_cohort == "unvax"'.}
 }

@@ -81,7 +81,7 @@ Imports:
     geometry,
     CSCORE,
     WGCNA,
-    escape (>= 1.99.0),
+    escape,
     GSVA (>= 1.51.5),
     dynamicTreeCut, 
     pacman,
@@ -91,7 +91,14 @@ Imports:
     forcats,
     presto,
     decoupleR,
-    OmnipathR
+    OmnipathR,
+    glmGamPoi,
+    tricycle,
+    scater, 
+    NBZIMM, 
+    sandwich, 
+    clubSandwich, 
+    iNEXT
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -100,6 +107,8 @@ Suggests:
     rmarkdown,
     shiny,
     pkgdown,
+    msigdbr,
+    msigdb,
     org.Hs.eg.db,
     org.Mmu.eg.db
 RoxygenNote: 7.3.2
@@ -116,7 +125,8 @@ Remotes:
     CSCORE=ChangSuBiostats/CS-CORE,
     ncborcherding/escape,
     rcastelo/GSVA,
-    immunogenomics/presto
+    immunogenomics/presto,
+    nyiuab/NBZIMM
 Config/reticulate:
   list(
     packages = list(
@@ -140,6 +150,7 @@ Collate:
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'Spatial.R'
+    'Tricycle.R'
     'data.R'
     'decoupleR.R'
     'escape.R'
