@@ -218,6 +218,10 @@ CalculateTcrDiversity <- function(inputData,
     stop(paste0('The following columns were missing: ', paste0(missing, collapse = ',')))
   }
 
+  if (nrow(inputData) == 0) {
+    stop('No rows provided in inputData')
+  }
+
   #check python requirements
   if (!reticulate::py_available(initialize = TRUE)) {
     stop(paste0('Python/reticulate not configured. Run "reticulate::py_config()" to initialize python'))
@@ -282,13 +286,23 @@ CalculateTcrRepertoireStatsByPopulation <- function(df, groupField = "cDNA_ID", 
   fulloutput_df <- CalculateTcrRepertoireStats(df, groupField,
                                                minCellsRequiredPerChain = minCellsRequiredPerChain,
                                                minClonesRequiredPerChain = minClonesRequiredPerChain)
-  fulloutput_df$population <- "All T Cells"
+
+  if (!all(is.null(fulloutput_df))) {
+    fulloutput_df$population <- "All T Cells"
+  }
+
   if (!is.null(metacolumn) & !is.null(populationvec)) {
     for (celltype in populationvec){
       df_celltype <- df[df[[metacolumn]] == celltype,]
       celltype_output_df <- CalculateTcrRepertoireStats(df_celltype, groupField,
                                                         minCellsRequiredPerChain = minCellsRequiredPerChain,
                                                         minClonesRequiredPerChain = minClonesRequiredPerChain)
+
+      if (all(is.null(celltype_output_df))) {
+        print(paste0('No results found for: ', celltype, ' skipping'))
+        next
+      }
+
       celltype_output_df$population <- celltype
       fulloutput_df <- rbind(fulloutput_df, celltype_output_df)
     }
@@ -325,6 +339,12 @@ CalculateTcrRepertoireStats <- function(df, groupField = "cDNA_ID", minCellsRequ
     filter(!grepl(cdr3_b_aa, pattern = ',')) %>%
     summarize(clone_size = n())
   diversityData_in <- diversityData
+
+  if (nrow(diversityData) == 0) {
+    print('No passing rows, skipping')
+    return(NULL)
+  }
+
   diversityData <- CellMembrane::CalculateTcrDiversity(diversityData)
   
   y <- colnames(diversityData)[grepl("^Z", colnames(diversityData)) & !grepl("_LCL_|_UCL_", colnames(diversityData))]
