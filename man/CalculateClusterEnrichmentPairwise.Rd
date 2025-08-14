@@ -55,9 +55,10 @@ A function that calculates the enrichment of a cluster under a given treatment v
 }
 \examples{
  \dontrun{
- seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) # This is a dummy variable for the sake of example.
- seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) # This is a dummy variable for the sake of example.
- seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) # This is a dummy variable for the sake of example.
+ # Define dummy variables
+ seuratObj$cDNA_ID <- rep(1:4, ncol(seuratObj)) 
+ seuratObj$Vaccine <- rep(c("Vaccine1", "Vaccine2"), each = ncol(seuratObj)/2) 
+ seuratObj$SubjectId <- rep(1:4, each = ncol(seuratObj)/4) 
  
  seuratObj <- CalculateClusterEnrichmentPairwise(seuratObj,
                                                  subjectField = 'SubjectId',
@@ -68,7 +69,9 @@ A function that calculates the enrichment of a cluster under a given treatment v
                                                  pValueCutoff = 0.05,
                                                  showPlots = TRUE, 
                                                  returnSeuratObjectOrPlots = "SeuratObject", 
-                                                 includeDepletions = FALSE)
+                                                 includeDepletions = FALSE, 
+                                                 lowSampleSizeDetection = TRUE, 
+                                                 lowSampleSizeThreshold = 3)
   DimPlot(seuratObj, group.by = "Cluster_Enrichment", label = TRUE) + NoLegend()
   }
  
