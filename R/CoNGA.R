@@ -323,6 +323,10 @@ CalculateTcrRepertoireStatsByPopulation <- function(df, groupField = "cDNA_ID", 
 #' @return A data frame with the results
 #' @export
 CalculateTcrRepertoireStats <- function(df, groupField = "cDNA_ID", minCellsRequiredPerChain = 100, minClonesRequiredPerChain = 100) {
+  if ( !'TRA' %in% names(df) || !'TRB' %in% names(df) ) {
+    stop('The dataframe must have TRA and TRB columns')
+  }
+
   # Filter/rename as needed for CalculateTcrDiversity():
   diversityData <- df %>%
     filter(!is.na(TRA) & !is.na(TRB)) %>%
