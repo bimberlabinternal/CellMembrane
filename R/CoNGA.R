@@ -308,8 +308,11 @@ CalculateTcrRepertoireStatsByPopulation <- function(df, groupField = "cDNA_ID", 
       fulloutput_df <- rbind(fulloutput_df, celltype_output_df)
     }
   }
-  fulloutput_df <- fulloutput_df |> filter(!is.na(Value))
-  
+
+  if (!all(is.null(fulloutput_df))) {
+    fulloutput_df <- fulloutput_df |> filter(!is.na(Value))
+  }
+
   return(fulloutput_df)
 }
 
