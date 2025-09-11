@@ -92,8 +92,7 @@ Imports:
     decoupleR,
     OmnipathR,
     glmGamPoi,
-    tricycle,
-    scater, 
+    scater,
     NBZIMM, 
     sandwich, 
     clubSandwich, 
@@ -147,7 +146,6 @@ Collate:
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'Spatial.R'
-    'Tricycle.R'
     'data.R'
     'decoupleR.R'
     'escape.R'
