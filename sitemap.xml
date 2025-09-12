@@ -74,7 +74,6 @@
 <url><loc>/reference/RenameUsingCD.html</loc></url>
 <url><loc>/reference/ResolveLocGenes.html</loc></url>
 <url><loc>/reference/RunCoNGA.html</loc></url>
-<url><loc>/reference/RunCsCore.html</loc></url>
 <url><loc>/reference/RunDecoupleR.html</loc></url>
 <url><loc>/reference/RunEscape.html</loc></url>
 <url><loc>/reference/RunFilteredContrasts.html</loc></url>
@@ -83,7 +82,6 @@
 <url><loc>/reference/RunSDA.html</loc></url>
 <url><loc>/reference/RunSeuratWnn.html</loc></url>
 <url><loc>/reference/RunSingleR.html</loc></url>
-<url><loc>/reference/RunTricycle.html</loc></url>
 <url><loc>/reference/RunUmapOnSDA.html</loc></url>
 <url><loc>/reference/SDAToSeuratMetadata.html</loc></url>
 <url><loc>/reference/SDAToSeuratReduction.html</loc></url>

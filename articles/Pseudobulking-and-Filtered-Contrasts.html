@@ -81,7 +81,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2025-09-10</h4>
+            <h4 data-toc-skip class="date">2025-09-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/master/vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd" class="external-link"><code>vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd</code></a></small>
       <div class="hidden name"><code>Pseudobulking-and-Filtered-Contrasts.Rmd</code></div>
@@ -312,7 +312,7 @@ vaccine one and vaccine two:</p>
 <span>  test.use <span class="op">=</span> <span class="st">"QLF"</span>,</span>
 <span>  showPlots <span class="op">=</span> <span class="cn">T</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
+<span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value `binwidth`.</span></span></code></pre>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/example%20contrast-2.png" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/example%20contrast-3.png" width="700"></p>
 </div>
 <div class="section level2">
@@ -586,7 +586,7 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; NULL</span></span>
 <span><span class="co">#&gt; Removing 22137 rows with all zero counts</span></span>
 <span><span class="co">#&gt; Number of genes passing filterByExpr filter: 907. Number of genes with any counts: 10249 (9% of detectable genes kept)</span></span>
-<span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
+<span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value `binwidth`.</span></span></code></pre>
 <p>Stricter thresholds (on one contrast):</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">strict_contrast</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RunFilteredContrasts.html">RunFilteredContrasts</a></span><span class="op">(</span>seuratObj <span class="op">=</span> <span class="va">pbulk</span>, </span>
@@ -622,7 +622,7 @@ genes in the <code>DE_results</code> list.</p>
 <span><span class="co">#&gt; NULL</span></span>
 <span><span class="co">#&gt; Removing 22137 rows with all zero counts</span></span>
 <span><span class="co">#&gt; Number of genes passing filterByExpr filter: 907. Number of genes with any counts: 10249 (9% of detectable genes kept)</span></span>
-<span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</span></span></code></pre>
+<span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value `binwidth`.</span></span></code></pre>
 <p>The results of these fits are collected in an indexed list.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">$</span><span class="va">`1`</span><span class="op">)</span></span>
