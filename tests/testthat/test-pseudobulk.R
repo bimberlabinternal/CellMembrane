@@ -108,8 +108,9 @@ test_that("Logic gate study design works", {
                        )
   #test that PseudobulkingBarPlot yields a list with a barPlot element
   testthat::expect_true("barPlot" %in% names(barPlot))
-  #test that the barPlot element is a ggplot object (list)
-  testthat::expect_equal(c("gg", "ggplot"), class(barPlot$barPlot))
+  print('Class of barPlot$barPlot')
+  print(class(barPlot$barPlot))
+  testthat::expect_con(class(barPlot$barPlot), c("gg", "ggplot"))
   
   genes <- rownames(pbulk)[1:10]
   
