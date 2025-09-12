@@ -110,7 +110,7 @@ test_that("Logic gate study design works", {
   testthat::expect_true("barPlot" %in% names(barPlot))
   print('Class of barPlot$barPlot')
   print(class(barPlot$barPlot))
-  testthat::expect_con(class(barPlot$barPlot), c("gg", "ggplot"))
+  testthat::expect_contains(class(barPlot$barPlot), c("gg", "ggplot"))
   
   genes <- rownames(pbulk)[1:10]
   
