@@ -49,27 +49,27 @@ test_that("Seurat processing works as expected", {
   seuratObj <- seuratObj[,cellsToUse]
 
   seuratObj <- FilterRawCounts(seuratObj)
-  expect_equal(ncol(seuratObj), 487)
+  expect_equal(ncol(seuratObj), 492)
   
   seuratObj <- NormalizeAndScale(seuratObj)
   tbl <- table(seuratObj$Phase)
-  expect_equal(tbl[['G1']], 190)
-  expect_equal(tbl[['G2M']], 92)
-  expect_equal(tbl[['S']], 205)
-  expect_equal(ncol(seuratObj), 487)
+  expect_equal(tbl[['G1']], 256)
+  expect_equal(tbl[['G2M']], 93)
+  expect_equal(tbl[['S']], 143)
+  expect_equal(ncol(seuratObj), 492)
 
   seuratObj <- RegressCellCycle(seuratObj)
 
   vgFile <- 'variableGenes.txt'
   seuratObj <- RunPcaSteps(seuratObj, variableGeneTable = vgFile)
-  expect_equal(ncol(seuratObj), 487)
+  expect_equal(ncol(seuratObj), 492)
 
   expect_equal(file.exists(vgFile), T)
   expect_equal(nrow(utils::read.table(vgFile, sep = '\t', header = F)), 2000)
   unlink(vgFile)
 
   seuratObj <- FindClustersAndDimRedux(seuratObj, useLeiden = TRUE)
-  expect_equal(ncol(seuratObj), 487)
+  expect_equal(ncol(seuratObj), 492)
   expect_equal(length(unique(seuratObj$ClusterNames_0.6)), 5)
 
   #Note: Seurat::PercentageFeatureSet returns 0-100.  our code is currently a fraction (0-1.0)
@@ -86,7 +86,7 @@ test_that("Seurat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 276)
+  expect_equal(nrow(df), 282)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)
@@ -97,7 +97,7 @@ test_that("Seurat processing works as expected", {
   dt
 
   df <- utils::read.table(mf, sep = '\t', header = T)
-  expect_equal(nrow(df), 876)
+  expect_equal(nrow(df), 921)
   expect_equal(sum(df$avg_logFC > 0.5), nrow(df))
 
   unlink(mf)

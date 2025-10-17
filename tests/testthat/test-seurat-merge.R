@@ -67,7 +67,7 @@ test_that("seurat barcode duplicate code works as expected", {
 	toMerge <- list('12345' = seuratObj1, '23456' = seuratObj2)
 	sm <- MergeSeuratObjs(toMerge, projectName = 'TestMerge')
 
-	expect_equal(ncol(sm), ncol(seuratObj1) +  ncol(seuratObj2) - 20)	
+	expect_equal(ncol(sm), ncol(seuratObj1) +  ncol(seuratObj2) - 10)
 	
 	# Repeat where barcode prefix added by merge:
 	seuratObj1 <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))

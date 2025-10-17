@@ -109,7 +109,7 @@ Suggests:
     msigdb,
     org.Hs.eg.db,
     org.Mmu.eg.db
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 URL: https://github.com/BimberLabInternal/CellMembrane
 BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
