@@ -23,13 +23,11 @@ jobs:
           repository: bimberlabinternal/Rdiscvr
           event-type: docker
 
-      - name: Remove unnecessary files
-        run: |
-          df . -h
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo apt-get clean
-          df . -h
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          docker-images: false
 
       - name: Docker meta
         id: docker_meta
