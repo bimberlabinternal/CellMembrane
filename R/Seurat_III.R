@@ -150,14 +150,27 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
 
   # Ensure barcodes unique
   encounteredBarcodes <- c()
-  duplicates <- c()
   for (datasetId in nameList) {
     print(paste0('Adding dataset: ', datasetId))
     seuratObj <- seuratObjs[[datasetId]]
     seuratObj <- .PossiblyAddBarcodePrefix(seuratObj, datasetId = datasetId, datasetName = NULL)
     if (enforceUniqueCells && length(intersect(encounteredBarcodes, colnames(seuratObj))) > 0) {
       if (duplicateBarcodeMode == 'exclude-all') {
-        duplicates <- c(duplicates, intersect(encounteredBarcodes, colnames(seuratObj)))
+        duplicates <- intersect(encounteredBarcodes, colnames(seuratObj))
+        print(paste0('Dropping duplicates for: ', datasetId))
+        print(paste0('Original cells: ', length(colnames(seuratObj))))
+        toKeep <- colnames(seuratObj)[!(colnames(seuratObj) %in% duplicates)]
+        print(paste0('Retaining: ', length(toKeep)))
+        if (length(toKeep) == 0) {
+          warning(paste0('There are no cells remaining after dropping duplicates, will skip datasetId: ', datasetId))
+          seuratObjs[[datasetId]] <- NULL
+          next
+        }
+
+        seuratObj <- subset(seuratObj, cells = toKeep)
+        if (length(toKeep) != length(colnames(seuratObj))) {
+          stop('Cell number does not match expected after subset')
+        }
       } else {
         stop(paste0('Duplicate cellbarcodes found for: ', datasetId))
       }
@@ -177,29 +190,6 @@ MergeSeuratObjs <- function(seuratObjs, projectName, merge.data = FALSE, expecte
       }
     }
     seuratObjs[[datasetId]] <- seuratObj
-  }
-
-  if (length(duplicates) > 0) {
-    print(paste0('Dropping duplicated barcodes, total: ', length(duplicates)))
-    for (datasetId in nameList) {
-      if (any(duplicates %in% colnames(seuratObjs[[datasetId]]))) {
-        print(paste0('Dropping duplicates for: ', datasetId))
-        print(paste0('Original cells: ', length(colnames(seuratObjs[[datasetId]]))))
-        toKeep <- colnames(seuratObjs[[datasetId]])[!(colnames(seuratObjs[[datasetId]]) %in% duplicates)]
-        print(paste0('Retaining: ', length(toKeep)))
-        if (length(toKeep) == 0) {
-          stop(paste0('There are no cells remaining after dropping duplicates for datasetId: ', datasetId))
-        }
-
-        seuratObjs[[datasetId]] <- subset(seuratObjs[[datasetId]], cells = toKeep)
-
-        if (length(toKeep) != length(colnames(seuratObjs[[datasetId]]))) {
-          stop('Cell number does not match expected after subset')
-        }
-      } else {
-        print(paste0('No duplicates found in: ', datasetId))
-      }
-    }
   }
 
   seuratObj <- .DoMergeSimple(seuratObjs = seuratObjs, projectName = projectName, merge.data = merge.data, expectedDefaultAssay = expectedDefaultAssay, doGC = doGC)
