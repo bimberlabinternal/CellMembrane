@@ -282,24 +282,25 @@ ResolveLocGenes <- function(geneIds, maxBatchSize = 100) {
     results <- rentrez::entrez_summary(db="gene", id = gsub(geneBatch, pattern = '^LOC', replacement = ''))
     if (length(geneBatch) == 1) {
         df <- data.frame(Name = results$name, Description = results$description, Aliases = results$otheraliases)
+        rownames(df) <- geneBatch[[1]]
     } else {
         df <- do.call(rbind, lapply(results, FUN = function(x){
           return(data.frame(Name = x$name, Description = x$description, Aliases = x$otheraliases))
         }))
+        rownames(df) <- paste0('LOC', rownames(df))
     }
 
-    rownames(df) <- paste0('LOC', rownames(df))
     df$GeneId <- rownames(df)
 
     if (all(is.null(ret))) {
-      ret <- df
+    ret <- df
     } else {
-      ret <- rbind(ret, df)
+    ret <- rbind(ret, df)
     }
-  }
+}
 
   # Ensure return order matches input:
-  ret <- ret[geneIds,]
+  ret <- ret[geneIds,,drop = FALSE]
 
   return(ret)
 }
