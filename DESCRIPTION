@@ -120,7 +120,7 @@ Remotes:
     drisso/RUVSeq,
     carmonalab/UCell,
     davidcsterratt/geometry/pkg,
-    ncborcherding/escape@v2.5.0,
+    ncborcherding/escape,
     rcastelo/GSVA,
     immunogenomics/presto,
     nyiuab/NBZIMM
