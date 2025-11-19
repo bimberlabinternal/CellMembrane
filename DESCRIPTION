@@ -120,8 +120,6 @@ Remotes:
     drisso/RUVSeq,
     carmonalab/UCell,
     davidcsterratt/geometry/pkg,
-    ncborcherding/escape,
-    rcastelo/GSVA,
     immunogenomics/presto,
     nyiuab/NBZIMM
 Config/reticulate:
