@@ -138,7 +138,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
 }
 
 .RunEscapeOnSubset <- function(seuratObj, outputAssayName, GS, nCores){
-  BPPARAM <- .InferBpParam(nCores, defaultValue = NULL)
+  BPPARAM <- .InferBpParam(nCores, defaultValue = BiocParallel::SerialParam())
   seuratObj <- escape::runEscape(seuratObj,
                                  method = "ssGSEA",
                                  gene.sets = GS,
