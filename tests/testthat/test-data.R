@@ -55,5 +55,6 @@ test_that("ResolveLocGenes works", {
 	ret <- ResolveLocGenes(c('LOC106992311', 'LOC694255'))
 	expect_equal(rownames(ret), c('LOC106992311', 'LOC694255'))
 	expect_equal(ret$Description, c('zinc finger protein 43', 'uncharacterized LOC694255'))
-	expect_equal(ret$Aliases, c('ZNF43', ''))
+	expect_equal(ret$Name, c('ZNF43', 'LOC694255'))
+	expect_equal(ret$Aliases, c('', ''))
 })
