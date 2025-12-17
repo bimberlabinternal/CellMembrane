@@ -96,7 +96,8 @@ Imports:
     NBZIMM, 
     sandwich, 
     clubSandwich, 
-    iNEXT
+    iNEXT,
+    leidenbase
 Suggests:
     devtools,
     testthat (>= 2.1.0),
