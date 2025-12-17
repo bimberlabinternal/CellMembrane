@@ -54,6 +54,6 @@ test_that("DotPlot works", {
 test_that("ResolveLocGenes works", {
 	ret <- ResolveLocGenes(c('LOC106992311', 'LOC694255'))
 	expect_equal(rownames(ret), c('LOC106992311', 'LOC694255'))
-	expect_equal(ret$Description, c('zinc finger protein 43', 'phosphatidylinositol 3,4,5-trisphosphate 3-phosphatase TPTE2-like'))
+	expect_equal(ret$Description, c('zinc finger protein 43', 'uncharacterized LOC694255'))
 	expect_equal(ret$Aliases, c('ZNF43', ''))
 })
