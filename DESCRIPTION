@@ -12,7 +12,7 @@ Depends:
     R (>= 4.3.0)
 Imports:
     Seurat,
-    SeuratObject (<5.3.0),
+    SeuratObject,
     tidyr,
     dplyr,
     naturalsort,
