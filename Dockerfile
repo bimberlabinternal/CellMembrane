@@ -11,6 +11,8 @@ RUN cd /CellMembrane \
     # Pre-install the cpu-only versions of pytorch to try to reduce image size:
     && python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'never');" \
+    # This should ultimately be removed. It is being used to fix the merge() bug in SeuratObject 5.3.0
+    && Rscript -e "remotes::install_version('SeuratObject', version = '5.2.0')" \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
