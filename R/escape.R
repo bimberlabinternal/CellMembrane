@@ -4,6 +4,7 @@
 #' @param seuratObj A Seurat object.
 #' @param outputAssayBaseName The basename of the assay to store results. Escape will be run once for each gene set.
 #' @param escapeMethod Passed to escape::runEscape()
+#' @param heatmapGroupingVars An optional vector of field names. If provided, the code will iterate these and run escape::heatmapEnrichment(group.by = XX) for each
 #' @param doPlot If true, a FeaturePlot will be printed for each pathway
 #' @param performDimRedux If true, the standard seurat PCA/FindClusters/UMAP process will be run on the escape data. This may be most useful when using a customGeneSet or a smaller set of features/pathways
 #' @param msigdbGeneSets A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658). Each item will be processed into a separate assay.
@@ -13,11 +14,12 @@
 #' @param nCores Passed to runEscape()
 #' @return The seurat object with results stored in an assay
 #' @export
-RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", escapeMethod = 'ssGSEA', doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C7" = "IMMUNESIGDB", "C2" = "CP:KEGG_LEGACY"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', maxBatchSize = 100000, nCores = 1) {
+RunEscape <- function(seuratObj, outputAssayBaseName = "escape", escapeMethod = 'ssGSEA', heatmapGroupingVars = NULL, doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C7" = "IMMUNESIGDB", "C2" = "CP:KEGG_LEGACY"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', maxBatchSize = 100000, nCores = 1) {
   assayToGeneSets <- list()
 
   # NOTE: currently escape only supports RNA:
   assayName <- 'RNA'
+  outputAssayBaseName <- paste0(outputAssayBaseName, '.', escapeMethod)
 
   if (all(!is.null(customGeneSets), !(length(customGeneSets) == 0))) {
     if (!is.list(customGeneSets)){
@@ -122,6 +124,23 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", escapeMethod =
     seuratObj[[outputAssayName]] <- Seurat::CreateAssayObject(counts = assayCounts)
     seuratObj <- .NormalizeEscape(seuratObj, assayToNormalize = outputAssayName, assayForLibrarySize = assayName)
 
+    if (!all(is.null(heatmapGroupingVars))) {
+      for (var in heatmapGroupingVars) {
+        if (!var %in% names(seuratObj@meta.data)) {
+          print(paste0('Missing var, cannot make heatmap: ', var))
+          next
+        }
+
+        escape::heatmapEnrichment(
+          group.by = var,
+          gene.set.use = "all",
+          scale = TRUE,
+          cluster.rows = TRUE,
+          cluster.columns = TRUE,
+          assay = outputAssayName
+        )
+      }
+    }
     if (doPlot) {
       pathways <- rownames(seuratObj@assays[[outputAssayName]])
       key <- seuratObj@assays[[outputAssayName]]@key

@@ -28,7 +28,7 @@ test_that("escape works as expected", {
     )))
     
     #test full functionality
-    seuratObj <- RunEscape(seuratObj, msigdbGeneSets = "H", customGeneSets = list("CD3" = c("CD3E", "CD3G"), "CD4" = c("CD4", "CD3E")), performDimRedux = FALSE)
+    seuratObj <- RunEscape(seuratObj, msigdbGeneSets = "H", customGeneSets = list("CD3" = c("CD3E", "CD3G"), "CD4" = c("CD4", "CD3E")), performDimRedux = FALSE, heatmapGroupingVars = 'ClusterNames_0.2')
     expect_equal(length(rownames(seuratObj@assays$escape.H)), 50)
     expect_true('escape.CustomGeneSet' %in% names(seuratObj@assays))
 
