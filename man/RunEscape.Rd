@@ -7,10 +7,11 @@
 RunEscape(
   seuratObj,
   outputAssayBaseName = "escape.",
+  escapeMethod = "ssGSEA",
   doPlot = FALSE,
   performDimRedux = FALSE,
   msigdbGeneSets = c("H", C5 = "GO:BP", C5 = "GO:MF", C7 = "IMMUNESIGDB", C2 =
-    "CP:KEGG_MEDICUS"),
+    "CP:KEGG_LEGACY"),
   customGeneSets = NULL,
   customGeneSetAssayName = "CustomGeneSet",
   maxBatchSize = 1e+05,
@@ -21,6 +22,8 @@ RunEscape(
 \item{seuratObj}{A Seurat object.}
 
 \item{outputAssayBaseName}{The basename of the assay to store results. Escape will be run once for each gene set.}
+
+\item{escapeMethod}{Passed to escape::runEscape()}
 
 \item{doPlot}{If true, a FeaturePlot will be printed for each pathway}
 

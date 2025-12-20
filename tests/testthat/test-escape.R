@@ -54,7 +54,7 @@ test_that("escape works as expected", {
 
     seuratObj <- RunEscape(seuratObj, msigdbGeneSets, performDimRedux = FALSE)
     expect_true('escape.H' %in% names(seuratObj@assays))
-    expect_true('escape.C2.CP.KEGG_MEDICUS' %in% names(seuratObj@assays))
+    expect_true('escape.C2.CP.KEGG_LEGACY' %in% names(seuratObj@assays))
     expect_true('escape.C7.IMMUNESIGDB' %in% names(seuratObj@assays))
 })
 

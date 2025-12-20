@@ -13,7 +13,7 @@
 #' @param nCores Passed to runEscape()
 #' @return The seurat object with results stored in an assay
 #' @export
-RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", escapeMethod = 'ssGSEA', doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C7" = "IMMUNESIGDB", "C2" = "CP:KEGG_MEDICUS"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', maxBatchSize = 100000, nCores = 1) {
+RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", escapeMethod = 'ssGSEA', doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C7" = "IMMUNESIGDB", "C2" = "CP:KEGG_LEGACY"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', maxBatchSize = 100000, nCores = 1) {
   assayToGeneSets <- list()
 
   # NOTE: currently escape only supports RNA:
