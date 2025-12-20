@@ -9,7 +9,8 @@ RunEscape(
   outputAssayBaseName = "escape.",
   doPlot = FALSE,
   performDimRedux = FALSE,
-  msigdbGeneSets = c("H", C5 = "GO:BP", C5 = "GO:MF"),
+  msigdbGeneSets = c("H", C5 = "GO:BP", C5 = "GO:MF", C7 = "IMMUNESIGDB", C2 =
+    "CP:KEGG_MEDICUS"),
   customGeneSets = NULL,
   customGeneSetAssayName = "CustomGeneSet",
   maxBatchSize = 1e+05,
