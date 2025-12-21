@@ -132,6 +132,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape", escapeMethod = 
         }
 
         escape::heatmapEnrichment(
+          seuratObj,
           group.by = var,
           gene.set.use = "all",
           scale = TRUE,
