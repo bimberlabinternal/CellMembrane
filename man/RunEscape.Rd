@@ -11,8 +11,7 @@ RunEscape(
   heatmapGroupingVars = NULL,
   doPlot = FALSE,
   performDimRedux = FALSE,
-  msigdbGeneSets = c("H", C5 = "GO:BP", C5 = "GO:MF", C7 = "IMMUNESIGDB", C2 =
-    "CP:KEGG_LEGACY"),
+  msigdbGeneSets = c("H", C5 = "GO:BP", C5 = "GO:MF", C7 = "IMMUNESIGDB", C2 = "CP:KEGG"),
   customGeneSets = NULL,
   customGeneSetAssayName = "CustomGeneSet",
   maxBatchSize = 1e+05,

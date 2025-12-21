@@ -14,12 +14,12 @@
 #' @param nCores Passed to runEscape()
 #' @return The seurat object with results stored in an assay
 #' @export
-RunEscape <- function(seuratObj, outputAssayBaseName = "escape", escapeMethod = 'ssGSEA', heatmapGroupingVars = NULL, doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C7" = "IMMUNESIGDB", "C2" = "CP:KEGG_LEGACY"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', maxBatchSize = 100000, nCores = 1) {
+RunEscape <- function(seuratObj, outputAssayBaseName = "escape", escapeMethod = 'ssGSEA', heatmapGroupingVars = NULL, doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C7" = "IMMUNESIGDB", "C2" = "CP:KEGG"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', maxBatchSize = 100000, nCores = 1) {
   assayToGeneSets <- list()
 
   # NOTE: currently escape only supports RNA:
   assayName <- 'RNA'
-  outputAssayBaseName <- paste0(outputAssayBaseName, '.', escapeMethod)
+  outputAssayBaseName <- paste0(outputAssayBaseName, '.', escapeMethod, '.')
 
   if (all(!is.null(customGeneSets), !(length(customGeneSets) == 0))) {
     if (!is.list(customGeneSets)){
@@ -177,7 +177,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape", escapeMethod = 
   assayNameForKeys <- gsub(assayName, pattern = '\\.', replacement = '')
   pca.reduction.key <- paste0(assayNameForKeys, 'pca_')
   pca.reduction.name <- paste0('pca.', assayName)
-  seuratObj <- Seurat::RunPCA(seuratObj, assay = assayName, npcs = min(50, length(Seurat::VariableFeatures(seuratObj, assay = assayName))), reduction.key = pca.reduction.key, reduction.name = pca.reduction.name)
+  seuratObj <- suppressWarnings(Seurat::RunPCA(seuratObj, assay = assayName, npcs = min(50, length(Seurat::VariableFeatures(seuratObj, assay = assayName))), reduction.key = pca.reduction.key, reduction.name = pca.reduction.name))
 
   print(Seurat::ProjectDim(seuratObj, reduction = pca.reduction.name, assay = assayName))
   print(Seurat::VizDimLoadings(object = seuratObj, dims = 1:4, nfeatures = nrow(seuratObj@assays[[assayName]]), reduction = pca.reduction.name))
