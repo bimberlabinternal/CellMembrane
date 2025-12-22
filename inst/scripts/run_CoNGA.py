@@ -13,10 +13,10 @@ def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefi
          gex_datatype, clones_file, outfile_prefix_for_qc_plots, working_directory, print_versions = True):
 
     if print_versions:
-        print('scanpy version: ' + sc.__version__)
-        print('scipy version: ' + scipy.__version__)
-        print('pandas version: ' + pd.__version__)
-        print('anndata version: ' + anndata.__version__)
+        print('scanpy version: ' + importlib.metadata.version('scanpy'))
+        print('pandas version: ' + importlib.metadata.version('pandas'))
+        print('scipy version: ' + importlib.metadata.version('scipy'))
+        print('anndata version: ' + importlib.metadata.version('anndata'))
 
     #set working directory (inherited from the R session)
     os.chdir(working_directory)

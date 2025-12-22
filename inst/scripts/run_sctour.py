@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import json
 
 def run_sctour(GEXfile, metafile, exclusion_json_path, ptime_out_file):
-    print('scanpy version: ' + sc.__version__)
-    print('pandas version: ' + pd.__version__)
-    print('sctour version: ' + sct.__version__)
+    print('scanpy version: ' + importlib.metadata.version('scanpy'))
+    print('pandas version: ' + importlib.metadata.version('pandas'))
+    print('sctour version: ' + importlib.metadata.version('sctour'))
 
     adataObj = sc.read_10x_h5(GEXfile)
     info = pd.read_csv(metafile, sep=',', index_col=0)
