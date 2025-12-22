@@ -55,7 +55,7 @@ test_that("escape works as expected", {
     seuratObj <- RunEscape(seuratObj, performDimRedux = FALSE, heatmapGroupingVars = 'ClusterNames_0.2')
     print(names(seuratObj@assays))
     expect_true('escape.ssGSEA.H' %in% names(seuratObj@assays))
-    expect_true('escape.ssGSEA.C2.CP:KEGG' %in% names(seuratObj@assays))
+    expect_true('escape.ssGSEA.C2.CP.KEGG' %in% names(seuratObj@assays))
     expect_true('escape.ssGSEA.C7.IMMUNESIGDB' %in% names(seuratObj@assays))
 })
 

@@ -605,11 +605,10 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 
   seuratObj <- FindNeighbors(object = seuratObj, dims = dimsToUse, verbose = FALSE)
 
-  clusterMethod <- ifelse(ncol(seuratObj) > 5000, yes = 'igraph', no = 'matrix')
   algorithm <- ifelse(useLeiden, yes = 4, no = 1)
 
   for (resolution in clusterResolutions){
-    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE, random.seed = seed.use, method = clusterMethod, algorithm = algorithm, cluster.name = paste0("ClusterNames_", resolution))
+    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE, random.seed = seed.use, algorithm = algorithm, cluster.name = paste0("ClusterNames_", resolution))
   }
 
   if (runTSNE) {

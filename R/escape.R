@@ -192,7 +192,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape", escapeMethod = 
 
   origIdents <- Seurat::Idents(seuratObj)
   for (resolutionToUse in resolutionsToUse) {
-    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, seed.use = GetSeed(), cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
+    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, random.seed = GetSeed(), cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
   }
   Seurat::Idents(seuratObj) <- origIdents
 
