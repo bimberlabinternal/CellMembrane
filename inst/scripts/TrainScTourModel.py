@@ -9,6 +9,7 @@ import json
 import scipy
 import networkx as nx
 import sys
+import importlib.metadata
 
 def TrainScTourModel(GEXfile, exclusion_json_path, model_path_basedir, model_name, embedding_out_file, ptime_out_file, random_state = 0):
     print('Running scTour to train model')

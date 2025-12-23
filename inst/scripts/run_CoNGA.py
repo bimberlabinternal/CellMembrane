@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import scipy
 import os
 import anndata
+import importlib.metadata
 from conga.tcrdist.tcr_distances import TcrDistCalculator
 
 def run_CoNGA(features_file, tcr_datafile, gex_datafile, organism, outfile_prefix,

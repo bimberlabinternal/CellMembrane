@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
+import importlib.metadata
 
 def run_sctour(GEXfile, metafile, exclusion_json_path, ptime_out_file):
     print('scanpy version: ' + importlib.metadata.version('scanpy'))
