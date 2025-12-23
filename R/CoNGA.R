@@ -193,7 +193,8 @@ CalculateTcrDiversityFromSeurat <- function(seuratObj,
   names(df) <- c('sampleId', 'v_a_gene', 'v_b_gene', 'cdr3_a_aa', 'cdr3_b_aa')
   df <- df %>% dplyr::filter(!is.na(v_a_gene) & !is.na(v_b_gene) & !is.na(cdr3_a_aa) & !is.na(cdr3_b_aa)) %>%
     dplyr::group_by(sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa) %>%
-    dplyr::summarize(clone_size = n())
+    dplyr::summarize(clone_size = n()) %>%
+    as.data.frame()
 
   print(paste0('Total cells with paired a/b TCR data: ', sum(df$clone_size), ', out of ', ncol(seuratObj), ' input cells'))
 
@@ -346,7 +347,8 @@ CalculateTcrRepertoireStats <- function(df, groupField = "cDNA_ID", minCellsRequ
     filter(!grepl(v_b_gene, pattern = ',')) %>%
     filter(!grepl(cdr3_a_aa, pattern = ',')) %>%
     filter(!grepl(cdr3_b_aa, pattern = ',')) %>%
-    summarize(clone_size = n())
+    summarize(clone_size = n()) %>%
+    as.data.frame()
   diversityData_in <- diversityData
 
   if (nrow(diversityData) == 0) {
@@ -390,7 +392,7 @@ CalculateTcrRepertoireStats <- function(df, groupField = "cDNA_ID", minCellsRequ
   for (chain in c('TRA', 'TRB', 'TRD', 'TRG')) {
     chainData <- df %>%
       select(dplyr::all_of(c(groupField, chain))) %>%
-      filter(dplyr::any_of(
+      filter(dplyr::if_any(
         .cols = groupField,
         .fns = ~ !is.na(.x)
       )) %>%
