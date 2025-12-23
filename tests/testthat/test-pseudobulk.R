@@ -129,13 +129,13 @@ test_that("Logic gate study design works", {
   #test that the heatmap matrix has 3 columns
   testthat::expect_true(ncol(heatmap_list$matrix) == 3)
   #test that pseudobulk heatmap subsetting works. 
-  testthat::expect_no_error(PseudobulkingDEHeatmap(seuratObj = pbulk, 
+  testthat::expect_no_error(suppressWarnings(PseudobulkingDEHeatmap(seuratObj = pbulk,
                                          geneSpace = genes[genes!="PRF1"], 
                                          contrastField = "vaccine_cohort", 
                                          negativeContrastValue = "control", 
                                          sampleIdCol = 'subject', 
                                          subsetExpression = "vaccine_cohort %in% c('unvax', 'vaccineOne')"
-  ))
+  )))
 })
 
 test_that("Non-alphanumeric characters do not break pseudobulking pipeline", {

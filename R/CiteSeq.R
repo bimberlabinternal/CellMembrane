@@ -545,7 +545,7 @@ CiteSeqDimRedux.Dist <- function(seuratObj, assayName = 'ADT', dist.method = "eu
 	adt.dist <- dist(Matrix::t(adt.data), method = dist.method)
 	seuratObj[["adt_snn.dist"]]  <- FindNeighbors(adt.dist, verbose = FALSE)$snn
 
-	seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn.dist", verbose = FALSE)
+	seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn.dist", verbose = FALSE, random.seed = GetSeed())
 	seuratObj[["AdtClusterNames_2.0.dist"]] <- Idents(object = seuratObj)
 
 	#tSNE:
@@ -665,7 +665,7 @@ CiteSeqDimRedux.PCA <- function(seuratObj, assayName = 'ADT', print.plots = TRUE
 		}
 
 		seuratObj <- FindNeighbors(seuratObj, verbose = FALSE, reduction = keyName, dims = dimsToUse, graph.name = "adt_snn.pca")
-		seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn.pca", verbose = FALSE)
+		seuratObj <- FindClusters(seuratObj, resolution = 2.0, graph.name = "adt_snn.pca", verbose = FALSE, random.seed = GetSeed())
 		seuratObj[["AdtClusterNames_2.0.PCA"]] <- Idents(object = seuratObj)
 
 		#tSNE:
@@ -756,7 +756,7 @@ RunSeuratWnn <- function(seuratObj, dims.list = list(1:30, 1:18), assayName = 'A
 	)
 
 	seuratObj <- RunUMAP(seuratObj, nn.name = "weighted.nn", reduction.name = "wnn.umap", reduction.key = "wnnUMAP_", verbose = FALSE)
-	seuratObj <- FindClusters(seuratObj, graph.name = "wsnn", algorithm = 3, resolution = 2, verbose = FALSE)
+	seuratObj <- FindClusters(seuratObj, graph.name = "wsnn", algorithm = 3, resolution = 2, verbose = FALSE, random.seed = GetSeed())
 
 	print(DimPlot(seuratObj, reduction = 'wnn.umap', label = TRUE, repel = TRUE, label.size = 2.5) + NoLegend())
 

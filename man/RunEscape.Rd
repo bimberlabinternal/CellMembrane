@@ -6,10 +6,12 @@
 \usage{
 RunEscape(
   seuratObj,
-  outputAssayBaseName = "escape.",
+  outputAssayBaseName = "escape",
+  escapeMethod = "ssGSEA",
+  heatmapGroupingVars = NULL,
   doPlot = FALSE,
   performDimRedux = FALSE,
-  msigdbGeneSets = c("H", C5 = "GO:BP", C5 = "GO:MF"),
+  msigdbGeneSets = c("H", C5 = "GO:BP", C5 = "GO:MF", C7 = "IMMUNESIGDB", C2 = "CP:KEGG"),
   customGeneSets = NULL,
   customGeneSetAssayName = "CustomGeneSet",
   maxBatchSize = 1e+05,
@@ -20,6 +22,10 @@ RunEscape(
 \item{seuratObj}{A Seurat object.}
 
 \item{outputAssayBaseName}{The basename of the assay to store results. Escape will be run once for each gene set.}
+
+\item{escapeMethod}{Passed to escape::runEscape()}
+
+\item{heatmapGroupingVars}{An optional vector of field names. If provided, the code will iterate these and run escape::heatmapEnrichment(group.by = XX) for each}
 
 \item{doPlot}{If true, a FeaturePlot will be printed for each pathway}
 

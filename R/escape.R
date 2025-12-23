@@ -3,6 +3,8 @@
 #' @description This will run escape to calcualte ssGSEA on Hallmark gene sets
 #' @param seuratObj A Seurat object.
 #' @param outputAssayBaseName The basename of the assay to store results. Escape will be run once for each gene set.
+#' @param escapeMethod Passed to escape::runEscape()
+#' @param heatmapGroupingVars An optional vector of field names. If provided, the code will iterate these and run escape::heatmapEnrichment(group.by = XX) for each
 #' @param doPlot If true, a FeaturePlot will be printed for each pathway
 #' @param performDimRedux If true, the standard seurat PCA/FindClusters/UMAP process will be run on the escape data. This may be most useful when using a customGeneSet or a smaller set of features/pathways
 #' @param msigdbGeneSets A vector containing gene set codes specifying which gene sets should be fetched from MSigDB and calculated. Some recommendations in increasing computation time: H (hallmark, 50 gene sets), C8 (scRNASeq cell type markers, 830 gene sets), C2 (curated pathways, 6366 gene sets), GO:BP (GO biological processes, 7658). Each item will be processed into a separate assay.
@@ -12,11 +14,12 @@
 #' @param nCores Passed to runEscape()
 #' @return The seurat object with results stored in an assay
 #' @export
-RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', maxBatchSize = 100000, nCores = 1) {
+RunEscape <- function(seuratObj, outputAssayBaseName = "escape", escapeMethod = 'ssGSEA', heatmapGroupingVars = NULL, doPlot = FALSE, performDimRedux = FALSE, msigdbGeneSets = c("H", "C5" = "GO:BP", "C5" = "GO:MF", "C7" = "IMMUNESIGDB", "C2" = "CP:KEGG"), customGeneSets = NULL, customGeneSetAssayName = 'CustomGeneSet', maxBatchSize = 100000, nCores = 1) {
   assayToGeneSets <- list()
 
   # NOTE: currently escape only supports RNA:
   assayName <- 'RNA'
+  outputAssayBaseName <- paste0(outputAssayBaseName, '.', escapeMethod, '.')
 
   if (all(!is.null(customGeneSets), !(length(customGeneSets) == 0))) {
     if (!is.list(customGeneSets)){
@@ -86,7 +89,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
 
     assayCounts <- NULL
     if (nBatches == 1) {
-      assayCounts <- .RunEscapeOnSubset(seuratObj = seuratObj, outputAssayName = outputAssayName, GS = GS, nCores = nCores)
+      assayCounts <- .RunEscapeOnSubset(seuratObj = seuratObj, outputAssayName = outputAssayName, GS = GS, escapeMethod = escapeMethod, nCores = nCores)
     }
     else {
       cellsPerBatch <- .SplitCellsIntoBatches(seuratObj, nBatches = nBatches)
@@ -98,7 +101,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
           stop(paste0('Error subsetting seurat object, batch size does not match cells after subset: ', length(toRun), ' / ', ncol(seuratObj)))
         }
 
-        mat <- .RunEscapeOnSubset(seuratObj = so, outputAssayName = outputAssayName, GS = GS, nCores = nCores)
+        mat <- .RunEscapeOnSubset(seuratObj = so, outputAssayName = outputAssayName, GS = GS, escapeMethod = escapeMethod, nCores = nCores)
         rm(so)
 
         assayCounts <- cbind(assayCounts, mat)
@@ -121,6 +124,24 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
     seuratObj[[outputAssayName]] <- Seurat::CreateAssayObject(counts = assayCounts)
     seuratObj <- .NormalizeEscape(seuratObj, assayToNormalize = outputAssayName, assayForLibrarySize = assayName)
 
+    if (!all(is.null(heatmapGroupingVars))) {
+      for (var in heatmapGroupingVars) {
+        if (!var %in% names(seuratObj@meta.data)) {
+          print(paste0('Missing var, cannot make heatmap: ', var))
+          next
+        }
+
+        escape::heatmapEnrichment(
+          seuratObj,
+          group.by = var,
+          gene.set.use = "all",
+          scale = TRUE,
+          cluster.rows = TRUE,
+          cluster.columns = TRUE,
+          assay = outputAssayName
+        )
+      }
+    }
     if (doPlot) {
       pathways <- rownames(seuratObj@assays[[outputAssayName]])
       key <- seuratObj@assays[[outputAssayName]]@key
@@ -137,10 +158,10 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   return(seuratObj)
 }
 
-.RunEscapeOnSubset <- function(seuratObj, outputAssayName, GS, nCores){
+.RunEscapeOnSubset <- function(seuratObj, outputAssayName, GS, escapeMethod, nCores){
   BPPARAM <- .InferBpParam(nCores, defaultValue = BiocParallel::SerialParam())
   seuratObj <- escape::runEscape(seuratObj,
-                                 method = "ssGSEA",
+                                 method = escapeMethod,
                                  gene.sets = GS,
                                  min.size = 0,
                                  BPPARAM = BPPARAM,
@@ -156,7 +177,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   assayNameForKeys <- gsub(assayName, pattern = '\\.', replacement = '')
   pca.reduction.key <- paste0(assayNameForKeys, 'pca_')
   pca.reduction.name <- paste0('pca.', assayName)
-  seuratObj <- Seurat::RunPCA(seuratObj, assay = assayName, npcs = min(50, length(Seurat::VariableFeatures(seuratObj, assay = assayName))), reduction.key = pca.reduction.key, reduction.name = pca.reduction.name)
+  seuratObj <- suppressWarnings(Seurat::RunPCA(seuratObj, assay = assayName, npcs = min(50, length(Seurat::VariableFeatures(seuratObj, assay = assayName))), reduction.key = pca.reduction.key, reduction.name = pca.reduction.name))
 
   print(Seurat::ProjectDim(seuratObj, reduction = pca.reduction.name, assay = assayName))
   print(Seurat::VizDimLoadings(object = seuratObj, dims = 1:4, nfeatures = nrow(seuratObj@assays[[assayName]]), reduction = pca.reduction.name))
@@ -171,7 +192,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
 
   origIdents <- Seurat::Idents(seuratObj)
   for (resolutionToUse in resolutionsToUse) {
-    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, seed.use = GetSeed(), cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
+    seuratObj <- Seurat::FindClusters(object = seuratObj, resolution = resolutionToUse, verbose = FALSE, graph.name = graphName, random.seed = GetSeed(), cluster.name = paste0('ClusterNames.', assayName, '_', resolutionToUse))
   }
   Seurat::Idents(seuratObj) <- origIdents
 
@@ -195,10 +216,11 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
   margin <- 2
   ncells <- dim(x = toNormalize)[margin]
 
+  totalNaCells <- 0
   for (i in seq_len(length.out = ncells)) {
     x <- toNormalize[, i]
     if (any(is.na(x))) {
-      warning('NAs were found in the escape data!')
+      totalNaCells <- totalNaCells + 1
       x[is.na(x)] <- 0
     }
 
@@ -208,6 +230,10 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape.", doPlot = FALSE
     }
 
     toNormalize[, i] <- x / librarySize
+  }
+
+  if (totalNaCells > 0) {
+    warning(paste0('NAs were found in the escape data! Total cells: ', totalNaCells))
   }
 
   seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, layer = 'data', new.data = toNormalize)

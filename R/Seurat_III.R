@@ -595,7 +595,7 @@ RegressCellCycle <- function(seuratObj, scaleVariableFeaturesOnly = T, block.siz
 #' @return A modified Seurat object.
 #' @export
 FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = NULL,
-                                   umap.method = 'uwot', umap.metric = NULL,
+                                   umap.method = 'uwot', umap.metric = 'cosine',
                                    umap.n.neighbors = NULL, umap.min.dist = NULL, umap.spread = NULL, seed.use = GetSeed(),
                                    umap.n.epochs = NULL, max.tsne.iter = 10000, tsne.perplexity = 30, umap.densmap = FALSE,
   clusterResolutions = c(0.2, 0.4, 0.6, 0.8, 1.2), runTSNE = FALSE,
@@ -605,11 +605,10 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 
   seuratObj <- FindNeighbors(object = seuratObj, dims = dimsToUse, verbose = FALSE)
 
-  clusterMethod <- ifelse(ncol(seuratObj) > 5000, yes = 'igraph', no = 'matrix')
   algorithm <- ifelse(useLeiden, yes = 4, no = 1)
 
   for (resolution in clusterResolutions){
-    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE, random.seed = seed.use, method = clusterMethod, algorithm = algorithm, cluster.name = paste0("ClusterNames_", resolution))
+    seuratObj <- FindClusters(object = seuratObj, resolution = resolution, verbose = FALSE, random.seed = seed.use, algorithm = algorithm, cluster.name = paste0("ClusterNames_", resolution))
   }
 
   if (runTSNE) {

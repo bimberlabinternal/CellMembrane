@@ -9,7 +9,7 @@ FindClustersAndDimRedux(
   dimsToUse = NULL,
   minDimsToUse = NULL,
   umap.method = "uwot",
-  umap.metric = NULL,
+  umap.metric = "cosine",
   umap.n.neighbors = NULL,
   umap.min.dist = NULL,
   umap.spread = NULL,
