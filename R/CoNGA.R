@@ -260,7 +260,7 @@ CalculateTcrDiversity <- function(inputData,
     stop('Parsing error in tcrdist3 output. No columns containing diversity metrics were found.')
   }
   print(df |> select(tidyr::all_of(c("order", y))) |>
-    tidyr::pivot_longer(cols = y, names_to = "sample_div", values_to = "y") |> 
+    tidyr::pivot_longer(cols = dplyr::all_of(y), names_to = "sample_div", values_to = "y") |>
     ggplot(aes(x = order, y = y)) + geom_line(aes(color = sample_div)) + egg::theme_article()
   )
 
@@ -334,13 +334,13 @@ CalculateTcrRepertoireStats <- function(df, groupField = "cDNA_ID", minCellsRequ
   # Filter/rename as needed for CalculateTcrDiversity():
   diversityData <- df %>%
     filter(!is.na(TRA) & !is.na(TRB)) %>%
-    rename(
+    rename(c(
       'sampleId' = groupField,
       'v_a_gene' = 'TRA_V',
       'v_b_gene' = 'TRB_V',
       'cdr3_a_aa' = 'TRA',
       'cdr3_b_aa' = 'TRB'
-    ) %>%
+    )) %>%
     filter(!is.na(sampleId)) %>%
     group_by(sampleId, v_a_gene, v_b_gene, cdr3_a_aa, cdr3_b_aa) %>%
     filter(!grepl(v_a_gene, pattern = ',')) %>%
@@ -364,7 +364,7 @@ CalculateTcrRepertoireStats <- function(df, groupField = "cDNA_ID", minCellsRequ
   }
   diversityData <- diversityData |> 
     select(dplyr::all_of(c("order", y))) |>
-    tidyr::pivot_longer(cols = y, names_to = "sampleId", values_to = "Value")
+    tidyr::pivot_longer(cols = dplyr::all_of(y), names_to = "sampleId", values_to = "Value")
   
   if (length(intersect(diversityData$sampleId, df[[groupField]])) == 0) {
     diversityData$sampleId <- gsub(diversityData$sampleId, pattern = '^Z_', replacement = '')
