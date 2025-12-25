@@ -335,7 +335,7 @@ CalculateTcrRepertoireStats <- function(df, groupField = "cDNA_ID", minCellsRequ
   diversityData <- df %>%
     filter(!is.na(TRA) & !is.na(TRB)) %>%
     rename(c(
-      'sampleId' = groupField,
+      'sampleId' = !!groupField,
       'v_a_gene' = 'TRA_V',
       'v_b_gene' = 'TRB_V',
       'cdr3_a_aa' = 'TRA',
