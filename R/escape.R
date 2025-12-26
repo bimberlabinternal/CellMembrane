@@ -217,10 +217,14 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape", escapeMethod = 
   ncells <- dim(x = toNormalize)[margin]
 
   totalNaCells <- 0
+  totalFullyNaCells <- 0
   for (i in seq_len(length.out = ncells)) {
     x <- toNormalize[, i]
     if (any(is.na(x))) {
       totalNaCells <- totalNaCells + 1
+      if (all(is.na(x))) {
+        totalFullyNaCells <- totalFullyNaCells + 1
+      }
       x[is.na(x)] <- 0
     }
 
@@ -233,7 +237,7 @@ RunEscape <- function(seuratObj, outputAssayBaseName = "escape", escapeMethod = 
   }
 
   if (totalNaCells > 0) {
-    warning(paste0('NAs were found in the escape data! Total cells: ', totalNaCells))
+    warning(paste0('NAs were found in the escape data! Total cells with an NA: ', totalNaCells, ', cells with all NAs: ', totalFullyNaCells))
   }
 
   seuratObj <- Seurat::SetAssayData(seuratObj, assay = assayToNormalize, layer = 'data', new.data = toNormalize)

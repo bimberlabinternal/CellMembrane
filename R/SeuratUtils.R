@@ -264,11 +264,11 @@ GetXYAesthetics <- function(plot, geom = 'GeomPoint', plot.first = TRUE) {
 	}
 	geoms <- min(geoms)
 	if (plot.first) {
-		x <- as.character(x = plot$mapping$x %||% plot$layers[[geoms]]$mapping$x)[2]
-		y <- as.character(x = plot$mapping$y %||% plot$layers[[geoms]]$mapping$y)[2]
+        x <- dplyr::as_label(x = plot$mapping$x %||% plot$layers[[geoms]]$mapping$x)
+        y <- dplyr::as_label(x = plot$mapping$y %||% plot$layers[[geoms]]$mapping$y)
 	} else {
-		x <- as.character(x = plot$layers[[geoms]]$mapping$x %||% plot$mapping$x)[2]
-		y <- as.character(x = plot$layers[[geoms]]$mapping$y %||% plot$mapping$y)[2]
+		x <- dplyr::as_label(x = plot$layers[[geoms]]$mapping$x %||% plot$mapping$x)
+		y <- dplyr::as_label(x = plot$layers[[geoms]]$mapping$y %||% plot$mapping$y)
 	}
 	return(list('x' = x, 'y' = y))
 }
