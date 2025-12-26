@@ -13,6 +13,8 @@ RUN cd /CellMembrane \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'never');" \
     # This should ultimately be removed. It is being used to fix the merge() bug in SeuratObject 5.3.0
     && Rscript -e "remotes::install_version('SeuratObject', version = '5.2.0')" \
+    # NOTE: this is added to try to address the "Error in `req_perform1(req, req_prep, path = path, handle = handle, resend_count = n)`: unused arguments (req_prep, resend_count = n)"
+    && Rscript -e 'remotes::install_version("httr2", version = "1.2.1")' \
     && R CMD build . \
 	&& R CMD INSTALL --build *.tar.gz \
 	&& rm -Rf /tmp/downloaded_packages/ /tmp/*.rds \
