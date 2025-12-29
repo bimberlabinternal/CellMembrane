@@ -97,7 +97,8 @@ Imports:
     sandwich, 
     clubSandwich, 
     iNEXT,
-    leidenbase
+    leidenbase,
+    logger
 Suggests:
     devtools,
     testthat (>= 2.1.0),
