@@ -392,7 +392,7 @@ CalculateTcrRepertoireStats <- function(df, groupField = "cDNA_ID", minCellsRequ
   for (chain in c('TRA', 'TRB', 'TRD', 'TRG')) {
     chainData <- df %>%
       select(dplyr::all_of(c(groupField, chain))) %>%
-      filter(!is.na(!!groupField)) %>%
+      filter(dplyr::if_all(dplyr::all_of(c(groupField)), ~ !is.na(.x))) %>%
       rename(c(
         CDR3 = !!chain
       )) %>%
