@@ -55,7 +55,7 @@ PlotTfData <- function(seuratObj, assayName = 'tfsulm', groupField = Seurat::Ide
     stop(paste0('assay not found: ', assayName))
   }
 
-  if (! groupField %in% seuratObj@meta.data) {
+  if (length(groupField) == 1 && !groupField %in% seuratObj@meta.data) {
     print(paste0('Field not found, skipping plot: ', groupField))
     return()
   }
