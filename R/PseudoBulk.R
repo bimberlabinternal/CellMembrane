@@ -90,7 +90,12 @@ PseudobulkSeurat <- function(seuratObj,
   }))
   
   Seurat::Idents(seuratObj) <- seuratObj$KeyField
-  
+
+  if (ncol(seuratObj) <= 1) {
+    warning('The seurat object must have 2 or more cells, skipping pseudobulking')
+    return(NULL)
+  }
+
   # This generates the sum of counts
   a <- Seurat::AggregateExpression(seuratObj, group.by = 'KeyField', return.seurat = T, verbose = F, assays = assayToAggregate)
   if (class(Seurat::GetAssay(a, assay = assayToAggregate))[1] != 'Assay5') {
