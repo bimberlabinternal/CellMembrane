@@ -96,6 +96,11 @@ PseudobulkSeurat <- function(seuratObj,
     return(NULL)
   }
 
+  if (nrow(seuratObj[[assayToAggregate]]) < 2) {
+    warning('Too few features in the target assay, skipping pseudobulking')
+    return(NULL)
+  }
+
   # This generates the sum of counts
   a <- Seurat::AggregateExpression(seuratObj, group.by = 'KeyField', return.seurat = T, verbose = F, assays = assayToAggregate)
   if (class(Seurat::GetAssay(a, assay = assayToAggregate))[1] != 'Assay5') {
