@@ -138,6 +138,7 @@ Collate:
     'CiteSeq.R'
     'CoNGA.R'
     'Doublets.R'
+    'ImmPort.R'
     'LDA.R'
     'Phate.R'
     'PseudoBulk.R'
