@@ -117,6 +117,7 @@ BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
     niaid/dsb,
     bimberlab/RIRA,
+    saezlab/OmnipathR@devel,
     marchinilab/SDAtools,
     marchinilab/dropsim,
     drisso/RUVSeq,
