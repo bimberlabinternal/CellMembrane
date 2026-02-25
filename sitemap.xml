@@ -37,10 +37,13 @@
 <url><loc>/reference/FindDoublets.html</loc></url>
 <url><loc>/reference/Find_Markers.html</loc></url>
 <url><loc>/reference/FitRegularizedClassificationGlm.html</loc></url>
+<url><loc>/reference/GeneToImmPortPathway.html</loc></url>
 <url><loc>/reference/GetAssayMetadataSlotName.html</loc></url>
 <url><loc>/reference/GetChiDF.html</loc></url>
 <url><loc>/reference/GetG2MGenes.html</loc></url>
 <url><loc>/reference/GetGeneIds.html</loc></url>
+<url><loc>/reference/GetImmPortGeneMapping.html</loc></url>
+<url><loc>/reference/GetImmPortGenes.html</loc></url>
 <url><loc>/reference/GetSPhaseGenes.html</loc></url>
 <url><loc>/reference/GetSeed.html</loc></url>
 <url><loc>/reference/GetXYDataFromPlot.html</loc></url>
@@ -56,6 +59,7 @@
 <url><loc>/reference/PerformEmptyDropletFiltering.html</loc></url>
 <url><loc>/reference/PerformGlmFit.html</loc></url>
 <url><loc>/reference/PerformIntegration.html</loc></url>
+<url><loc>/reference/PermutationTestForImmPortPathwayOccurrences.html</loc></url>
 <url><loc>/reference/PlotAverageAdtCounts.html</loc></url>
 <url><loc>/reference/PlotSdaCellScores.html</loc></url>
 <url><loc>/reference/PlotSeuratVariables.html</loc></url>
@@ -93,6 +97,7 @@
 <url><loc>/reference/SpatialNormalizeByGroup.html</loc></url>
 <url><loc>/reference/SplitSeurat.html</loc></url>
 <url><loc>/reference/SubsetSeurat.html</loc></url>
+<url><loc>/reference/SubsetSeuratToImmPortGenes.html</loc></url>
 <url><loc>/reference/TrainSctourModel.html</loc></url>
 <url><loc>/reference/UpdateMacaqueMmul10NcbiGeneSymbols.html</loc></url>
 <url><loc>/reference/WriteCellBarcodes.html</loc></url>
