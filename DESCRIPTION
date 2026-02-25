@@ -98,7 +98,8 @@ Imports:
     clubSandwich, 
     iNEXT,
     leidenbase,
-    logger
+    logger, 
+    GSEABase
 Suggests:
     devtools,
     testthat (>= 2.1.0),
@@ -117,6 +118,7 @@ BugReports: https://github.com/BimberLabInternal/CellMembrane/issues
 Remotes:
     niaid/dsb,
     bimberlab/RIRA,
+    saezlab/OmnipathR@devel,
     marchinilab/SDAtools,
     marchinilab/dropsim,
     drisso/RUVSeq,
@@ -138,6 +140,7 @@ Collate:
     'CiteSeq.R'
     'CoNGA.R'
     'Doublets.R'
+    'ImmPort.R'
     'LDA.R'
     'Phate.R'
     'PseudoBulk.R'
