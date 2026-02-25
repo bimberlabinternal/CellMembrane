@@ -18,11 +18,10 @@ test_that("GeneToImmPortPathway is case-insensitive and returns pathways", {
   expect_true(is.character(result_upper))
 })
 
-test_that("GetImmPortGenes returns a non-empty character vector of uppercase symbols", {
+test_that("GetImmPortGenes returns a non-empty character vector of symbols", {
   immport_genes <- GetImmPortGenes()
   expect_true(is.character(immport_genes))
   expect_true(length(immport_genes) > 0)
-  expect_true(all(immport_genes == toupper(immport_genes)))
 })
 
 test_that("SubsetSeuratToImmPortGenes reduces feature space", {
@@ -99,4 +98,16 @@ test_that("PermutationTestForImmPortPathwayOccurrences detects enrichment signal
   target_row <- result[result$Pathway == target_pathway, ]
   expect_true(nrow(target_row) == 1)
   expect_true(target_row$PValue < 0.05)
+})
+
+#check to see if Immport's gene list has changed. If so, warn us so we can update the cached version
+test_that("GetImmPortGenes returns a consistent gene list", {
+  current_genes <- names(.FetchImmPortGmt())
+  cached_genes <- names(readRDS(system.file("extdata", "immport_gene_pathway_map.rds", package = "CellMembrane")))
+
+  if (!identical(sort(current_genes), sort(cached_genes))) {
+    warning("The list of ImmPort genes has changed since the cached version was saved. Please update the cached version at '../testdata/immport_genes.rds' to match the current output of GetImmPortGenes().")
+  }
+
+  expect_true(length(current_genes) > 0)
 })

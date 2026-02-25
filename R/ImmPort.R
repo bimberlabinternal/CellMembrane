@@ -1,44 +1,93 @@
 # functions for working with ImmPort gene/pathway data.
-# the gene-to-pathway map is stored as inst/extdata/immport_gene_pathway_map.rds
-# This was last run on Feb 20, 2026. To update, see below to pull the latest GMT from ImmPort and rebuild the RDS using the following code: 
-# library(GSEABase)
-# raw_lines <- readLines("all_gene_lists.gmt") # gene list from immport (link will download the file): https://s3.immport.org/release/genelists/current/all_gene_lists.gmt?download=true
-# clean_lines <- raw_lines[nzchar(trimws(raw_lines))]
-# clean_lines <- clean_lines[grepl("\t", clean_lines)]
-# tmp_clean <- tempfile(fileext = ".gmt")
-# writeLines(clean_lines, tmp_clean)
-# gsets <- getGmt(tmp_clean, sep = "\t")
-# pathway_list <- geneIds(gsets)
-# pathwayRDS <- saveRDS(pathway_list, file = "inst/extdata/immport_gene_pathway_map.rds")
+# the gene-to-pathway map is stored as inst/extdata/immport_gene_pathway_map.rds. 
+# the version cached was updated on Feb 20th 2026
 
 ###############
 ### Helpers ###
 ###############
 
+#helper to fetch and process the ImmPort file
+.FetchImmPortGmt <- function(fetchUrl = "https://s3.immport.org/release/genelists/current/all_gene_lists.gmt?download=true") {
+  #fetch & read
+  gmt_url <- fetchUrl
+  temp_file_raw <- tempfile(fileext = ".gmt")
+  download.file(gmt_url, temp_file_raw, mode = "wb")
+  raw_lines <- readLines(temp_file_raw)
+  if (length(raw_lines) == 0) {
+    stop("Failed to read any lines from the downloaded GMT file. Check the URL supplied to fetchUrl, and internet connectivity. URL used: ", gmt_url)
+  }
+  #weird characters are present, so clean and make sure they're tab-delimited before parsing with GSEABase
+  clean_lines <- raw_lines[nzchar(trimws(raw_lines))]
+  clean_lines <- clean_lines[grepl("\t", clean_lines)]
+  temp_file_clean <- tempfile(fileext = ".gmt")
+  writeLines(clean_lines, temp_file_clean)
+  
+  #manipulate into a list
+  gsets <- GSEABase::getGmt(temp_file_clean, sep = "\t")
+  pathway_list <- GSEABase::geneIds(gsets)
+  #then, flip the relationship so we fetch pathways from genes and have easy access to the genes via names()
+  stacked_list <- stack(pathway_list)
+  genewise_list <- split(as.character(stacked_list$ind), stacked_list$values)
+  return(genewise_list)
+}
+
 #general function for pulling this mapping into memory, caching to avoid repeated file reads.
-.LoadImmPortGeneMapping <- function() {
-  if (!is.null(pkg.env$immport_gene_to_pathway)) {
+.LoadImmPortGeneMapping <- function(fetch = TRUE) {
+  #prefer fetching the latest GMT from the S3 
+  if (fetch){
+    gene_to_pathway <- .FetchImmPortGmt()
+  } else if (!is.null(pkg.env$immport_gene_to_pathway)) {
+    #if not fetching, check if we have a cached version in the package environment 
+    return(pkg.env$immport_gene_to_pathway)
+  } else {
+    #otherwise, read it from the bundled RDS file
+    rds_path <- system.file("extdata", "immport_gene_pathway_map.rds", package = "CellMembrane")
+    gene_to_pathway <- readRDS(rds_path)
+    pkg.env$immport_gene_to_pathway <- gene_to_pathway
+  }
+  return(gene_to_pathway)
+}
+.LoadImmPortGeneMapping <- function(fetch = TRUE) {
+  gene_to_pathway <- NULL
+  
+  # attempt to fetch the latest GMT from S3 if requested
+  # but only do so if we don't already have a cached version in the package environment
+  if (fetch & is.null(pkg.env$immport_gene_to_pathway)) {
+    gene_to_pathway <- tryCatch({
+      message("Attempting to fetch latest ImmPort gene mapping...")
+      .FetchImmPortGmt()
+    }, error = function(e) {
+      warning("Failed to fetch ImmPort pathways from S3: ", e$message, "\nFalling back to local cache or bundled data.")
+      return(NULL) #fallback to NULL to trigger cached version
+    })
+  }
+  
+  #if fetch failed or was FALSE, check the package environment cache
+  if (is.null(gene_to_pathway) && !is.null(pkg.env$immport_gene_to_pathway)) {
     return(pkg.env$immport_gene_to_pathway)
   }
+  # if still NULL, read from the bundled RDS 
+  if (is.null(gene_to_pathway)) {
+    rds_path <- system.file("extdata", "immport_gene_pathway_map.rds", package = "CellMembrane")
+    
+    if (rds_path == "") {
+      stop("Bundled RDS file not found in CellMembrane package.")
+    }
 
-  rds_path <- system.file("extdata", "immport_gene_pathway_map.rds", package = "CellMembrane")
-  if (!nzchar(rds_path)) {
-    stop("immport_gene_pathway_map.rds not found. Run inst/scripts/BuildImmPortMapping.R to generate it.")
+    gene_to_pathway <- readRDS(rds_path)
   }
-
-  gene_to_pathway <- readRDS(rds_path)
+  #cache the file
   pkg.env$immport_gene_to_pathway <- gene_to_pathway
-
   return(gene_to_pathway)
 }
 
-  #helper for pathway counting in the permutation test. Takes a vector of gene symbols and returns a table of pathway counts.
-  .CountPathways <- function(genes) {
-    gene_to_pathway <- .LoadImmPortGeneMapping()
-    all_pathway_hits <- unlist(gene_to_pathway[genes], use.names = FALSE)
-    if (length(all_pathway_hits) == 0) return(integer(0))
-    return(table(all_pathway_hits))
-  }
+#helper for pathway counting in the permutation test. Takes a vector of gene symbols and returns a table of pathway counts.
+.CountPathways <- function(genes) {
+  gene_to_pathway <- .LoadImmPortGeneMapping()
+  all_pathway_hits <- unlist(gene_to_pathway[genes], use.names = FALSE)
+  if (length(all_pathway_hits) == 0) return(integer(0))
+  return(table(all_pathway_hits))
+}
 
 #' @title Get ImmPort Gene Mapping
 #' @description Returns the full named list mapping each gene symbol to its ImmPort pathways.
