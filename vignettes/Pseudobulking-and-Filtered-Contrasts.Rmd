@@ -435,8 +435,8 @@ Technical covariates must be present in the pseudobulked Seurat object's metadat
 Suppose our samples were processed on two plates. We want to compare vaccine cohorts while accounting for plate effects.
 
 ```{r covariate setup}
-#add a technical covariate to the original data
-seuratObj@meta.data$PlateId <- base::rep(c("PlateA", "PlateB"), length.out = ncol(seuratObj))
+#add a technical covariate to the original data - derive PlateId from subject so it varies within vaccine groups (avoids confounding with vaccine_cohort)
+seuratObj@meta.data[,"PlateId"] <- ifelse(seuratObj@meta.data[,"subject"] %in% c(1, 2), "PlateA", "PlateB")
 
 #re-pseudobulk, including PlateId in groupFields so it is present in per-sample metadata
 pbulk_covariates <- suppressWarnings(PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint", "sample_identifier", "PlateId")))
@@ -535,3 +535,10 @@ When you see this error, you should either:
 1. **Remove the confounded covariate** from `technicalCovariates`, since its effect cannot be separated from the group effect.
 2. **Redesign the experiment** so that technical and biological variables are not perfectly aligned (e.g., ensure each plate contains samples from multiple treatment groups).
 
+The error message will state: 
+
+```
+The following column(s) are not independently estimable:
+  'ConfoundedPlatePlateB' ...
+```
+which has the format `metadata_column``factor_level`. This indicates that the `ConfoundedPlate` variable at the `PlateB` level is perfectly confounded with one of the vaccine cohorts, and thus cannot be included as a covariate in the model. To proceed, you must remove `ConfoundedPlate` from the design matrix or redesign the experiment to avoid this confounding.
