@@ -4,7 +4,12 @@
 \alias{DesignModelMatrix}
 \title{DesignModelMatrix}
 \usage{
-DesignModelMatrix(seuratObj, contrast_columns, sampleIdCol = "cDNA_ID")
+DesignModelMatrix(
+  seuratObj,
+  contrast_columns,
+  sampleIdCol = "cDNA_ID",
+  technicalCovariates = NULL
+)
 }
 \arguments{
 \item{seuratObj}{The seurat object}
@@ -12,6 +17,8 @@ DesignModelMatrix(seuratObj, contrast_columns, sampleIdCol = "cDNA_ID")
 \item{contrast_columns}{A vector of columns to contrast}
 
 \item{sampleIdCol}{An additional column denoting the variable containing the sample (for grouping)}
+
+\item{technicalCovariates}{An optional character vector of metadata column names corresponding to technical variables (e.g. c("SubjectId", "cDNA_ID", "PlateId")) to include as fixed-effect covariates in the design matrix. When provided, these variables are regressed out during model fitting, removing their confounding effects from the contrast estimates. Default is NULL (no covariates).}
 }
 \value{
 A model matrix (samples x groups data frame.)

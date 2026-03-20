@@ -414,3 +414,124 @@ Now, we can interpret the changes within vaccine cohorts and over time!
 heatmap_list$heatmap
 ```
 
+## Regressing Out Technical Covariates
+
+In many experimental designs, technical variables such as sequencing plate, cDNA reaction batch, or processing site can introduce variation that is unrelated to the biological question. The pseudobulking pipeline supports optional regression of these technical covariates by including them as fixed-effect terms in the design matrix. This allows edgeR to estimate and remove their effects when computing log fold changes and p-values for the contrasts of interest.
+
+While this attempts to remove technical variation - if the variation is intrinsic to the samples (e.g. all of the samples from one vaccine cohort were processed on one plate, and all of the samples from another vaccine cohort were processed on another plate), then the technical covariate will be confounded with the biological variable of interest, and regression will not be able to separate the two effects. In this case, it is critical to ensure that your experimental design includes technical replicates across your biological variables of interest (e.g. samples from each vaccine cohort are processed across multiple plates) to allow for proper estimation and regression of technical effects.
+
+### When to Use Technical Covariates
+
+You should consider using this feature when:
+
+- Your samples were processed across multiple batches, plates, or sites.
+- You have technical identifiers (e.g. `SubjectId`, `SequencingLane`) that may confound your biological signal.
+- You want to account for known sources of technical variation without removing them from the data prior to pseudobulking.
+
+Technical covariates must be present in the pseudobulked Seurat object's metadata (i.e., included in `groupFields` during `PseudobulkSeurat()` or otherwise present per sample).
+
+### Example: Regressing Out PlateId
+
+Suppose our samples were processed on two plates. We want to compare vaccine cohorts while accounting for plate effects.
+
+```{r covariate setup}
+#add a technical covariate to the original data
+seuratObj@meta.data$PlateId <- base::rep(c("PlateA", "PlateB"), length.out = ncol(seuratObj))
+
+#re-pseudobulk, including PlateId in groupFields so it is present in per-sample metadata
+pbulk_covariates <- suppressWarnings(PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint", "sample_identifier", "PlateId")))
+```
+
+Now, pass `technicalCovariates` to `DesignModelMatrix`. The covariate columns will be added to the design matrix as fixed intercepts. Downstream contrasts only reference the group columns, so the covariate effect is estimated and removed without affecting contrast specification.
+
+```{r covariate design matrix, fig.height=7, fig.width = 10}
+design_covariates <- DesignModelMatrix(pbulk_covariates, 
+                                contrast_columns = c("vaccine_cohort"), 
+                                sampleIdCol = "sample_identifier",
+                                technicalCovariates = c("PlateId"))
+
+# The design matrix now includes group columns and a PlateId column
+head(design_covariates)
+```
+
+Notice that the design matrix contains the usual group columns (one per vaccine cohort) plus an additional column for `PlateId`. When the GLM is fit, edgeR estimates the plate effect and removes it from the contrast estimates.
+
+### Running Contrasts with Covariates
+
+The `technicalCovariates` attribute is stored on the design matrix and automatically propagated through `RunFilteredContrasts`. No additional arguments are needed beyond the design matrix.
+
+```{r covariate filtered contrasts}
+logicList_covariates <- list(list("vaccine_cohort", "xor", "vaccineOne"),
+                      list("vaccine_cohort", "nor", "vaccineTwo"))
+
+filtered_contrasts_covariates <- FilterPseudobulkContrasts(logicList = logicList_covariates, 
+                                                    design = design_covariates, 
+                                                    useRequireIdenticalLogic = FALSE,
+                                                    filteredContrastsOutputFile = tempfile())
+
+DE_results_covariates <- RunFilteredContrasts(seuratObj = pbulk_covariates, 
+                       filteredContrastsDataframe = filtered_contrasts_covariates, 
+                       design = design_covariates,
+                       test.use = "QLF", 
+                       logFC_threshold = 1,
+                       FDR_threshold = 0.05,
+                       filterGenes = TRUE, 
+                       assayName = "RNA")
+```
+
+The results are identical in structure to the standard (no-covariate) pipeline. The only difference is that the log fold changes and p-values now account for the plate effect.
+
+```{r covariate results}
+head(DE_results_covariates$`1`)
+```
+
+### Covariates in the DE Heatmap
+
+`PseudobulkingDEHeatmap` also accepts `technicalCovariates`, which it passes through to the internal `DesignModelMatrix` call:
+
+```{r covariate heatmap}
+genes_covariates <- rownames(pbulk_covariates)[1:10]
+
+heatmap_list_covariates <- PseudobulkingDEHeatmap(seuratObj = pbulk_covariates, 
+                       geneSpace = genes_covariates, 
+                       contrastField = "vaccine_cohort", 
+                       negativeContrastValue = "control", 
+                       sampleIdCol = 'sample_identifier',
+                       technicalCovariates = c("PlateId")
+                       )
+heatmap_list_covariates$heatmap
+```
+
+### Diagnosing Confounded Covariates
+
+A common pitfall when adding technical covariates is that they may be perfectly confounded with your experimental groups. For example, if all control samples were processed on Plate A and all treated samples on Plate B, the plate effect is inseparable from the treatment effect, producing a rank-deficient design matrix that edgeR cannot fit.
+
+`DesignModelMatrix` automatically checks for this using QR decomposition and will raise an error identifying exactly which covariate columns are redundant and which group columns they are aliased with:
+
+```{r confounded covariate error}
+#deliberately create a confounded PlateId: perfectly aligned with vaccine_cohort
+seuratObj@meta.data$ConfoundedPlate <- ifelse(
+  seuratObj$vaccine_cohort %in% c("control", "vaccineTwo"), "PlateA", "PlateB"
+)
+seuratObj@meta.data$sample_identifier_confounded <- paste0(
+  "Subject-", seuratObj$subject, '-', seuratObj$vaccine_cohort, "-", seuratObj$timepoint, "-", seuratObj$ConfoundedPlate
+)
+
+pbulk_confounded <- suppressWarnings(PseudobulkSeurat(seuratObj, 
+  groupFields = c("vaccine_cohort", "timepoint", "sample_identifier_confounded", "ConfoundedPlate")))
+
+#this will error about rank deficiency and identify the aliased columns
+tryCatch(
+  DesignModelMatrix(pbulk_confounded, 
+                    contrast_columns = c("vaccine_cohort"), 
+                    sampleIdCol = "sample_identifier_confounded",
+                    technicalCovariates = c("ConfoundedPlate")),
+  error = function(e) message("ERROR: ", conditionMessage(e))
+)
+```
+
+When you see this error, you should either:
+
+1. **Remove the confounded covariate** from `technicalCovariates`, since its effect cannot be separated from the group effect.
+2. **Redesign the experiment** so that technical and biological variables are not perfectly aligned (e.g., ensure each plate contains samples from multiple treatment groups).
+

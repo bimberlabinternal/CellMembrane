@@ -44,3 +44,6 @@ A list of dataframes containing the differentially expressed genes in each contr
 \description{
 This is the companion function to FilterPseudobulkContrasts. FilterPseudobulkContrasts determines the valuable contrasts relative to your metadata variable of interest, and this function performs the model fitting and collecting the differential expression results.
 }
+\details{
+If technicalCovariates were specified in the design matrix (via DesignModelMatrix), they will be automatically propagated to each per-contrast model fit, regressing out those technical variables from the differential expression estimates.
+}

@@ -203,9 +203,10 @@ PseudobulkSeurat <- function(seuratObj,
 #' @param seuratObj The seurat object
 #' @param contrast_columns A vector of columns to contrast
 #' @param sampleIdCol An additional column denoting the variable containing the sample (for grouping)
+#' @param technicalCovariates An optional character vector of metadata column names corresponding to technical variables (e.g. c("SubjectId", "cDNA_ID", "PlateId")) to include as fixed-effect covariates in the design matrix. When provided, these variables are regressed out during model fitting, removing their confounding effects from the contrast estimates. Default is NULL (no covariates).
 #' @return A model matrix (samples x groups data frame.)
 #' @export
-DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_ID"){
+DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_ID", technicalCovariates = NULL){
   #Create a dummy sce@colData that unites the contrast columns into a single "group" column
   #combined columns are (by default) separated by an underscore
   
@@ -220,16 +221,60 @@ DesignModelMatrix <- function(seuratObj, contrast_columns, sampleIdCol = "cDNA_I
   #apply that group column into the original sce
   seuratObj@meta.data$group <- colData_intermediate$group
   
+  #validate technicalCovariates
+  if (!is.null(technicalCovariates)) {
+    if (!is.character(technicalCovariates)) {
+      stop("technicalCovariates must be a character vector of metadata column names.")
+    }
+    missing_covs <- technicalCovariates[!technicalCovariates %in% colnames(seuratObj@meta.data)]
+    if (length(missing_covs) > 0) {
+      stop(paste0("Technical covariates not found in seuratObj@meta.data: ", paste0(missing_covs, collapse = ", ")))
+    }
+    overlap <- intersect(technicalCovariates, contrast_columns)
+    if (length(overlap) > 0) {
+      stop(paste0("technicalCovariates must not overlap with contrast_columns. Overlapping: ", paste0(overlap, collapse = ", ")))
+    }
+  }
+
   # Create the sample level metadata by selecting specific columns
+  cols_to_select <- c(sampleIdCol, "group")
+  if (!is.null(technicalCovariates)) {
+    cols_to_select <- c(cols_to_select, technicalCovariates)
+  }
   experiment_information <- data.frame(seuratObj@meta.data,  row.names = NULL) %>%
-    dplyr::select(tidyr::all_of(c(sampleIdCol, "group")))
-  
-  design <- stats::model.matrix(~ 0 + experiment_information$group) %>%
-    magrittr::set_rownames(experiment_information[[sampleIdCol]]) %>%
-    magrittr::set_colnames(levels(factor(experiment_information$group)))
+    dplyr::select(tidyr::all_of(cols_to_select))
+
+  if (!is.null(technicalCovariates)) {
+    #coerce character covariates to factors for model.matrix
+    for (covariate in technicalCovariates) {
+      if (is.character(experiment_information[[covariate]])) {
+        experiment_information[[covariate]] <- factor(experiment_information[[covariate]])
+      }
+    }
+    covariate_formula_str <- paste("~ 0 + group +", paste(technicalCovariates, collapse = " + "))
+    design <- stats::model.matrix(stats::as.formula(covariate_formula_str), data = experiment_information)
+    rownames(design) <- experiment_information[[sampleIdCol]]
+    #rename group columns from "group<level>" to "<level>" so contrasts work 
+    group_levels <- levels(factor(experiment_information$group))
+    group_col_names <- paste0("group", group_levels)
+    cn <- colnames(design)
+    cn[cn %in% group_col_names] <- group_levels
+    colnames(design) <- cn
+  } else {
+    design <- stats::model.matrix(~ 0 + experiment_information$group) %>%
+      magrittr::set_rownames(experiment_information[[sampleIdCol]]) %>%
+      magrittr::set_colnames(levels(factor(experiment_information$group)))
+  }
   #stash metadata-specific values in the design matrix for retrieval downstream. 
   attr(design, "contrast_columns") <- contrast_columns
   attr(design, "sampleIdCol") <- sampleIdCol
+  attr(design, "technicalCovariates") <- technicalCovariates
+
+  #check for rank deficiency when covariates are present
+  if (!is.null(technicalCovariates)) {
+    .CheckDesignMatrixRankDeficiency(design)
+  }
+
   return(design)
 }
 
@@ -440,7 +485,15 @@ FilterPseudobulkContrasts <- function(logicList = NULL, design = NULL, useRequir
   }
   
   #create a nx2 array of all possible unique pairwise combinations of contrasts from the design matrix.
-  contrasts <- t(utils::combn(colnames(design), m = 2))
+  #exclude covariate columns (if any) — only group columns should be enumerated for pairwise contrasts.
+  group_col_names <- colnames(design)
+  technicalCovariates <- attr(design, "technicalCovariates")
+  if (!is.null(technicalCovariates)) {
+    #covariate columns in model.matrix are named like "<CovariateName><Level>" — remove any column that starts with a covariate name
+    cov_pattern <- paste0("^(", paste(technicalCovariates, collapse = "|"), ")")
+    group_col_names <- group_col_names[!grepl(cov_pattern, group_col_names)]
+  }
+  contrasts <- t(utils::combn(group_col_names, m = 2))
   
   #initialize contrast indices vector (to be used to subset the total contrast list after filtering).
   filtered_contrast_indices <- c()
@@ -546,6 +599,7 @@ xnor <- function(x,y){(x == y)}
 #' @param assayName A passthrough argument specifying in which assay the counts are held. 
 #' @param showPlots A passthrough argument specifying whether or not PerformDifferentialExpression should show the volcano plots.
 #' @return A list of dataframes containing the differentially expressed genes in each contrast supplied by one of the filteredGenes arguments. 
+#' @details If technicalCovariates were specified in the design matrix (via DesignModelMatrix), they will be automatically propagated to each per-contrast model fit, regressing out those technical variables from the differential expression estimates.
 #' @export
 
 RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filteredContrastsDataframe = NULL, design, test.use, logFC_threshold = 1, filterGenes = TRUE, FDR_threshold = 0.05, assayName = "RNA", showPlots = FALSE){
@@ -635,7 +689,8 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
       if (all(table(seuratObj.contrast@meta.data[,contrast_column]) > 1)) {
         filtered_design_matrix <- DesignModelMatrix(seuratObj.contrast,
                                                     contrast_columns = attr(design, "contrast_columns"),
-                                                    sampleIdCol = attr(design, "sampleIdCol"))
+                                                    sampleIdCol = attr(design, "sampleIdCol"),
+                                                    technicalCovariates = attr(design, "technicalCovariates"))
         
         fit <- PerformGlmFit(seuratObj.contrast, design = filtered_design_matrix, test.use = test.use, assayName = assayName, filterGenes = filterGenes)
         #format contrast using limma
@@ -711,6 +766,49 @@ RunFilteredContrasts <- function(seuratObj, filteredContrastsFile = NULL, filter
     vector_of_metadata_values <- gsub("_", ".", make.names(vector_of_metadata_values))
   }
   return(vector_of_metadata_values)
+}
+
+#' @title CheckDesignMatrixRankDeficiency
+#'
+#' @description Checks a design matrix for rank deficiency using QR decomposition. When the matrix is not full rank, identifies the non-estimable columns and reports which independent columns they are aliased with. These should typically be technical covariates, but due to processing, predicting rank deficiency might be non-trival upfront. 
+#' @param design A design/model matrix (typically returned by DesignModelMatrix).
+#' @return Invisibly returns the matrix rank. Raises an error if the design matrix is rank-deficient, identifying the non-estimable columns and their aliases.
+
+.CheckDesignMatrixRankDeficiency <- function(design) {
+  qr_decomp <- qr(design)
+  matrix_rank <- qr_decomp$rank
+
+  if (matrix_rank >= ncol(design)) {
+    return(invisible(matrix_rank))
+  }
+
+  #identify deficient columns via the QR pivot order
+  pivot_order <- qr_decomp$pivot
+  independent_indices <- pivot_order[seq_len(matrix_rank)]
+  deficient_indices <- pivot_order[(matrix_rank + 1):ncol(design)]
+  deficient_names <- colnames(design)[deficient_indices]
+  independent_design <- design[, independent_indices, drop = FALSE]
+
+  #for each deficient column, regress it on the independent columns to find aliases
+  alias_info <- vapply(deficient_names, function(def_col) {
+    def_vector <- design[, def_col]
+    fit <- stats::lm.fit(independent_design, def_vector)
+    aliased_cols <- names(which(abs(fit$coefficients) > 1e-8))
+    if (length(aliased_cols) == 0) {
+      return(paste0("  '", def_col, "' is not independently estimable (could not identify specific aliases)."))
+    }
+    paste0("  '", def_col, "' is redundant with: ", paste(aliased_cols, collapse = ", "))
+  }, character(1))
+
+  stop(paste0(
+    "Design matrix is rank-deficient (rank ", matrix_rank, " vs ", ncol(design), " columns). ",
+    "The following column(s) are not independently estimable:\n",
+    paste(alias_info, collapse = "\n"),
+    "\nThis typically indicates confounding between group variables and technical covariates. ",
+    "Consider removing one of the redundant variables from either contrast_columns or technicalCovariates."
+  ))
+
+  return(invisible(matrix_rank))
 }
 
 #' @title PseudobulkingBarPlot
@@ -900,10 +998,11 @@ PseudobulkingBarPlot <- function(filteredContrastsResults, metadataFilterList = 
 #' @param sampleIdCol The metadata column denoting the variable containing the sample identifier (for grouping). 
 #' @param filterGenes A passthrough variable for PerformGlmFit, used to determine if genes should be filtered using edgeR::filterByExpr.
 #' @param subsetExpression An optional string containing an expression to subset the Seurat object. This is useful for selecting an exact subpopulation to in which to show DEGs. Please note that for string-based metadata fields, you will need to mix single and double quotes to ensure your expression is properly parsed. For instance, note the double quotes around the word unvax in this expression: subsetExpression = 'vaccine_cohort == "unvax"'. 
+#' @param technicalCovariates An optional character vector of metadata column names corresponding to technical variables to include as fixed-effect covariates in the design matrix. Passed through to DesignModelMatrix. Default is NULL (no covariates).
 #' @return A list containing the filtered dataframe used for plotting and the heatmap plot itself. 
 #' @export
 
-PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID', filterGenes = FALSE, subsetExpression = NULL) {
+PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = NULL, negativeContrastValue = NULL, positiveContrastValue = NULL, subgroupingVariable = NULL, showRowNames = FALSE, assayName = "RNA", sampleIdCol = 'cDNA_ID', filterGenes = FALSE, subsetExpression = NULL, technicalCovariates = NULL) {
   #sanity check arguments
   if (is.null(contrastField)) {
     stop("Please define a contrastField. This is a metadata variable (supplied to groupFields during PseudobulkSeurat()) that will be displayed on the top of the heatmap.")
@@ -956,7 +1055,7 @@ PseudobulkingDEHeatmap <- function(seuratObj, geneSpace = NULL, contrastField = 
   }
   
   #parse the contrastField, contrastValues arguments, and sampleIdCol to construct the model matrix for performing the desired contrast for the heatmap.
-  design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol)
+  design <- DesignModelMatrix(seuratObj, contrast_columns = c(contrastField, subgroupingVariable), sampleIdCol = sampleIdCol, technicalCovariates = technicalCovariates)
   #similarly, parse these arguments for setting up a logicList
   logicList <- list(list(contrastField, "xor", negativeContrastValue))
   #positiveContrastValue is mostly a filtering tool since we need to establish what our 'control' is via negativeContrastValue.  
