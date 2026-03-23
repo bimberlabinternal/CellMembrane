@@ -81,7 +81,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2026-03-10</h4>
+            <h4 data-toc-skip class="date">2026-03-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/master/vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd" class="external-link"><code>vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd</code></a></small>
       <div class="hidden name"><code>Pseudobulking-and-Filtered-Contrasts.Rmd</code></div>
@@ -1072,6 +1072,293 @@ time!</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">heatmap_list</span><span class="op">$</span><span class="va">heatmap</span></span></code></pre></div>
 <p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/show%20second%20heatmap-1.png" class="r-plt" alt="" width="768"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="regressing-out-technical-covariates">Regressing Out Technical Covariates<a class="anchor" aria-label="anchor" href="#regressing-out-technical-covariates"></a>
+</h2>
+<p>In many experimental designs, technical variables such as sequencing
+plate, cDNA reaction batch, or processing site can introduce variation
+that is unrelated to the biological question. The pseudobulking pipeline
+supports optional regression of these technical covariates by including
+them as fixed-effect terms in the design matrix. This allows edgeR to
+estimate and remove their effects when computing log fold changes and
+p-values for the contrasts of interest.</p>
+<p>While this attempts to remove technical variation - if the variation
+is intrinsic to the samples (e.g. all of the samples from one vaccine
+cohort were processed on one plate, and all of the samples from another
+vaccine cohort were processed on another plate), then the technical
+covariate will be confounded with the biological variable of interest,
+and regression will not be able to separate the two effects. In this
+case, it is critical to ensure that your experimental design includes
+technical replicates across your biological variables of interest
+(e.g. samples from each vaccine cohort are processed across multiple
+plates) to allow for proper estimation and regression of technical
+effects.</p>
+<div class="section level3">
+<h3 id="when-to-use-technical-covariates">When to Use Technical Covariates<a class="anchor" aria-label="anchor" href="#when-to-use-technical-covariates"></a>
+</h3>
+<p>You should consider using this feature when:</p>
+<ul>
+<li>Your samples were processed across multiple batches, plates, or
+sites.</li>
+<li>You have technical identifiers (e.g. <code>SubjectId</code>,
+<code>SequencingLane</code>) that may confound your biological
+signal.</li>
+<li>You want to account for known sources of technical variation without
+removing them from the data prior to pseudobulking.</li>
+</ul>
+<p>Technical covariates must be present in the pseudobulked Seurat
+object’s metadata (i.e., included in <code>groupFields</code> during
+<code><a href="../reference/PseudobulkSeurat.html">PseudobulkSeurat()</a></code> or otherwise present per sample).</p>
+</div>
+<div class="section level3">
+<h3 id="example-regressing-out-plateid">Example: Regressing Out PlateId<a class="anchor" aria-label="anchor" href="#example-regressing-out-plateid"></a>
+</h3>
+<p>Suppose our samples were processed on two plates. We want to compare
+vaccine cohorts while accounting for plate effects.</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#add a technical covariate to the original data - derive PlateId from subject so it varies within vaccine groups (avoids confounding with vaccine_cohort)</span></span>
+<span><span class="va">seuratObj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">[</span>,<span class="st">"PlateId"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">seuratObj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">[</span>,<span class="st">"subject"</span><span class="op">]</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"PlateA"</span>, <span class="st">"PlateB"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#re-pseudobulk, including PlateId in groupFields so it is present in per-sample metadata</span></span>
+<span><span class="va">pbulk_covariates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/PseudobulkSeurat.html">PseudobulkSeurat</a></span><span class="op">(</span><span class="va">seuratObj</span>, groupFields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span>, <span class="st">"timepoint"</span>, <span class="st">"sample_identifier"</span>, <span class="st">"PlateId"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/covariate%20setup-1.png" class="r-plt" alt="" width="700"></p>
+<p>Now, pass <code>technicalCovariates</code> to
+<code>DesignModelMatrix</code>. The covariate columns will be added to
+the design matrix as fixed intercepts. Downstream contrasts only
+reference the group columns, so the covariate effect is estimated and
+removed without affecting contrast specification.</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">design_covariates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/DesignModelMatrix.html">DesignModelMatrix</a></span><span class="op">(</span><span class="va">pbulk_covariates</span>, </span>
+<span>                                contrast_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span><span class="op">)</span>, </span>
+<span>                                sampleIdCol <span class="op">=</span> <span class="st">"sample_identifier"</span>,</span>
+<span>                                technicalCovariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PlateId"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># The design matrix now includes group columns and a PlateId column</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">design_covariates</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                            control unvax vaccineOne vaccineTwo PlateIdPlateB</span></span>
+<span><span class="co">#&gt; Subject-1-control-baseline       1     0          0          0             0</span></span>
+<span><span class="co">#&gt; Subject-2-control-baseline       1     0          0          0             0</span></span>
+<span><span class="co">#&gt; Subject-3-control-baseline       1     0          0          0             1</span></span>
+<span><span class="co">#&gt; Subject-4-control-baseline       1     0          0          0             1</span></span>
+<span><span class="co">#&gt; Subject-1-control-day4           1     0          0          0             0</span></span>
+<span><span class="co">#&gt; Subject-2-control-day4           1     0          0          0             0</span></span></code></pre></div>
+<p>Notice that the design matrix contains the usual group columns (one
+per vaccine cohort) plus an additional column for <code>PlateId</code>.
+When the GLM is fit, edgeR estimates the plate effect and removes it
+from the contrast estimates.</p>
+</div>
+<div class="section level3">
+<h3 id="running-contrasts-with-covariates">Running Contrasts with Covariates<a class="anchor" aria-label="anchor" href="#running-contrasts-with-covariates"></a>
+</h3>
+<p>The <code>technicalCovariates</code> attribute is stored on the
+design matrix and automatically propagated through
+<code>RunFilteredContrasts</code>. No additional arguments are needed
+beyond the design matrix.</p>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">logicList_covariates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span>, <span class="st">"xor"</span>, <span class="st">"vaccineOne"</span><span class="op">)</span>,</span>
+<span>                      <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span>, <span class="st">"nor"</span>, <span class="st">"vaccineTwo"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">filtered_contrasts_covariates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FilterPseudobulkContrasts.html">FilterPseudobulkContrasts</a></span><span class="op">(</span>logicList <span class="op">=</span> <span class="va">logicList_covariates</span>, </span>
+<span>                                                    design <span class="op">=</span> <span class="va">design_covariates</span>, </span>
+<span>                                                    useRequireIdenticalLogic <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>                                                    filteredContrastsOutputFile <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">DE_results_covariates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RunFilteredContrasts.html">RunFilteredContrasts</a></span><span class="op">(</span>seuratObj <span class="op">=</span> <span class="va">pbulk_covariates</span>, </span>
+<span>                       filteredContrastsDataframe <span class="op">=</span> <span class="va">filtered_contrasts_covariates</span>, </span>
+<span>                       design <span class="op">=</span> <span class="va">design_covariates</span>,</span>
+<span>                       test.use <span class="op">=</span> <span class="st">"QLF"</span>, </span>
+<span>                       logFC_threshold <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                       FDR_threshold <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>                       filterGenes <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>                       assayName <span class="op">=</span> <span class="st">"RNA"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/covariate%20filtered%20contrasts-1.png" class="r-plt" alt="" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/covariate%20filtered%20contrasts-2.png" class="r-plt" alt="" width="700"></p>
+<pre><code><span><span class="co">#&gt; [1] "Contrast columns: vaccine_cohort"</span></span>
+<span><span class="co">#&gt; [1] "Subsetting Cells for:  control-vaccineOne"</span></span>
+<span><span class="co">#&gt; [1] "Filtering cells..."</span></span>
+<span><span class="co">#&gt; [1] "Inspecting assay layers: RNA"</span></span>
+<span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
+<span><span class="co">#&gt; [1] "Joining layers: RNA, counts;data;scale.data;pct.expression"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
+<span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
+<span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
+<span><span class="co">#&gt; [1] "Performing DE for:  control-vaccineOne"</span></span>
+<span><span class="co">#&gt; NULL</span></span>
+<span><span class="co">#&gt; [1] "Contrast columns: vaccine_cohort"</span></span>
+<span><span class="co">#&gt; [1] "Subsetting Cells for:  unvax-vaccineOne"</span></span>
+<span><span class="co">#&gt; [1] "Filtering cells..."</span></span>
+<span><span class="co">#&gt; [1] "Inspecting assay layers: RNA"</span></span>
+<span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
+<span><span class="co">#&gt; [1] "Joining layers: RNA, counts;data;scale.data;pct.expression"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
+<span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
+<span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
+<span><span class="co">#&gt; [1] "Performing DE for:  unvax-vaccineOne"</span></span>
+<span><span class="co">#&gt; NULL</span></span>
+<span><span class="co">#&gt; Removing 20722 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 1045. Number of genes with any counts: 11664 (9% of detectable genes kept)</span></span>
+<span><span class="co">#&gt; Removing 20724 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Number of genes passing filterByExpr filter: 1109. Number of genes with any counts: 11662 (10% of detectable genes kept)</span></span></code></pre>
+<p>The results are identical in structure to the standard (no-covariate)
+pipeline. The only difference is that the log fold changes and p-values
+now account for the plate effect.</p>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">DE_results_covariates</span><span class="op">$</span><span class="va">`1`</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                         logFC   logCPM         F      PValue       FDR</span></span>
+<span><span class="co">#&gt; INPP5D              0.7376899 7.192970 11.212756 0.001943850 0.9923812</span></span>
+<span><span class="co">#&gt; BIN2                0.4062031 7.764580  9.674480 0.003675622 0.9923812</span></span>
+<span><span class="co">#&gt; STK17A             -0.2011074 9.717671  7.427346 0.009903079 0.9923812</span></span>
+<span><span class="co">#&gt; CDC42SE2           -0.3428838 8.466210  7.275108 0.010621862 0.9923812</span></span>
+<span><span class="co">#&gt; TMED2               0.4489390 7.616416  7.253999 0.010735781 0.9923812</span></span>
+<span><span class="co">#&gt; ENSMMUG00000047378  0.4877603 7.283691  7.116219 0.011453086 0.9923812</span></span>
+<span><span class="co">#&gt;                                  gene     pct.1     pct.2      contrast_name</span></span>
+<span><span class="co">#&gt; INPP5D                         INPP5D 0.2666667 0.1876607 control-vaccineOne</span></span>
+<span><span class="co">#&gt; BIN2                             BIN2 0.3846154 0.2930591 control-vaccineOne</span></span>
+<span><span class="co">#&gt; STK17A                         STK17A 0.7615385 0.7969152 control-vaccineOne</span></span>
+<span><span class="co">#&gt; CDC42SE2                     CDC42SE2 0.4589744 0.5424165 control-vaccineOne</span></span>
+<span><span class="co">#&gt; TMED2                           TMED2 0.3769231 0.2879177 control-vaccineOne</span></span>
+<span><span class="co">#&gt; ENSMMUG00000047378 ENSMMUG00000047378 0.2769231 0.2185090 control-vaccineOne</span></span>
+<span><span class="co">#&gt;                    positive_contrast negative_contrast</span></span>
+<span><span class="co">#&gt; INPP5D                       control        vaccineOne</span></span>
+<span><span class="co">#&gt; BIN2                         control        vaccineOne</span></span>
+<span><span class="co">#&gt; STK17A                       control        vaccineOne</span></span>
+<span><span class="co">#&gt; CDC42SE2                     control        vaccineOne</span></span>
+<span><span class="co">#&gt; TMED2                        control        vaccineOne</span></span>
+<span><span class="co">#&gt; ENSMMUG00000047378           control        vaccineOne</span></span>
+<span><span class="co">#&gt;                    positive_contrast_vaccine_cohort</span></span>
+<span><span class="co">#&gt; INPP5D                                      control</span></span>
+<span><span class="co">#&gt; BIN2                                        control</span></span>
+<span><span class="co">#&gt; STK17A                                      control</span></span>
+<span><span class="co">#&gt; CDC42SE2                                    control</span></span>
+<span><span class="co">#&gt; TMED2                                       control</span></span>
+<span><span class="co">#&gt; ENSMMUG00000047378                          control</span></span>
+<span><span class="co">#&gt;                    negative_contrast_vaccine_cohort</span></span>
+<span><span class="co">#&gt; INPP5D                                   vaccineOne</span></span>
+<span><span class="co">#&gt; BIN2                                     vaccineOne</span></span>
+<span><span class="co">#&gt; STK17A                                   vaccineOne</span></span>
+<span><span class="co">#&gt; CDC42SE2                                 vaccineOne</span></span>
+<span><span class="co">#&gt; TMED2                                    vaccineOne</span></span>
+<span><span class="co">#&gt; ENSMMUG00000047378                       vaccineOne</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="covariates-in-the-de-heatmap">Covariates in the DE Heatmap<a class="anchor" aria-label="anchor" href="#covariates-in-the-de-heatmap"></a>
+</h3>
+<p><code>PseudobulkingDEHeatmap</code> also accepts
+<code>technicalCovariates</code>, which it passes through to the
+internal <code>DesignModelMatrix</code> call:</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">genes_covariates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">pbulk_covariates</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">heatmap_list_covariates</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PseudobulkingDEHeatmap.html">PseudobulkingDEHeatmap</a></span><span class="op">(</span>seuratObj <span class="op">=</span> <span class="va">pbulk_covariates</span>, </span>
+<span>                       geneSpace <span class="op">=</span> <span class="va">genes_covariates</span>, </span>
+<span>                       contrastField <span class="op">=</span> <span class="st">"vaccine_cohort"</span>, </span>
+<span>                       negativeContrastValue <span class="op">=</span> <span class="st">"control"</span>, </span>
+<span>                       sampleIdCol <span class="op">=</span> <span class="st">'sample_identifier'</span>,</span>
+<span>                       technicalCovariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"PlateId"</span><span class="op">)</span></span>
+<span>                       <span class="op">)</span></span></code></pre></div>
+<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/covariate%20heatmap-1.png" class="r-plt" alt="" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/covariate%20heatmap-2.png" class="r-plt" alt="" width="700"><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/covariate%20heatmap-3.png" class="r-plt" alt="" width="700"></p>
+<pre><code><span><span class="co">#&gt; [1] "Contrast columns: vaccine_cohort"</span></span>
+<span><span class="co">#&gt; [1] "Subsetting Cells for:  control-unvax"</span></span>
+<span><span class="co">#&gt; [1] "Filtering cells..."</span></span>
+<span><span class="co">#&gt; [1] "Inspecting assay layers: RNA"</span></span>
+<span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
+<span><span class="co">#&gt; [1] "Joining layers: RNA, counts;data;scale.data;pct.expression"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
+<span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
+<span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
+<span><span class="co">#&gt; [1] "Performing DE for:  control-unvax"</span></span>
+<span><span class="co">#&gt; NULL</span></span>
+<span><span class="co">#&gt; [1] "Contrast columns: vaccine_cohort"</span></span>
+<span><span class="co">#&gt; [1] "Subsetting Cells for:  control-vaccineOne"</span></span>
+<span><span class="co">#&gt; [1] "Filtering cells..."</span></span>
+<span><span class="co">#&gt; [1] "Inspecting assay layers: RNA"</span></span>
+<span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
+<span><span class="co">#&gt; [1] "Joining layers: RNA, counts;data;scale.data;pct.expression"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
+<span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
+<span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
+<span><span class="co">#&gt; [1] "Performing DE for:  control-vaccineOne"</span></span>
+<span><span class="co">#&gt; NULL</span></span>
+<span><span class="co">#&gt; [1] "Contrast columns: vaccine_cohort"</span></span>
+<span><span class="co">#&gt; [1] "Subsetting Cells for:  control-vaccineTwo"</span></span>
+<span><span class="co">#&gt; [1] "Filtering cells..."</span></span>
+<span><span class="co">#&gt; [1] "Inspecting assay layers: RNA"</span></span>
+<span><span class="co">#&gt; [1] "Layers: counts.1,counts.2,data.1,scale.data.1,pct.expression.1,data.2,scale.data.2,pct.expression.2"</span></span>
+<span><span class="co">#&gt; [1] "Class: Assay5"</span></span>
+<span><span class="co">#&gt; [1] "Joining layers: RNA, counts;data;scale.data;pct.expression"</span></span>
+<span><span class="co">#&gt; [1] "After join: pct.expression,scale.data,data,counts"</span></span>
+<span><span class="co">#&gt; [1] "Remaining Cells:" "24"              </span></span>
+<span><span class="co">#&gt; [1] "colsums: 12" "colsums: 12"</span></span>
+<span><span class="co">#&gt; [1] "Performing DE for:  control-vaccineTwo"</span></span>
+<span><span class="co">#&gt; NULL</span></span>
+<span><span class="co">#&gt; Removing 20679 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 20722 rows with all zero counts</span></span>
+<span><span class="co">#&gt; Removing 20653 rows with all zero counts</span></span>
+<span><span class="va">heatmap_list_covariates</span><span class="op">$</span><span class="va">heatmap</span></span></code></pre>
+<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/covariate%20heatmap-4.png" class="r-plt" alt="" width="700"></p>
+</div>
+<div class="section level3">
+<h3 id="diagnosing-confounded-covariates">Diagnosing Confounded Covariates<a class="anchor" aria-label="anchor" href="#diagnosing-confounded-covariates"></a>
+</h3>
+<p>A common pitfall when adding technical covariates is that they may be
+perfectly confounded with your experimental groups. For example, if all
+control samples were processed on Plate A and all treated samples on
+Plate B, the plate effect is inseparable from the treatment effect,
+producing a rank-deficient design matrix that edgeR cannot fit.</p>
+<p><code>DesignModelMatrix</code> automatically checks for this using QR
+decomposition and will raise an error identifying exactly which
+covariate columns are redundant and which group columns they are aliased
+with:</p>
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#deliberately create a confounded PlateId: perfectly aligned with vaccine_cohort</span></span>
+<span><span class="va">seuratObj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">$</span><span class="va">ConfoundedPlate</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span></span>
+<span>  <span class="va">seuratObj</span><span class="op">$</span><span class="va">vaccine_cohort</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"control"</span>, <span class="st">"vaccineTwo"</span><span class="op">)</span>, <span class="st">"PlateA"</span>, <span class="st">"PlateB"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">seuratObj</span><span class="op">@</span><span class="va">meta.data</span><span class="op">$</span><span class="va">sample_identifier_confounded</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span></span>
+<span>  <span class="st">"Subject-"</span>, <span class="va">seuratObj</span><span class="op">$</span><span class="va">subject</span>, <span class="st">'-'</span>, <span class="va">seuratObj</span><span class="op">$</span><span class="va">vaccine_cohort</span>, <span class="st">"-"</span>, <span class="va">seuratObj</span><span class="op">$</span><span class="va">timepoint</span>, <span class="st">"-"</span>, <span class="va">seuratObj</span><span class="op">$</span><span class="va">ConfoundedPlate</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pbulk_confounded</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="../reference/PseudobulkSeurat.html">PseudobulkSeurat</a></span><span class="op">(</span><span class="va">seuratObj</span>, </span>
+<span>  groupFields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span>, <span class="st">"timepoint"</span>, <span class="st">"sample_identifier_confounded"</span>, <span class="st">"ConfoundedPlate"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="Pseudobulking-and-Filtered-Contrasts_files/figure-html/confounded%20covariate%20error-1.png" class="r-plt" alt="" width="700"></p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co">#this will error about rank deficiency and identify the aliased columns</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/DesignModelMatrix.html">DesignModelMatrix</a></span><span class="op">(</span><span class="va">pbulk_confounded</span>, </span>
+<span>                    contrast_columns <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vaccine_cohort"</span><span class="op">)</span>, </span>
+<span>                    sampleIdCol <span class="op">=</span> <span class="st">"sample_identifier_confounded"</span>,</span>
+<span>                    technicalCovariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ConfoundedPlate"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"ERROR: "</span>, <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; ERROR: Design matrix is rank-deficient (rank 4 vs 5 columns). The following column(s) are not independently estimable:</span></span>
+<span><span class="co">#&gt;   'ConfoundedPlatePlateB' is redundant with: unvax, vaccineOne</span></span>
+<span><span class="co">#&gt; This typically indicates confounding between group variables and technical covariates. Consider removing one of the redundant variables from either contrast_columns or technicalCovariates.</span></span></code></pre></div>
+<p>When you see this error, you should either:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Remove the confounded covariate</strong> from
+<code>technicalCovariates</code>, since its effect cannot be separated
+from the group effect.</li>
+<li>
+<strong>Redesign the experiment</strong> so that technical and
+biological variables are not perfectly aligned (e.g., ensure each plate
+contains samples from multiple treatment groups).</li>
+</ol>
+<p>The error message will state:</p>
+<pre><code>The following column(s) are not independently estimable:
+  'ConfoundedPlatePlateB' ...</code></pre>
+<p>which has the format <code>metadata_column``factor_level</code>. This
+indicates that the <code>ConfoundedPlate</code> variable at the
+<code>PlateB</code> level is perfectly confounded with one of the
+vaccine cohorts, and thus cannot be included as a covariate in the
+model. To proceed, you must remove <code>ConfoundedPlate</code> from the
+design matrix or redesign the experiment to avoid this confounding.</p>
 </div>
 </div>
   </div>

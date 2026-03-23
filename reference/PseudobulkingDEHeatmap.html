@@ -74,7 +74,8 @@
 <span>  assayName <span class="op">=</span> <span class="st">"RNA"</span>,</span>
 <span>  sampleIdCol <span class="op">=</span> <span class="st">"cDNA_ID"</span>,</span>
 <span>  filterGenes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  subsetExpression <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  subsetExpression <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  technicalCovariates <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -124,6 +125,10 @@
 
 <dt id="arg-subsetexpression">subsetExpression<a class="anchor" aria-label="anchor" href="#arg-subsetexpression"></a></dt>
 <dd><p>An optional string containing an expression to subset the Seurat object. This is useful for selecting an exact subpopulation to in which to show DEGs. Please note that for string-based metadata fields, you will need to mix single and double quotes to ensure your expression is properly parsed. For instance, note the double quotes around the word unvax in this expression: subsetExpression = 'vaccine_cohort == "unvax"'.</p></dd>
+
+
+<dt id="arg-technicalcovariates">technicalCovariates<a class="anchor" aria-label="anchor" href="#arg-technicalcovariates"></a></dt>
+<dd><p>An optional character vector of metadata column names corresponding to technical variables to include as fixed-effect covariates in the design matrix. Passed through to DesignModelMatrix. Default is NULL (no covariates).</p></dd>
 
 </dl></div>
     <div id="value">

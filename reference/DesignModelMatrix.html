@@ -63,7 +63,12 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">DesignModelMatrix</span><span class="op">(</span><span class="va">seuratObj</span>, <span class="va">contrast_columns</span>, sampleIdCol <span class="op">=</span> <span class="st">"cDNA_ID"</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">DesignModelMatrix</span><span class="op">(</span></span>
+<span>  <span class="va">seuratObj</span>,</span>
+<span>  <span class="va">contrast_columns</span>,</span>
+<span>  sampleIdCol <span class="op">=</span> <span class="st">"cDNA_ID"</span>,</span>
+<span>  technicalCovariates <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -80,6 +85,10 @@
 
 <dt id="arg-sampleidcol">sampleIdCol<a class="anchor" aria-label="anchor" href="#arg-sampleidcol"></a></dt>
 <dd><p>An additional column denoting the variable containing the sample (for grouping)</p></dd>
+
+
+<dt id="arg-technicalcovariates">technicalCovariates<a class="anchor" aria-label="anchor" href="#arg-technicalcovariates"></a></dt>
+<dd><p>An optional character vector of metadata column names corresponding to technical variables (e.g. c("SubjectId", "cDNA_ID", "PlateId")) to include as fixed-effect covariates in the design matrix. When provided, these variables are regressed out during model fitting, removing their confounding effects from the contrast estimates. Default is NULL (no covariates).</p></dd>
 
 </dl></div>
     <div id="value">

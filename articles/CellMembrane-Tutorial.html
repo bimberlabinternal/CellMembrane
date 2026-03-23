@@ -81,7 +81,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2026-03-10</h4>
+            <h4 data-toc-skip class="date">2026-03-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/master/vignettes/CellMembrane-Tutorial.Rmd" class="external-link"><code>vignettes/CellMembrane-Tutorial.Rmd</code></a></small>
       <div class="hidden name"><code>CellMembrane-Tutorial.Rmd</code></div>
@@ -182,7 +182,7 @@ figure out what these are we need to try to download everything.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/eval.html" class="external-link">local</a></span><span class="op">(</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>repos <span class="op">=</span> <span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/repositories.html" class="external-link">repositories</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#Latest version:</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span>repo <span class="op">=</span> <span class="st">'bimberlabinternal/cellmembrane'</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span>, upgrade <span class="op">=</span> <span class="st">'always'</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/install-deprecated.html" class="external-link">install_github</a></span><span class="op">(</span>repo <span class="op">=</span> <span class="st">'bimberlabinternal/cellmembrane'</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span>, upgrade <span class="op">=</span> <span class="st">'always'</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="iterative-installation-of-problematic-packages">5: Iterative Installation of Problematic Packages<a class="anchor" aria-label="anchor" href="#iterative-installation-of-problematic-packages"></a>
@@ -199,7 +199,7 @@ if issues persist.</p>
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"DropletUtils"</span>, <span class="st">"preprocessCore"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#try reinstalling the software</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span>repo <span class="op">=</span> <span class="st">'bimberlabinternal/cellmembrane'</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span>, upgrade <span class="op">=</span> <span class="st">'always'</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/install-deprecated.html" class="external-link">install_github</a></span><span class="op">(</span>repo <span class="op">=</span> <span class="st">'bimberlabinternal/cellmembrane'</span>, dependencies <span class="op">=</span> <span class="cn">TRUE</span>, upgrade <span class="op">=</span> <span class="st">'always'</span><span class="op">)</span></span></code></pre></div>
 <p>You may need to Google installation instructions for the individual
 packages that fail to automatically install, but this iterative
 installation is generally a one-time process.</p>
