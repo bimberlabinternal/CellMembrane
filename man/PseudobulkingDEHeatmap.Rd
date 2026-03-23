@@ -15,7 +15,8 @@ PseudobulkingDEHeatmap(
   assayName = "RNA",
   sampleIdCol = "cDNA_ID",
   filterGenes = FALSE,
-  subsetExpression = NULL
+  subsetExpression = NULL,
+  technicalCovariates = NULL
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ PseudobulkingDEHeatmap(
 \item{filterGenes}{A passthrough variable for PerformGlmFit, used to determine if genes should be filtered using edgeR::filterByExpr.}
 
 \item{subsetExpression}{An optional string containing an expression to subset the Seurat object. This is useful for selecting an exact subpopulation to in which to show DEGs. Please note that for string-based metadata fields, you will need to mix single and double quotes to ensure your expression is properly parsed. For instance, note the double quotes around the word unvax in this expression: subsetExpression = 'vaccine_cohort == "unvax"'.}
+
+\item{technicalCovariates}{An optional character vector of metadata column names corresponding to technical variables to include as fixed-effect covariates in the design matrix. Passed through to DesignModelMatrix. Default is NULL (no covariates).}
 }
 \value{
 A list containing the filtered dataframe used for plotting and the heatmap plot itself.

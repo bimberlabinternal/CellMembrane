@@ -171,6 +171,85 @@ test_that("Non-alphanumeric characters do not break pseudobulking pipeline", {
                                          sampleIdCol = 'subject')
   })
 
+test_that("Technical covariates work in the DE pipeline", {
+  CellMembrane::SetSeed(CellMembrane::GetSeed())
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  #add fabricated study metadata including a technical covariate
+  seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy", "day4"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
+  #derive PlateId from subject so it varies within vaccine groups (avoids confounding with vaccine_cohort)
+  seuratObj@meta.data[,"PlateId"] <- ifelse(seuratObj@meta.data[,"subject"] %in% c(1, 2), "PlateA", "PlateB")
+
+  #pseudobulk including the covariate in groupFields so it appears in sample-level metadata
+  pbulk <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint", "subject", "PlateId"))
+
+  #test DesignModelMatrix with technicalCovariates
+  design_with_cov <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort", "timepoint"), sampleIdCol = "subject", technicalCovariates = c("PlateId"))
+
+  #the design matrix should contain group columns plus covariate columns
+  group_cols <- levels(factor(interaction(pbulk$vaccine_cohort, pbulk$timepoint, sep = "_")))
+  testthat::expect_true(any(grepl("PlateId", colnames(design_with_cov))))
+  testthat::expect_equal(attr(design_with_cov, "technicalCovariates"), c("PlateId"))
+
+  #test that the baseline design (no covariates) has fewer columns
+  design_no_cov <- DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort", "timepoint"), sampleIdCol = "subject")
+  testthat::expect_true(ncol(design_with_cov) > ncol(design_no_cov))
+  testthat::expect_null(attr(design_no_cov, "technicalCovariates"))
+
+  #test that GLM fitting works with the covariate design
+  fit <- PerformGlmFit(pbulk, design = design_with_cov, test.use = "QLF")
+  testthat::expect_true("coefficients" %in% names(fit))
+
+  #test erroring when the covariate is not in metadata
+  testthat::expect_error(DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort"), sampleIdCol = "subject", technicalCovariates = c("NonExistentField")))
+  #test validation: covariate overlaps with contrast_columns
+  testthat::expect_error(DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort"), sampleIdCol = "subject", technicalCovariates = c("vaccine_cohort")))
+
+  #test RunFilteredContrasts propagates covariates
+  logic_list <- list(list("vaccine_cohort", "xor", "control"))
+  filtered_contrasts <- FilterPseudobulkContrasts(logicList = logic_list,
+                                                  design = design_with_cov,
+                                                  useRequireIdenticalLogic = T,
+                                                  requireIdenticalFields = c("timepoint"),
+                                                  filteredContrastsOutputFile = tempfile())
+  DE_results_cov <- RunFilteredContrasts(seuratObj = pbulk,
+                       filteredContrastsDataframe = filtered_contrasts,
+                       design = design_with_cov,
+                       test.use = "QLF",
+                       logFC_threshold = 0,
+                       FDR_threshold = 0.5,
+                       filterGenes = TRUE,
+                       assayName = "RNA")
+  testthat::expect_true(length(DE_results_cov) > 0)
+  testthat::expect_true(all(c("logFC", "FDR", "gene") %in% colnames(DE_results_cov[[1]])))
+})
+
+test_that("Rank deficiency is detected and reported when covariates are confounded", {
+  CellMembrane::SetSeed(CellMembrane::GetSeed())
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"timepoint"] <- base::rep(c("baseline", "necropsy", "day4"), length.out = length(colnames(seuratObj)))
+  seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
+  #deliberately confound PlateId with vaccine_cohort: period-2 rep perfectly nests inside period-4 rep
+  seuratObj@meta.data[,"PlateId"] <- base::rep(c("PlateA", "PlateB"), length.out = length(colnames(seuratObj)))
+
+  pbulk <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint", "subject", "PlateId"))
+
+  #DesignModelMatrix should raise an error about rank deficiency
+  testthat::expect_error(
+    DesignModelMatrix(pbulk, contrast_columns = c("vaccine_cohort", "timepoint"), sampleIdCol = "subject", technicalCovariates = c("PlateId")),
+    regexp = "rank-deficient"
+  )
+
+  #no error when covariates are not confounded (PlateId derived from randomly assigned subject)
+  seuratObj@meta.data[,"PlateId"] <- ifelse(seuratObj@meta.data[,"subject"] %in% c(1, 2), "PlateA", "PlateB")
+  pbulk_ok <- PseudobulkSeurat(seuratObj, groupFields = c("vaccine_cohort", "timepoint", "subject", "PlateId"))
+  testthat::expect_no_error(
+    DesignModelMatrix(pbulk_ok, contrast_columns = c("vaccine_cohort", "timepoint"), sampleIdCol = "subject", technicalCovariates = c("PlateId"))
+  )
+})
+
 test_that("Feature Selection by GLM works", {
   seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
   testthat::expect_equal(ncol(seuratObj), expected = 1557) #check that test seuratObj doesn't change
