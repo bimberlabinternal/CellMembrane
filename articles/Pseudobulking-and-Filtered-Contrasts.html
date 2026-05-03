@@ -81,7 +81,7 @@
                         <h4 data-toc-skip class="author">GW
 McElfresh</h4>
             
-            <h4 data-toc-skip class="date">2026-04-10</h4>
+            <h4 data-toc-skip class="date">2026-05-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BimberLabInternal/CellMembrane/blob/master/vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd" class="external-link"><code>vignettes/Pseudobulking-and-Filtered-Contrasts.Rmd</code></a></small>
       <div class="hidden name"><code>Pseudobulking-and-Filtered-Contrasts.Rmd</code></div>
@@ -124,7 +124,7 @@ falls short when one asks “What are the differentially expressed
 genes?”.</p>
 <p>Differential gene expression usually considers the “strength” of
 expression
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>o</mi><msub><mi>g</mi><mn>2</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mfrac displaystyle="true"><mrow><mi>E</mi><mi>x</mi><mi>p</mi><mi>r</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>i</mi><mi>o</mi><msub><mi>n</mi><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mi>e</mi><mi>r</mi><mi>i</mi><mi>m</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>a</mi><mi>l</mi></mrow></msub></mrow><mrow><mi>E</mi><mi>x</mi><mi>p</mi><mi>r</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>i</mi><mi>o</mi><msub><mi>n</mi><mrow><mi>c</mi><mi>o</mi><mi>n</mi><mi>t</mi><mi>r</mi><mi>o</mi><mi>l</mi></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Log_2(\dfrac{Expression_{experimental}}{Expression_{control}})</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mi>o</mi><msub><mi>g</mi><mn>2</mn></msub><mo stretchy="false" form="prefix">(</mo><mstyle displaystyle="true"><mfrac><mrow><mi>E</mi><mi>x</mi><mi>p</mi><mi>r</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>i</mi><mi>o</mi><msub><mi>n</mi><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mi>e</mi><mi>r</mi><mi>i</mi><mi>m</mi><mi>e</mi><mi>n</mi><mi>t</mi><mi>a</mi><mi>l</mi></mrow></msub></mrow><mrow><mi>E</mi><mi>x</mi><mi>p</mi><mi>r</mi><mi>e</mi><mi>s</mi><mi>s</mi><mi>i</mi><mi>o</mi><msub><mi>n</mi><mrow><mi>c</mi><mi>o</mi><mi>n</mi><mi>t</mi><mi>r</mi><mi>o</mi><mi>l</mi></mrow></msub></mrow></mfrac></mstyle><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Log_2(\dfrac{Expression_{experimental}}{Expression_{control}})</annotation></semantics></math>
 and the p value as computed via a hypothesis test versus a null
 distribution. Frequently, you will discover that the p values obtained
 via the clustering and <code>FindMarkers()</code> method will be
