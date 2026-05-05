@@ -88,6 +88,7 @@ Imports:
     conover.test, 
     colorspace, 
     forcats,
+    presto,
     decoupleR,
     OmnipathR,
     glmGamPoi,
@@ -123,6 +124,7 @@ Remotes:
     drisso/RUVSeq,
     carmonalab/UCell,
     davidcsterratt/geometry/pkg,
+    immunogenomics/presto,
     nyiuab/NBZIMM
 Config/reticulate:
   list(
