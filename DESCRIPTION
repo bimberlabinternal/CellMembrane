@@ -99,7 +99,8 @@ Imports:
     iNEXT,
     leidenbase,
     logger, 
-    GSEABase
+    GSEABase,
+    ggrastr
 Suggests:
     devtools,
     testthat (>= 2.1.0),
