@@ -10,6 +10,8 @@ RUN cd /CellMembrane \
 	&& Rscript -e "BiocManager::install(ask = FALSE);" \
     # Pre-install the cpu-only versions of pytorch to try to reduce image size:
     && python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
+    # starcatpy (StarCAT) for T-cell projection onto TCAT references
+    && python3 -m pip install starcatpy \
     && Rscript -e "devtools::install_deps(pkg = '.', dependencies = TRUE, upgrade = 'never');" \
     # This should ultimately be removed. It is being used to fix the merge() bug in SeuratObject 5.3.0
     && Rscript -e "remotes::install_version('SeuratObject', version = '5.2.0')" \
