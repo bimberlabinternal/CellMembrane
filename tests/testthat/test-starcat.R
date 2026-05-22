@@ -24,7 +24,7 @@ test_that("RunStarCAT works", {
   seuratObj <- RunStarCAT(seuratObj,
                           reference                = "TCAT.V1",
                           outputDirectory          = "./starcat_test_output",
-                          name                     = "starcat_test",
+                          outputPrefix             = "starcat_test",
                           cleanUpIntermediateFiles = FALSE)
 
   testthat::expect_true(file.exists("./starcat_test_output/starcat_test.scores.txt"))
@@ -37,7 +37,7 @@ test_that("RunStarCAT works", {
   seuratObj <- RunStarCAT(seuratObj,
                           reference                = "TCAT.V1",
                           outputDirectory          = "./starcat_test_output_clean",
-                          name                     = "starcat_test",
+                          outputPrefix             = "starcat_test",
                           cleanUpIntermediateFiles = TRUE)
 
   testthat::expect_false(dir.exists("./starcat_test_output_clean"))

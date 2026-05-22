@@ -9,7 +9,7 @@ RunStarCAT(
   reference = "TCAT.V1",
   outputDirectory = "./starcat_output",
   assayName = "RNA",
-  name = "starcat_run",
+  outputPrefix = "starcat_run",
   starcatMetadataPrefix = "starcat_",
   addUsageToMetadata = TRUE,
   cacheDirectory = NULL,
@@ -25,7 +25,7 @@ RunStarCAT(
 
 \item{assayName}{The name of the assay containing the counts matrix that will be passed to starCAT.}
 
-\item{name}{Prefix for starCAT output files.}
+\item{outputPrefix}{Prefix for starCAT output files.}
 
 \item{starcatMetadataPrefix}{A prefix prepended to columns added to seuratObj@meta.data. Scores are added as <prefix>score_*, usage columns as <prefix>usage_*.}
 

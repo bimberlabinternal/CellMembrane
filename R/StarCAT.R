@@ -6,7 +6,7 @@
 #' @param reference The starCAT reference to use. Either a built-in reference name (e.g. 'TCAT.V1', 'MYELOID.GLIOMA.V1', 'BONEMARROW.CD34POS.HSPC.V1') or a path to a custom reference .tsv/.txt file.
 #' @param outputDirectory The directory where starCAT outputs (<name>.rf_usage_normalized.txt and, when the reference ships add-on scores, <name>.scores.txt) will be written.
 #' @param assayName The name of the assay containing the counts matrix that will be passed to starCAT.
-#' @param name Prefix for starCAT output files.
+#' @param outputPrefix Prefix for starCAT output files.
 #' @param starcatMetadataPrefix A prefix prepended to columns added to seuratObj@meta.data. Scores are added as <prefix>score_*, usage columns as <prefix>usage_*.
 #' @param addUsageToMetadata If TRUE, append the cNMF program usage matrix to seuratObj@meta.data. If FALSE, usage is left as a file on disk in outputDirectory.
 #' @param cacheDirectory Directory where starCAT downloads / caches built-in reference files. Defaults to <outputDirectory>/cache. Use a shared persistent path to avoid re-downloading the reference across runs.
@@ -22,7 +22,7 @@ RunStarCAT <- function(seuratObj,
                        reference                = "TCAT.V1",
                        outputDirectory          = "./starcat_output",
                        assayName                = "RNA",
-                       name                     = "starcat_run",
+                       outputPrefix             = "starcat_run",
                        starcatMetadataPrefix    = "starcat_",
                        addUsageToMetadata       = TRUE,
                        cacheDirectory           = NULL,
@@ -80,7 +80,7 @@ RunStarCAT <- function(seuratObj,
   call <- paste0("run_StarCAT(gex_datafile='", gexOutFile,
                  "', reference='", reference,
                  "', output_dir='", outputDirectory,
-                 "', name='", name,
+                 "', name='", outputPrefix,
                  "', cachedir='", cacheDirectory,
                  "')")
 
@@ -92,8 +92,8 @@ RunStarCAT <- function(seuratObj,
     stop(sprintf("starcat python script exited with status %d.", status))
   }
 
-  usageFile  <- paste0(outputDirectory, "/", name, ".rf_usage_normalized.txt")
-  scoresFile <- paste0(outputDirectory, "/", name, ".scores.txt")
+  usageFile  <- paste0(outputDirectory, "/", outputPrefix, ".rf_usage_normalized.txt")
+  scoresFile <- paste0(outputDirectory, "/", outputPrefix, ".scores.txt")
 
   if (!file.exists(usageFile)) {
     stop("starCAT finished but the expected usage output was not found at ", usageFile)
@@ -101,9 +101,16 @@ RunStarCAT <- function(seuratObj,
 
   usage <- utils::read.table(usageFile, header = TRUE, sep = "\t", row.names = 1, check.names = FALSE)
 
+  if (!setequal(rownames(usage), colnames(seuratObj))) {
+    stop("The cell barcodes in the starCAT usage output do not match the cells in the Seurat object.")
+  }
+
   scores <- NULL
   if (file.exists(scoresFile)) {
     scores <- utils::read.table(scoresFile, header = TRUE, sep = "\t", row.names = 1, check.names = FALSE)
+    if (!setequal(rownames(scores), colnames(seuratObj))) {
+      stop("The cell barcodes in the starCAT scores output do not match the cells in the Seurat object.")
+    }
     colnames(scores) <- paste0(starcatMetadataPrefix, "score_", colnames(scores))
     seuratObj <- Seurat::AddMetaData(seuratObj, metadata = scores)
   } else {
