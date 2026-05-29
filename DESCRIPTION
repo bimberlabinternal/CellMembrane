@@ -130,7 +130,8 @@ Config/reticulate:
   list(
     packages = list(
       list(package = "phate"),
-      list(package = "sctour")
+      list(package = "sctour"),
+      list(package = "starcatpy")
     )
   )
 Collate: 
@@ -149,6 +150,7 @@ Collate:
     'Seurat_III.R'
     'SingleR_Seurat.R'
     'Spatial.R'
+    'StarCAT.R'
     'data.R'
     'decoupleR.R'
     'escape.R'
