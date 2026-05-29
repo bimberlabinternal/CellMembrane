@@ -1299,7 +1299,7 @@ PerformIntegration <- function(seuratObj, splitField = "SubjectId", nVariableFea
   seuratAnchors <- Seurat::FindIntegrationAnchors(object.list = Combo_LS, anchor.features = features, reduction = "rpca")
 
   # this command creates an 'integrated' data assay, dims 1:20 is pretty default but it does make a difference on how many PCA dims to anchor on...
-  seuratObj <- Seurat::IntegrateData(anchorset = seuratAnchors, dims = 1:dimsToUse, k.weight = k.weight)
+  seuratObj <- Seurat::IntegrateData(anchorset = seuratAnchors, dims = 1:dimsToUse, k.weight = k.weight, new.assay.name = "Integrated")
   Seurat::DefaultAssay(seuratObj) <- "Integrated"
   seuratObj <- Seurat::ScaleData(seuratObj, verbose = F)
 
