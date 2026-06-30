@@ -512,6 +512,10 @@ ScoreCellCycle <- function(seuratObj, min.genes = 10, useAlternateG2M = FALSE) {
   s.genes <- s.genes[which(s.genes %in% rownames(seuratObj))]
   g2m.genes <- g2m.genes[which(g2m.genes %in% rownames(seuratObj))]
 
+  data_genes <- rownames(Seurat::GetAssayData(seuratObj, layer = 'data'))
+  s.genes <- intersect(s.genes, data_genes)
+  g2m.genes <- intersect(g2m.genes, data_genes)
+
   print(paste0("Genes present in seurat object: g2m (", length(g2m.genes), ") and s (", length(s.genes), ")"))
 
   if (length(g2m.genes) < min.genes || length(s.genes) < min.genes) {
