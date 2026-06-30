@@ -509,18 +509,18 @@ ScoreCellCycle <- function(seuratObj, min.genes = 10, useAlternateG2M = FALSE) {
   s.genes <- GetSPhaseGenes()
   g2m.genes <- GetG2MGenes(useAlternateG2M)
 
-  s.genes <- s.genes[which(s.genes %in% rownames(seuratObj))]
-  g2m.genes <- g2m.genes[which(g2m.genes %in% rownames(seuratObj))]
+  existingGenes <- rownames(Seurat::GetAssayData(seuratObj))
+  s.genes <- s.genes[which(s.genes %in% existingGenes)]
+  g2m.genes <- g2m.genes[which(g2m.genes %in% existingGenes)]
 
-  print(paste0("Genes present in seurat object: g2m (", length(g2m.genes), ") and s (", length(s.genes), ")"))
-
+  print(paste0("Genes present in seurat object: g2m (", length(g2m.genes), ") and s (", length(s.genes), "). Unique genes: ", length(unique(c(s.genes, g2m.genes)))))
   if (length(g2m.genes) < min.genes || length(s.genes) < min.genes) {
     print(paste0("Error, the number of g2m and/or s genes < ", min.genes, ", aborting..."))
     return(seuratObj)
   }
 
   print("Running PCA with cell cycle genes")
-  seuratObj <- suppressWarnings(RunPCA(object = seuratObj, reduction.name = 'cc.pca', features = c(s.genes, g2m.genes), do.print = FALSE, verbose = F))
+  seuratObj <- suppressWarnings(RunPCA(object = seuratObj, reduction.name = 'cc.pca', features = unique(c(s.genes, g2m.genes)), do.print = FALSE, verbose = F))
   print(DimPlot(object = seuratObj, reduction = "cc.pca"))
 
   seuratObj <- CellCycleScoring(object = seuratObj,
