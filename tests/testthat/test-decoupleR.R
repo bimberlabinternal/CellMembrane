@@ -1,12 +1,12 @@
 context("scRNAseq")
 
-options(
+options(list(
   omnipathr.curl_verbose = TRUE,
   omnipathr.http_timeout = 500L,
   omnipathr.connect_timeout = 30L,
   omnipathr.retry_downloads = 6L,
   omnipathr.retry_downloads_in_seconds = 10L
-)
+))
 OmnipathR::omnipath_set_cachedir(tempdir())
 
 test_that("RunDecoupleR works as expected", {
