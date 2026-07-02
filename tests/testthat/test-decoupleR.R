@@ -1,7 +1,7 @@
 context("scRNAseq")
 
 options(omnipathr.curl_verbose = TRUE)
-omnipath_set_cachedir(tempdir())
+OmnipathR::omnipath_set_cachedir(tempdir())
 
 test_that("RunDecoupleR works as expected", {
   # This failed on github runners with a non-informative 'job terminated' error.
