@@ -5,7 +5,7 @@ test_that("RunDecoupleR works as expected", {
   if (version$minor > 4.3) {
     # See: https://github.com/saezlab/OmnipathR/issues/127#issuecomment-5111448160
     OmnipathR::omnipath_cache_wipe()
-    silent(OmnipathR::collectri())
+    invisible(OmnipathR::collectri())
 
     seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
     seuratObj <- RunDecoupleR(seuratObj)
