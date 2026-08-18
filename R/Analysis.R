@@ -520,7 +520,7 @@ CalculateClusterEnrichmentPairwise <- function(seuratObj,
     stop("returnSeuratObjectOrPlots must be either 'SeuratObject' or 'Plots'.")
   } else if (!is.logical(includeDepletions)) {
     stop("includeDepletions must be a boolean value (TRUE or FALSE).")
-  } else if (!is.character(pvalueAdjustmentMethod) || !pvalueAdjustmentMethod %in% stats:::p.adjust.methods) {
+  } else if (!is.character(pvalueAdjustmentMethod) || !pvalueAdjustmentMethod %in% stats::p.adjust.methods) {
     stop("pvalueAdjustmentMethod must be one of 'holm', 'BH', or 'bonferroni'.")
   } else if (!is.logical(lowSampleSizeDetection)) {
     stop("lowSampleSizeDetection must be a boolean value (TRUE or FALSE).")

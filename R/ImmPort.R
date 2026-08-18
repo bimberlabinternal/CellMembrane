@@ -11,7 +11,7 @@
   #fetch & read
   gmt_url <- fetchUrl
   temp_file_raw <- tempfile(fileext = ".gmt")
-  download.file(gmt_url, temp_file_raw, mode = "wb")
+  utils::download.file(gmt_url, temp_file_raw, mode = "wb")
   raw_lines <- readLines(temp_file_raw)
   if (length(raw_lines) == 0) {
     stop("Failed to read any lines from the downloaded GMT file. Check the URL supplied to fetchUrl, and internet connectivity. URL used: ", gmt_url)
@@ -26,7 +26,7 @@
   gsets <- GSEABase::getGmt(temp_file_clean, sep = "\t")
   pathway_list <- GSEABase::geneIds(gsets)
   #then, flip the relationship so we fetch pathways from genes and have easy access to the genes via names()
-  stacked_list <- stack(pathway_list)
+  stacked_list <- utils::stack(pathway_list)
   genewise_list <- split(as.character(stacked_list$ind), stacked_list$values)
   return(genewise_list)
 }
