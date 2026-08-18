@@ -374,6 +374,15 @@ RunPcaSteps <- function(seuratObj, npcs = 50, variableGeneTable = NULL) {
     write.table(sort(vg), file = variableGeneTable, sep = '\t', row.names = F, quote = F, col.names = F)
   }
 
+  if (npcs > (ncol(seuratObj - 1))) {
+    npcs <- ncol(seuratObj) - 1
+    if (npcs >= 0) {
+      stop('Too few samples in the object to run PCA')
+    }
+
+    print(paste0('npcs is more than the # of samples - 1, reducing to: ', npcs))
+  }
+
   seuratObj <- RunPCA(object = seuratObj, features = vg, reduction.name = 'pca', verbose = F, npcs = npcs)
   seuratObj <- ProjectDim(object = seuratObj)
 
