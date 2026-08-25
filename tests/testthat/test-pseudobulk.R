@@ -32,6 +32,22 @@ test_that("Pseudobulk works", {
 
 })
 
+test_that("nCount RNA stratification skips when data is too small for KL divergence", {
+  seuratObj <- suppressWarnings(Seurat::UpdateSeuratObject(readRDS('../testdata/seuratOutput.rds')))
+  tiny <- seuratObj[, 1:2]
+  tiny$kl_test_cluster <- 0L
+  pseudo_tiny <- testthat::expect_no_error(
+    PseudobulkSeurat(
+      tiny,
+      groupFields = c('ClusterNames_0.2'),
+      nCountRnaStratification = TRUE,
+      stratificationGroupingFields = 'kl_test_cluster'
+    )
+  )
+  testthat::expect_false(is.null(pseudo_tiny))
+  testthat::expect_false('nCount_RNA_Stratification' %in% colnames(pseudo_tiny@meta.data))
+})
+
 test_that("Pseudobulk-based differential expression works", {
   testthat::expect_equal(length(colnames(pbmc_small)), expected = 80) #weak insurance that pbmc_small doesn't change.
   pbmc_small@meta.data[,"random_cohort"] <- base::rep(c(1,2), length.out = length(colnames(pbmc_small)))

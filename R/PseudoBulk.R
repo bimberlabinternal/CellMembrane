@@ -60,9 +60,21 @@ PseudobulkSeurat <- function(seuratObj,
                                                                              replace = F))
       }
       #drop NA column formed when initializing matrix
-      cluster_nCount_RNA_matrix <- cluster_nCount_RNA_matrix[,-1]
+      cluster_nCount_RNA_matrix <- cluster_nCount_RNA_matrix[, -1, drop = FALSE]
+      #guard against small input dataset sizes
+      if (ncol(cluster_nCount_RNA_matrix) < 2L || nrow(cluster_nCount_RNA_matrix) < 2L) {
+        print(paste0("Skipping nCount_RNA stratification for ", stratificationGroupingField, " due to small input dataset size. Minimum cluster size: ", minimum_cluster_size, ". Cluster nCount_RNA matrix dimensions: ", nrow(cluster_nCount_RNA_matrix), "x", ncol(cluster_nCount_RNA_matrix)))
+        next
+      }
       #compute KL divergences
-      KL_divergences <- flexmix::KLdiv(cluster_nCount_RNA_matrix)
+      KL_divergences <- tryCatch(
+        flexmix::KLdiv(cluster_nCount_RNA_matrix),
+        error = function(e) NULL
+      )
+      if (is.null(KL_divergences)) {
+        print(paste0("Skipping nCount_RNA stratification for ", stratificationGroupingField, " due to error in KL divergence calculation. Cluster nCount_RNA matrix dimensions: ", nrow(cluster_nCount_RNA_matrix), "x", ncol(cluster_nCount_RNA_matrix)))
+        next
+      }
       
       #perform rudimentary outlier detection on column sums of KL divergences assuming a half-normal distribution. 
       abnormal_RNA_clusters_index <- which(colSums(KL_divergences) >= mean(colSums(KL_divergences)) + 2*sd(colSums(KL_divergences)))
