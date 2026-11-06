@@ -108,53 +108,67 @@ import(mlr3verse)
 import(patchwork)
 importFrom(DropletUtils,barcodeRanks)
 importFrom(Matrix,colSums)
-importFrom(NBZIMM,glmm.nb)
-importFrom(NBZIMM,glmm.zinb)
+importFrom(NBZIMM,
+  glmm.nb,
+  glmm.zinb
+)
 importFrom(Seurat,Read10X)
-importFrom(dplyr,"%>%")
-importFrom(dplyr,arrange)
-importFrom(dplyr,coalesce)
-importFrom(dplyr,everything)
-importFrom(dplyr,filter)
-importFrom(dplyr,group_by)
-importFrom(dplyr,select)
-importFrom(dplyr,summarise)
-importFrom(dplyr,top_n)
-importFrom(graphics,abline)
-importFrom(graphics,boxplot)
-importFrom(graphics,legend)
-importFrom(graphics,lines)
-importFrom(graphics,plot)
-importFrom(graphics,points)
-importFrom(graphics,segments)
+importFrom(dplyr,
+  "%>%",
+  arrange,
+  coalesce,
+  everything,
+  filter,
+  group_by,
+  select,
+  summarise,
+  top_n
+)
+importFrom(graphics,
+  abline,
+  boxplot,
+  legend,
+  lines,
+  plot,
+  points,
+  segments
+)
 importFrom(jsonlite,write_json)
 importFrom(magrittr,"%>%")
-importFrom(methods,"slot<-")
-importFrom(methods,is)
-importFrom(methods,new)
-importFrom(methods,slot)
-importFrom(methods,slotNames)
-importFrom(mlr3,as_task_classif)
-importFrom(mlr3,lrn)
-importFrom(mlr3,partition)
+importFrom(methods,
+  "slot<-",
+  is,
+  new,
+  slot,
+  slotNames
+)
+importFrom(mlr3,
+  as_task_classif,
+  lrn,
+  partition
+)
 importFrom(rlang,":=")
 importFrom(scuttle,logNormCounts)
-importFrom(stats,approxfun)
-importFrom(stats,cmdscale)
-importFrom(stats,coef)
-importFrom(stats,cor)
-importFrom(stats,dist)
-importFrom(stats,kmeans)
-importFrom(stats,lm)
-importFrom(stats,na.omit)
-importFrom(stats,prcomp)
-importFrom(stats,quantile)
-importFrom(stats,sd)
-importFrom(stats,setNames)
-importFrom(stats,wilcox.test)
-importFrom(utils,head)
-importFrom(utils,read.csv)
-importFrom(utils,read.table)
-importFrom(utils,tail)
-importFrom(utils,write.csv)
-importFrom(utils,write.table)
+importFrom(stats,
+  approxfun,
+  cmdscale,
+  coef,
+  cor,
+  dist,
+  kmeans,
+  lm,
+  na.omit,
+  prcomp,
+  quantile,
+  sd,
+  setNames,
+  wilcox.test
+)
+importFrom(utils,
+  head,
+  read.csv,
+  read.table,
+  tail,
+  write.csv,
+  write.table
+)
