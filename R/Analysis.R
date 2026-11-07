@@ -354,8 +354,8 @@ CalculateClusterEnrichmentOmnibus <- function(seuratObj,
       for (cluster in unique(clusterProportionsDataFrame[[clusterField]])) { 
         if (enrichmentDataFrame[enrichmentDataFrame$clusterField == cluster,]$Cluster_p_adj < pValueCutoff) {
           # do testing 
-          pairwise_test <- conover.test::conover.test(unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, "SubjectClusterProportion"]),
-                                                      unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, treatmentField]))
+          pairwise_test <- conover.test::conover.test(unlist(as.numeric(as.character(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, "SubjectClusterProportion"]))),
+                                                      unlist(as.numeric(as.character(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, treatmentField]))))
           pairwise_test_plotting_dataframe <- data.frame(comparisons = pairwise_test$comparisons, 
                                                          T_statistic = pairwise_test$`T`, 
                                                          P_val_adj = pairwise_test$`P.adjusted`) %>% 
