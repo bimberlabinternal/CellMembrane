@@ -733,12 +733,13 @@ FindClustersAndDimRedux <- function(seuratObj, dimsToUse = NULL, minDimsToUse = 
 #' @param assayName The assay to use.
 #' @param verbose Passed to Seurat::FindMarkers
 #' @param doPairwise If true, rather than use Seurat::FindAllMarkers, the code will iterate each pair of values and generate a list of DEGs from these comparisons. This can help identify markers highly differentially expressed between some groups, but shared between others.
+#' @param minCellsPerGroup If doPairwise is used, this value can be used to skip comparisons where either group has fewer than this many cells. Note, Seurat will fail when groups have fewer than threee cells, so it should not set to lower than 3.
 #' @return A DT::datatable object with the top markers, suitable for printing
 #' @importFrom dplyr %>% coalesce group_by summarise filter top_n select everything
 #' @import DESeq2
 #' @import MAST
 #' @export
-Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, minPct = 0.1, minDiffPct = -Inf, datasetName = NULL, assayName = 'RNA', verbose = FALSE, doPairwise = FALSE) {
+Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c('wilcox', 'MAST', 'DESeq2'), numGenesToPrint = 20, onlyPos = F, pValThreshold = 0.001, foldChangeThreshold = 0.5, minPct = 0.1, minDiffPct = -Inf, datasetName = NULL, assayName = 'RNA', verbose = FALSE, doPairwise = FALSE, minCellsPerGroup = 3) {
   if (is.null(assayName)) {
     assayName <- Seurat::DefaultAssay(seuratObj)
     print(paste0('Using default assay: ', assayName))
@@ -771,6 +772,15 @@ Find_Markers <- function(seuratObj, identFields, outFile = NULL, testsToUse = c(
           for (val2 in vals) {
             if (val1 == val2) {
               next
+            }
+
+            if (!is.null(minCellsPerGroup)) {
+              group1 <- sum(seuratObj[[fieldName]] == val1, na.rm = TRUE)
+              group2 <- sum(seuratObj[[fieldName]] == val2, na.rm = TRUE)
+              if (group1 <= minCellsPerGroup || group2 <= minCellsPerGroup) {
+                print(paste0('Skipping comparison b/c of insufficient cells: ', val1,  ' / ', val2))
+                next
+              }
             }
 
             dat <- Seurat::FindMarkers(seuratObj, assay = assayName, ident.1 = val1, ident.2 = val2, group.by = fieldName, test.use = test, min.diff.pct = minDiffPct, min.pct = minPct, random.seed = GetSeed(), verbose = verbose)

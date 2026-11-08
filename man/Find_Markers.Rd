@@ -18,7 +18,8 @@ Find_Markers(
   datasetName = NULL,
   assayName = "RNA",
   verbose = FALSE,
-  doPairwise = FALSE
+  doPairwise = FALSE,
+  minCellsPerGroup = 3
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ Find_Markers(
 \item{verbose}{Passed to Seurat::FindMarkers}
 
 \item{doPairwise}{If true, rather than use Seurat::FindAllMarkers, the code will iterate each pair of values and generate a list of DEGs from these comparisons. This can help identify markers highly differentially expressed between some groups, but shared between others.}
+
+\item{minCellsPerGroup}{If doPairwise is used, this value can be used to skip comparisons where either group has fewer than this many cells. Note, Seurat will fail when groups have fewer than threee cells, so it should not set to lower than 3.}
 }
 \value{
 A DT::datatable object with the top markers, suitable for printing
