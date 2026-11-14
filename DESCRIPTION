@@ -58,7 +58,6 @@ Imports:
     limma,
     future.apply,
     ggrepel,
-    SDAtools,
     dropsim,
     RColorBrewer,
     scales,
@@ -118,8 +117,6 @@ Remotes:
     niaid/dsb,
     bimberlab/RIRA,
     saezlab/OmnipathR@devel,
-    marchinilab/SDAtools,
-    marchinilab/dropsim,
     drisso/RUVSeq,
     carmonalab/UCell,
     davidcsterratt/geometry/pkg,
@@ -144,7 +141,6 @@ Collate:
     'LDA.R'
     'Phate.R'
     'PseudoBulk.R'
-    'SDA.R'
     'SeuratUtils.R'
     'Seurat_III.R'
     'SingleR_Seurat.R'
