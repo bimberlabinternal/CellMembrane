@@ -58,7 +58,6 @@ Imports:
     limma,
     future.apply,
     ggrepel,
-    dropsim,
     RColorBrewer,
     scales,
     clusterProfiler,
