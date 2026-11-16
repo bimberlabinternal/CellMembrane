@@ -353,9 +353,13 @@ CalculateClusterEnrichmentOmnibus <- function(seuratObj,
     if (postHocTest) { 
       for (cluster in unique(clusterProportionsDataFrame[[clusterField]])) { 
         if (enrichmentDataFrame[enrichmentDataFrame$clusterField == cluster,]$Cluster_p_adj < pValueCutoff) {
-          # do testing 
-          pairwise_test <- conover.test::conover.test(unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, "SubjectClusterProportion"]),
-                                                      unlist(clusterProportionsDataFrame[clusterProportionsDataFrame[[clusterField]] == cluster, treatmentField]))
+          # conover.test 1.2.1 now stores ranks in a numeric matrix; character g
+          # coerces that matrix so ranks() on the characters fails. factor(g) allows the integer
+          # coercion of the matrix, and allows preservation of treatment labels in comparisons.
+          pairwise_test <- conover.test::conover.test(
+            as.numeric(clusterProportionsDataFrame$SubjectClusterProportion[clusterProportionsDataFrame[[clusterField]] == cluster]),
+            factor(clusterProportionsDataFrame[[treatmentField]][clusterProportionsDataFrame[[clusterField]] == cluster])
+          )
           pairwise_test_plotting_dataframe <- data.frame(comparisons = pairwise_test$comparisons, 
                                                          T_statistic = pairwise_test$`T`, 
                                                          P_val_adj = pairwise_test$`P.adjusted`) %>% 
