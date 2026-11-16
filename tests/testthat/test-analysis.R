@@ -7,12 +7,21 @@ test_that("Cluster enrichment (Omnibus) works", {
   #test that the Kruskal-Wallis rank sum test runs
   seuratObj@meta.data[,"vaccine_cohort"] <- base::rep(c("control", "vaccineOne", "vaccineTwo", "unvax"), length.out = length(colnames(seuratObj)))
   seuratObj@meta.data[,"subject"] <- base::sample(c(1,2,3,4), size = 1557, replace = T)
-  
-  seuratObj <- CalculateClusterEnrichmentOmnibus(seuratObj, 
-                            clusterField = "ClusterNames_0.4", 
+  # Bias one cluster toward vaccineOne so that the conover test runs (after significant KW test). 
+  enrichedCluster <- unique(seuratObj$ClusterNames_0.4)[1]
+  cellsInEnrichedCluster <- seuratObj$ClusterNames_0.4 == enrichedCluster
+  seuratObj$vaccine_cohort[cellsInEnrichedCluster] <- sample(
+    c("control", "vaccineOne", "vaccineTwo", "unvax"),
+    size = sum(cellsInEnrichedCluster),
+    replace = TRUE,
+    prob = c(0.05, 0.85, 0.05, 0.05)
+  )
+
+  testthat::expect_no_error(seuratObj <- CalculateClusterEnrichmentOmnibus(seuratObj,
+                            clusterField = "ClusterNames_0.4",
                             treatmentField = "vaccine_cohort",
                             subjectField = "subject",
-                            paired = "infer")
+                            paired = "infer"))
   #test that the Kruskal-Wallis rank sum test runs
   testthat::expect_true("Cluster_p_adj" %in% colnames(seuratObj@meta.data))  
   testthat::expect_true(all(seuratObj$Cluster_p_adj <= 1))
